@@ -133,6 +133,7 @@
   .name-box{background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:26px 24px;max-width:340px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.3);}
   .name-box h2{font-family:'Baloo 2',sans-serif;font-size:21px;margin:0 0 6px;color:var(--ink);}
   .name-box p{font-size:11px;color:var(--ink-dim);margin:0 0 16px;line-height:1.6;}
+  .name-error{font-size:11px;color:var(--red);min-height:15px;margin:8px 0 4px;line-height:1.5;}
   .name-box input{width:100%;padding:12px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--ink);font-family:'Space Mono',monospace;font-size:14px;text-align:center;margin-bottom:14px;}
   .name-box input:focus{outline:2px solid var(--poke-blue);outline-offset:-1px;}
   .name-box button{width:100%;background:var(--red);color:#fff;border:none;border-radius:9px;padding:12px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;cursor:pointer;}
@@ -219,6 +220,7 @@
     <h2>¿Cómo te llamás?</h2>
     <p>Tu nombre aparece en el ranking de entrenadores para competir con los demás.<br><b>Elegilo bien: después no se puede cambiar.</b></p>
     <input id="nameInput" maxlength="20" placeholder="Tu nombre" autocomplete="off">
+    <div id="nameError" class="name-error"></div>
     <button id="nameSaveBtn">¡A jugar!</button>
   </div>
 </div>
@@ -760,7 +762,7 @@ function showReveal(pulls){
   document.getElementById('overlay').classList.add('show');
 }
 
-const QUIZ_REWARD_CORRECT = 40;
+const QUIZ_REWARD_CORRECT = 15;
 const QUIZ_REWARD_WRONG = 5;
 
 let quizModo = 'tipo';
@@ -869,6 +871,13 @@ updateCoins();
 /* =================== RANKING COMPARTIDO =================== */
 const API_BASE   = 'https://n8n.consultorarz.com/webhook';
 const NAME_KEY   = 'album-kanto-jugador';
+const DEVICE_KEY = 'album-kanto-dispositivo';
+let dispositivo  = '';
+try{ dispositivo = localStorage.getItem(DEVICE_KEY) || ''; }catch(e){}
+if(!dispositivo){
+  dispositivo = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  try{ localStorage.setItem(DEVICE_KEY, dispositivo); }catch(e){}
+}
 let jugador      = '';
 let rankTab      = 'hoy';
 let ultimoTop    = null;
@@ -978,16 +987,51 @@ function pedirNombre(){
   setTimeout(() => inp.focus(), 100);
 }
 
-function guardarNombre(){
-  const inp = document.getElementById('nameInput');
-  const val = inp.value.replace(/[<>]/g, '').trim().slice(0, 20);
-  if(!val){ inp.focus(); return; }
-  if(jugador){ document.getElementById('nameOverlay').classList.remove('show'); return; }
+function aceptarNombre(val){
   jugador = val;
   try{ localStorage.setItem(NAME_KEY, jugador); }catch(e){}
   document.getElementById('playerName').textContent = jugador;
   document.getElementById('nameOverlay').classList.remove('show');
   enviarPuntaje();
+}
+
+/* Reserva el nombre en el servidor: dos entrenadores no pueden llamarse igual
+   (se compara sin tildes ni mayúsculas). Como text/plain para evitar el preflight. */
+function guardarNombre(){
+  const inp = document.getElementById('nameInput');
+  const btn = document.getElementById('nameSaveBtn');
+  const err = document.getElementById('nameError');
+  const val = inp.value.replace(/[<>]/g, '').trim().slice(0, 20);
+  if(!val){ err.textContent = 'Escribí un nombre.'; inp.focus(); return; }
+  if(jugador){ document.getElementById('nameOverlay').classList.remove('show'); return; }
+
+  const textoBtn = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+  err.textContent = '';
+
+  fetch(API_BASE + '/pokemon-registrar', {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=UTF-8'},
+    body: JSON.stringify({ jugador: val, dispositivo: dispositivo })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if(res && res.ok === false){
+      err.textContent = res.motivo === 'vacio'
+        ? 'Escribí un nombre.'
+        : 'Ese nombre ya lo está usando otro entrenador. Elegí otro.';
+      inp.focus(); inp.select();
+      return;
+    }
+    aceptarNombre(val);
+  })
+  .catch(() => {
+    /* Sin conexión no lo dejamos afuera del juego: juega igual,
+       pero el nombre no queda reservado hasta que vuelva la señal. */
+    aceptarNombre(val);
+  })
+  .then(() => { btn.disabled = false; btn.textContent = textoBtn; });
 }
 
 document.getElementById('nameSaveBtn').onclick = guardarNombre;
