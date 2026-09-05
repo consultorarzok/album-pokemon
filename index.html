@@ -210,7 +210,7 @@
   <div class="filters" id="filters"></div>
 
   <div class="pack-bar">
-    <div class="info">Sobre: <b>5 figuritas</b> · costo <b id="packCost">150</b> monedas</div>
+    <div class="info">Sobre: <b id="packSize">8</b> figuritas · costo <b id="packCost">150</b> monedas</div>
     <button class="open-btn" id="openBtn">Abrir sobre</button>
   </div>
 
@@ -328,7 +328,8 @@ const TYPE_LABEL = {
   psychic:'Psíquico', bug:'Bicho', rock:'Roca', ghost:'Fantasma', dragon:'Dragón', fairy:'Hada',
   dark:'Siniestro', steel:'Acero'
 };
-const REGION_LABEL = { kanto:'Kanto', johto:'Johto', hoenn:'Hoenn', sinnoh:'Sinnoh' };
+const REGION_LABEL = { kanto:'Kanto', johto:'Johto', hoenn:'Hoenn', sinnoh:'Sinnoh',
+  unova:'Teselia', kalos:'Kalos', alola:'Alola', galar:'Galar', paldea:'Paldea' };
 
 const KANTO_DATA = [
 [1,"Bulbasaur","grass","Común",70],[2,"Ivysaur","grass","Poco Común",25],[3,"Venusaur","grass","Rara",8],
@@ -628,7 +629,216 @@ const SINNOH_RAW = [
   img:`https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${r[0]}.png`
 }));
 
-const DATA = KANTO_DATA.concat(JOHTO_RAW).concat(HOENN_RAW).concat(SINNOH_RAW);
+const UNOVA_RAW = [
+[494,"Victini","psychic","Legendario",2],[495,"Snivy","grass","Común",70],[496,"Servine","grass","Poco Común",25],
+[497,"Serperior","grass","Rara",8],[498,"Tepig","fire","Común",70],[499,"Pignite","fire","Poco Común",25],
+[500,"Emboar","fire","Rara",8],[501,"Oshawott","water","Común",70],[502,"Dewott","water","Poco Común",25],
+[503,"Samurott","water","Rara",8],[504,"Patrat","normal","Común",70],[505,"Watchog","normal","Rara",8],
+[506,"Lillipup","normal","Común",70],[507,"Herdier","normal","Poco Común",25],[508,"Stoutland","normal","Rara",8],
+[509,"Purrloin","dark","Común",70],[510,"Liepard","dark","Rara",8],[511,"Pansage","grass","Común",70],
+[512,"Simisage","grass","Rara",8],[513,"Pansear","fire","Común",70],[514,"Simisear","fire","Rara",8],
+[515,"Panpour","water","Común",70],[516,"Simipour","water","Rara",8],[517,"Munna","psychic","Común",70],
+[518,"Musharna","psychic","Rara",8],[519,"Pidove","normal","Común",70],[520,"Tranquill","normal","Poco Común",25],
+[521,"Unfezant","normal","Rara",8],[522,"Blitzle","electric","Común",70],[523,"Zebstrika","electric","Rara",8],
+[524,"Roggenrola","rock","Común",70],[525,"Boldore","rock","Poco Común",25],[526,"Gigalith","rock","Rara",8],
+[527,"Woobat","psychic","Común",70],[528,"Swoobat","psychic","Rara",8],[529,"Drilbur","ground","Común",70],
+[530,"Excadrill","ground","Rara",8],[531,"Audino","normal","Poco Común",25],[532,"Timburr","fighting","Común",70],
+[533,"Gurdurr","fighting","Poco Común",25],[534,"Conkeldurr","fighting","Rara",8],[535,"Tympole","water","Común",70],
+[536,"Palpitoad","water","Poco Común",25],[537,"Seismitoad","water","Rara",8],[538,"Throh","fighting","Poco Común",25],
+[539,"Sawk","fighting","Poco Común",25],[540,"Sewaddle","bug","Común",70],[541,"Swadloon","bug","Poco Común",25],
+[542,"Leavanny","bug","Rara",8],[543,"Venipede","bug","Común",70],[544,"Whirlipede","bug","Poco Común",25],
+[545,"Scolipede","bug","Rara",8],[546,"Cottonee","grass","Común",70],[547,"Whimsicott","grass","Rara",8],
+[548,"Petilil","grass","Común",70],[549,"Lilligant","grass","Rara",8],[550,"Basculin","water","Común",70],
+[551,"Sandile","ground","Común",70],[552,"Krokorok","ground","Poco Común",25],[553,"Krookodile","ground","Rara",8],
+[554,"Darumaka","fire","Común",70],[555,"Darmanitan","fire","Rara",8],[556,"Maractus","grass","Poco Común",25],
+[557,"Dwebble","bug","Común",70],[558,"Crustle","bug","Rara",8],[559,"Scraggy","dark","Común",70],
+[560,"Scrafty","dark","Rara",8],[561,"Sigilyph","psychic","Poco Común",25],[562,"Yamask","ghost","Común",70],
+[563,"Cofagrigus","ghost","Rara",8],[564,"Tirtouga","water","Común",70],[565,"Carracosta","water","Rara",8],
+[566,"Archen","rock","Común",70],[567,"Archeops","rock","Rara",8],[568,"Trubbish","poison","Común",70],
+[569,"Garbodor","poison","Rara",8],[570,"Zorua","dark","Común",70],[571,"Zoroark","dark","Rara",8],
+[572,"Minccino","normal","Común",70],[573,"Cinccino","normal","Rara",8],[574,"Gothita","psychic","Común",70],
+[575,"Gothorita","psychic","Poco Común",25],[576,"Gothitelle","psychic","Rara",8],[577,"Solosis","psychic","Común",70],
+[578,"Duosion","psychic","Poco Común",25],[579,"Reuniclus","psychic","Rara",8],[580,"Ducklett","water","Común",70],
+[581,"Swanna","water","Rara",8],[582,"Vanillite","ice","Común",70],[583,"Vanillish","ice","Poco Común",25],
+[584,"Vanilluxe","ice","Rara",8],[585,"Deerling","normal","Común",70],[586,"Sawsbuck","normal","Rara",8],
+[587,"Emolga","electric","Poco Común",25],[588,"Karrablast","bug","Común",70],[589,"Escavalier","bug","Rara",8],
+[590,"Foongus","grass","Común",70],[591,"Amoonguss","grass","Rara",8],[592,"Frillish","water","Común",70],
+[593,"Jellicent","water","Rara",8],[594,"Alomomola","water","Poco Común",25],[595,"Joltik","bug","Común",70],
+[596,"Galvantula","bug","Rara",8],[597,"Ferroseed","grass","Común",70],[598,"Ferrothorn","grass","Rara",8],
+[599,"Klink","steel","Común",70],[600,"Klang","steel","Poco Común",25],[601,"Klinklang","steel","Rara",8],
+[602,"Tynamo","electric","Común",70],[603,"Eelektrik","electric","Poco Común",25],[604,"Eelektross","electric","Rara",8],
+[605,"Elgyem","psychic","Común",70],[606,"Beheeyem","psychic","Rara",8],[607,"Litwick","ghost","Común",70],
+[608,"Lampent","ghost","Poco Común",25],[609,"Chandelure","ghost","Rara",8],[610,"Axew","dragon","Común",70],
+[611,"Fraxure","dragon","Poco Común",25],[612,"Haxorus","dragon","Rara",8],[613,"Cubchoo","ice","Común",70],
+[614,"Beartic","ice","Rara",8],[615,"Cryogonal","ice","Rara",8],[616,"Shelmet","bug","Común",70],
+[617,"Accelgor","bug","Rara",8],[618,"Stunfisk","ground","Poco Común",25],[619,"Mienfoo","fighting","Común",70],
+[620,"Mienshao","fighting","Rara",8],[621,"Druddigon","dragon","Poco Común",25],[622,"Golett","ground","Común",70],
+[623,"Golurk","ground","Rara",8],[624,"Pawniard","dark","Común",70],[625,"Bisharp","dark","Poco Común",25],
+[626,"Bouffalant","normal","Poco Común",25],[627,"Rufflet","normal","Común",70],[628,"Braviary","normal","Rara",8],
+[629,"Vullaby","dark","Común",70],[630,"Mandibuzz","dark","Rara",8],[631,"Heatmor","fire","Poco Común",25],
+[632,"Durant","bug","Poco Común",25],[633,"Deino","dark","Común",70],[634,"Zweilous","dark","Poco Común",25],
+[635,"Hydreigon","dark","Rara",8],[636,"Larvesta","bug","Común",70],[637,"Volcarona","bug","Rara",8],
+[638,"Cobalion","steel","Legendario",2],[639,"Terrakion","rock","Legendario",2],[640,"Virizion","grass","Legendario",2],
+[641,"Tornadus","flying","Legendario",2],[642,"Thundurus","electric","Legendario",2],[643,"Reshiram","dragon","Legendario",2],
+[644,"Zekrom","dragon","Legendario",2],[645,"Landorus","ground","Legendario",2],[646,"Kyurem","dragon","Legendario",2],
+[647,"Keldeo","water","Legendario",2],[648,"Meloetta","normal","Legendario",2],[649,"Genesect","bug","Legendario",2]
+].map(r => ({
+  id:r[0], name:r[1], type:r[2], rarity:r[3], weight:r[4], region:'unova',
+  img:`https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${r[0]}.png`
+}));
+
+const KALOS_RAW = [
+[650,"Chespin","grass","Común",70],[651,"Quilladin","grass","Poco Común",25],[652,"Chesnaught","grass","Rara",8],
+[653,"Fennekin","fire","Común",70],[654,"Braixen","fire","Poco Común",25],[655,"Delphox","fire","Rara",8],
+[656,"Froakie","water","Común",70],[657,"Frogadier","water","Poco Común",25],[658,"Greninja","water","Rara",8],
+[659,"Bunnelby","normal","Común",70],[660,"Diggersby","normal","Rara",8],[661,"Fletchling","normal","Común",70],
+[662,"Fletchinder","fire","Poco Común",25],[663,"Talonflame","fire","Rara",8],[664,"Scatterbug","bug","Común",70],
+[665,"Spewpa","bug","Poco Común",25],[666,"Vivillon","bug","Rara",8],[667,"Litleo","fire","Común",70],
+[668,"Pyroar","fire","Rara",8],[669,"Flabébé","fairy","Común",70],[670,"Floette","fairy","Poco Común",25],
+[671,"Florges","fairy","Rara",8],[672,"Skiddo","grass","Común",70],[673,"Gogoat","grass","Rara",8],
+[674,"Pancham","fighting","Común",70],[675,"Pangoro","fighting","Rara",8],[676,"Furfrou","normal","Poco Común",25],
+[677,"Espurr","psychic","Común",70],[678,"Meowstic","psychic","Rara",8],[679,"Honedge","steel","Común",70],
+[680,"Doublade","steel","Poco Común",25],[681,"Aegislash","steel","Rara",8],[682,"Spritzee","fairy","Común",70],
+[683,"Aromatisse","fairy","Rara",8],[684,"Swirlix","fairy","Común",70],[685,"Slurpuff","fairy","Rara",8],
+[686,"Inkay","dark","Común",70],[687,"Malamar","dark","Rara",8],[688,"Binacle","rock","Común",70],
+[689,"Barbaracle","rock","Rara",8],[690,"Skrelp","poison","Común",70],[691,"Dragalge","poison","Rara",8],
+[692,"Clauncher","water","Común",70],[693,"Clawitzer","water","Rara",8],[694,"Helioptile","electric","Común",70],
+[695,"Heliolisk","electric","Rara",8],[696,"Tyrunt","rock","Común",70],[697,"Tyrantrum","rock","Rara",8],
+[698,"Amaura","rock","Común",70],[699,"Aurorus","rock","Rara",8],[700,"Sylveon","fairy","Rara",8],
+[701,"Hawlucha","fighting","Rara",8],[702,"Dedenne","electric","Poco Común",25],[703,"Carbink","rock","Rara",8],
+[704,"Goomy","dragon","Común",70],[705,"Sliggoo","dragon","Poco Común",25],[706,"Goodra","dragon","Rara",8],
+[707,"Klefki","steel","Poco Común",25],[708,"Phantump","ghost","Común",70],[709,"Trevenant","ghost","Rara",8],
+[710,"Pumpkaboo","ghost","Común",70],[711,"Gourgeist","ghost","Rara",8],[712,"Bergmite","ice","Común",70],
+[713,"Avalugg","ice","Rara",8],[714,"Noibat","flying","Común",70],[715,"Noivern","flying","Rara",8],
+[716,"Xerneas","fairy","Legendario",2],[717,"Yveltal","dark","Legendario",2],[718,"Zygarde","dragon","Legendario",2],
+[719,"Diancie","rock","Legendario",2],[720,"Hoopa","psychic","Legendario",2],[721,"Volcanion","fire","Legendario",2]
+].map(r => ({
+  id:r[0], name:r[1], type:r[2], rarity:r[3], weight:r[4], region:'kalos',
+  img:`https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${r[0]}.png`
+}));
+
+const ALOLA_RAW = [
+[722,"Rowlet","grass","Común",70],[723,"Dartrix","grass","Poco Común",25],[724,"Decidueye","grass","Rara",8],
+[725,"Litten","fire","Común",70],[726,"Torracat","fire","Poco Común",25],[727,"Incineroar","fire","Rara",8],
+[728,"Popplio","water","Común",70],[729,"Brionne","water","Poco Común",25],[730,"Primarina","water","Rara",8],
+[731,"Pikipek","normal","Común",70],[732,"Trumbeak","normal","Poco Común",25],[733,"Toucannon","normal","Rara",8],
+[734,"Yungoos","normal","Común",70],[735,"Gumshoos","normal","Rara",8],[736,"Grubbin","bug","Común",70],
+[737,"Charjabug","bug","Poco Común",25],[738,"Vikavolt","bug","Rara",8],[739,"Crabrawler","fighting","Común",70],
+[740,"Crabominable","fighting","Rara",8],[741,"Oricorio","fire","Poco Común",25],[742,"Cutiefly","bug","Común",70],
+[743,"Ribombee","bug","Rara",8],[744,"Rockruff","rock","Común",70],[745,"Lycanroc","rock","Rara",8],
+[746,"Wishiwashi","water","Poco Común",25],[747,"Mareanie","poison","Común",70],[748,"Toxapex","poison","Rara",8],
+[749,"Mudbray","ground","Común",70],[750,"Mudsdale","ground","Rara",8],[751,"Dewpider","water","Común",70],
+[752,"Araquanid","water","Rara",8],[753,"Fomantis","grass","Común",70],[754,"Lurantis","grass","Rara",8],
+[755,"Morelull","grass","Común",70],[756,"Shiinotic","grass","Rara",8],[757,"Salandit","poison","Común",70],
+[758,"Salazzle","poison","Rara",8],[759,"Stufful","normal","Común",70],[760,"Bewear","normal","Rara",8],
+[761,"Bounsweet","grass","Común",70],[762,"Steenee","grass","Poco Común",25],[763,"Tsareena","grass","Rara",8],
+[764,"Comfey","fairy","Poco Común",25],[765,"Oranguru","normal","Poco Común",25],[766,"Passimian","fighting","Poco Común",25],
+[767,"Wimpod","bug","Común",70],[768,"Golisopod","bug","Rara",8],[769,"Sandygast","ghost","Común",70],
+[770,"Palossand","ghost","Rara",8],[771,"Pyukumuku","water","Poco Común",25],[772,"Type: Null","normal","Legendario",2],
+[773,"Silvally","normal","Legendario",2],[774,"Minior","rock","Poco Común",25],[775,"Komala","normal","Poco Común",25],
+[776,"Turtonator","fire","Poco Común",25],[777,"Togedemaru","electric","Poco Común",25],[778,"Mimikyu","ghost","Poco Común",25],
+[779,"Bruxish","water","Poco Común",25],[780,"Drampa","normal","Poco Común",25],[781,"Dhelmise","ghost","Rara",8],
+[782,"Jangmo-o","dragon","Común",70],[783,"Hakamo-o","dragon","Poco Común",25],[784,"Kommo-o","dragon","Rara",8],
+[785,"Tapu Koko","electric","Legendario",2],[786,"Tapu Lele","psychic","Legendario",2],[787,"Tapu Bulu","grass","Legendario",2],
+[788,"Tapu Fini","water","Legendario",2],[789,"Cosmog","psychic","Legendario",2],[790,"Cosmoem","psychic","Legendario",2],
+[791,"Solgaleo","psychic","Legendario",2],[792,"Lunala","psychic","Legendario",2],[793,"Nihilego","rock","Rara",8],
+[794,"Buzzwole","bug","Rara",8],[795,"Pheromosa","bug","Rara",8],[796,"Xurkitree","electric","Rara",8],
+[797,"Celesteela","steel","Rara",8],[798,"Kartana","grass","Rara",8],[799,"Guzzlord","dark","Rara",8],
+[800,"Necrozma","psychic","Legendario",2],[801,"Magearna","steel","Legendario",2],[802,"Marshadow","fighting","Legendario",2],
+[803,"Poipole","poison","Común",70],[804,"Naganadel","poison","Rara",8],[805,"Stakataka","rock","Rara",8],
+[806,"Blacephalon","fire","Rara",8],[807,"Zeraora","electric","Legendario",2],[808,"Meltan","steel","Legendario",2],
+[809,"Melmetal","steel","Legendario",2]
+].map(r => ({
+  id:r[0], name:r[1], type:r[2], rarity:r[3], weight:r[4], region:'alola',
+  img:`https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${r[0]}.png`
+}));
+
+const GALAR_RAW = [
+[810,"Grookey","grass","Común",70],[811,"Thwackey","grass","Poco Común",25],[812,"Rillaboom","grass","Rara",8],
+[813,"Scorbunny","fire","Común",70],[814,"Raboot","fire","Poco Común",25],[815,"Cinderace","fire","Rara",8],
+[816,"Sobble","water","Común",70],[817,"Drizzile","water","Poco Común",25],[818,"Inteleon","water","Rara",8],
+[819,"Skwovet","normal","Común",70],[820,"Greedent","normal","Rara",8],[821,"Rookidee","flying","Común",70],
+[822,"Corvisquire","flying","Poco Común",25],[823,"Corviknight","flying","Rara",8],[824,"Blipbug","bug","Común",70],
+[825,"Dottler","bug","Poco Común",25],[826,"Orbeetle","bug","Rara",8],[827,"Nickit","dark","Común",70],
+[828,"Thievul","dark","Rara",8],[829,"Gossifleur","grass","Común",70],[830,"Eldegoss","grass","Rara",8],
+[831,"Wooloo","normal","Común",70],[832,"Dubwool","normal","Rara",8],[833,"Chewtle","water","Común",70],
+[834,"Drednaw","water","Rara",8],[835,"Yamper","electric","Común",70],[836,"Boltund","electric","Rara",8],
+[837,"Rolycoly","rock","Común",70],[838,"Carkol","rock","Poco Común",25],[839,"Coalossal","rock","Rara",8],
+[840,"Applin","grass","Común",70],[841,"Flapple","grass","Rara",8],[842,"Appletun","grass","Rara",8],
+[843,"Silicobra","ground","Común",70],[844,"Sandaconda","ground","Rara",8],[845,"Cramorant","flying","Poco Común",25],
+[846,"Arrokuda","water","Común",70],[847,"Barraskewda","water","Rara",8],[848,"Toxel","electric","Común",70],
+[849,"Toxtricity","electric","Rara",8],[850,"Sizzlipede","fire","Común",70],[851,"Centiskorch","fire","Rara",8],
+[852,"Clobbopus","fighting","Común",70],[853,"Grapploct","fighting","Rara",8],[854,"Sinistea","ghost","Común",70],
+[855,"Polteageist","ghost","Rara",8],[856,"Hatenna","psychic","Común",70],[857,"Hattrem","psychic","Poco Común",25],
+[858,"Hatterene","psychic","Rara",8],[859,"Impidimp","dark","Común",70],[860,"Morgrem","dark","Poco Común",25],
+[861,"Grimmsnarl","dark","Rara",8],[862,"Obstagoon","dark","Rara",8],[863,"Perrserker","steel","Rara",8],
+[864,"Cursola","ghost","Rara",8],[865,"Sirfetch'd","fighting","Rara",8],[866,"Mr. Rime","ice","Rara",8],
+[867,"Runerigus","ground","Rara",8],[868,"Milcery","fairy","Común",70],[869,"Alcremie","fairy","Rara",8],
+[870,"Falinks","fighting","Poco Común",25],[871,"Pincurchin","electric","Poco Común",25],[872,"Snom","ice","Común",70],
+[873,"Frosmoth","ice","Rara",8],[874,"Stonjourner","rock","Poco Común",25],[875,"Eiscue","ice","Poco Común",25],
+[876,"Indeedee","psychic","Poco Común",25],[877,"Morpeko","electric","Poco Común",25],[878,"Cufant","steel","Común",70],
+[879,"Copperajah","steel","Rara",8],[880,"Dracozolt","electric","Rara",8],[881,"Arctozolt","electric","Rara",8],
+[882,"Dracovish","water","Rara",8],[883,"Arctovish","water","Rara",8],[884,"Duraludon","steel","Común",70],
+[885,"Dreepy","dragon","Común",70],[886,"Drakloak","dragon","Poco Común",25],[887,"Dragapult","dragon","Rara",8],
+[888,"Zacian","fairy","Legendario",2],[889,"Zamazenta","fighting","Legendario",2],[890,"Eternatus","poison","Legendario",2],
+[891,"Kubfu","fighting","Legendario",2],[892,"Urshifu","fighting","Legendario",2],[893,"Zarude","dark","Legendario",2],
+[894,"Regieleki","electric","Legendario",2],[895,"Regidrago","dragon","Legendario",2],[896,"Glastrier","ice","Legendario",2],
+[897,"Spectrier","ghost","Legendario",2],[898,"Calyrex","psychic","Legendario",2],[899,"Wyrdeer","normal","Rara",8],
+[900,"Kleavor","bug","Rara",8],[901,"Ursaluna","ground","Rara",8],[902,"Basculegion","water","Rara",8],
+[903,"Sneasler","fighting","Rara",8],[904,"Overqwil","dark","Rara",8],[905,"Enamorus","fairy","Legendario",2]
+].map(r => ({
+  id:r[0], name:r[1], type:r[2], rarity:r[3], weight:r[4], region:'galar',
+  img:`https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${r[0]}.png`
+}));
+
+const PALDEA_RAW = [
+[906,"Sprigatito","grass","Común",70],[907,"Floragato","grass","Poco Común",25],[908,"Meowscarada","grass","Rara",8],
+[909,"Fuecoco","fire","Común",70],[910,"Crocalor","fire","Poco Común",25],[911,"Skeledirge","fire","Rara",8],
+[912,"Quaxly","water","Común",70],[913,"Quaxwell","water","Poco Común",25],[914,"Quaquaval","water","Rara",8],
+[915,"Lechonk","normal","Común",70],[916,"Oinkologne","normal","Rara",8],[917,"Tarountula","bug","Común",70],
+[918,"Spidops","bug","Rara",8],[919,"Nymble","bug","Común",70],[920,"Lokix","bug","Rara",8],
+[921,"Pawmi","electric","Común",70],[922,"Pawmo","electric","Poco Común",25],[923,"Pawmot","electric","Rara",8],
+[924,"Tandemaus","normal","Común",70],[925,"Maushold","normal","Rara",8],[926,"Fidough","fairy","Común",70],
+[927,"Dachsbun","fairy","Rara",8],[928,"Smoliv","grass","Común",70],[929,"Dolliv","grass","Poco Común",25],
+[930,"Arboliva","grass","Rara",8],[931,"Squawkabilly","normal","Poco Común",25],[932,"Nacli","rock","Común",70],
+[933,"Naclstack","rock","Poco Común",25],[934,"Garganacl","rock","Rara",8],[935,"Charcadet","fire","Común",70],
+[936,"Armarouge","fire","Rara",8],[937,"Ceruledge","fire","Rara",8],[938,"Tadbulb","electric","Común",70],
+[939,"Bellibolt","electric","Rara",8],[940,"Wattrel","electric","Común",70],[941,"Kilowattrel","electric","Rara",8],
+[942,"Maschiff","dark","Común",70],[943,"Mabosstiff","dark","Rara",8],[944,"Shroodle","poison","Común",70],
+[945,"Grafaiai","poison","Rara",8],[946,"Bramblin","grass","Común",70],[947,"Brambleghast","grass","Rara",8],
+[948,"Toedscool","ground","Común",70],[949,"Toedscruel","ground","Rara",8],[950,"Klawf","rock","Poco Común",25],
+[951,"Capsakid","grass","Común",70],[952,"Scovillain","grass","Rara",8],[953,"Rellor","bug","Común",70],
+[954,"Rabsca","bug","Rara",8],[955,"Flittle","psychic","Común",70],[956,"Espathra","psychic","Rara",8],
+[957,"Tinkatink","fairy","Común",70],[958,"Tinkatuff","fairy","Poco Común",25],[959,"Tinkaton","fairy","Rara",8],
+[960,"Wiglett","water","Común",70],[961,"Wugtrio","water","Rara",8],[962,"Bombirdier","flying","Poco Común",25],
+[963,"Finizen","water","Común",70],[964,"Palafin","water","Rara",8],[965,"Varoom","steel","Común",70],
+[966,"Revavroom","steel","Rara",8],[967,"Cyclizar","dragon","Rara",8],[968,"Orthworm","steel","Poco Común",25],
+[969,"Glimmet","rock","Común",70],[970,"Glimmora","rock","Rara",8],[971,"Greavard","ghost","Común",70],
+[972,"Houndstone","ghost","Rara",8],[973,"Flamigo","flying","Rara",8],[974,"Cetoddle","ice","Común",70],
+[975,"Cetitan","ice","Rara",8],[976,"Veluza","water","Poco Común",25],[977,"Dondozo","water","Rara",8],
+[978,"Tatsugiri","dragon","Poco Común",25],[979,"Annihilape","fighting","Rara",8],[980,"Clodsire","poison","Rara",8],
+[981,"Farigiraf","normal","Rara",8],[982,"Dudunsparce","normal","Rara",8],[983,"Kingambit","dark","Rara",8],
+[984,"Great Tusk","ground","Rara",8],[985,"Scream Tail","fairy","Rara",8],[986,"Brute Bonnet","grass","Rara",8],
+[987,"Flutter Mane","ghost","Rara",8],[988,"Slither Wing","bug","Rara",8],[989,"Sandy Shocks","electric","Rara",8],
+[990,"Iron Treads","ground","Rara",8],[991,"Iron Bundle","ice","Rara",8],[992,"Iron Hands","fighting","Rara",8],
+[993,"Iron Jugulis","dark","Rara",8],[994,"Iron Moth","fire","Rara",8],[995,"Iron Thorns","rock","Rara",8],
+[996,"Frigibax","dragon","Común",70],[997,"Arctibax","dragon","Poco Común",25],[998,"Baxcalibur","dragon","Rara",8],
+[999,"Gimmighoul","ghost","Común",70],[1000,"Gholdengo","steel","Rara",8],[1001,"Wo-Chien","dark","Legendario",2],
+[1002,"Chien-Pao","dark","Legendario",2],[1003,"Ting-Lu","dark","Legendario",2],[1004,"Chi-Yu","dark","Legendario",2],
+[1005,"Roaring Moon","dragon","Rara",8],[1006,"Iron Valiant","fairy","Rara",8],[1007,"Koraidon","fighting","Legendario",2],
+[1008,"Miraidon","electric","Legendario",2],[1009,"Walking Wake","water","Rara",8],[1010,"Iron Leaves","grass","Rara",8],
+[1011,"Dipplin","grass","Poco Común",25],[1012,"Poltchageist","grass","Común",70],[1013,"Sinistcha","grass","Rara",8],
+[1014,"Okidogi","poison","Legendario",2],[1015,"Munkidori","poison","Legendario",2],[1016,"Fezandipiti","poison","Legendario",2],
+[1017,"Ogerpon","grass","Legendario",2],[1018,"Archaludon","steel","Rara",8],[1019,"Hydrapple","grass","Rara",8],
+[1020,"Gouging Fire","fire","Rara",8],[1021,"Raging Bolt","electric","Rara",8],[1022,"Iron Boulder","rock","Rara",8],
+[1023,"Iron Crown","steel","Rara",8],[1024,"Terapagos","normal","Legendario",2],[1025,"Pecharunt","poison","Legendario",2]
+].map(r => ({
+  id:r[0], name:r[1], type:r[2], rarity:r[3], weight:r[4], region:'paldea',
+  img:`https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${r[0]}.png`
+}));
+
+const DATA = KANTO_DATA.concat(JOHTO_RAW).concat(HOENN_RAW).concat(SINNOH_RAW)
+  .concat(UNOVA_RAW).concat(KALOS_RAW).concat(ALOLA_RAW).concat(GALAR_RAW).concat(PALDEA_RAW);
 
 const STORAGE_KEY = 'album-kanto-progreso';
 
@@ -636,7 +846,7 @@ let coins = 300;
 let currentFilter = 'all';
 let currentRegion = 'all';
 const PACK_COST = 150;
-const PACK_SIZE = 5;
+const PACK_SIZE = 8;
 
 const state = {};
 DATA.forEach(p => state[p.id] = {got:false, dup:0});
@@ -925,7 +1135,29 @@ const BST = [
   194,384,263,363,523,280,515,350,495,350,495,224,424,424,244,474,405,330,495,275,450,325,475,482,348,
   498,350,480,495,505,310,452,285,329,479,300,500,290,310,220,411,485,300,410,600,390,285,525,330,525,
   330,500,300,490,454,330,460,345,334,494,510,535,515,535,535,540,540,545,515,525,525,510,530,535,518,
-  525,525,480,440,580,580,580,680,680,600,670,680,580,480,600,600,600,720
+  525,525,480,440,580,580,580,680,680,600,670,680,580,480,600,600,600,720,
+  600,308,413,528,308,418,528,308,413,528,255,420,275,370,500,281,446,316,498,316,498,316,498,292,487,
+  264,358,488,295,497,280,390,515,323,425,328,508,445,305,405,505,294,384,509,465,465,310,380,500,260,
+  360,485,280,480,280,480,460,292,351,519,315,480,461,325,485,348,488,490,303,483,355,495,401,567,329,
+  474,330,510,300,470,290,390,490,290,370,490,305,473,305,395,535,335,475,428,315,495,294,464,335,480,
+  470,319,472,305,489,300,440,520,275,405,515,335,485,275,370,520,320,410,540,305,505,515,305,495,471,
+  350,510,485,303,483,340,490,490,350,510,370,510,484,484,300,420,600,360,550,580,580,580,580,580,680,
+  680,600,660,580,600,600,313,405,530,307,409,534,314,405,530,237,423,278,382,499,200,213,411,369,507,
+  303,371,552,350,531,348,495,472,355,466,325,448,500,341,462,341,480,288,482,306,500,320,494,330,500,
+  289,481,362,521,362,521,525,500,431,500,300,452,600,470,309,474,335,494,304,514,245,535,680,680,600,
+  600,600,600,320,420,530,320,420,530,320,420,530,265,355,485,253,418,300,400,500,338,478,476,304,464,
+  280,487,175,305,495,385,500,269,454,250,480,285,405,320,480,340,500,210,290,510,485,490,490,230,530,
+  320,480,410,534,570,440,480,485,435,476,475,485,517,300,420,600,570,570,570,570,200,400,680,680,570,
+  570,570,570,570,570,570,600,600,600,420,540,570,570,600,300,600,310,420,530,310,420,530,310,420,530,
+  275,460,245,365,495,180,335,505,245,455,250,460,270,490,284,485,270,490,240,410,510,260,485,485,315,
+  510,475,280,490,242,502,305,525,310,480,308,508,265,370,510,265,370,510,520,440,510,507,520,483,270,
+  495,470,435,185,475,470,470,475,436,330,500,505,505,505,505,535,270,410,600,660,660,690,385,550,600,
+  580,580,580,580,500,525,500,550,530,510,510,580,310,410,530,310,411,530,310,410,530,254,489,210,404,
+  210,450,240,350,490,305,470,312,477,260,354,510,417,280,355,500,255,525,525,272,495,280,490,340,505,
+  290,485,275,480,335,515,450,304,486,270,470,255,481,297,380,506,245,425,485,315,457,300,500,501,480,
+  350,525,290,488,500,334,521,478,530,475,535,430,520,520,550,570,570,570,570,570,570,570,570,570,570,
+  570,570,320,423,600,300,550,570,570,570,570,590,590,670,670,590,590,485,308,508,555,555,555,550,600,
+  540,590,590,590,590,450,600
 ];
 
 function poderDe(p){ return BST[p.id - 1] || 300; }
@@ -1279,6 +1511,9 @@ document.getElementById('battleCloseBtn').onclick = () => { ocultarReloj(); docu
 document.getElementById('battleNextBtn').onclick = abrirBatalla;
 document.getElementById('earnBtn').onclick = startQuiz;
 document.getElementById('resetBtn').onclick = resetProgress;
+
+document.getElementById('packSize').textContent = PACK_SIZE;
+document.getElementById('packCost').textContent = PACK_COST;
 
 loadProgress();
 renderRegionFilters();
