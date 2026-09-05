@@ -145,6 +145,17 @@
   .quiz-opt:disabled{opacity:.6;cursor:default;}
   .quiz-opt.correcta{border-color:#3DAA5B;background:#3DAA5B22;opacity:1;}
   .quiz-opt.errada{border-color:var(--red);background:#EE151522;}
+  .bat-fila{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .bat-carta{background:var(--panel);border:2px solid var(--border);border-radius:12px;padding:10px 8px;width:112px;text-align:center;}
+  .bat-carta img{width:70px;height:auto;display:block;margin:0 auto 6px;}
+  .bat-nombre{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:12px;color:var(--ink);margin-bottom:5px;line-height:1.2;}
+  .bat-tipo{font-size:10px;border-radius:20px;padding:2px 8px;display:inline-block;}
+  .bat-carta.elegible{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;}
+  .bat-carta.elegible:hover{transform:translateY(-4px);box-shadow:0 6px 14px rgba(0,0,0,.12);}
+  .bat-sub{font-size:11px;color:var(--ink-dim);margin-bottom:10px;}
+  .bat-apuestas{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;}
+  .bat-vs{font-family:'Baloo 2',sans-serif;font-weight:700;color:var(--ink-dim);font-size:14px;}
+  .bat-aviso{font-size:12px;color:var(--ink-dim);line-height:1.6;margin-bottom:14px;}
   .firma{margin-top:38px;padding-top:6px;text-align:center;}
   .firma-linea{height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-bottom:14px;}
   .firma strong{display:block;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;color:var(--ink);letter-spacing:.3px;}
@@ -190,6 +201,16 @@
     <button class="open-btn" id="openBtn">Abrir sobre</button>
   </div>
 
+  <div class="pack-bar">
+    <div class="info">Repetidas: <b id="dupCount">0</b> · <b>3 repetidas</b> = 1 figurita que te falte</div>
+    <button class="open-btn" id="canjeBtn">Canjear</button>
+  </div>
+
+  <div class="pack-bar">
+    <div class="info">Batalla de tipos · apostá monedas y <b>ganá el doble</b></div>
+    <button class="open-btn" id="battleBtn">Pelear</button>
+  </div>
+
   <div class="rank-panel">
     <div class="rank-head">
       <h3>Ranking de entrenadores</h3>
@@ -227,7 +248,7 @@
 
 <div class="overlay" id="overlay">
   <div class="reveal-panel">
-    <h2>Abriste un sobre</h2>
+    <h2 id="revealTitle">Abriste un sobre</h2>
     <div class="reveal-cards" id="revealCards"></div>
     <button class="close-btn" id="closeBtn">Cerrar</button>
   </div>
@@ -242,6 +263,18 @@
     <div class="stag" id="specialTag"></div>
   </div>
   <button class="special-continue" id="specialContinueBtn">Continuar</button>
+</div>
+
+<div class="overlay" id="battleOverlay">
+  <div class="reveal-panel" style="max-width:470px;">
+    <h2 id="battleTitle">Batalla de tipos</h2>
+    <div id="battleStage"></div>
+    <div id="battleFeedback" style="font-family:'Baloo 2',sans-serif;font-size:13px;min-height:20px;margin-bottom:12px;line-height:1.5;"></div>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <button class="close-btn" id="battleCloseBtn">Cerrar</button>
+      <button class="open-btn" id="battleNextBtn" style="padding:9px 18px;">Otra batalla</button>
+    </div>
+  </div>
 </div>
 
 <div class="overlay" id="quizOverlay">
@@ -674,11 +707,13 @@ function updateProgress(){
   document.getElementById('progressText').textContent = `${got} / ${DATA.length} figuritas`;
   document.getElementById('progressPct').textContent = `${pct}%`;
   document.getElementById('progressFill').style.width = pct + '%';
+  updateBarras();
 }
 
 function updateCoins(){
   document.getElementById('coinAmount').textContent = coins;
   document.getElementById('openBtn').disabled = coins < PACK_COST;
+  updateBarras();
 }
 
 function weightedPick(){
@@ -746,7 +781,8 @@ function playSpecialSequence(specials, index, onDone){
   };
 }
 
-function showReveal(pulls){
+function showReveal(pulls, titulo){
+  document.getElementById('revealTitle').textContent = titulo || 'Abriste un sobre';
   const box = document.getElementById('revealCards');
   box.innerHTML = '';
   pulls.forEach((pull,i)=>{
@@ -760,6 +796,193 @@ function showReveal(pulls){
     box.appendChild(card);
   });
   document.getElementById('overlay').classList.add('show');
+}
+
+/* ====================== CANJE DE REPETIDAS ====================== */
+const CANJE_COSTO = 3;
+
+function repetidasTotales(){
+  return Object.values(state).reduce((a,s) => a + (s.dup || 0), 0);
+}
+
+function faltantes(){
+  return DATA.filter(p => !state[p.id].got);
+}
+
+/* Igual que weightedPick pero dentro de una lista: el canje no puede ser
+   la vía fácil para conseguir legendarias, sigue mandando la rareza. */
+function elegirPesado(lista){
+  const total = lista.reduce((a,p) => a + p.weight, 0);
+  let r = Math.random() * total;
+  for(const p of lista){
+    if(r < p.weight) return p;
+    r -= p.weight;
+  }
+  return lista[lista.length - 1];
+}
+
+function canjearRepetidas(){
+  const falta = faltantes();
+  if(repetidasTotales() < CANJE_COSTO || falta.length === 0) return;
+
+  // se descuentan primero de las que más repetidas tenés
+  let restan = CANJE_COSTO;
+  const ordenadas = Object.keys(state)
+    .filter(id => state[id].dup > 0)
+    .sort((a,b) => state[b].dup - state[a].dup);
+  for(const id of ordenadas){
+    while(state[id].dup > 0 && restan > 0){ state[id].dup--; restan--; }
+    if(restan === 0) break;
+  }
+
+  const nueva = elegirPesado(falta);
+  state[nueva.id].got = true;
+
+  renderGrid();
+  updateProgress();
+  saveProgress();
+  enviarPuntaje();
+
+  if(isSpecial(nueva)){
+    playSpecialSequence([{p:nueva, isNew:true}], 0, () => showReveal([{p:nueva, isNew:true}], 'Canjeaste 3 repetidas'));
+  } else {
+    showReveal([{p:nueva, isNew:true}], 'Canjeaste 3 repetidas');
+  }
+}
+
+/* ====================== BATALLA DE TIPOS ====================== */
+/* Tabla de efectividad oficial (6ª generación en adelante).
+   Sólo se listan las excepciones: lo que no figura vale x1. */
+const TYPE_CHART = {
+  normal:   {rock:.5, steel:.5, ghost:0},
+  fire:     {grass:2, ice:2, bug:2, steel:2, fire:.5, water:.5, rock:.5, dragon:.5},
+  water:    {fire:2, ground:2, rock:2, water:.5, grass:.5, dragon:.5},
+  electric: {water:2, flying:2, electric:.5, grass:.5, dragon:.5, ground:0},
+  grass:    {water:2, ground:2, rock:2, fire:.5, grass:.5, poison:.5, flying:.5, bug:.5, dragon:.5, steel:.5},
+  ice:      {grass:2, ground:2, flying:2, dragon:2, fire:.5, water:.5, ice:.5, steel:.5},
+  fighting: {normal:2, ice:2, rock:2, dark:2, steel:2, poison:.5, flying:.5, psychic:.5, bug:.5, fairy:.5, ghost:0},
+  poison:   {grass:2, fairy:2, poison:.5, ground:.5, rock:.5, ghost:.5, steel:0},
+  ground:   {fire:2, electric:2, poison:2, rock:2, steel:2, grass:.5, bug:.5, flying:0},
+  flying:   {grass:2, fighting:2, bug:2, electric:.5, rock:.5, steel:.5},
+  psychic:  {fighting:2, poison:2, psychic:.5, steel:.5, dark:0},
+  bug:      {grass:2, psychic:2, dark:2, fire:.5, fighting:.5, poison:.5, flying:.5, ghost:.5, steel:.5, fairy:.5},
+  rock:     {fire:2, ice:2, flying:2, bug:2, fighting:.5, ground:.5, steel:.5},
+  ghost:    {psychic:2, ghost:2, dark:.5, normal:0},
+  dragon:   {dragon:2, steel:.5, fairy:0},
+  dark:     {psychic:2, ghost:2, fighting:.5, dark:.5, fairy:.5},
+  steel:    {ice:2, rock:2, fairy:2, fire:.5, water:.5, electric:.5, steel:.5},
+  fairy:    {fighting:2, dragon:2, dark:2, fire:.5, poison:.5, steel:.5}
+};
+
+function efectividad(atacante, defensor){
+  const fila = TYPE_CHART[atacante] || {};
+  return fila[defensor] === undefined ? 1 : fila[defensor];
+}
+
+const APUESTAS = [10, 25, 50];
+let batallaRival = null;
+let batallaApuesta = 0;
+
+function cartaBatalla(p){
+  return `<div class="bat-carta" style="border-color:${TYPE_COLORS[p.type]}">
+    <img src="${p.img}" alt="${p.name}">
+    <div class="bat-nombre">${p.name}</div>
+    <div class="bat-tipo" style="background:${TYPE_COLORS[p.type]}22;border:1px solid ${TYPE_COLORS[p.type]}">${TYPE_LABEL[p.type]}</div>
+  </div>`;
+}
+
+function avisoBatalla(txt){
+  document.getElementById('battleTitle').textContent = 'Batalla de tipos';
+  document.getElementById('battleStage').innerHTML = '<div class="bat-aviso">' + txt + '</div>';
+  document.getElementById('battleFeedback').textContent = '';
+  document.getElementById('battleOverlay').classList.add('show');
+}
+
+function abrirBatalla(){
+  const mios = DATA.filter(p => state[p.id].got);
+  if(mios.length < 3){
+    avisoBatalla('Necesitás al menos 3 figuritas para pelear. Abrí un sobre primero.');
+    return;
+  }
+  if(coins < APUESTAS[0]){
+    avisoBatalla('Te hacen falta al menos ' + APUESTAS[0] + ' monedas para apostar. Ganá respondiendo preguntas.');
+    return;
+  }
+
+  batallaRival = DATA[Math.floor(Math.random()*DATA.length)];
+  batallaApuesta = 0;
+  document.getElementById('battleFeedback').textContent = '';
+  document.getElementById('battleTitle').textContent = 'Te desafía...';
+
+  const stage = document.getElementById('battleStage');
+  stage.innerHTML = '<div class="bat-fila">' + cartaBatalla(batallaRival) + '</div>' +
+    '<div class="bat-sub">¿Cuánto apostás?</div>' +
+    '<div class="bat-apuestas">' +
+      APUESTAS.map(m => `<button class="quiz-opt" data-monto="${m}"${coins < m ? ' disabled' : ''}>${m} monedas</button>`).join('') +
+    '</div>';
+  stage.querySelectorAll('[data-monto]').forEach(b => {
+    b.onclick = () => elegirEquipo(Number(b.dataset.monto));
+  });
+  document.getElementById('battleOverlay').classList.add('show');
+}
+
+function elegirEquipo(monto){
+  batallaApuesta = monto;
+  const mios = mezclar(DATA.filter(p => state[p.id].got)).slice(0, 3);
+  document.getElementById('battleTitle').textContent = '¿Con cuál le ganás?';
+
+  const stage = document.getElementById('battleStage');
+  stage.innerHTML = '<div class="bat-fila">' + cartaBatalla(batallaRival) + '</div>' +
+    '<div class="bat-sub">Apostaste ' + monto + ' monedas · elegí tu Pokémon</div>' +
+    '<div class="bat-fila bat-equipo">' + mios.map(cartaBatalla).join('') + '</div>';
+
+  Array.from(stage.querySelectorAll('.bat-equipo .bat-carta')).forEach((el, i) => {
+    el.classList.add('elegible');
+    el.onclick = () => resolverBatalla(mios[i]);
+  });
+}
+
+function resolverBatalla(mio){
+  const mult = efectividad(mio.type, batallaRival.type);
+  const yo = TYPE_LABEL[mio.type];
+  const rival = TYPE_LABEL[batallaRival.type];
+  let delta, texto, color, titulo;
+
+  if(mult > 1){
+    delta = batallaApuesta; color = '#3DAA5B'; titulo = '¡Ganaste!';
+    texto = `${yo} es súper efectivo contra ${rival}. +${batallaApuesta} monedas.`;
+  } else if(mult === 0){
+    delta = -batallaApuesta; color = '#E3453B'; titulo = 'Perdiste';
+    texto = `${yo} no le hace nada a ${rival}. −${batallaApuesta} monedas.`;
+  } else if(mult < 1){
+    delta = -batallaApuesta; color = '#E3453B'; titulo = 'Perdiste';
+    texto = `${yo} es poco efectivo contra ${rival}. −${batallaApuesta} monedas.`;
+  } else {
+    delta = 0; color = '#6B7180'; titulo = 'Empate';
+    texto = `${yo} contra ${rival} queda igualado. Recuperás tu apuesta.`;
+  }
+
+  coins = Math.max(0, coins + delta);
+  updateCoins();
+  saveProgress();
+
+  document.getElementById('battleTitle').textContent = titulo;
+  document.getElementById('battleStage').innerHTML =
+    '<div class="bat-fila">' + cartaBatalla(mio) + '<div class="bat-vs">VS</div>' + cartaBatalla(batallaRival) + '</div>';
+  const fb = document.getElementById('battleFeedback');
+  fb.style.color = color;
+  fb.textContent = texto;
+}
+
+function updateBarras(){
+  const dups = repetidasTotales();
+  const tengo = DATA.filter(p => state[p.id].got).length;
+  const dc = document.getElementById('dupCount');
+  if(dc) dc.textContent = dups;
+  const cb = document.getElementById('canjeBtn');
+  if(cb) cb.disabled = dups < CANJE_COSTO || tengo === DATA.length;
+  const bb = document.getElementById('battleBtn');
+  if(bb) bb.disabled = coins < APUESTAS[0] || tengo < 3;
 }
 
 const QUIZ_REWARD_CORRECT = 15;
@@ -858,6 +1081,10 @@ document.getElementById('closeBtn').onclick = () => document.getElementById('ove
 document.getElementById('quizCloseBtn').onclick = () => document.getElementById('quizOverlay').classList.remove('show');
 document.getElementById('quizNextBtn').onclick = startQuiz;
 document.getElementById('openBtn').onclick = openPack;
+document.getElementById('canjeBtn').onclick = canjearRepetidas;
+document.getElementById('battleBtn').onclick = abrirBatalla;
+document.getElementById('battleCloseBtn').onclick = () => document.getElementById('battleOverlay').classList.remove('show');
+document.getElementById('battleNextBtn').onclick = abrirBatalla;
 document.getElementById('earnBtn').onclick = startQuiz;
 document.getElementById('resetBtn').onclick = resetProgress;
 
