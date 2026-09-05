@@ -138,6 +138,13 @@
   .name-box input:focus{outline:2px solid var(--poke-blue);outline-offset:-1px;}
   .name-box button{width:100%;background:var(--red);color:#fff;border:none;border-radius:9px;padding:12px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;cursor:pointer;}
 
+  #quizImg{filter:drop-shadow(0 3px 6px rgba(0,0,0,.25));transition:filter .45s ease;}
+  #quizImg.silueta{filter:brightness(0) drop-shadow(0 3px 6px rgba(0,0,0,.25));}
+  .quiz-opt{padding:10px 8px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink);font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;cursor:pointer;}
+  .quiz-opt:hover:not(:disabled){border-color:var(--gold);}
+  .quiz-opt:disabled{opacity:.6;cursor:default;}
+  .quiz-opt.correcta{border-color:#3DAA5B;background:#3DAA5B22;opacity:1;}
+  .quiz-opt.errada{border-color:var(--red);background:#EE151522;}
   .firma{margin-top:38px;padding-top:6px;text-align:center;}
   .firma-linea{height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-bottom:14px;}
   .firma strong{display:block;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;color:var(--ink);letter-spacing:.3px;}
@@ -240,7 +247,7 @@
 <div class="overlay" id="quizOverlay">
   <div class="reveal-panel" style="max-width:420px;">
     <h2 id="quizTitle">¿De qué tipo es...?</h2>
-    <img id="quizImg" src="" alt="" style="width:110px;height:auto;margin:0 auto 14px;display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5));">
+    <img id="quizImg" src="" alt="" style="width:150px;height:auto;margin:0 auto 14px;display:block;">
     <div id="quizName" style="font-family:'Baloo 2',sans-serif;font-size:16px;margin-bottom:14px;"></div>
     <div id="quizOptions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;"></div>
     <div id="quizFeedback" style="font-family:'Baloo 2',sans-serif;font-size:14px;min-height:20px;margin-bottom:10px;"></div>
@@ -758,50 +765,90 @@ function showReveal(pulls){
 const QUIZ_REWARD_CORRECT = 40;
 const QUIZ_REWARD_WRONG = 5;
 
+let quizModo = 'tipo';
+let quizTarget = null;
+
+function mezclar(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
 function startQuiz(){
-  const pool = DATA;
-  const target = pool[Math.floor(Math.random()*pool.length)];
-  const correctType = target.type;
+  quizModo = Math.random() < 0.5 ? 'silueta' : 'tipo';
+  quizTarget = DATA[Math.floor(Math.random()*DATA.length)];
 
-  const otherTypes = [...new Set(DATA.map(p=>p.type))].filter(t=>t!==correctType);
-  for(let i=otherTypes.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [otherTypes[i],otherTypes[j]] = [otherTypes[j],otherTypes[i]];
-  }
-  const options = [correctType, ...otherTypes.slice(0,3)];
-  for(let i=options.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [options[i],options[j]] = [options[j],options[i]];
-  }
-
-  document.getElementById('quizImg').src = target.img;
-  document.getElementById('quizName').textContent = target.name;
-  document.getElementById('quizFeedback').textContent = '';
-
+  const img = document.getElementById('quizImg');
+  const nameBox = document.getElementById('quizName');
   const optBox = document.getElementById('quizOptions');
+
+  document.getElementById('quizFeedback').textContent = '';
   optBox.innerHTML = '';
-  options.forEach(optType=>{
-    const btn = document.createElement('button');
-    btn.textContent = TYPE_LABEL[optType];
-    btn.style.cssText = `padding:10px;border-radius:8px;border:1px solid ${TYPE_COLORS[optType]};background:${TYPE_COLORS[optType]}22;color:var(--ink);font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;cursor:pointer;`;
-    btn.onclick = () => answerQuiz(optType, correctType, optBox);
-    optBox.appendChild(btn);
-  });
+  img.classList.remove('silueta');
+  img.src = quizTarget.img;
+
+  if(quizModo === 'silueta'){
+    document.getElementById('quizTitle').textContent = '¿Quién es este Pokémon?';
+    img.classList.add('silueta');
+    nameBox.textContent = '';
+
+    // si la imagen no carga, la silueta queda vacía y la pregunta es imposible: se revela el nombre
+    img.onerror = () => { if(quizModo === 'silueta') nameBox.textContent = quizTarget.name; };
+
+    const otros = mezclar(DATA.filter(p => p.name !== quizTarget.name)).slice(0,3);
+    mezclar([quizTarget, ...otros]).forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'quiz-opt';
+      btn.textContent = p.name;
+      btn.onclick = () => answerQuiz(p.name, quizTarget.name, optBox, btn);
+      optBox.appendChild(btn);
+    });
+  } else {
+    document.getElementById('quizTitle').textContent = '¿De qué tipo es...?';
+    img.onerror = null;
+    nameBox.textContent = quizTarget.name;
+
+    const correctType = quizTarget.type;
+    const otherTypes = mezclar([...new Set(DATA.map(p=>p.type))].filter(t=>t!==correctType));
+    mezclar([correctType, ...otherTypes.slice(0,3)]).forEach(optType => {
+      const btn = document.createElement('button');
+      btn.className = 'quiz-opt';
+      btn.textContent = TYPE_LABEL[optType];
+      btn.style.borderColor = TYPE_COLORS[optType];
+      btn.style.background = TYPE_COLORS[optType] + '22';
+      btn.onclick = () => answerQuiz(optType, correctType, optBox, btn);
+      optBox.appendChild(btn);
+    });
+  }
 
   document.getElementById('quizOverlay').classList.add('show');
 }
 
-function answerQuiz(chosen, correct, optBox){
+function answerQuiz(chosen, correct, optBox, btnElegido){
   Array.from(optBox.children).forEach(b => b.disabled = true);
+  const acerto = chosen === correct;
+  btnElegido.classList.add(acerto ? 'correcta' : 'errada');
+
+  if(quizModo === 'silueta'){
+    document.getElementById('quizImg').classList.remove('silueta');
+    document.getElementById('quizName').textContent = quizTarget.name;
+    if(!acerto){
+      Array.from(optBox.children).forEach(b => { if(b.textContent === correct) b.classList.add('correcta'); });
+    }
+  }
+
   const feedback = document.getElementById('quizFeedback');
-  if(chosen === correct){
+  if(acerto){
     coins += QUIZ_REWARD_CORRECT;
-    feedback.style.color = '#7CD68A';
+    feedback.style.color = '#3DAA5B';
     feedback.textContent = `¡Correcto! +${QUIZ_REWARD_CORRECT} monedas`;
   } else {
     coins += QUIZ_REWARD_WRONG;
     feedback.style.color = '#E3453B';
-    feedback.textContent = `Era ${TYPE_LABEL[correct]}. +${QUIZ_REWARD_WRONG} monedas de consuelo`;
+    const eraEste = quizModo === 'silueta' ? quizTarget.name : TYPE_LABEL[correct];
+    feedback.textContent = `Era ${eraEste}. +${QUIZ_REWARD_WRONG} monedas de consuelo`;
   }
   updateCoins();
   saveProgress();
