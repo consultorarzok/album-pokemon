@@ -107,7 +107,6 @@
   /* ---------- Ranking ---------- */
   .player-chip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:7px 12px;font-size:11px;color:var(--ink-dim);}
   .player-chip b{font-family:'Baloo 2',sans-serif;font-size:14px;color:var(--ink);font-weight:700;}
-  .player-chip button{background:transparent;border:none;color:var(--poke-blue);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;text-decoration:underline;padding:0;}
 
   .rank-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:22px;}
   .rank-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
@@ -166,7 +165,6 @@
 
   <div class="player-chip" id="playerChip" style="margin:0 4px 12px;width:fit-content;">
     Jugás como <b id="playerName">-</b>
-    <button id="changeNameBtn">cambiar</button>
   </div>
 
   <div class="accent-bar"></div>
@@ -219,7 +217,7 @@
 <div class="name-overlay" id="nameOverlay">
   <div class="name-box">
     <h2>¿Cómo te llamás?</h2>
-    <p>Tu nombre aparece en el ranking de entrenadores para competir con los demás.</p>
+    <p>Tu nombre aparece en el ranking de entrenadores para competir con los demás.<br><b>Elegilo bien: después no se puede cambiar.</b></p>
     <input id="nameInput" maxlength="20" placeholder="Tu nombre" autocomplete="off">
     <button id="nameSaveBtn">¡A jugar!</button>
   </div>
@@ -972,9 +970,10 @@ function renderRank(){
   }
 }
 
+// Solo se llama al entrar por primera vez: una vez elegido, el nombre es definitivo.
 function pedirNombre(){
   const inp = document.getElementById('nameInput');
-  inp.value = jugador || '';
+  inp.value = '';
   document.getElementById('nameOverlay').classList.add('show');
   setTimeout(() => inp.focus(), 100);
 }
@@ -983,6 +982,7 @@ function guardarNombre(){
   const inp = document.getElementById('nameInput');
   const val = inp.value.replace(/[<>]/g, '').trim().slice(0, 20);
   if(!val){ inp.focus(); return; }
+  if(jugador){ document.getElementById('nameOverlay').classList.remove('show'); return; }
   jugador = val;
   try{ localStorage.setItem(NAME_KEY, jugador); }catch(e){}
   document.getElementById('playerName').textContent = jugador;
@@ -994,7 +994,6 @@ document.getElementById('nameSaveBtn').onclick = guardarNombre;
 document.getElementById('nameInput').addEventListener('keydown', e => {
   if(e.key === 'Enter') guardarNombre();
 });
-document.getElementById('changeNameBtn').onclick = pedirNombre;
 document.getElementById('tabHoy').onclick = () => {
   rankTab = 'hoy';
   document.getElementById('tabHoy').classList.add('active');
