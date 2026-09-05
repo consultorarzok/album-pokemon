@@ -1293,6 +1293,27 @@ function pedirNombre(){
   setTimeout(() => inp.focus(), 100);
 }
 
+/* Escotilla para CORREGIR un nombre ya elegido: abrir el juego con
+   ?jugador=Nombre lo cambia por única vez y limpia la dirección. No hay botón
+   en la pantalla a propósito: jugando, el nombre sigue sin poder cambiarse.
+   Igual pasa por el registro, así que no sirve para robar el nombre de otro. */
+function fijarNombreDesdeLink(nuevo){
+  fetch(API_BASE + '/pokemon-registrar', {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=UTF-8'},
+    body: JSON.stringify({ jugador: nuevo, dispositivo: dispositivo })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if(res && res.ok === false) return;   // ocupado por otro: se queda como estaba
+    jugador = nuevo;
+    try{ localStorage.setItem(NAME_KEY, jugador); }catch(e){}
+    document.getElementById('playerName').textContent = jugador;
+    enviarPuntaje();
+  })
+  .catch(() => {});
+}
+
 function aceptarNombre(val){
   jugador = val;
   try{ localStorage.setItem(NAME_KEY, jugador); }catch(e){}
@@ -1358,9 +1379,20 @@ document.getElementById('tabHist').onclick = () => {
 };
 
 try{ jugador = localStorage.getItem(NAME_KEY) || ''; }catch(e){ jugador = ''; }
+
+let nombreDelLink = '';
+try{
+  nombreDelLink = (new URLSearchParams(location.search).get('jugador') || '')
+    .replace(/[<>]/g, '').trim().slice(0, 20);
+  if(nombreDelLink) history.replaceState(null, '', location.pathname);
+}catch(e){ nombreDelLink = ''; }
+
 document.getElementById('playerName').textContent = jugador || '-';
 cargarTop();
-if(jugador){
+
+if(nombreDelLink && nombreDelLink !== jugador){
+  fijarNombreDesdeLink(nombreDelLink);
+} else if(jugador){
   if(figuritasObtenidas() > 0) enviarPuntaje();
 } else {
   pedirNombre();
