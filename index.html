@@ -159,6 +159,16 @@
   .bat-apuestas{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;}
   .bat-vs{font-family:'Baloo 2',sans-serif;font-weight:700;color:var(--ink-dim);font-size:14px;}
   .bat-aviso{font-size:12px;color:var(--ink-dim);line-height:1.6;margin-bottom:14px;}
+
+  /* Reloj de los juegos: la cuenta atrás es lo que evita que se pueda pensar
+     la respuesta afuera (captura + IA). Ver .timer-num para el número grande. */
+  .timer{margin:0 auto 12px;max-width:260px;}
+  .timer-pista{font-size:10px;color:var(--ink-dim);margin-bottom:4px;}
+  .timer-num{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:20px;line-height:1;margin-bottom:5px;color:var(--ink);}
+  .timer-riel{height:7px;border-radius:6px;background:var(--border);overflow:hidden;}
+  .timer-bar{height:100%;width:100%;border-radius:6px;background:#3DAA5B;transition:width .1s linear,background .3s ease;}
+  .timer.vencido .timer-num{color:var(--red);}
+  .timer.vencido .timer-pista{visibility:hidden;}
   .firma{margin-top:38px;padding-top:6px;text-align:center;}
   .firma-linea{height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-bottom:14px;}
   .firma strong{display:block;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;color:var(--ink);letter-spacing:.3px;}
@@ -271,6 +281,11 @@
 <div class="overlay" id="battleOverlay">
   <div class="reveal-panel" style="max-width:470px;">
     <h2 id="battleTitle">Batalla de tipos</h2>
+    <div class="timer" id="battleTimer" hidden>
+      <div class="timer-num"></div>
+      <div class="timer-riel"><div class="timer-bar"></div></div>
+      <div class="timer-pista">Elegí antes de que se acabe el tiempo</div>
+    </div>
     <div id="battleStage"></div>
     <div id="battleFeedback" style="font-family:'Baloo 2',sans-serif;font-size:13px;min-height:20px;margin-bottom:12px;line-height:1.5;"></div>
     <div style="display:flex;gap:8px;justify-content:center;">
@@ -285,6 +300,11 @@
     <h2 id="quizTitle">¿De qué tipo es...?</h2>
     <img id="quizImg" src="" alt="" style="width:150px;height:auto;margin:0 auto 14px;display:block;">
     <div id="quizName" style="font-family:'Baloo 2',sans-serif;font-size:16px;margin-bottom:14px;"></div>
+    <div class="timer" id="quizTimer" hidden>
+      <div class="timer-num"></div>
+      <div class="timer-riel"><div class="timer-bar"></div></div>
+      <div class="timer-pista">Contestá antes de que se acabe el tiempo</div>
+    </div>
     <div id="quizOptions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;"></div>
     <div id="quizFeedback" style="font-family:'Baloo 2',sans-serif;font-size:14px;min-height:20px;margin-bottom:10px;"></div>
     <div style="display:flex;gap:8px;justify-content:center;">
@@ -930,6 +950,55 @@ function puntajeBatalla(a, b){
   return poderDe(a) * factorTipo(efectividad(a.type, b.type));
 }
 
+/* =================== RELOJ DE LOS JUEGOS ===================
+   Sin límite de tiempo cualquiera puede sacarle una captura a la pregunta,
+   pasársela a una IA y volver con la respuesta. Con el reloj corriendo hay
+   que contestar de memoria. Si se vence: 0 monedas en el quiz y se pierde
+   la apuesta en la batalla. */
+const QUIZ_SEGUNDOS    = 5;
+const BATALLA_SEGUNDOS = 7;
+
+let relojId   = null;
+let relojWrap = null;
+
+function pararReloj(){
+  if(relojId){ clearInterval(relojId); relojId = null; }
+}
+
+function ocultarReloj(){
+  pararReloj();
+  if(relojWrap){ relojWrap.hidden = true; relojWrap = null; }
+}
+
+function arrancarReloj(id, segundos, alVencer){
+  ocultarReloj();
+  const wrap = document.getElementById(id);
+  if(!wrap) return;
+  relojWrap = wrap;
+  const bar = wrap.querySelector('.timer-bar');
+  const num = wrap.querySelector('.timer-num');
+  wrap.hidden = false;
+  wrap.classList.remove('vencido');
+
+  const total = segundos * 1000;
+  const fin   = Date.now() + total;
+  const pintar = () => {
+    const resta = Math.max(0, fin - Date.now());
+    const frac  = resta / total;
+    bar.style.width = (frac * 100) + '%';
+    bar.style.background = frac > .5 ? '#3DAA5B' : (frac > .25 ? '#F0A93B' : '#E3453B');
+    num.textContent = Math.ceil(resta / 1000) + 's';
+    if(resta <= 0){
+      pararReloj();
+      wrap.classList.add('vencido');
+      num.textContent = '0s';
+      alVencer();
+    }
+  };
+  pintar();
+  relojId = setInterval(pintar, 100);
+}
+
 const APUESTAS = [10, 25, 50];
 let batallaRival = null;
 let batallaApuesta = 0;
@@ -944,6 +1013,7 @@ function cartaBatalla(p){
 }
 
 function avisoBatalla(txt){
+  ocultarReloj();
   document.getElementById('battleTitle').textContent = 'Batalla de tipos';
   document.getElementById('battleStage').innerHTML = '<div class="bat-aviso">' + txt + '</div>';
   document.getElementById('battleFeedback').textContent = '';
@@ -961,6 +1031,7 @@ function abrirBatalla(){
     return;
   }
 
+  ocultarReloj();  /* elegir apuesta no se cronometra: todavía no se ve el equipo */
   batallaRival = DATA[Math.floor(Math.random()*DATA.length)];
   batallaApuesta = 0;
   document.getElementById('battleFeedback').textContent = '';
@@ -992,9 +1063,30 @@ function elegirEquipo(monto){
     el.classList.add('elegible');
     el.onclick = () => resolverBatalla(mios[i]);
   });
+
+  arrancarReloj('battleTimer', BATALLA_SEGUNDOS, () => batallaSinElegir(stage));
+}
+
+/* Se acabó el tiempo y no eligió a nadie: la apuesta ya estaba puesta, así que
+   se pierde. Si no costara nada, intentar hacer trampa sería gratis. */
+function batallaSinElegir(stage){
+  Array.from(stage.querySelectorAll('.bat-equipo .bat-carta')).forEach(el => {
+    el.classList.remove('elegible');
+    el.onclick = null;
+  });
+
+  coins = Math.max(0, coins - batallaApuesta);
+  updateCoins();
+  saveProgress();
+
+  document.getElementById('battleTitle').textContent = '¡Se acabó el tiempo!';
+  const fb = document.getElementById('battleFeedback');
+  fb.style.color = '#E3453B';
+  fb.textContent = `No elegiste a nadie, así que ${batallaRival.name} gana la pelea. −${batallaApuesta} monedas.`;
 }
 
 function resolverBatalla(mio){
+  ocultarReloj();
   const multMio  = efectividad(mio.type, batallaRival.type);
   const multRiv  = efectividad(batallaRival.type, mio.type);
   const puntoMio = puntajeBatalla(mio, batallaRival);
@@ -1126,9 +1218,30 @@ function startQuiz(){
   }
 
   document.getElementById('quizOverlay').classList.add('show');
+
+  const correcta = quizModo === 'silueta' ? quizTarget.name : quizTarget.type;
+  arrancarReloj('quizTimer', QUIZ_SEGUNDOS, () => quizSinResponder(optBox, correcta));
+}
+
+/* Se acabó el tiempo sin elegir opción: 0 monedas (ni siquiera las de consuelo
+   del error) y se muestra cuál era. */
+function quizSinResponder(optBox, correct){
+  Array.from(optBox.children).forEach(b => b.disabled = true);
+  const eraEste = quizModo === 'silueta' ? quizTarget.name : TYPE_LABEL[correct];
+
+  if(quizModo === 'silueta'){
+    document.getElementById('quizImg').classList.remove('silueta');
+    document.getElementById('quizName').textContent = quizTarget.name;
+  }
+  Array.from(optBox.children).forEach(b => { if(b.textContent === eraEste) b.classList.add('correcta'); });
+
+  const feedback = document.getElementById('quizFeedback');
+  feedback.style.color = '#E3453B';
+  feedback.textContent = `¡Se acabó el tiempo! Era ${eraEste}. 0 monedas`;
 }
 
 function answerQuiz(chosen, correct, optBox, btnElegido){
+  ocultarReloj();
   Array.from(optBox.children).forEach(b => b.disabled = true);
   const acerto = chosen === correct;
   btnElegido.classList.add(acerto ? 'correcta' : 'errada');
@@ -1157,12 +1270,12 @@ function answerQuiz(chosen, correct, optBox, btnElegido){
 }
 
 document.getElementById('closeBtn').onclick = () => document.getElementById('overlay').classList.remove('show');
-document.getElementById('quizCloseBtn').onclick = () => document.getElementById('quizOverlay').classList.remove('show');
+document.getElementById('quizCloseBtn').onclick = () => { ocultarReloj(); document.getElementById('quizOverlay').classList.remove('show'); };
 document.getElementById('quizNextBtn').onclick = startQuiz;
 document.getElementById('openBtn').onclick = openPack;
 document.getElementById('canjeBtn').onclick = canjearRepetidas;
 document.getElementById('battleBtn').onclick = abrirBatalla;
-document.getElementById('battleCloseBtn').onclick = () => document.getElementById('battleOverlay').classList.remove('show');
+document.getElementById('battleCloseBtn').onclick = () => { ocultarReloj(); document.getElementById('battleOverlay').classList.remove('show'); };
 document.getElementById('battleNextBtn').onclick = abrirBatalla;
 document.getElementById('earnBtn').onclick = startQuiz;
 document.getElementById('resetBtn').onclick = resetProgress;
