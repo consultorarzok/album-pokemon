@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Álbum Pokémon</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root{
+    --bg:#FFFFFF;
+    --panel:#F4F5FA;
+    --panel-2:#EAECF5;
+    --ink:#1B2140;
+    --ink-dim:#6B7180;
+    --gold:#F0B400;
+    --gold-dim:#E8D48A;
+    --slot-empty:#EEF0F6;
+    --border:#DADEEA;
+    --red:#EE1515;
+    --poke-blue:#2A75BB;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Space Mono',monospace;}
+
+  .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px;}
+
+  header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-bottom:0;padding:14px 4px;}
+  .accent-bar{height:5px;background:linear-gradient(90deg,#3DDC97,#8CE99A,#3DDC97);border-radius:3px;margin-bottom:18px;}
+  h1{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:28px;letter-spacing:.5px;margin:0;color:var(--ink);}
+  h1 span{color:var(--gold);text-shadow:-1px 0 var(--poke-blue),1px 0 var(--poke-blue),0 -1px var(--poke-blue),0 1px var(--poke-blue);}
+
+  .coin-box{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px 14px;}
+  .coin-box .ball{width:18px;height:18px;border-radius:50%;background:conic-gradient(var(--red) 0 50%, #fff 50% 100%);border:2px solid #14172a;flex:0 0 auto;}
+  .coin-box .amount{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:18px;}
+  .earn-btn{background:var(--gold);color:#2b2205;border:none;border-radius:8px;padding:8px 14px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;cursor:pointer;}
+  .earn-btn:active{transform:scale(.97);}
+
+  .progress-row{margin-bottom:18px;}
+  .progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-dim);margin-bottom:6px;}
+  .progress-track{height:10px;border-radius:6px;background:var(--panel);border:1px solid var(--border);overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));transition:width .4s ease;}
+
+  .filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+  .chip{font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px;border-radius:20px;border:1px solid var(--border);background:var(--panel);color:var(--ink-dim);cursor:pointer;}
+  .chip.active{color:#14172a;font-weight:700;border-color:transparent;}
+
+  .pack-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:22px;}
+  .pack-bar .info{font-size:12px;color:var(--ink-dim);}
+  .pack-bar .info b{color:var(--ink);font-family:'Baloo 2',sans-serif;}
+  .open-btn{background:var(--red);color:#fff;border:none;border-radius:9px;padding:12px 20px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;}
+  .open-btn:disabled{background:#D8DCE8;color:#9AA0B4;cursor:not-allowed;}
+  .open-btn:not(:disabled):active{transform:scale(.97);}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;}
+  .slot{position:relative;aspect-ratio:1/1.15;border-radius:9px;background:var(--slot-empty);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:4px;}
+  .slot.got{background:var(--panel);}
+  .slot .num{position:absolute;top:3px;left:5px;font-size:9px;color:var(--ink-dim);}
+  .slot .dup{position:absolute;top:3px;right:5px;font-size:9px;background:var(--gold);color:#2b2205;padding:1px 4px;border-radius:6px;font-weight:700;}
+  .slot img{width:60%;height:auto;image-rendering:auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));}
+  .slot .name{font-size:8.5px;text-align:center;margin-top:2px;color:var(--ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .slot .ball-icon{width:26px;height:26px;border-radius:50%;background:conic-gradient(#C7CCDC 0 50%, #E3E6F0 50% 100%);border:2px solid #B7BED0;opacity:.9;}
+  .slot .typebar{position:absolute;bottom:0;left:0;right:0;height:4px;}
+
+  .overlay{position:fixed;inset:0;background:rgba(6,8,18,.92);display:none;align-items:stretch;justify-content:stretch;z-index:50;padding:0;}
+  .overlay.show{display:flex;}
+  .reveal-panel{background:var(--panel-2);border:none;border-radius:0;padding:28px 20px 24px;width:100%;height:100%;max-width:100%;text-align:center;display:flex;flex-direction:column;overflow-y:auto;}
+  .reveal-panel h2{font-family:'Baloo 2',sans-serif;color:var(--gold);margin:0 0 20px;font-size:24px;flex:0 0 auto;}
+  .reveal-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:16px;margin:0 auto 24px;max-width:1100px;width:100%;flex:1 1 auto;align-content:center;}
+  .reveal-card{background:var(--panel);border-radius:14px;padding:14px 10px;border:1px solid var(--border);opacity:0;transform:translateY(10px) scale(.9);animation:pop .35s forwards;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .reveal-card img{width:100%;max-width:170px;height:auto;}
+  .reveal-card .rname{font-size:14px;margin-top:10px;font-weight:700;}
+  .reveal-card .tag{font-size:11px;margin-top:5px;font-weight:700;}
+  .tag.new{color:#1F9D4C;}
+  .tag.dup{color:#B8860B;}
+  @keyframes pop{to{opacity:1;transform:translateY(0) scale(1);}}
+  .close-btn{background:transparent;border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:12px 26px;font-family:'Baloo 2',sans-serif;font-weight:700;cursor:pointer;font-size:14px;flex:0 0 auto;align-self:center;}
+
+  /* ---- Special full-screen reveal ---- */
+  .special-overlay{position:fixed;inset:0;background:radial-gradient(circle at 50% 40%, #1B2140 0%, #060814 75%);display:none;align-items:center;justify-content:center;z-index:80;flex-direction:column;overflow:hidden;}
+  .special-overlay.show{display:flex;}
+  .special-rays{position:absolute;inset:-50%;background:conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,.08) 8deg, transparent 16deg);animation:spinRays 6s linear infinite;}
+  @keyframes spinRays{to{transform:rotate(360deg);}}
+  .special-banner{position:relative;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:18px;text-shadow:0 0 14px rgba(240,180,0,.7);}
+  .special-card{position:relative;width:min(78vw,360px);aspect-ratio:3/4;border-radius:22px;background:linear-gradient(160deg,#232B52,#12172B);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;animation:cardSpin 1.3s cubic-bezier(.2,.8,.25,1) forwards;}
+  @keyframes cardSpin{
+    0%{transform:perspective(1000px) rotateY(0deg) scale(.2);opacity:0;}
+    55%{transform:perspective(1000px) rotateY(1080deg) scale(1.08);opacity:1;}
+    100%{transform:perspective(1000px) rotateY(1440deg) scale(1);opacity:1;}
+  }
+  .special-card img{width:75%;height:auto;filter:drop-shadow(0 8px 18px rgba(0,0,0,.6));margin-bottom:10px;}
+  .special-card .sname{font-family:'Baloo 2',sans-serif;font-size:26px;color:#fff;font-weight:700;}
+  .special-card .stag{font-family:'Space Mono',monospace;font-size:12px;color:var(--ink-dim);margin-top:4px;}
+  .special-continue{position:relative;margin-top:26px;background:var(--gold);color:#2b2205;border:none;border-radius:10px;padding:12px 26px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+  .special-continue:active{transform:scale(.97);}
+
+  @media (max-width:480px){
+    .grid{grid-template-columns:repeat(auto-fill,minmax(68px,1fr));}
+    h1{font-size:22px;}
+    .reveal-cards{grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:10px;}
+    .reveal-card img{max-width:120px;}
+    .special-card{width:88vw;}
+    .special-card .sname{font-size:20px;}
+  }
+
+  /* ---------- Ranking ---------- */
+  .player-chip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:7px 12px;font-size:11px;color:var(--ink-dim);}
+  .player-chip b{font-family:'Baloo 2',sans-serif;font-size:14px;color:var(--ink);font-weight:700;}
+  .player-chip button{background:transparent;border:none;color:var(--poke-blue);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;text-decoration:underline;padding:0;}
+
+  .rank-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:22px;}
+  .rank-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+  .rank-head h3{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:17px;margin:0;color:var(--ink);}
+  .rank-tabs{display:flex;gap:6px;}
+  .rank-tab{font-family:'Space Mono',monospace;font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--ink-dim);cursor:pointer;}
+  .rank-tab.active{background:var(--poke-blue);border-color:transparent;color:#fff;font-weight:700;}
+  .rank-list{display:flex;flex-direction:column;gap:5px;}
+  .rank-row{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;}
+  .rank-row.me{border-color:var(--gold);background:#FFFBEE;}
+  .rank-pos{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;width:26px;flex:0 0 auto;color:var(--ink-dim);text-align:center;}
+  .rank-row:nth-child(1) .rank-pos{color:var(--gold);}
+  .rank-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:var(--ink);}
+  .rank-score{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;color:var(--poke-blue);flex:0 0 auto;}
+  .rank-crown{flex:0 0 auto;font-size:13px;}
+  .rank-empty{font-size:11px;color:var(--ink-dim);padding:10px 2px;line-height:1.6;}
+  .rank-done{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);font-size:11px;color:var(--ink-dim);line-height:1.7;}
+  .rank-done b{color:var(--ink);font-family:'Baloo 2',sans-serif;font-size:13px;}
+  .rank-status{font-size:10px;color:var(--ink-dim);}
+  .rank-status.err{color:var(--red);}
+
+  .name-overlay{position:fixed;inset:0;background:rgba(20,23,42,.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:60;}
+  .name-overlay.show{display:flex;}
+  .name-box{background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:26px 24px;max-width:340px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.3);}
+  .name-box h2{font-family:'Baloo 2',sans-serif;font-size:21px;margin:0 0 6px;color:var(--ink);}
+  .name-box p{font-size:11px;color:var(--ink-dim);margin:0 0 16px;line-height:1.6;}
+  .name-box input{width:100%;padding:12px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--ink);font-family:'Space Mono',monospace;font-size:14px;text-align:center;margin-bottom:14px;}
+  .name-box input:focus{outline:2px solid var(--poke-blue);outline-offset:-1px;}
+  .name-box button{width:100%;background:var(--red);color:#fff;border:none;border-radius:9px;padding:12px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Álbum <span>Pokémon</span></h1>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div class="coin-box"><div class="ball"></div><div class="amount" id="coinAmount">0</div></div>
+      <button class="earn-btn" id="earnBtn">Responder y ganar</button>
+    </div>
+  </header>
+
+  <div class="player-chip" id="playerChip" style="margin:0 4px 12px;width:fit-content;">
+    Jugás como <b id="playerName">-</b>
+    <button id="changeNameBtn">cambiar</button>
+  </div>
+
+  <div class="accent-bar"></div>
+
+  <div style="text-align:right;margin-bottom:10px;">
+    <button id="resetBtn" style="background:transparent;border:1px solid var(--border);color:var(--ink-dim);border-radius:8px;padding:5px 10px;font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;">Reiniciar álbum</button>
+  </div>
+
+  <div class="progress-row">
+    <div class="progress-label">
+      <span id="progressText">0 / 151 figuritas</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="filters" id="regionFilters"></div>
+  <div class="filters" id="filters"></div>
+
+  <div class="pack-bar">
+    <div class="info">Sobre: <b>5 figuritas</b> · costo <b id="packCost">150</b> monedas</div>
+    <button class="open-btn" id="openBtn">Abrir sobre</button>
+  </div>
+
+  <div class="rank-panel">
+    <div class="rank-head">
+      <h3>Ranking de entrenadores</h3>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="rank-status" id="rankStatus"></span>
+        <div class="rank-tabs">
+          <div class="rank-tab active" id="tabHoy">Hoy</div>
+          <div class="rank-tab" id="tabHist">Histórico</div>
+        </div>
+      </div>
+    </div>
+    <div class="rank-list" id="rankList"></div>
+    <div class="rank-done" id="rankDone"></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+</div>
+
+<div class="name-overlay" id="nameOverlay">
+  <div class="name-box">
+    <h2>¿Cómo te llamás?</h2>
+    <p>Tu nombre aparece en el ranking de entrenadores para competir con los demás.</p>
+    <input id="nameInput" maxlength="20" placeholder="Tu nombre" autocomplete="off">
+    <button id="nameSaveBtn">¡A jugar!</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="reveal-panel">
+    <h2>Abriste un sobre</h2>
+    <div class="reveal-cards" id="revealCards"></div>
+    <button class="close-btn" id="closeBtn">Cerrar</button>
+  </div>
+</div>
+
+<div class="special-overlay" id="specialOverlay">
+  <div class="special-rays"></div>
+  <div class="special-banner" id="specialBanner">¡Figura legendaria!</div>
+  <div class="special-card" id="specialCardWrap">
+    <img id="specialImg" src="" alt="">
+    <div class="sname" id="specialName"></div>
+    <div class="stag" id="specialTag"></div>
+  </div>
+  <button class="special-continue" id="specialContinueBtn">Continuar</button>
+</div>
+
+<div class="overlay" id="quizOverlay">
+  <div class="reveal-panel" style="max-width:420px;">
+    <h2 id="quizTitle">¿De qué tipo es...?</h2>
+    <img id="quizImg" src="" alt="" style="width:110px;height:auto;margin:0 auto 14px;display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5));">
+    <div id="quizName" style="font-family:'Baloo 2',sans-serif;font-size:16px;margin-bottom:14px;"></div>
+    <div id="quizOptions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;"></div>
+    <div id="quizFeedback" style="font-family:'Baloo 2',sans-serif;font-size:14px;min-height:20px;margin-bottom:10px;"></div>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <button class="close-btn" id="quizCloseBtn">Cerrar</button>
+      <button class="open-btn" id="quizNextBtn" style="padding:9px 18px;">Siguiente</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TYPE_COLORS = {
+  normal:'#A8A77A', fire:'#EE8130', water:'#6390F0', electric:'#F7D02C',
+  grass:'#7AC74C', ice:'#96D9D6', fighting:'#C22E28', poison:'#A33EA1',
+  ground:'#E2BF65', flying:'#A98FF3', psychic:'#F95587', bug:'#A6B91A',
+  rock:'#B6A136', ghost:'#735797', dragon:'#6F35FC', fairy:'#D685AD',
+  dark:'#705746', steel:'#B7B7CE'
+};
+const TYPE_LABEL = {
+  normal:'Normal', fire:'Fuego', water:'Agua', electric:'Eléctrico', grass:'Planta',
+  ice:'Hielo', fighting:'Lucha', poison:'Veneno', ground:'Tierra', flying:'Volador',
+  psychic:'Psíquico', bug:'Bicho', rock:'Roca', ghost:'Fantasma', dragon:'Dragón', fairy:'Hada',
+  dark:'Siniestro', steel:'Acero'
+};
+const REGION_LABEL = { kanto:'Kanto', johto:'Johto', hoenn:'Hoenn', sinnoh:'Sinnoh' };
+
+const KANTO_DATA = [
+[1,"Bulbasaur","grass","Común",70],[2,"Ivysaur","grass","Poco Común",25],[3,"Venusaur","grass","Rara",8],
+[4,"Charmander","fire","Común",70],[5,"Charmeleon","fire","Poco Común",25],[6,"Charizard","fire","Rara",8],
+[7,"Squirtle","water","Común",70],[8,"Wartortle","water","Poco Común",25],[9,"Blastoise","water","Rara",8],
+[10,"Caterpie","bug","Común",70],[11,"Metapod","bug","Poco Común",25],[12,"Butterfree","bug","Rara",8],
+[13,"Weedle","bug","Común",70],[14,"Kakuna","bug","Poco Común",25],[15,"Beedrill","bug","Rara",8],
+[16,"Pidgey","normal","Común",70],[17,"Pidgeotto","normal","Poco Común",25],[18,"Pidgeot","normal","Rara",8],
+[19,"Rattata","normal","Común",70],[20,"Raticate","normal","Poco Común",25],
+[21,"Spearow","normal","Común",70],[22,"Fearow","normal","Poco Común",25],
+[23,"Ekans","poison","Común",70],[24,"Arbok","poison","Poco Común",25],
+[25,"Pikachu","electric","Poco Común",25],[26,"Raichu","electric","Rara",8],
+[27,"Sandshrew","ground","Común",70],[28,"Sandslash","ground","Poco Común",25],
+[29,"Nidoran (H)","poison","Común",70],[30,"Nidorina","poison","Poco Común",25],[31,"Nidoqueen","poison","Rara",8],
+[32,"Nidoran (M)","poison","Común",70],[33,"Nidorino","poison","Poco Común",25],[34,"Nidoking","poison","Rara",8],
+[35,"Clefairy","fairy","Común",70],[36,"Clefable","fairy","Poco Común",25],
+[37,"Vulpix","fire","Común",70],[38,"Ninetales","fire","Poco Común",25],
+[39,"Jigglypuff","normal","Común",70],[40,"Wigglytuff","normal","Poco Común",25],
+[41,"Zubat","poison","Común",70],[42,"Golbat","poison","Poco Común",25],
+[43,"Oddish","grass","Común",70],[44,"Gloom","grass","Poco Común",25],[45,"Vileplume","grass","Rara",8],
+[46,"Paras","bug","Común",70],[47,"Parasect","bug","Poco Común",25],
+[48,"Venonat","bug","Común",70],[49,"Venomoth","bug","Poco Común",25],
+[50,"Diglett","ground","Común",70],[51,"Dugtrio","ground","Poco Común",25],
+[52,"Meowth","normal","Común",70],[53,"Persian","normal","Poco Común",25],
+[54,"Psyduck","water","Común",70],[55,"Golduck","water","Poco Común",25],
+[56,"Mankey","fighting","Común",70],[57,"Primeape","fighting","Poco Común",25],
+[58,"Growlithe","fire","Común",70],[59,"Arcanine","fire","Rara",8],
+[60,"Poliwag","water","Común",70],[61,"Poliwhirl","water","Poco Común",25],[62,"Poliwrath","water","Rara",8],
+[63,"Abra","psychic","Común",70],[64,"Kadabra","psychic","Poco Común",25],[65,"Alakazam","psychic","Rara",8],
+[66,"Machop","fighting","Común",70],[67,"Machoke","fighting","Poco Común",25],[68,"Machamp","fighting","Rara",8],
+[69,"Bellsprout","grass","Común",70],[70,"Weepinbell","grass","Poco Común",25],[71,"Victreebel","grass","Rara",8],
+[72,"Tentacool","water","Común",70],[73,"Tentacruel","water","Poco Común",25],
+[74,"Geodude","rock","Común",70],[75,"Graveler","rock","Poco Común",25],[76,"Golem","rock","Rara",8],
+[77,"Ponyta","fire","Común",70],[78,"Rapidash","fire","Poco Común",25],
+[79,"Slowpoke","water","Común",70],[80,"Slowbro","water","Poco Común",25],
+[81,"Magnemite","electric","Común",70],[82,"Magneton","electric","Poco Común",25],
+[83,"Farfetch'd","normal","Poco Común",25],
+[84,"Doduo","normal","Común",70],[85,"Dodrio","normal","Poco Común",25],
+[86,"Seel","water","Común",70],[87,"Dewgong","water","Poco Común",25],
+[88,"Grimer","poison","Común",70],[89,"Muk","poison","Poco Común",25],
+[90,"Shellder","water","Común",70],[91,"Cloyster","water","Rara",8],
+[92,"Gastly","ghost","Común",70],[93,"Haunter","ghost","Poco Común",25],[94,"Gengar","ghost","Rara",8],
+[95,"Onix","rock","Poco Común",25],
+[96,"Drowzee","psychic","Común",70],[97,"Hypno","psychic","Poco Común",25],
+[98,"Krabby","water","Común",70],[99,"Kingler","water","Poco Común",25],
+[100,"Voltorb","electric","Común",70],[101,"Electrode","electric","Poco Común",25],
+[102,"Exeggcute","grass","Común",70],[103,"Exeggutor","grass","Rara",8],
+[104,"Cubone","ground","Común",70],[105,"Marowak","ground","Poco Común",25],
+[106,"Hitmonlee","fighting","Poco Común",25],[107,"Hitmonchan","fighting","Poco Común",25],
+[108,"Lickitung","normal","Poco Común",25],
+[109,"Koffing","poison","Común",70],[110,"Weezing","poison","Poco Común",25],
+[111,"Rhyhorn","ground","Común",70],[112,"Rhydon","ground","Poco Común",25],
+[113,"Chansey","normal","Rara",8],
+[114,"Tangela","grass","Poco Común",25],
+[115,"Kangaskhan","normal","Rara",8],
+[116,"Horsea","water","Común",70],[117,"Seadra","water","Poco Común",25],
+[118,"Goldeen","water","Común",70],[119,"Seaking","water","Poco Común",25],
+[120,"Staryu","water","Común",70],[121,"Starmie","water","Poco Común",25],
+[122,"Mr. Mime","psychic","Poco Común",25],
+[123,"Scyther","bug","Rara",8],
+[124,"Jynx","ice","Poco Común",25],
+[125,"Electabuzz","electric","Poco Común",25],
+[126,"Magmar","fire","Poco Común",25],
+[127,"Pinsir","bug","Rara",8],
+[128,"Tauros","normal","Poco Común",25],
+[129,"Magikarp","water","Común",70],[130,"Gyarados","water","Rara",8],
+[131,"Lapras","water","Rara",8],
+[132,"Ditto","normal","Poco Común",25],
+[133,"Eevee","normal","Poco Común",25],
+[134,"Vaporeon","water","Rara",8],[135,"Jolteon","electric","Rara",8],[136,"Flareon","fire","Rara",8],
+[137,"Porygon","normal","Poco Común",25],
+[138,"Omanyte","rock","Común",70],[139,"Omastar","rock","Rara",8],
+[140,"Kabuto","rock","Común",70],[141,"Kabutops","rock","Rara",8],
+[142,"Aerodactyl","rock","Rara",8],
+[143,"Snorlax","normal","Rara",8],
+[144,"Articuno","ice","Legendario",2],[145,"Zapdos","electric","Legendario",2],[146,"Moltres","fire","Legendario",2],
+[147,"Dratini","dragon","Común",8],[148,"Dragonair","dragon","Poco Común",8],[149,"Dragonite","dragon","Rara",2],
+[150,"Mewtwo","psychic","Legendario",2],[151,"Mew","psychic","Legendario",2]
+].map(r => ({
+  id:r[0], name:r[1], type:r[2], rarity:r[3], weight:r[4], region:'kanto',
+  img:`https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${r[0]}.png`
+}));
+
+const JOHTO_RAW = [
+[152,"Chikorita","grass","Común",70],[153,"Bayleef","grass","Poco Común",25],[154,"Meganium","grass","Rara",8],
+[155,"Cyndaquil","fire","Común",70],[156,"Quilava","fire","Poco Común",25],[157,"Typhlosion","fire","Rara",8],
+[158,"Totodile","water","Común",70],[159,"Croconaw","water","Poco Común",25],[160,"Feraligatr","water","Rara",8],
+[161,"Sentret","normal","Común",70],[162,"Furret","normal","Poco Común",25],
+[163,"Hoothoot","normal","Común",70],[164,"Noctowl","normal","Poco Común",25],
+[165,"Ledyba","bug","Común",70],[166,"Ledian","bug","Poco Común",25],
+[167,"Spinarak","bug","Común",70],[168,"Ariados","bug","Poco Común",25],
+[169,"Crobat","poison","Rara",8],
+[170,"Chinchou","water","Común",70],[171,"Lanturn","water","Poco Común",25],
+[172,"Pichu","electric","Común",70],
+[173,"Cleffa","fairy","Común",70],
+[174,"Igglybuff","normal","Común",70],
+[175,"Togepi","fairy","Poco Común",25],[176,"Togetic","fairy","Rara",8],
+[177,"Natu","psychic","Común",70],[178,"Xatu","psychic","Poco Común",25],
+[179,"Mareep","electric","Común",70],[180,"Flaaffy","electric","Poco Común",25],[181,"Ampharos","electric","Rara",8],
+[182,"Bellossom","grass","Rara",8],
+[183,"Marill","water","Común",70],[184,"Azumarill","water","Poco Común",25],
+[185,"Sudowoodo","rock","Poco Común",25],
+[186,"Politoed","water","Rara",8],
+[187,"Hoppip","grass","Común",70],[188,"Skiploom","grass","Poco Común",25],[189,"Jumpluff","grass","Rara",8],
+[190,"Aipom","normal","Poco Común",25],
+[191,"Sunkern","grass","Común",70],[192,"Sunflora","grass","Poco Común",25],
+[193,"Yanma","bug","Poco Común",25],
+[194,"Wooper","water","Común",70],[195,"Quagsire","water","Poco Común",25],
+[196,"Espeon","psychic","Rara",8],
+[197,"Umbreon","dark","Rara",8],
+[198,"Murkrow","dark","Poco Común",25],
+[199,"Slowking","water","Rara",8],
+[200,"Misdreavus","ghost","Poco Común",25],
+[201,"Unown","psychic","Rara",8],
+[202,"Wobbuffet","psychic","Poco Común",25],
+[203,"Girafarig","normal","Poco Común",25],
+[204,"Pineco","bug","Común",70],[205,"Forretress","bug","Poco Común",25],
+[206,"Dunsparce","normal","Poco Común",25],
+[207,"Gligar","ground","Poco Común",25],
+[208,"Steelix","steel","Rara",8],
+[209,"Snubbull","fairy","Común",70],[210,"Granbull","fairy","Poco Común",25],
+[211,"Qwilfish","water","Poco Común",25],
+[212,"Scizor","bug","Rara",8],
+[213,"Shuckle","bug","Poco Común",25],
+[214,"Heracross","bug","Rara",8],
+[215,"Sneasel","dark","Poco Común",25],
+[216,"Teddiursa","normal","Común",70],[217,"Ursaring","normal","Poco Común",25],
+[218,"Slugma","fire","Común",70],[219,"Magcargo","fire","Poco Común",25],
+[220,"Swinub","ice","Común",70],[221,"Piloswine","ice","Poco Común",25],
+[222,"Corsola","water","Poco Común",25],
+[223,"Remoraid","water","Común",70],[224,"Octillery","water","Poco Común",25],
+[225,"Delibird","ice","Poco Común",25],
+[226,"Mantine","water","Rara",8],
+[227,"Skarmory","steel","Rara",8],
+[228,"Houndour","dark","Común",70],[229,"Houndoom","dark","Rara",8],
+[230,"Kingdra","water","Rara",8],
+[231,"Phanpy","ground","Común",70],[232,"Donphan","ground","Poco Común",25],
+[233,"Porygon2","normal","Rara",8],
+[234,"Stantler","normal","Poco Común",25],
+[235,"Smeargle","normal","Poco Común",25],
+[236,"Tyrogue","fighting","Común",70],
+[237,"Hitmontop","fighting","Poco Común",25],
+[238,"Smoochum","ice","Común",70],
+[239,"Elekid","electric","Común",70],
+[240,"Magby","fire","Común",70],
+[241,"Miltank","normal","Poco Común",25],
+[242,"Blissey","normal","Rara",8],
+[243,"Raikou","electric","Legendario",2],[244,"Entei","fire","Legendario",2],[245,"Suicune","water","Legendario",2],
+[246,"Larvitar","rock","Común",70],[247,"Pupitar","rock","Poco Común",25],[248,"Tyranitar","rock","Rara",8],
+[249,"Lugia","psychic","Legendario",2],[250,"Ho-Oh","fire","Legendario",2],[251,"Celebi","psychic","Legendario",2]
+].map(r => ({
+  id:r[0], name:r[1], type:r[2], rarity:r[3], weight:r[4], region:'johto',
+  img:`https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${r[0]}.png`
+}));
+
+const HOENN_RAW = [
+[252,"Treecko","grass","Común",70],[253,"Grovyle","grass","Poco Común",25],[254,"Sceptile","grass","Rara",8],
+[255,"Torchic","fire","Común",70],[256,"Combusken","fire","Poco Común",25],[257,"Blaziken","fire","Rara",8],
+[258,"Mudkip","water","Común",70],[259,"Marshtomp","water","Poco Común",25],[260,"Swampert","water","Rara",8],
+[261,"Poochyena","dark","Común",70],[262,"Mightyena","dark","Poco Común",25],
+[263,"Zigzagoon","normal","Común",70],[264,"Linoone","normal","Poco Común",25],
+[265,"Wurmple","bug","Común",70],[266,"Silcoon","bug","Poco Común",25],[267,"Beautifly","bug","Rara",8],
+[268,"Cascoon","bug","Poco Común",25],[269,"Dustox","bug","Rara",8],
+[270,"Lotad","water","Común",70],[271,"Lombre","water","Poco Común",25],[272,"Ludicolo","water","Rara",8],
+[273,"Seedot","grass","Común",70],[274,"Nuzleaf","grass","Poco Común",25],[275,"Shiftry","grass","Rara",8],
+[276,"Taillow","normal","Común",70],[277,"Swellow","normal","Poco Común",25],
+[278,"Wingull","water","Común",70],[279,"Pelipper","water","Poco Común",25],
+[280,"Ralts","psychic","Común",70],[281,"Kirlia","psychic","Poco Común",25],[282,"Gardevoir","psychic","Rara",8],
+[283,"Surskit","bug","Común",70],[284,"Masquerain","bug","Poco Común",25],
+[285,"Shroomish","grass","Común",70],[286,"Breloom","grass","Poco Común",25],
+[287,"Slakoth","normal","Común",70],[288,"Vigoroth","normal","Poco Común",25],[289,"Slaking","normal","Rara",8],
+[290,"Nincada","bug","Común",70],[291,"Ninjask","bug","Poco Común",25],[292,"Shedinja","bug","Rara",8],
+[293,"Whismur","normal","Común",70],[294,"Loudred","normal","Poco Común",25],[295,"Exploud","normal","Rara",8],
+[296,"Makuhita","fighting","Común",70],[297,"Hariyama","fighting","Poco Común",25],
+[298,"Azurill","normal","Común",70],
+[299,"Nosepass","rock","Poco Común",25],
+[300,"Skitty","normal","Común",70],[301,"Delcatty","normal","Poco Común",25],
+[302,"Sableye","dark","Rara",8],
+[303,"Mawile","steel","Rara",8],
+[304,"Aron","steel","Común",70],[305,"Lairon","steel","Poco Común",25],[306,"Aggron","steel","Rara",8],
+[307,"Meditite","fighting","Común",70],[308,"Medicham","fighting","Poco Común",25],
+[309,"Electrike","electric","Común",70],[310,"Manectric","electric","Poco Común",25],
+[311,"Plusle","electric","Poco Común",25],[312,"Minun","electric","Poco Común",25],
+[313,"Volbeat","bug","Poco Común",25],[314,"Illumise","bug","Poco Común",25],
+[315,"Roselia","grass","Poco Común",25],
+[316,"Gulpin","poison","Común",70],[317,"Swalot","poison","Poco Común",25],
+[318,"Carvanha","water","Común",70],[319,"Sharpedo","water","Rara",8],
+[320,"Wailmer","water","Común",70],[321,"Wailord","water","Rara",8],
+[322,"Numel","fire","Común",70],[323,"Camerupt","fire","Poco Común",25],
+[324,"Torkoal","fire","Poco Común",25],
+[325,"Spoink","psychic","Común",70],[326,"Grumpig","psychic","Poco Común",25],
+[327,"Spinda","normal","Poco Común",25],
+[328,"Trapinch","ground","Común",70],[329,"Vibrava","ground","Poco Común",25],[330,"Flygon","ground","Rara",8],
+[331,"Cacnea","grass","Común",70],[332,"Cacturne","grass","Poco Común",25],
+[333,"Swablu","normal","Común",70],[334,"Altaria","dragon","Rara",8],
+[335,"Zangoose","normal","Poco Común",25],
+[336,"Seviper","poison","Poco Común",25],
+[337,"Lunatone","rock","Poco Común",25],[338,"Solrock","rock","Poco Común",25],
+[339,"Barboach","water","Común",70],[340,"Whiscash","water","Poco Común",25],
+[341,"Corphish","water","Común",70],[342,"Crawdaunt","water","Poco Común",25],
+[343,"Baltoy","ground","Común",70],[344,"Claydol","ground","Poco Común",25],
+[345,"Lileep","rock","Común",70],[346,"Cradily","rock","Poco Común",25],
+[347,"Anorith","rock","Común",70],[348,"Armaldo","rock","Poco Común",25],
+[349,"Feebas","water","Común",70],[350,"Milotic","water","Rara",8],
+[351,"Castform","normal","Poco Común",25],
+[352,"Kecleon","normal","Poco Común",25],
+[353,"Shuppet","ghost","Común",70],[354,"Banette","ghost","Poco Común",25],
+[355,"Duskull","ghost","Común",70],[356,"Dusclops","ghost","Poco Común",25],
+[357,"Tropius","grass","Poco Común",25],
+[358,"Chimecho","psychic","Poco Común",25],
+[359,"Absol","dark","Rara",8],
+[360,"Wynaut","psychic","Común",70],
+[361,"Snorunt","ice","Común",70],[362,"Glalie","ice","Poco Común",25],
+[363,"Spheal","ice","Común",70],[364,"Sealeo","ice","Poco Común",25],[365,"Walrein","ice","Rara",8],
+[366,"Clamperl","water","Común",70],[367,"Huntail","water","Rara",8],[368,"Gorebyss","water","Rara",8],
+[369,"Relicanth","water","Rara",8],
+[370,"Luvdisc","water","Poco Común",25],
+[371,"Bagon","dragon","Común",70],[372,"Shelgon","dragon","Poco Común",25],[373,"Salamence","dragon","Rara",8],
+[374,"Beldum","steel","Común",70],[375,"Metang","steel","Poco Común",25],[376,"Metagross","steel","Rara",8],
+[377,"Regirock","rock","Legendario",2],[378,"Regice","ice","Legendario",2],[379,"Registeel","steel","Legendario",2],
+[380,"Latias","dragon","Legendario",2],[381,"Latios","dragon","Legendario",2],
+[382,"Kyogre","water","Legendario",2],[383,"Groudon","ground","Legendario",2],[384,"Rayquaza","dragon","Legendario",2],
+[385,"Jirachi","steel","Legendario",2],[386,"Deoxys","psychic","Legendario",2]
+].map(r => ({
+  id:r[0], name:r[1], type:r[2], rarity:r[3], weight:r[4], region:'hoenn',
+  img:`https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${r[0]}.png`
+}));
+
+const SINNOH_RAW = [
+[387,"Turtwig","grass","Común",70],[388,"Grotle","grass","Poco Común",25],[389,"Torterra","grass","Rara",8],
+[390,"Chimchar","fire","Común",70],[391,"Monferno","fire","Poco Común",25],[392,"Infernape","fire","Rara",8],
+[393,"Piplup","water","Común",70],[394,"Prinplup","water","Poco Común",25],[395,"Empoleon","water","Rara",8],
+[396,"Starly","normal","Común",70],[397,"Staravia","normal","Poco Común",25],[398,"Staraptor","normal","Rara",8],
+[399,"Bidoof","normal","Común",70],[400,"Bibarel","normal","Poco Común",25],
+[401,"Kricketot","bug","Común",70],[402,"Kricketune","bug","Poco Común",25],
+[403,"Shinx","electric","Común",70],[404,"Luxio","electric","Poco Común",25],[405,"Luxray","electric","Rara",8],
+[406,"Budew","grass","Común",70],[407,"Roserade","grass","Rara",8],
+[408,"Cranidos","rock","Común",70],[409,"Rampardos","rock","Poco Común",25],
+[410,"Shieldon","rock","Común",70],[411,"Bastiodon","rock","Poco Común",25],
+[412,"Burmy","bug","Común",70],[413,"Wormadam","bug","Poco Común",25],[414,"Mothim","bug","Poco Común",25],
+[415,"Combee","bug","Común",70],[416,"Vespiquen","bug","Poco Común",25],
+[417,"Pachirisu","electric","Poco Común",25],
+[418,"Buizel","water","Común",70],[419,"Floatzel","water","Poco Común",25],
+[420,"Cherubi","grass","Común",70],[421,"Cherrim","grass","Poco Común",25],
+[422,"Shellos","water","Común",70],[423,"Gastrodon","water","Poco Común",25],
+[424,"Ambipom","normal","Poco Común",25],
+[425,"Drifloon","ghost","Común",70],[426,"Drifblim","ghost","Poco Común",25],
+[427,"Buneary","normal","Común",70],[428,"Lopunny","normal","Poco Común",25],
+[429,"Mismagius","ghost","Rara",8],
+[430,"Honchkrow","dark","Rara",8],
+[431,"Glameow","normal","Común",70],[432,"Purugly","normal","Poco Común",25],
+[433,"Chingling","psychic","Común",70],
+[434,"Stunky","poison","Común",70],[435,"Skuntank","poison","Poco Común",25],
+[436,"Bronzor","steel","Común",70],[437,"Bronzong","steel","Poco Común",25],
+[438,"Bonsly","rock","Común",70],
+[439,"Mime Jr.","psychic","Común",70],
+[440,"Happiny","normal","Común",70],
+[441,"Chatot","normal","Poco Común",25],
+[442,"Spiritomb","ghost","Rara",8],
+[443,"Gible","dragon","Común",70],[444,"Gabite","dragon","Poco Común",25],[445,"Garchomp","dragon","Rara",8],
+[446,"Munchlax","normal","Poco Común",25],
+[447,"Riolu","fighting","Común",70],[448,"Lucario","fighting","Rara",8],
+[449,"Hippopotas","ground","Común",70],[450,"Hippowdon","ground","Poco Común",25],
+[451,"Skorupi","poison","Común",70],[452,"Drapion","poison","Poco Común",25],
+[453,"Croagunk","poison","Común",70],[454,"Toxicroak","poison","Poco Común",25],
+[455,"Carnivine","grass","Poco Común",25],
+[456,"Finneon","water","Común",70],[457,"Lumineon","water","Poco Común",25],
+[458,"Mantyke","water","Poco Común",25],
+[459,"Snover","grass","Común",70],[460,"Abomasnow","grass","Poco Común",25],
+[461,"Weavile","dark","Rara",8],
+[462,"Magnezone","electric","Rara",8],
+[463,"Lickilicky","normal","Poco Común",25],
+[464,"Rhyperior","ground","Rara",8],
+[465,"Tangrowth","grass","Poco Común",25],
+[466,"Electivire","electric","Rara",8],
+[467,"Magmortar","fire","Rara",8],
+[468,"Togekiss","fairy","Rara",8],
+[469,"Yanmega","bug","Rara",8],
+[470,"Leafeon","grass","Rara",8],
+[471,"Glaceon","ice","Rara",8],
+[472,"Gliscor","ground","Rara",8],
+[473,"Mamoswine","ice","Rara",8],
+[474,"Porygon-Z","normal","Rara",8],
+[475,"Gallade","psychic","Rara",8],
+[476,"Probopass","rock","Poco Común",25],
+[477,"Dusknoir","ghost","Rara",8],
+[478,"Froslass","ice","Rara",8],
+[479,"Rotom","electric","Rara",8],
+[480,"Uxie","psychic","Legendario",2],[481,"Mesprit","psychic","Legendario",2],[482,"Azelf","psychic","Legendario",2],
+[483,"Dialga","steel","Legendario",2],[484,"Palkia","water","Legendario",2],
+[485,"Heatran","fire","Legendario",2],[486,"Regigigas","normal","Legendario",2],
+[487,"Giratina","ghost","Legendario",2],[488,"Cresselia","psychic","Legendario",2],
+[489,"Phione","water","Poco Común",25],[490,"Manaphy","water","Legendario",2],
+[491,"Darkrai","dark","Legendario",2],[492,"Shaymin","grass","Legendario",2],[493,"Arceus","normal","Legendario",2]
+].map(r => ({
+  id:r[0], name:r[1], type:r[2], rarity:r[3], weight:r[4], region:'sinnoh',
+  img:`https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${r[0]}.png`
+}));
+
+const DATA = KANTO_DATA.concat(JOHTO_RAW).concat(HOENN_RAW).concat(SINNOH_RAW);
+
+const STORAGE_KEY = 'album-kanto-progreso';
+
+let coins = 300;
+let currentFilter = 'all';
+let currentRegion = 'all';
+const PACK_COST = 150;
+const PACK_SIZE = 5;
+
+const state = {};
+DATA.forEach(p => state[p.id] = {got:false, dup:0});
+
+function saveProgress(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({coins, state}));
+  }catch(e){
+    console.warn('No se pudo guardar el progreso', e);
+  }
+}
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const data = JSON.parse(raw);
+    if(typeof data.coins === 'number') coins = data.coins;
+    if(data.state){
+      Object.keys(state).forEach(id=>{
+        if(data.state[id]) state[id] = data.state[id];
+      });
+    }
+  }catch(e){
+    console.warn('No se pudo leer el progreso guardado', e);
+  }
+}
+
+function resetProgress(){
+  if(!confirm('¿Reiniciar el álbum? Perdés todas las figuritas y monedas guardadas.')) return;
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  coins = 300;
+  DATA.forEach(p => state[p.id] = {got:false, dup:0});
+  renderGrid();
+  updateProgress();
+  updateCoins();
+}
+
+function renderRegionFilters(){
+  const regions = ['all', ...new Set(DATA.map(p=>p.region))];
+  const box = document.getElementById('regionFilters');
+  box.innerHTML = '';
+  regions.forEach(r=>{
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (r===currentRegion?' active':'');
+    chip.textContent = r==='all' ? 'Todas las regiones' : REGION_LABEL[r];
+    if(r===currentRegion){ chip.style.background = '#2A75BB'; chip.style.color='#fff'; }
+    chip.onclick = () => { currentRegion = r; renderRegionFilters(); renderGrid(); };
+    box.appendChild(chip);
+  });
+}
+
+function renderFilters(){
+  const types = ['all', ...new Set(DATA.map(p=>p.type))];
+  const box = document.getElementById('filters');
+  box.innerHTML = '';
+  types.forEach(t=>{
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (t===currentFilter?' active':'');
+    chip.textContent = t==='all' ? 'Todos los tipos' : TYPE_LABEL[t];
+    if(t===currentFilter){
+      chip.style.background = t==='all' ? '#F4C744' : TYPE_COLORS[t];
+    }
+    chip.onclick = () => { currentFilter = t; renderFilters(); renderGrid(); };
+    box.appendChild(chip);
+  });
+}
+
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  DATA.filter(p => (currentFilter==='all' || p.type===currentFilter) && (currentRegion==='all' || p.region===currentRegion)).forEach(p=>{
+    const s = state[p.id];
+    const slot = document.createElement('div');
+    slot.className = 'slot' + (s.got ? ' got' : '');
+    const numTag = `<div class="num">#${String(p.id).padStart(3,'0')}</div>`;
+    const dupTag = s.dup>0 ? `<div class="dup">x${s.dup+1}</div>` : '';
+    const bar = `<div class="typebar" style="background:${TYPE_COLORS[p.type]}"></div>`;
+    if(s.got){
+      slot.innerHTML = numTag + dupTag + `<img src="${p.img}" alt="${p.name}" loading="lazy"><div class="name">${p.name}</div>` + bar;
+    } else {
+      slot.innerHTML = numTag + `<div class="ball-icon"></div>` + bar;
+    }
+    grid.appendChild(slot);
+  });
+}
+
+function updateProgress(){
+  const got = Object.values(state).filter(s=>s.got).length;
+  const pct = Math.round((got/DATA.length)*100);
+  document.getElementById('progressText').textContent = `${got} / ${DATA.length} figuritas`;
+  document.getElementById('progressPct').textContent = `${pct}%`;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function updateCoins(){
+  document.getElementById('coinAmount').textContent = coins;
+  document.getElementById('openBtn').disabled = coins < PACK_COST;
+}
+
+function weightedPick(){
+  const total = DATA.reduce((a,p)=>a+p.weight,0);
+  let r = Math.random()*total;
+  for(const p of DATA){
+    if(r < p.weight) return p;
+    r -= p.weight;
+  }
+  return DATA[DATA.length-1];
+}
+
+const SPECIAL_IDS = new Set([25,131,133,143,130,6,149,132,196,197,248,373,376,350,94,150,151]);
+function isSpecial(p){ return p.rarity === 'Legendario' || SPECIAL_IDS.has(p.id); }
+
+function openPack(){
+  if(coins < PACK_COST) return;
+  coins -= PACK_COST;
+  updateCoins();
+  const pulls = [];
+  for(let i=0;i<PACK_SIZE;i++){
+    const p = weightedPick();
+    const s = state[p.id];
+    const isNew = !s.got;
+    if(isNew){ s.got = true; } else { s.dup += 1; }
+    pulls.push({p, isNew});
+  }
+  renderGrid();
+  updateProgress();
+  saveProgress();
+  enviarPuntaje();
+
+  const specials = pulls.filter(pull => isSpecial(pull.p));
+  if(specials.length > 0){
+    playSpecialSequence(specials, 0, () => showReveal(pulls));
+  } else {
+    showReveal(pulls);
+  }
+}
+
+function playSpecialSequence(specials, index, onDone){
+  if(index >= specials.length){ onDone(); return; }
+  const pull = specials[index];
+  const p = pull.p;
+  const card = document.getElementById('specialCardWrap');
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = '';
+
+  document.getElementById('specialBanner').textContent = p.rarity === 'Legendario' ? '¡Figura legendaria!' : '¡Figura especial!';
+  document.getElementById('specialImg').src = p.img;
+  document.getElementById('specialName').textContent = p.name;
+  document.getElementById('specialTag').textContent = `${pull.isNew ? '¡Nueva!' : 'Repetida'} · Tipo ${TYPE_LABEL[p.type]}`;
+  document.getElementById('specialCardWrap').style.background = `linear-gradient(160deg, ${TYPE_COLORS[p.type]}33, #12172B)`;
+
+  document.getElementById('specialOverlay').classList.add('show');
+
+  document.getElementById('specialContinueBtn').onclick = () => {
+    if(index + 1 < specials.length){
+      playSpecialSequence(specials, index + 1, onDone);
+    } else {
+      document.getElementById('specialOverlay').classList.remove('show');
+      onDone();
+    }
+  };
+}
+
+function showReveal(pulls){
+  const box = document.getElementById('revealCards');
+  box.innerHTML = '';
+  pulls.forEach((pull,i)=>{
+    const card = document.createElement('div');
+    card.className = 'reveal-card';
+    card.style.animationDelay = (i*0.12)+'s';
+    card.style.borderLeft = `3px solid ${TYPE_COLORS[pull.p.type]}`;
+    card.innerHTML = `<img src="${pull.p.img}" alt="${pull.p.name}">
+      <div class="rname">${pull.p.name}</div>
+      <div class="tag ${pull.isNew?'new':'dup'}">${pull.isNew?'¡Nueva!':'Repetida'}</div>`;
+    box.appendChild(card);
+  });
+  document.getElementById('overlay').classList.add('show');
+}
+
+const QUIZ_REWARD_CORRECT = 40;
+const QUIZ_REWARD_WRONG = 5;
+
+function startQuiz(){
+  const pool = DATA;
+  const target = pool[Math.floor(Math.random()*pool.length)];
+  const correctType = target.type;
+
+  const otherTypes = [...new Set(DATA.map(p=>p.type))].filter(t=>t!==correctType);
+  for(let i=otherTypes.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [otherTypes[i],otherTypes[j]] = [otherTypes[j],otherTypes[i]];
+  }
+  const options = [correctType, ...otherTypes.slice(0,3)];
+  for(let i=options.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [options[i],options[j]] = [options[j],options[i]];
+  }
+
+  document.getElementById('quizImg').src = target.img;
+  document.getElementById('quizName').textContent = target.name;
+  document.getElementById('quizFeedback').textContent = '';
+
+  const optBox = document.getElementById('quizOptions');
+  optBox.innerHTML = '';
+  options.forEach(optType=>{
+    const btn = document.createElement('button');
+    btn.textContent = TYPE_LABEL[optType];
+    btn.style.cssText = `padding:10px;border-radius:8px;border:1px solid ${TYPE_COLORS[optType]};background:${TYPE_COLORS[optType]}22;color:var(--ink);font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;cursor:pointer;`;
+    btn.onclick = () => answerQuiz(optType, correctType, optBox);
+    optBox.appendChild(btn);
+  });
+
+  document.getElementById('quizOverlay').classList.add('show');
+}
+
+function answerQuiz(chosen, correct, optBox){
+  Array.from(optBox.children).forEach(b => b.disabled = true);
+  const feedback = document.getElementById('quizFeedback');
+  if(chosen === correct){
+    coins += QUIZ_REWARD_CORRECT;
+    feedback.style.color = '#7CD68A';
+    feedback.textContent = `¡Correcto! +${QUIZ_REWARD_CORRECT} monedas`;
+  } else {
+    coins += QUIZ_REWARD_WRONG;
+    feedback.style.color = '#E3453B';
+    feedback.textContent = `Era ${TYPE_LABEL[correct]}. +${QUIZ_REWARD_WRONG} monedas de consuelo`;
+  }
+  updateCoins();
+  saveProgress();
+}
+
+document.getElementById('closeBtn').onclick = () => document.getElementById('overlay').classList.remove('show');
+document.getElementById('quizCloseBtn').onclick = () => document.getElementById('quizOverlay').classList.remove('show');
+document.getElementById('quizNextBtn').onclick = startQuiz;
+document.getElementById('openBtn').onclick = openPack;
+document.getElementById('earnBtn').onclick = startQuiz;
+document.getElementById('resetBtn').onclick = resetProgress;
+
+loadProgress();
+renderRegionFilters();
+renderFilters();
+renderGrid();
+updateProgress();
+updateCoins();
+
+/* =================== RANKING COMPARTIDO =================== */
+const API_BASE   = 'https://n8n.consultorarz.com/webhook';
+const NAME_KEY   = 'album-kanto-jugador';
+let jugador      = '';
+let rankTab      = 'hoy';
+let ultimoTop    = null;
+let ultimoEnvio  = 0;
+let enviosPend   = null;
+
+function figuritasObtenidas(){
+  return Object.values(state).filter(s => s.got).length;
+}
+
+function setStatus(txt, esError){
+  const el = document.getElementById('rankStatus');
+  el.textContent = txt || '';
+  el.className = 'rank-status' + (esError ? ' err' : '');
+}
+
+/* Se manda como text/plain a propósito: evita el preflight CORS del navegador. */
+function enviarPuntaje(){
+  if(!jugador) return;
+  const ahora = Date.now();
+  if(ahora - ultimoEnvio < 3000){
+    clearTimeout(enviosPend);
+    enviosPend = setTimeout(enviarPuntaje, 3000 - (ahora - ultimoEnvio));
+    return;
+  }
+  ultimoEnvio = ahora;
+  const cuerpo = {
+    jugador: jugador,
+    figuritas: figuritasObtenidas(),
+    total: DATA.length,
+    monedas: coins
+  };
+  fetch(API_BASE + '/pokemon-score', {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=UTF-8'},
+    body: JSON.stringify(cuerpo)
+  }).then(r => {
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return cargarTop();
+  }).catch(() => setStatus('sin conexión con el ranking', true));
+}
+
+function cargarTop(){
+  setStatus('actualizando...');
+  return fetch(API_BASE + '/pokemon-top', {cache: 'no-store'})
+    .then(r => {
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(data => {
+      ultimoTop = data;
+      setStatus('');
+      renderRank();
+    })
+    .catch(() => {
+      setStatus('sin conexión con el ranking', true);
+      if(!ultimoTop) renderRank();
+    });
+}
+
+function renderRank(){
+  const lista = document.getElementById('rankList');
+  const done  = document.getElementById('rankDone');
+  lista.innerHTML = '';
+
+  if(!ultimoTop){
+    lista.innerHTML = '<div class="rank-empty">No se pudo cargar el ranking. Revisá la conexión y volvé a entrar.</div>';
+    done.innerHTML = '';
+    return;
+  }
+
+  const filas = (rankTab === 'hoy' ? ultimoTop.hoy : ultimoTop.historico) || [];
+  if(filas.length === 0){
+    lista.innerHTML = '<div class="rank-empty">Todavía no hay nadie en el ranking' +
+      (rankTab === 'hoy' ? ' hoy' : '') + '. ¡Abrí un sobre y sé el primero!</div>';
+  } else {
+    filas.forEach(f => {
+      const row = document.createElement('div');
+      row.className = 'rank-row' + (f.jugador === jugador ? ' me' : '');
+      const pct = Math.round((f.figuritas / (f.total || 493)) * 100);
+      row.innerHTML =
+        '<div class="rank-pos">' + f.puesto + '</div>' +
+        '<div class="rank-name"></div>' +
+        (f.completo ? '<div class="rank-crown">👑</div>' : '') +
+        '<div class="rank-score">' + f.figuritas + ' <span style="font-size:10px;color:var(--ink-dim);font-family:\'Space Mono\',monospace;">(' + pct + '%)</span></div>';
+      row.querySelector('.rank-name').textContent = f.jugador;
+      lista.appendChild(row);
+    });
+  }
+
+  const comp = ultimoTop.completaron || [];
+  if(comp.length > 0){
+    const nombres = comp.map(c => c.jugador).join(', ');
+    done.innerHTML = '<b>👑 Completaron el álbum:</b><br>';
+    done.appendChild(document.createTextNode(nombres));
+  } else {
+    done.innerHTML = '<b>Nadie completó el álbum todavía.</b><br>' +
+      'El primero que junte las ' + DATA.length + ' figuritas queda en esta lista para siempre.';
+  }
+}
+
+function pedirNombre(){
+  const inp = document.getElementById('nameInput');
+  inp.value = jugador || '';
+  document.getElementById('nameOverlay').classList.add('show');
+  setTimeout(() => inp.focus(), 100);
+}
+
+function guardarNombre(){
+  const inp = document.getElementById('nameInput');
+  const val = inp.value.replace(/[<>]/g, '').trim().slice(0, 20);
+  if(!val){ inp.focus(); return; }
+  jugador = val;
+  try{ localStorage.setItem(NAME_KEY, jugador); }catch(e){}
+  document.getElementById('playerName').textContent = jugador;
+  document.getElementById('nameOverlay').classList.remove('show');
+  enviarPuntaje();
+}
+
+document.getElementById('nameSaveBtn').onclick = guardarNombre;
+document.getElementById('nameInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter') guardarNombre();
+});
+document.getElementById('changeNameBtn').onclick = pedirNombre;
+document.getElementById('tabHoy').onclick = () => {
+  rankTab = 'hoy';
+  document.getElementById('tabHoy').classList.add('active');
+  document.getElementById('tabHist').classList.remove('active');
+  renderRank();
+};
+document.getElementById('tabHist').onclick = () => {
+  rankTab = 'historico';
+  document.getElementById('tabHist').classList.add('active');
+  document.getElementById('tabHoy').classList.remove('active');
+  renderRank();
+};
+
+try{ jugador = localStorage.getItem(NAME_KEY) || ''; }catch(e){ jugador = ''; }
+document.getElementById('playerName').textContent = jugador || '-';
+cargarTop();
+if(jugador){
+  if(figuritasObtenidas() > 0) enviarPuntaje();
+} else {
+  pedirNombre();
+}
+</script>
+</body>
+</html>
