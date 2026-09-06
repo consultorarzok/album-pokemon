@@ -1539,7 +1539,8 @@ let jugador      = '';
    Sirve para reconocer algo fuera del juego sin tocar el localStorage a mano. */
 const REGALOS_KEY = 'album-kanto-regalos';
 const REGALOS = [
-  { id: 'zeta-2000-20260906', para: 'zeta centeno', monedas: 2000 }
+  { id: 'zeta-2000-20260906',  para: 'zeta centeno', monedas: 2000 },
+  { id: 'todos-900-20260906', para: '*',            monedas: 900  }
 ];
 
 /* Misma normalización que usa el registro de nombres en el servidor:
@@ -1561,10 +1562,15 @@ function aplicarRegalos(){
   try{ usados = JSON.parse(localStorage.getItem(REGALOS_KEY) || '[]'); }catch(e){}
   if(!Array.isArray(usados)) usados = [];
 
+  /* Sin nombre todavía no hay entrenador: el regalo espera a que se registre,
+     así no se lo lleva la pantalla de bienvenida antes de elegir nombre. */
   const clave = claveNombre(jugador);
+  if(!clave) return;
+
   let total = 0;
   REGALOS.forEach(r => {
-    if(r.para !== clave || usados.indexOf(r.id) !== -1) return;
+    if(r.para !== '*' && r.para !== clave) return;   // '*' = para todos los entrenadores
+    if(usados.indexOf(r.id) !== -1) return;
     coins += r.monedas;
     usados.push(r.id);
     total += r.monedas;
@@ -1655,7 +1661,10 @@ function renderRank(){
     filas.forEach(f => {
       const row = document.createElement('div');
       row.className = 'rank-row' + (f.jugador === jugador ? ' me' : '');
-      const pct = Math.round((f.figuritas / (f.total || 493)) * 100);
+      /* El % SIEMPRE se mide contra el álbum actual, nunca contra el 'total'
+         que mandó el cliente: las filas viejas quedaron guardadas con 493 y
+         hacían que el 2º puesto mostrara más porcentaje que el 1º. */
+      const pct = Math.round((f.figuritas / DATA.length) * 100);
       row.innerHTML =
         '<div class="rank-pos">' + f.puesto + '</div>' +
         '<div class="rank-name"></div>' +
