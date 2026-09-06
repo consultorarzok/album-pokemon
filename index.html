@@ -116,6 +116,10 @@
   .rank-tabs{display:flex;gap:6px;}
   .rank-tab{font-family:'Space Mono',monospace;font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--ink-dim);cursor:pointer;}
   .rank-tab.active{background:var(--poke-blue);border-color:transparent;color:#fff;font-weight:700;}
+  /* Contador de entrenadores: va al lado de las pestañas pero NO es una pestaña,
+     no se puede clickear; sale del campo 'jugadores' que manda /pokemon-top. */
+  .rank-count{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;padding:5px 12px;border-radius:20px;border:1px dashed var(--border);background:var(--bg);color:var(--ink-dim);}
+  .rank-count b{font-family:'Baloo 2',sans-serif;font-size:14px;font-weight:700;color:var(--ink);}
   .rank-list{display:flex;flex-direction:column;gap:5px;}
   .rank-row{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;}
   .rank-row.me{border-color:var(--gold);background:#FFFBEE;}
@@ -229,6 +233,7 @@
       <h3>Ranking de entrenadores</h3>
       <div style="display:flex;align-items:center;gap:10px;">
         <span class="rank-status" id="rankStatus"></span>
+        <div class="rank-count" id="rankCount" hidden>Entrenadores <b id="rankCountNum">0</b></div>
         <div class="rank-tabs">
           <div class="rank-tab active" id="tabHoy">Hoy</div>
           <div class="rank-tab" id="tabHist">Histórico</div>
@@ -1686,12 +1691,23 @@ function cargarTop(){
 function renderRank(){
   const lista = document.getElementById('rankList');
   const done  = document.getElementById('rankDone');
+  const cont  = document.getElementById('rankCount');
   lista.innerHTML = '';
 
   if(!ultimoTop){
     lista.innerHTML = '<div class="rank-empty">No se pudo cargar el ranking. Revisá la conexión y volvé a entrar.</div>';
     done.innerHTML = '';
+    cont.hidden = true;
     return;
+  }
+
+  /* Cantidad total de entrenadores que jugaron alguna vez (no es un tab: es
+     un dato fijo al lado de Hoy/Histórico). */
+  if(Number.isFinite(ultimoTop.jugadores)){
+    document.getElementById('rankCountNum').textContent = ultimoTop.jugadores;
+    cont.hidden = false;
+  } else {
+    cont.hidden = true;
   }
 
   const filas = (rankTab === 'hoy' ? ultimoTop.hoy : ultimoTop.historico) || [];
