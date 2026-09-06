@@ -190,32 +190,45 @@
   .timer-bar{height:100%;width:100%;border-radius:6px;background:#3DAA5B;transition:width .1s linear,background .3s ease;}
   .timer.vencido .timer-num{color:var(--red);}
   .timer.vencido .timer-pista{visibility:hidden;}
-  /* ---------- Aventura (mapa explorable) ---------- */
-  .adv-overlay{position:fixed;inset:0;background:var(--bg);display:none;z-index:40;}
-  .adv-overlay.show{display:flex;}
-  .adv-panel{background:var(--bg);width:100%;height:100%;display:flex;flex-direction:column;}
-  .adv-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--panel-2);flex:0 0 auto;}
-  .adv-head h2{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:18px;margin:0;}
-  .adv-hud{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;}
-  .adv-hud .pill{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:4px 10px;}
-  .adv-hud .pill b{font-family:'Baloo 2',sans-serif;font-size:13px;color:var(--ink);}
-  .adv-body{flex:1 1 auto;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 12px 24px;}
+  /* ---------- Aventura (mapa explorable a pantalla completa) ---------- */
+  .adv-overlay{position:fixed;inset:0;background:#0B1020;display:none;z-index:40;overflow:hidden;touch-action:none;user-select:none;}
+  .adv-overlay.show{display:block;}
   /* El mapa se dibuja en un canvas de 16 px por casillero y se agranda con
      image-rendering:pixelated, para que se vea pixel-art de 16 bits. */
-  .adv-map{display:block;border:3px solid #2A2F45;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.22);image-rendering:pixelated;image-rendering:crisp-edges;}
-  .adv-zona{font-size:12px;color:var(--ink-dim);text-align:center;min-height:36px;line-height:1.6;max-width:420px;}
-  .adv-zona b{color:var(--ink);font-family:'Baloo 2',sans-serif;}
-  .adv-dpad{display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(3,44px);gap:6px;}
-  .adv-dpad button{background:var(--panel-2);border:1px solid var(--border);border-radius:9px;font-size:17px;color:var(--ink);cursor:pointer;}
-  .adv-dpad button:active{background:var(--gold);}
-  .adv-tip{font-size:10px;color:var(--ink-dim);text-align:center;line-height:1.6;}
+  .adv-map{position:absolute;inset:0;width:100%;height:100%;display:block;background:#0B1020;image-rendering:pixelated;image-rendering:crisp-edges;}
+  .adv-map.flash{animation:advFlash .5s ease;}
+  @keyframes advFlash{0%{filter:brightness(3.4);}55%{filter:brightness(1.6);}100%{filter:brightness(1);}}
+  .adv-back{position:absolute;top:10px;left:10px;z-index:3;background:rgba(16,20,38,.78);color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:10px;padding:9px 15px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+  .adv-back:active{transform:scale(.97);}
+  .adv-hud{position:absolute;top:10px;right:10px;z-index:3;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:62vw;}
+  .adv-hud .pill{display:flex;align-items:center;gap:5px;background:rgba(16,20,38,.78);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:4px 10px;color:#fff;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;}
+  .adv-hud .pill img{width:17px;height:17px;image-rendering:pixelated;}
+  .adv-zona{position:absolute;left:50%;top:58px;transform:translateX(-50%);z-index:3;background:rgba(16,20,38,.82);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:8px 16px;font-family:'Space Mono',monospace;font-size:12px;line-height:1.5;text-align:center;max-width:86vw;opacity:0;transition:opacity .25s ease;pointer-events:none;}
+  .adv-zona.ver{opacity:1;}
+  .adv-zona b{font-family:'Baloo 2',sans-serif;font-size:14px;}
+  /* Único mando: un círculo fijo abajo a la izquierda para caminar. */
+  .adv-stick{position:absolute;z-index:3;left:20px;bottom:20px;width:132px;height:132px;border-radius:50%;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.42);touch-action:none;opacity:.72;transition:opacity .15s ease;}
+  .adv-stick.activo{opacity:1;}
+  .adv-stick .knob{position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;background:rgba(255,255,255,.82);border:2px solid rgba(16,20,38,.45);pointer-events:none;}
+  .adv-ayuda{position:absolute;right:12px;bottom:12px;z-index:3;color:rgba(255,255,255,.7);font-family:'Space Mono',monospace;font-size:10px;line-height:1.7;text-align:right;pointer-events:none;}
+  /* En el celular las 4 pastillas del HUD no entraban en una línea y la última
+     se caía encima del mapa. */
+  @media (max-width:560px){
+    .adv-hud{gap:4px;max-width:72vw;}
+    .adv-hud .pill{padding:3px 7px;font-size:12px;gap:3px;}
+    .adv-hud .pill img{width:14px;height:14px;}
+    .adv-back{padding:7px 11px;font-size:13px;}
+    .adv-stick{width:118px;height:118px;left:14px;bottom:14px;}
+    .adv-stick .knob{width:52px;height:52px;margin:-26px 0 0 -26px;}
+    .adv-ayuda{font-size:9px;}
+  }
 
   /* Pokébolas: botones del encuentro y filas de la tienda */
   .bola-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 6px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--ink-dim);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;}
   .bola-btn b{font-family:'Baloo 2',sans-serif;font-size:12px;color:var(--ink);}
   .bola-btn:hover:not(:disabled){border-color:var(--gold);}
   .bola-btn:disabled{opacity:.4;cursor:not-allowed;}
-  .bola-ico{font-size:20px;line-height:1;}
+  .bola-ico{width:26px;height:26px;image-rendering:pixelated;display:block;}
   .enc-tiros{display:flex;gap:7px;justify-content:center;font-size:17px;margin-bottom:12px;}
   .enc-tiros .usado{opacity:.22;}
   .shop-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;text-align:left;}
@@ -301,28 +314,17 @@
 </div>
 
 <div class="adv-overlay" id="advOverlay">
-  <div class="adv-panel">
-    <div class="adv-head">
-      <h2>Aventura</h2>
-      <div class="adv-hud">
-        <span class="pill">🪙 <b id="advCoins">0</b></span>
-        <span class="pill">🔴 <b id="advRoja">0</b></span>
-        <span class="pill">🔵 <b id="advAzul">0</b></span>
-        <span class="pill">🟣 <b id="advMaestra">0</b></span>
-      </div>
-      <button class="pokedex-close" id="advCloseBtn">Salir ✕</button>
-    </div>
-    <div class="adv-body">
-      <canvas class="adv-map" id="advMap" width="288" height="192"></canvas>
-      <div class="adv-zona" id="advZona"></div>
-      <div class="adv-dpad">
-        <span></span><button data-dir="0,-1" aria-label="Arriba">▲</button><span></span>
-        <button data-dir="-1,0" aria-label="Izquierda">◀</button><span></span><button data-dir="1,0" aria-label="Derecha">▶</button>
-        <span></span><button data-dir="0,1" aria-label="Abajo">▼</button><span></span>
-      </div>
-      <div class="adv-tip">Movete con las flechas del teclado (o WASD) y con estos botones.<br>🏥 Centro Pokémon · 🌿 hierba alta · 🌊 lago · 🌋 volcán · 🕳️ cueva secreta</div>
-    </div>
+  <canvas class="adv-map" id="advMap" width="288" height="192"></canvas>
+  <button class="adv-back" id="advCloseBtn">◀ Atrás</button>
+  <div class="adv-hud">
+    <span class="pill">🪙 <b id="advCoins">0</b></span>
+    <span class="pill"><img id="advIcoRoja" alt="Poké Ball"> <b id="advRoja">0</b></span>
+    <span class="pill"><img id="advIcoAzul" alt="Súper Ball"> <b id="advAzul">0</b></span>
+    <span class="pill"><img id="advIcoMaestra" alt="Master Ball"> <b id="advMaestra">0</b></span>
   </div>
+  <div class="adv-zona" id="advZona"></div>
+  <div class="adv-stick" id="advStick"><div class="knob" id="advKnob"></div></div>
+  <div class="adv-ayuda">Arrastrá el dedo para caminar<br>o usá las flechas del teclado</div>
 </div>
 
 <div class="overlay" id="encOverlay" style="z-index:45;">
@@ -1645,14 +1647,22 @@ const ADV_TILE = {
   ',': {walk:true,  label:'Pasto',             pinta:'pasto'},
   '@': {walk:true,  label:'Pasto',             pinta:'pasto'},
   '*': {walk:true,  label:'Flores',            pinta:'flores'},
+  'a': {walk:true,  label:'Orilla de arena',   pinta:'arena'},
+  'B': {walk:true,  label:'Puente de madera',  pinta:'puente'},
   '"': {walk:true,  label:'Hierba alta',       pinta:'hierba', encuentro:'hierba'},
-  '~': {walk:true,  label:'Lago',              pinta:'agua',   encuentro:'agua', bote:true},
+  '~': {walk:true,  label:'Agua',              pinta:'agua',   encuentro:'agua', bote:true},
   '#': {walk:false, label:'Árbol',             pinta:'arbol'},
   '^': {walk:false, label:'Montaña',           pinta:'montana'},
   'V': {walk:false, label:'Volcán',            pinta:'volcan'},
+  'T': {walk:false, label:'Torii',             pinta:'torii'},
+  'i': {walk:false, label:'Cartel',            pinta:'cartel', cartel:true},
+  'b': {walk:true,  label:'Pasto',             pinta:'pasto',  item:'roja'},
   'F': {walk:true,  label:'Ceniza caliente',   pinta:'ceniza', encuentro:'volcan'},
   'C': {walk:true,  label:'Entrada de cueva',  pinta:'entradaCueva', entra:'cueva'},
   'P': {walk:true,  label:'Centro Pokémon',    pinta:'centro',  accion:'centro'},
+  'p': {walk:false, label:'Centro Pokémon',    pinta:'techoIzq'},
+  'q': {walk:false, label:'Centro Pokémon',    pinta:'techoDer'},
+  'r': {walk:false, label:'Centro Pokémon',    pinta:'paredDer'},
   'o': {walk:true,  label:'Piso de la cueva',  pinta:'pisoCueva'},
   'k': {walk:true,  label:'Escombros',         pinta:'escombros', encuentro:'cueva'},
   'L': {walk:true,  label:'Altar escondido',   pinta:'altar',   encuentro:'legendario'},
@@ -1662,37 +1672,112 @@ const ADV_TILE = {
 
 const ADV_MAPS = {
   overworld: {
-    nombre:'Ruta Verde',
-    cols:18,
+    nombre:'Mundo Pokémon',
+    cols:90,
     rows:[
-      "##################",
-      "#@P,,,,,,.,,^^C^^#",
-      "#,#\"\"*\"\"#.,,^^^^^#",
-      "#,\"\"\"*\"\"\"..~~~~~~#",
-      "#,#\"\"\"\"\"#.,~~~~~~#",
-      "#,,,,,,,,..~~~~~~#",
-      "#,,,,,,,,.,~~~~~~#",
-      "#,,,,,,,,.,~~~~~~#",
-      "#,,^,^,,,.,,,,,,,#",
-      "#,FVVVF,,.,,\"*\"\",#",
-      "#,FVVVF,,.,,\"\"\"\",#",
-      "##################"
-    ]
+      "##########################################################################################",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^,..pq.....,,,,,,,,,,,,,,,,#",
+      "#,,@.pq..T..,,,,,,,,,,,,,,,,,,~~~,,,,,,,##########,,,,,,,,,,^^^,..Pr.....,,,,,,,,,,,,,,,,#",
+      "#,,..Pr.....\"\"\"\",,,,,,,,,,,,,,~~~,..pq.....##########,,,,,,,^^^,.........,,,,,,,,,,,,,,,,#",
+      "#,,.........\"\"\"\"\"\",,,,,,,,,,,,~~~,..Pr.....\"\"\"\"\"\"\"\"###,,,,,,^^^,......i..,,,,,,,,,,,,,,,,#",
+      "#,,.....i...\"\"\"\"\"\"\",,,,,,,,,,,~~~,.........\"\"\"\"\"\"\"\"\"###,,,,,^^^,,,..,\"\"\"\"\"\"\"\",,,,,,,,,,,,#",
+      "#,,.........b\"\"\"\"\"\"\"\",,,,,,,,,~~~#......i..\"\"\"\"\"\"\"\"\"\"##,,,,,^^^,,,..\"\"\"\"\"\"\"\"\"\",\",,,,,,,,,#",
+      "#,,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,~~~,#\"..\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,,^^^,\"\"..\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,#",
+      "#,,,\".................,,,,,,,,~~~###..\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"###,,,,^^^,\"\"..\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,#",
+      "#,,\"\".................,,,,,,,,~~~###..b\"\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,,,^^^\"\"\"..\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,#",
+      "#,,,\"..\"\"\"\"\"\"\"\"\"\"\"\"\"..,,,,,,,,~~~,,,..#\"\"\"\"\"\"\"\"\"\"\"####,,,,,,^^^\"\"\"..\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,#",
+      "#,,\"\"..\"b\"\"\"\"\"\"\"\"\"\"\"..,,,,,,,,~~~,,,..###############,,,,,,^^^\"\"\"\"..\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,#",
+      "#,,\"\"..\"\"\"\"\"\"\"\"\"\"\"\"\"..,,,,,,,,~~~,,,..,,#########,,,,,,,,,,^^^,\"\"\"..\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,#",
+      "#,,,\"..\"\"\"\"\"\"\"\"\"\"\"\"\"..,,,,,,,,~~~,,,..,,,,,,,,,,,,,,,,,,,,,^^^,\"\"\"..\"\"b\"\"\"\"\"\"\"~~~~~~~~~~~#",
+      "#,,,,..\"\"\"\"\"\"\"\"\"\"\",,..,,,,,,,,~~~,,,..,,,,,,,,,,,,,,,,,,,,,^^^,,\"\"..\"\"\"\"\"\"\"\"\"\"~~~~~~~~~~~#",
+      "#,,,,..,\"\"\"\"\"\"\"\"\"\",,..,,,,,,,,~~~,,,..,,,,,,,,,,,,,,,,,,,,,^^^,,\"\"..\"\"\"\"\"\"\"\"\"\"~~~~~~~~~~~#",
+      "#,,,,..,,,,,,,,,,,,,..,,,,,,,,~~~,,,..,,,,,,,,,,,,,,,,,,,,,^^^,,,,..\"\"\"\"\"\"\"\"\"\"~~~~~~~~~~~#",
+      "#,,,,..,,,,*******,,..,,,,,,,,~~~,,,..,,,,,,,,,,,,,,,,,,,,^^^,,,,,..,,\"\"\"\"\",~~~~~~~~~~~~~#",
+      "#,,,,..,,,*********,..,,,,,,,,~~~,,,..,,,,,,,,,,,,,,,,,,,,^^^,,,,,..,,,,,\",,~~~~~~~~~~~~~#",
+      "#,,,,..,,,*********,..,,,,,,,~~~,,**..***,,,,,,,,,,,,,,,,,^^^,,,,,..,,,,,,,,~~~~~~~~~~~~~#",
+      "#,,,,..,,,*********,,,,,,,,,,~~~,,**..***,,,,,,,,,,,,,,,,,^^^,,,,,..,,,,,,,~~~~~~,,,,,~~~#",
+      "#,,,,..,,,,,*****,,,,,,,,,,,,~~~,,**..***,,,,,,,,,,,,,,,,,^^^,,,,,..,,,,,,,,~~~~~,,,b,~~~#",
+      "#,,,,..,,,,,,,,,,,,~~~~~~,,,,~~~,,,,..,,,,,,,,,,,,,,,,,,,,^^^,,,,,..,,,,,,~~~~~~~,,,,,~~~#",
+      "#,,,,..,,,,,,,,,,~~~~~~~~~~~,~~~,,,,..,,,~,~~~~~~~~,,,,,,,^^^,,,,,..,,,,,,~~~~~~~~~~~~~~~#",
+      "#,,,,.......................BBB.............................................~~~~~~~~~~~~~#",
+      "#,,,,......................iBBB....,.....................i.......^.........~~~~~~~~~~~~~~#",
+      "#,,,,,,,#,#,,,,,,~~~..~~~~~~~~~,,,,,~~~~~~~~~~~~~~..~~~,,,^^^,,^C^^,,,,,..~~~~~~~~~~~~~~~#",
+      "#,############,,,,~~..~~~~~,~~~,,,,,~~~~~~~~~~~~~~..~~~,,,^^^,,^^^^,,,,,..~~~~~~~~~~~~~~~#",
+      "#,###\"\"\"\"\"\"\"##,,,,,~..~~~~,,~~~,,,,~~~~~~~~~~~~~~~..~~~,,,^^^,,,,,,,,,,,..~~~~~~~~~~~~~~~#",
+      "#,#\"\"\"\"\"\"\"\"\"\"##,,,,,..,,,,,,~~~,,,,~~~~~~~~~~~~~~~..~~~~,,^^^,,,,,,,,,,,..~~b~~~~~~~~~~~~#",
+      "###\"\"\"\"\"\"\"\"\"\"\"##,,,,..,,,,,,~~~,,,,,~~~~~~~~~~~~~~..~~~~,,^^^,,,,,,,,,,,..~~~~~~~~~~~~~~~#",
+      "##\"\"\"\"\"\"\"\"\"\"\"\"###,,,..,,,,,,~~~,,,,,~~~~~~~~~~~~~~..~~~,,,^^^,,,,,,,,,,,..~~~~~~~~~~~~~~~#",
+      "##\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,b.,,,,,,~~~,,,,,~~~~~~~~b~~~~~..~~~,,,^^^,,,,,,,,,,,..~~~~~~~~~~~~~~~#",
+      "##\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,..,,,,,,~~~,,,,,,,~~~~~~~~~~~~..~~,,,,^^^,,,,,FFFFFF..F~~~~~~~~~~~~~~#",
+      "##\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,..,,,,,,~~~,,,,,,,,~~~~~~~~~~~..,,,,,,^^^,,,FFFFFFFF..F~F~~~~~~~~~~~~#",
+      "###\"\"\"\"\"\"\"\"\"\"\"\"##,,,..,,,,,,~~~,,,,,,,,,,~,~~~~~~,..,,,,,,^^^,,FFFFFFFFF..FFFF~~~~~~~,~~~#",
+      "###\"\"\"\"\"\"\"\"\"\"\"\"#,,,,..,,,,,,~~~,,,,,,,,,,,,,,,,,,,..,,,,,,^^^,F,FFFFFFFF..FFFF~~~~~~,,,~~#",
+      "###\"\"\"\"\"\"\"\"\"\"\"##,,,,..,,,,,,~~~,,,,,,,,,,,,,,,,,,,..,,,,,,^^^,,FFFFFFFFF..FFFFF~~~~~,,,~~#",
+      "#,####\"\"\"\"\"####,,,,,..,,,,,,~~~,,,,,,,,,,,,,,,,,,,..,,,,,,^^^,FFFFFFVVVVVFFFFF~~~~~~,,,~~#",
+      "#,,#####\"####,,,,,,,.......,~~~,,,\"\"\"\"\"\"\"\",,,,,,,,..,,,,,,,^^^FFFFbVVVVVVVFFFFF~~~~~~~~~~#",
+      "#,,,,#####,,,,,,,,,,......,,~~~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,..,,,,,,,^^^FFFFFVVVVVVVFFFFF~~~~~~~~~~#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,..,,,,,,,^^^FFFFFVVVVVVVFFFFF~~~~~~~~~~#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,..,,,,,,,^^^,FFFFFVVVVVFFFFFF~~~~~~~~~~#",
+      "#,^^^^^^^^C^^^^^^^^^^^^^^^^,,~~~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,........,^^^,FFFFFFFFFFFFFFF~~~~~~~~~~~#",
+      "#,^^^^^^^^^^^^^^^^^^^^^^^^^,,~~~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,..b....,,^^^,,,FFFFFFFFFFF,,~~~~~~~~~~~#",
+      "#,^^^^^^^^^^^^^^^^^^^^^^^^^,,~~~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,^^^C^^^^,,^^^,,,,FFFFF,FF,,,~~~~~~~~~~~#",
+      "#,^^^^^^^^^^^^^^^^^^^^^^^^^,,,~~~\"\"\"\"\"\"\"\"\"\"\"\",,,,,^^^^^^^^,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~\"\"\"\"\"\"\"\"\"\",,,,,,,^^^^^^^^,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~,,,,,\",,,,,,,,,,,^^^^^^^^,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~,,,,,,,,,,,,,,,,,^^^^^^^^,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+      "##########################################################################################"
+    ],
+    /* Zonas: las franjas del río y de la cordillera van primero porque
+       advZonaDe() se queda con la primera que coincide. */
+    zonas:[
+      {n:'Río Frontera',          x0:28, y0:1,  x1:32, y1:52},
+      {n:'Paso de la Cordillera', x0:58, y0:1,  x1:62, y1:52},
+      {n:'Kanto · Pueblo Paleta', x0:1,  y0:1,  x1:27, y1:8},
+      {n:'Kanto · Pradera',       x0:1,  y0:9,  x1:27, y1:25},
+      {n:'Kanto · Bosque Verde',  x0:1,  y0:26, x1:27, y1:43},
+      {n:'Kanto · Sierra',        x0:1,  y0:44, x1:27, y1:52},
+      {n:'Johto · Villa Cerezo',  x0:33, y0:1,  x1:57, y1:12},
+      {n:'Johto · Lago Espejo',   x0:33, y0:13, x1:57, y1:38},
+      {n:'Johto · Pastizal',      x0:33, y0:39, x1:57, y1:52},
+      {n:'Hoenn · Puerto',        x0:63, y0:1,  x1:88, y1:12},
+      {n:'Hoenn · Costa',         x0:63, y0:13, x1:88, y1:30},
+      {n:'Hoenn · Volcán',        x0:63, y0:31, x1:88, y1:52}
+    ],
+    carteles:{
+      '8,6':   'Centro Pokémon del pueblo ➜ ahí venden pokébolas.',
+      '40,7':  'Johto. El lago está al sur y la cueva al sudeste.',
+      '70,5':  'Hoenn. Cuidado con la ceniza del volcán, al sur.',
+      '27,26': '⬅ Kanto · Johto ➡ · cruzá el puente sobre el río.',
+      '57,26': '⬅ Johto · Hoenn ➡ · el paso de la cordillera está acá.'
+    }
   },
   cueva: {
     nombre:'Cueva Secreta',
-    cols:12,
+    cols:20,
     rows:[
-      "SSSSSESSSSSS",
-      "SooooooooooS",
-      "SookkkkkkkoS",
-      "SokkkkkkkkoS",
-      "SokkkkkkkooS",
-      "SoSSSooSSSoS",
-      "SoSSSooSSSoS",
-      "SoSSSLoSSSoS",
-      "SSSSSSSSSSSS"
-    ]
+      "SSSSSSSSSESSSSSSSSSS",
+      "SooooooooooooooooooS",
+      "SokkkkkkkkkkkkkkkkoS",
+      "SokkkkkkooookkkkkkoS",
+      "SoooSSSSooooSSSSoooS",
+      "SoooSSSSokkoSSSSoooS",
+      "SoboSSSSokkoSSSSoooS",
+      "SoooSSSSokkoSSSSoooS",
+      "SoooSSSSokkoSSSSoooS",
+      "SoooSSSSooooSSSSoooS",
+      "SoookkkkkkkkkkkkoboS",
+      "SoookkbkkkkkkkkkoooS",
+      "SSSSSSSSoLLoSSSSSSSS",
+      "SSSSSSSSSSSSSSSSSSSS"
+    ],
+    zonas:[
+      {n:'Cueva Secreta', x0:1, y0:1,  x1:18, y1:11},
+      {n:'El Altar',      x0:8, y0:12, x1:11, y1:12}
+    ],
+    carteles:{}
   }
 };
 
@@ -1708,11 +1793,16 @@ const ADV_TIPOS = {
 const ADV_PROB = { hierba:.18, agua:.20, volcan:.22, cueva:.20, legendario:.35 };
 const PROB_LEGENDARIA_SUELTA = .015;
 
+/* Los PNG de las bolas salen del mismo CDN que las figuritas (sprites de items
+   de PokeAPI): son pixel-art, así que pegan con el mapa. */
+const ITEM_CDN = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/';
 const BOLAS = {
-  roja:    {nombre:'Poké Ball',   ico:'🔴', precio:50,  cantidad:6, mult:1,   desc:'La común. Se venden de a 6.'},
-  azul:    {nombre:'Súper Ball',  ico:'🔵', precio:60,  cantidad:1, mult:1.6, desc:'Atrapa bastante mejor.'},
-  maestra: {nombre:'Master Ball', ico:'🟣', precio:100, cantidad:1, mult:4,   desc:'La más fuerte, para legendarios.'}
+  roja:    {nombre:'Poké Ball',   img:ITEM_CDN + 'poke-ball.png',   precio:50,  cantidad:6, mult:1,   desc:'La común. Se venden de a 6.'},
+  azul:    {nombre:'Súper Ball',  img:ITEM_CDN + 'great-ball.png',  precio:60,  cantidad:1, mult:1.6, desc:'Atrapa bastante mejor.'},
+  maestra: {nombre:'Master Ball', img:ITEM_CDN + 'master-ball.png', precio:100, cantidad:1, mult:4,   desc:'La más fuerte, para legendarios.'}
 };
+const BOLA_IMG = {};
+Object.keys(BOLAS).forEach(t => { const im = new Image(); im.src = BOLAS[t].img; BOLA_IMG[t] = im; });
 const BOLAS_INICIALES = {roja:5, azul:0, maestra:0};
 const bolas = Object.assign({}, BOLAS_INICIALES);
 
@@ -1724,25 +1814,46 @@ function chanceCaptura(p, tipoBola){
   return Math.max(3, Math.min(95, Math.round(base * BOLAS[tipoBola].mult)));
 }
 
-/* Por ahora la aventura sólo tiene Pokémon de las 3 primeras regiones: el mapa
-   es uno solo y con 1025 candidatos no se repetía nunca nada conocido. Cuando
-   se agreguen más mapas se suman las otras regiones. */
+/* El mundo tiene las 3 primeras regiones y CADA UNA saca sus propios Pokémon:
+   en la mitad oeste salen los de Kanto, en el centro los de Johto y en el este
+   los de Hoenn. El río y la cordillera son la frontera. */
 const ADV_REGIONES = ['kanto', 'johto', 'hoenn'];
 const ADV_DATA = DATA.filter(p => ADV_REGIONES.includes(p.region));
+const FRONTERAS = [{hasta:29, region:'kanto'}, {hasta:59, region:'johto'}, {hasta:9999, region:'hoenn'}];
 
-function poolBioma(bioma){
-  if(bioma === 'legendario') return ADV_DATA.filter(p => p.rarity === 'Legendario');
+function regionDe(x){
+  return (FRONTERAS.find(f => x <= f.hasta) || FRONTERAS[0]).region;
+}
+
+/* Dentro de la cueva manda la región de la entrada por la que se bajó. */
+let advRegion = 'kanto';
+
+function poolBioma(bioma, region){
+  const reg = region || advRegion;
+  const dePar = ADV_DATA.filter(p => p.region === reg);
+  const base = dePar.length ? dePar : ADV_DATA;
+  if(bioma === 'legendario'){
+    const leg = base.filter(p => p.rarity === 'Legendario');
+    return leg.length ? leg : ADV_DATA.filter(p => p.rarity === 'Legendario');
+  }
   const tipos = ADV_TIPOS[bioma] || [];
-  const pool = ADV_DATA.filter(p => p.rarity !== 'Legendario' && tipos.includes(p.type));
-  return pool.length ? pool : ADV_DATA.filter(p => p.rarity !== 'Legendario');
+  const pool = base.filter(p => p.rarity !== 'Legendario' && tipos.includes(p.type));
+  return pool.length ? pool : base.filter(p => p.rarity !== 'Legendario');
 }
 
 let advAbierto = false;
 let advMapa    = 'overworld';
-let advX = 1, advY = 1;
+let advX = 1, advY = 1;          // casillero donde está parado (derivado de la posición)
+let advPx = 16, advPy = 16;      // posición real en píxeles de mundo (movimiento fluido)
 let advDir     = 'abajo';
+let advPaso    = 0;              // cuadro de la animación de caminata
+let advCamino  = 0;              // píxeles caminados, para tirar los encuentros
 let advDibujado = false;
 let advZonaTimer = null;
+let advZonaActual = '';
+let advRaf = null;
+let advUltimo = 0;
+const advTomados = new Set();    // pokébolas del piso ya levantadas
 
 /* ---------- Tiles pixel-art de 16x16 ----------
    Estética de los cenitales de 16 bits estilo Pocky & Rocky (Natsume, SNES):
@@ -1775,14 +1886,29 @@ function silueta(ctx, ox, oy, anchos, color, desdeY){
   });
 }
 
+/* Ruido suave: promedia las esquinas del casillero para que los parches de
+   pasto sean manchas grandes y no confeti. */
+function ruidoSuave(x, y, n){
+  return (ruido(Math.floor(x / 3), Math.floor(y / 3), n) * 2 + ruido(x, y, n + 5)) / 3;
+}
+
 const PINTORES = {
   pasto(ctx, ox, oy, x, y){
-    pinta(ctx, '#4E9E33', ox, oy, 16, 16);
+    const v = ruidoSuave(x, y, 1);
+    pinta(ctx, v > .62 ? '#57A93A' : v < .34 ? '#469229' : '#4E9E33', ox, oy, 16, 16);
     for(let i = 0; i < 7; i++){
       const rx = ox + Math.floor(ruido(x, y, i) * 15);
       const ry = oy + Math.floor(ruido(x, y, i + 40) * 15);
       pinta(ctx, i % 2 ? '#3F8A28' : '#63B846', rx, ry, 2, 1);
     }
+    // matitas y florcitas sueltas, para que el pasto no sea una plancha lisa
+    if(ruido(x, y, 33) > .86){
+      const mx = ox + 4 + Math.floor(ruido(x, y, 34) * 8);
+      const my = oy + 5 + Math.floor(ruido(x, y, 35) * 7);
+      pinta(ctx, '#377A22', mx, my, 3, 1);
+      pinta(ctx, '#63B846', mx + 1, my - 1, 1, 1);
+    }
+    if(ruido(x, y, 47) > .93) pinta(ctx, '#F5EAC4', ox + 6, oy + 9, 2, 2);
   },
   flores(ctx, ox, oy, x, y){
     PINTORES.pasto(ctx, ox, oy, x, y);
@@ -1795,25 +1921,51 @@ const PINTORES = {
     }
   },
   hierba(ctx, ox, oy, x, y){
+    PINTORES.pasto(ctx, ox, oy, x, y);
     pinta(ctx, '#2F7A2A', ox, oy, 16, 16);
-    for(let i = 0; i < 12; i++){
+    for(let i = 0; i < 14; i++){
       const rx = ox + Math.floor(ruido(x, y, i) * 15);
-      const alto = 3 + Math.floor(ruido(x, y, i + 11) * 3);
-      const ry = oy + 4 + Math.floor(ruido(x, y, i + 55) * 9);
+      const alto = 3 + Math.floor(ruido(x, y, i + 11) * 4);
+      const ry = oy + 4 + Math.floor(ruido(x, y, i + 55) * 10);
       pinta(ctx, i % 3 ? '#46A63A' : '#69C452', rx, ry - alto, 1, alto);
     }
-    pinta(ctx, '#245F20', ox, oy + 15, 16, 1);
+    /* Borde dentado contra el pasto: el corte recto delataba el casillero. */
+    const esHierba = (cx, cy) => charEn(cx, cy) === '"';
+    if(!esHierba(x, y - 1)){
+      for(let i = 0; i < 16; i++){
+        const h = 1 + Math.floor(ruido(x * 16 + i, y, 71) * 3);
+        pinta(ctx, '#4E9E33', ox + i, oy, 1, h);
+        pinta(ctx, '#377A22', ox + i, oy + h, 1, 1);
+      }
+    }
+    if(!esHierba(x, y + 1)) pinta(ctx, '#245F20', ox, oy + 15, 16, 1);
+    if(!esHierba(x - 1, y)){
+      for(let i = 0; i < 16; i++) if(ruido(x, y * 16 + i, 72) > .5) pinta(ctx, '#4E9E33', ox, oy + i, 1, 1);
+    }
+    if(!esHierba(x + 1, y)){
+      for(let i = 0; i < 16; i++) if(ruido(x, y * 16 + i, 73) > .5) pinta(ctx, '#4E9E33', ox + 15, oy + i, 1, 1);
+    }
   },
   camino(ctx, ox, oy, x, y){
     pinta(ctx, '#C6AC7C', ox, oy, 16, 16);
-    for(let f = 0; f < 2; f++){
-      for(let c = 0; c < 2; c++){
-        const px0 = ox + c * 8 + (f % 2 ? 2 : 0);
-        const py0 = oy + f * 8 + 1;
-        pinta(ctx, '#D9C296', px0 + 1, py0, 6, 6);
-        pinta(ctx, '#B79A6B', px0 + 1, py0 + 5, 6, 1);
+    // adoquines chicos e irregulares, no cuatro baldosones iguales
+    for(let f = 0; f < 3; f++){
+      for(let c = 0; c < 3; c++){
+        const jx = Math.floor(ruido(x * 3 + c, y * 3 + f, 12) * 2);
+        const jy = Math.floor(ruido(x * 3 + c, y * 3 + f, 13) * 2);
+        const px0 = ox + c * 5 + jx, py0 = oy + f * 5 + jy;
+        const claro = ruido(x * 3 + c, y * 3 + f, 14) > .5 ? '#D9C296' : '#CDB88C';
+        pinta(ctx, claro, px0, py0, 4, 4);
+        pinta(ctx, '#B79A6B', px0, py0 + 3, 4, 1);
       }
     }
+    // orilla de tierra donde el camino toca el pasto
+    const esCamino = (cx, cy) => ['.', 'P', 'T', 'i'].includes(charEn(cx, cy));
+    const orilla = '#A98E5F';
+    if(!esCamino(x, y - 1)) for(let i = 0; i < 16; i++) if(ruido(x * 16 + i, y, 81) > .35) pinta(ctx, orilla, ox + i, oy, 1, 1 + Math.floor(ruido(x * 16 + i, y, 82) * 2));
+    if(!esCamino(x, y + 1)) for(let i = 0; i < 16; i++) if(ruido(x * 16 + i, y, 83) > .35) pinta(ctx, orilla, ox + i, oy + 15, 1, 1);
+    if(!esCamino(x - 1, y)) for(let i = 0; i < 16; i++) if(ruido(x, y * 16 + i, 84) > .35) pinta(ctx, orilla, ox, oy + i, 1, 1);
+    if(!esCamino(x + 1, y)) for(let i = 0; i < 16; i++) if(ruido(x, y * 16 + i, 85) > .35) pinta(ctx, orilla, ox + 15, oy + i, 1, 1);
   },
   agua(ctx, ox, oy, x, y){
     pinta(ctx, '#2C68C8', ox, oy, 16, 16);
@@ -1871,31 +2023,53 @@ const PINTORES = {
   },
   volcan(ctx, ox, oy, x, y){
     const roca = (cx, cy) => ['V', '^'].includes(charEn(cx, cy));
-    pinta(ctx, '#4A2B22', ox, oy, 16, 16);
-    for(let i = 0; i < 5; i++){
-      const rx = ox + Math.floor(ruido(x, y, i + 12) * 14);
-      const ry = oy + 2 + Math.floor(ruido(x, y, i + 80) * 12);
-      pinta(ctx, i % 2 ? '#3A2019' : '#63382A', rx, ry, 3, 1);
+    const v = ruidoSuave(x, y, 17);
+    pinta(ctx, v > .6 ? '#54301F' : '#452719', ox, oy, 16, 16);
+    for(let i = 0; i < 6; i++){                 // piedra quemada
+      const rx = ox + Math.floor(ruido(x, y, i + 12) * 13);
+      const ry = oy + 1 + Math.floor(ruido(x, y, i + 80) * 13);
+      pinta(ctx, i % 2 ? '#331B12' : '#66392A', rx, ry, 3, 2);
     }
-    if(!roca(x, y - 1)){                       // boca del cráter: lava arriba
+    // grietas de lava: sólo en algunas piedras y con forma irregular
+    if(ruido(x, y, 90) > .45){
+      let gx = ox + 3 + Math.floor(ruido(x, y, 91) * 9);
+      let gy = oy + 2 + Math.floor(ruido(x, y, 92) * 4);
+      const largo = 4 + Math.floor(ruido(x, y, 93) * 7);
+      for(let i = 0; i < largo; i++){
+        pinta(ctx, i % 3 ? '#E4622A' : '#F5A623', gx, gy + i, 1, 1);
+        if(ruido(x, y, 94 + i) > .6) gx += ruido(x, y, 95 + i) > .5 ? 1 : -1;
+      }
+    }
+    if(!roca(x, y - 1)){                        // boca del cráter
       pinta(ctx, '#7A4630', ox, oy, 16, 2);
-      pinta(ctx, '#E4622A', ox + 4, oy + 1, 8, 3);
-      pinta(ctx, '#F5A623', ox + 6, oy + 1, 4, 2);
-      pinta(ctx, '#FFE07A', ox + 7, oy + 1, 2, 1);
+      pinta(ctx, '#E4622A', ox + 2, oy + 1, 12, 3);
+      pinta(ctx, '#F5A623', ox + 4, oy + 1, 8, 2);
+      pinta(ctx, '#FFE07A', ox + 6, oy + 1, 4, 1);
     }
-    if(!roca(x, y + 1)) pinta(ctx, '#2C1710', ox, oy + 14, 16, 2);
-    pinta(ctx, '#E4622A', ox + 3, oy + 6, 1, 8);   // coladas de lava
-    pinta(ctx, '#F5A623', ox + 3, oy + 8, 1, 3);
-    pinta(ctx, '#E4622A', ox + 11, oy + 5, 1, 9);
+    if(!roca(x, y + 1)) pinta(ctx, '#241009', ox, oy + 14, 16, 2);
+    if(!roca(x - 1, y)) pinta(ctx, '#331B12', ox, oy, 1, 16);
+    if(!roca(x + 1, y)) pinta(ctx, '#331B12', ox + 15, oy, 1, 16);
   },
   ceniza(ctx, ox, oy, x, y){
-    pinta(ctx, '#8E4A26', ox, oy, 16, 16);
-    for(let i = 0; i < 6; i++){
-      const rx = ox + Math.floor(ruido(x, y, i + 5) * 15);
-      const ry = oy + Math.floor(ruido(x, y, i + 30) * 15);
-      pinta(ctx, i % 2 ? '#6B3419' : '#E4622A', rx, ry, 2, 1);
+    const v = ruidoSuave(x, y, 23);
+    pinta(ctx, v > .62 ? '#7C4526' : v < .35 ? '#63361D' : '#6F3E21', ox, oy, 16, 16);
+    for(let i = 0; i < 4; i++){                 // ceniza volada
+      const rx = ox + Math.floor(ruido(x, y, i + 5) * 13);
+      const ry = oy + Math.floor(ruido(x, y, i + 30) * 14);
+      pinta(ctx, '#8A5B38', rx, ry, 3, 1);
     }
-    pinta(ctx, '#F5A623', ox + 4, oy + 11, 2, 2);
+    if(ruido(x, y, 41) > .55){                  // grieta
+      const gx = ox + 2 + Math.floor(ruido(x, y, 42) * 10);
+      const gy = oy + 3 + Math.floor(ruido(x, y, 43) * 8);
+      pinta(ctx, '#46240F', gx, gy, 5, 1);
+      pinta(ctx, '#46240F', gx + 3, gy + 1, 4, 1);
+    }
+    if(ruido(x, y, 55) > .82){                  // brasa
+      const bx = ox + 3 + Math.floor(ruido(x, y, 56) * 9);
+      const by = oy + 4 + Math.floor(ruido(x, y, 57) * 8);
+      pinta(ctx, '#E4622A', bx, by, 2, 2);
+      pinta(ctx, '#FFC65C', bx, by, 1, 1);
+    }
   },
   entradaCueva(ctx, ox, oy, x, y){
     PINTORES.montana(ctx, ox, oy, x, y);
@@ -1934,16 +2108,80 @@ const PINTORES = {
     pinta(ctx, '#C6AC7C', ox + 4, oy, 8, 9);
     pinta(ctx, '#EBDCB4', ox + 6, oy, 4, 6);
   },
-  centro(ctx, ox, oy, x, y){
+  arena(ctx, ox, oy, x, y){
+    pinta(ctx, '#E8D9A8', ox, oy, 16, 16);
+    for(let i = 0; i < 6; i++){
+      const rx = ox + Math.floor(ruido(x, y, i + 21) * 15);
+      const ry = oy + Math.floor(ruido(x, y, i + 63) * 15);
+      pinta(ctx, i % 2 ? '#D3C08A' : '#F5EAC4', rx, ry, 2, 1);
+    }
+  },
+  puente(ctx, ox, oy, x, y){
+    PINTORES.agua(ctx, ox, oy, x, y);
+    pinta(ctx, '#8A5F35', ox, oy, 16, 16);
+    for(let i = 0; i < 4; i++) pinta(ctx, '#6B4522', ox, oy + i * 4 + 3, 16, 1);
+    pinta(ctx, '#A8794A', ox, oy, 16, 2);
+    pinta(ctx, '#5A3A1C', ox, oy + 15, 16, 1);
+    pinta(ctx, '#C89B63', ox + 1, oy + 5, 1, 10);
+    pinta(ctx, '#C89B63', ox + 14, oy + 5, 1, 10);
+  },
+  torii(ctx, ox, oy, x, y){
     PINTORES.pasto(ctx, ox, oy, x, y);
-    pinta(ctx, '#EFE7D5', ox + 2, oy + 7, 12, 8);
-    pinta(ctx, '#C9BFA6', ox + 2, oy + 14, 12, 1);
-    pinta(ctx, '#B8322B', ox + 1, oy + 2, 14, 5);
-    pinta(ctx, '#8F231D', ox, oy + 6, 16, 2);
-    pinta(ctx, '#D9564D', ox + 3, oy + 3, 10, 1);
-    pinta(ctx, '#6B4A2A', ox + 7, oy + 10, 3, 5);
-    pinta(ctx, '#FFFFFF', ox + 4, oy + 9, 3, 3);
-    pinta(ctx, '#EE1515', ox + 4, oy + 9, 3, 2);
+    pinta(ctx, '#8F231D', ox, oy + 1, 16, 2);   // dintel superior
+    pinta(ctx, '#C0392B', ox, oy + 3, 16, 2);
+    pinta(ctx, '#C0392B', ox + 2, oy + 6, 12, 2);
+    pinta(ctx, '#C0392B', ox + 3, oy + 5, 2, 11); // columnas
+    pinta(ctx, '#C0392B', ox + 11, oy + 5, 2, 11);
+    pinta(ctx, '#8F231D', ox + 4, oy + 5, 1, 11);
+    pinta(ctx, '#8F231D', ox + 12, oy + 5, 1, 11);
+  },
+  cartel(ctx, ox, oy, x, y){
+    PINTORES.pasto(ctx, ox, oy, x, y);
+    pinta(ctx, '#6B4A2A', ox + 7, oy + 9, 2, 6);
+    pinta(ctx, '#B98A50', ox + 2, oy + 3, 12, 7);
+    pinta(ctx, '#8A6033', ox + 2, oy + 3, 12, 1);
+    pinta(ctx, '#8A6033', ox + 2, oy + 9, 12, 1);
+    pinta(ctx, '#6B4A2A', ox + 4, oy + 5, 8, 1);
+    pinta(ctx, '#6B4A2A', ox + 4, oy + 7, 6, 1);
+  },
+  /* El Centro Pokémon ocupa 2x2 casilleros: techo arriba (p q) y paredes
+     abajo (P r). La puerta está en la P, que es la que abre la tienda. */
+  techoIzq(ctx, ox, oy, x, y){
+    PINTORES.camino(ctx, ox, oy, x, y);
+    pinta(ctx, '#8F231D', ox, oy + 1, 16, 3);
+    pinta(ctx, '#C0392B', ox + 1, oy + 4, 15, 10);
+    pinta(ctx, '#D9564D', ox + 3, oy + 5, 9, 2);
+    pinta(ctx, '#A32A24', ox + 1, oy + 9, 15, 1);
+    pinta(ctx, '#8F231D', ox, oy + 14, 16, 2);
+  },
+  techoDer(ctx, ox, oy, x, y){
+    PINTORES.camino(ctx, ox, oy, x, y);
+    pinta(ctx, '#8F231D', ox, oy + 1, 16, 3);
+    pinta(ctx, '#C0392B', ox, oy + 4, 15, 10);
+    pinta(ctx, '#D9564D', ox + 4, oy + 5, 8, 2);
+    pinta(ctx, '#A32A24', ox, oy + 9, 15, 1);
+    pinta(ctx, '#8F231D', ox, oy + 14, 16, 2);
+    pinta(ctx, '#FFFFFF', ox + 8, oy + 5, 5, 5);   // pokébola pintada en el techo
+    pinta(ctx, '#EE1515', ox + 8, oy + 5, 5, 3);
+    pinta(ctx, '#2A2A34', ox + 8, oy + 7, 5, 1);
+  },
+  paredDer(ctx, ox, oy, x, y){
+    PINTORES.camino(ctx, ox, oy, x, y);
+    pinta(ctx, '#EFE7D5', ox, oy, 15, 14);
+    pinta(ctx, '#DCD2BC', ox, oy + 12, 15, 2);
+    pinta(ctx, '#7FA8D8', ox + 3, oy + 3, 7, 6);   // ventana
+    pinta(ctx, '#5C86B8', ox + 3, oy + 3, 7, 1);
+    pinta(ctx, '#EFE7D5', ox + 6, oy + 3, 1, 6);
+    pinta(ctx, '#C9BFA6', ox, oy + 14, 15, 2);
+  },
+  centro(ctx, ox, oy, x, y){
+    PINTORES.camino(ctx, ox, oy, x, y);
+    pinta(ctx, '#EFE7D5', ox + 1, oy, 15, 14);
+    pinta(ctx, '#DCD2BC', ox + 1, oy + 12, 15, 2);
+    pinta(ctx, '#6B4A2A', ox + 7, oy + 4, 7, 10);  // puerta
+    pinta(ctx, '#8A6033', ox + 8, oy + 5, 5, 9);
+    pinta(ctx, '#F0B400', ox + 12, oy + 9, 1, 2);  // picaporte
+    pinta(ctx, '#C9BFA6', ox + 1, oy + 14, 15, 2);
   }
 };
 
@@ -1974,14 +2212,31 @@ const SPRITE_JUGADOR = {
 function dibujarJugador(ctx, ox, oy){
   const sprite = SPRITE_JUGADOR[advDir] || SPRITE_JUGADOR.lado;
   const espejo = advDir === 'izq';
+  ox = Math.round(ox); oy = Math.round(oy);
   ctx.fillStyle = 'rgba(0,0,0,.28)';
   ctx.fillRect(ox + 4, oy + 14, 8, 2);
   sprite.forEach((fila, fy) => {
     [...fila].forEach((ch, fx) => {
       const color = COLOR_JUGADOR[ch];
-      if(color) pinta(ctx, color, espejo ? ox + 15 - fx : ox + fx, oy + fy);
+      if(!color) return;
+      /* Caminata: en el cuadro 1 las piernas se corren un píxel para cada
+         lado, en el 2 al revés. Alcanza para que se vea el paso. */
+      let dx = 0;
+      if(advPaso && fy >= 14) dx = (advPaso === 1 ? 1 : -1) * (fx < 8 ? 1 : -1);
+      const px0 = espejo ? ox + 15 - fx - dx : ox + fx + dx;
+      pinta(ctx, color, px0, oy + fy);
     });
   });
+}
+
+function dibujarBola(ctx, tipo, ox, oy){
+  const im = BOLA_IMG[tipo];
+  if(im && im.complete && im.naturalWidth){
+    ctx.drawImage(im, Math.round(ox) + 2, Math.round(oy) + 2, 12, 12);
+  } else {                                   // por si el CDN todavía no cargó
+    pinta(ctx, '#FFFFFF', ox + 5, oy + 5, 6, 6);
+    pinta(ctx, '#EE1515', ox + 5, oy + 5, 6, 3);
+  }
 }
 
 function advTileEn(x, y){
@@ -2004,6 +2259,11 @@ function advSyncHud(){
   const c = document.getElementById('advCoins');
   if(!c) return;
   c.textContent = coins;
+  ['Roja', 'Azul', 'Maestra'].forEach((n, i) => {
+    const ico = document.getElementById('advIco' + n);
+    const tipo = ['roja', 'azul', 'maestra'][i];
+    if(ico && !ico.src) ico.src = BOLAS[tipo].img;
+  });
   document.getElementById('advRoja').textContent    = bolas.roja;
   document.getElementById('advAzul').textContent    = bolas.azul;
   document.getElementById('advMaestra').textContent = bolas.maestra;
@@ -2011,83 +2271,136 @@ function advSyncHud(){
   if(sc) sc.textContent = coins;
 }
 
-function advTextoZona(){
-  const t = advTileEn(advX, advY);
-  if(!t) return '';
-  if(t.bote) return '🚣 Vas en el bote por el <b>lago</b>';
-  return `Estás en <b>${t.label}</b> · ${ADV_MAPS[advMapa].nombre}`;
-}
-
 function advMensaje(txt){
   const box = document.getElementById('advZona');
   if(advZonaTimer){ clearTimeout(advZonaTimer); advZonaTimer = null; }
-  if(!txt){ box.innerHTML = advTextoZona(); return; }
+  if(!txt){ box.classList.remove('ver'); return; }
   box.innerHTML = txt;
-  advZonaTimer = setTimeout(() => { advZonaTimer = null; box.innerHTML = advTextoZona(); }, 2600);
+  box.classList.add('ver');
+  advZonaTimer = setTimeout(() => { advZonaTimer = null; box.classList.remove('ver'); }, 2800);
 }
 
-/* Si el mapa entero entra con un zoom decente se muestra completo; si no
-   (pantalla angosta), se recorta una ventana centrada en el jugador. Sin esto
-   el mapa en el celular quedaba a escala 1,2 y no se veía nada. */
-const ESCALA_MIN = 1.75;
+function advZonaDe(x, y){
+  const zonas = ADV_MAPS[advMapa].zonas || [];
+  const z = zonas.find(z => x >= z.x0 && x <= z.x1 && y >= z.y0 && y <= z.y1);
+  return z ? z.n : ADV_MAPS[advMapa].nombre;
+}
 
-function advRender(){
-  const mapa = ADV_MAPS[advMapa];
-  const cv = document.getElementById('advMap');
-  const filas = mapa.rows.length;
-  const caja = cv.parentElement;
-  const anchoDisp = (caja.clientWidth || window.innerWidth) - 26;
-  /* El alto también manda: en una notebook el mapa entraba a lo ancho pero
-     medía 768 px de alto y el d-pad quedaba abajo del borde de la pantalla.
-     Se mide lo que ocupan los HERMANOS del canvas (nunca scrollHeight: como
-     incluye al canvas, la escala se clavaba en el tamaño anterior). */
-  const estilos = getComputedStyle(caja);
-  const separacion = parseFloat(estilos.rowGap || estilos.gap) || 0;
-  let otros = parseFloat(estilos.paddingTop) + parseFloat(estilos.paddingBottom)
-            + separacion * Math.max(0, caja.children.length - 1);
-  Array.from(caja.children).forEach(el => {
-    if(el !== cv) otros += el.getBoundingClientRect().height;
-  });
-  const altoDisp = Math.max(140, (caja.clientHeight || window.innerHeight) - otros);
+/* ---------- Fondo pre-dibujado ----------
+   Con 36x24 casilleros, repintar tile por tile en cada cuadro del movimiento
+   fluido era carísimo. El mapa se dibuja UNA vez en un canvas aparte y cada
+   cuadro sólo copia el pedazo visible. */
+const advFondos = {};
 
-  let escala = Math.min(4, anchoDisp / (mapa.cols * ADV_PX), altoDisp / (filas * ADV_PX));
-  let colsVis = mapa.cols, filasVis = filas;
-  if(escala < ESCALA_MIN){
-    escala = ESCALA_MIN;
-    colsVis  = Math.max(7, Math.min(mapa.cols, Math.floor(anchoDisp / (ADV_PX * escala))));
-    filasVis = Math.max(6, Math.min(filas,     Math.floor(altoDisp  / (ADV_PX * escala))));
-  }
-  const camX = Math.max(0, Math.min(mapa.cols - colsVis, advX - (colsVis >> 1)));
-  const camY = Math.max(0, Math.min(filas - filasVis, advY - (filasVis >> 1)));
-
-  cv.width  = colsVis * ADV_PX;
-  cv.height = filasVis * ADV_PX;
+function advFondo(mapaId){
+  if(advFondos[mapaId]) return advFondos[mapaId];
+  const mapa = ADV_MAPS[mapaId];
+  const cv = document.createElement('canvas');
+  cv.width  = mapa.cols * ADV_PX;
+  cv.height = mapa.rows.length * ADV_PX;
   const ctx = cv.getContext('2d');
   ctx.imageSmoothingEnabled = false;
-  for(let y = camY; y < camY + filasVis; y++){
-    for(let x = camX; x < camX + colsVis; x++){
-      const t = ADV_TILE[mapa.rows[y][x]] || ADV_TILE['.'];
-      (PINTORES[t.pinta] || PINTORES.pasto)(ctx, (x - camX) * ADV_PX, (y - camY) * ADV_PX, x, y);
-    }
-  }
-  dibujarJugador(ctx, (advX - camX) * ADV_PX, (advY - camY) * ADV_PX);
-  cv.style.width  = Math.floor(cv.width  * escala) + 'px';
-  cv.style.height = Math.floor(cv.height * escala) + 'px';
+  const antes = advMapa;
+  advMapa = mapaId;                       // los pintores miran vecinos con charEn
+  mapa.rows.forEach((fila, y) => {
+    [...fila].forEach((ch, x) => {
+      const t = ADV_TILE[ch] || ADV_TILE['.'];
+      (PINTORES[t.pinta] || PINTORES.pasto)(ctx, x * ADV_PX, y * ADV_PX, x, y);
+    });
+  });
+  advMapa = antes;
+  advFondos[mapaId] = cv;
+  return cv;
+}
+
+/* Zoom: casilleros grandes (el juego ocupa toda la pantalla, así que se ve un
+   pedazo del mapa y la cámara sigue al jugador). */
+function advEscala(ancho, alto){
+  const chico = Math.min(ancho, alto);
+  if(chico < 420)  return 2.6;
+  if(chico < 700)  return 3.2;
+  return 4;
+}
+
+function advRender(){
+  const cv = document.getElementById('advMap');
+  const mapa = ADV_MAPS[advMapa];
+  const anchoCss = cv.clientWidth  || window.innerWidth;
+  const altoCss  = cv.clientHeight || window.innerHeight;
+  const escala = advEscala(anchoCss, altoCss);
+
+  // el canvas interno mide lo que se ve en píxeles de mundo
+  const vw = Math.ceil(anchoCss / escala);
+  const vh = Math.ceil(altoCss  / escala);
+  if(cv.width !== vw || cv.height !== vh){ cv.width = vw; cv.height = vh; }
+
+  const mundoW = mapa.cols * ADV_PX, mundoH = mapa.rows.length * ADV_PX;
+  let camX = Math.round(advPx + 8 - vw / 2);
+  let camY = Math.round(advPy + 8 - vh / 2);
+  camX = mundoW <= vw ? Math.round((mundoW - vw) / 2) : Math.max(0, Math.min(mundoW - vw, camX));
+  camY = mundoH <= vh ? Math.round((mundoH - vh) / 2) : Math.max(0, Math.min(mundoH - vh, camY));
+
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = '#0B1020';
+  ctx.fillRect(0, 0, vw, vh);
+  ctx.drawImage(advFondo(advMapa), -camX, -camY);
+
+  // pokébolas tiradas en el piso (las que todavía no levantó)
+  mapa.rows.forEach((fila, y) => {
+    [...fila].forEach((ch, x) => {
+      const t = ADV_TILE[ch];
+      if(!t || !t.item || advTomados.has(advMapa + ':' + x + ',' + y)) return;
+      const px0 = x * ADV_PX - camX, py0 = y * ADV_PX - camY;
+      if(px0 < -16 || py0 < -16 || px0 > vw || py0 > vh) return;
+      dibujarBola(ctx, t.item, px0, py0);
+    });
+  });
+
+  dibujarJugador(ctx, advPx - camX, advPy - camY);
   advDibujado = true;
 }
 
+/* Hay una cueva por región y todas dan al mismo interior, así que se guarda
+   por dónde se bajó para devolver al jugador a ESA entrada. */
+let advVuelta = null;
+
 function advIrA(mapaId){
-  advMapa = mapaId;
-  const destino = mapaId === 'cueva'
-    ? advBuscarTile('cueva', 'E')          // aparece en la boca de la cueva
-    : advBuscarTile('overworld', 'C');     // vuelve a la entrada de la montaña
-  advX = destino.x;
-  advY = destino.y;
-  if(mapaId === 'cueva') advY += 1;        // un paso adentro, sobre el piso
+  if(mapaId === 'cueva'){
+    advVuelta = {x:advX, y:advY, region:advRegion};
+    advMapa = 'cueva';
+    const boca = advBuscarTile('cueva', 'E');
+    advPonerEn(boca.x, boca.y + 1);
+    advMensaje('🕳️ Entraste a la <b>Cueva Secreta</b>. Dicen que al fondo hay un altar…');
+  } else {
+    advMapa = 'overworld';
+    const v = advVuelta || advBuscarTile('overworld', '@');
+    const libre = advLugarLibre(v.x, v.y);
+    advPonerEn(libre.x, libre.y);
+    advRegion = regionDe(advX);
+    advMensaje('☀️ Volviste a la superficie');
+  }
+  advZonaActual = '';
   advRender();
-  advMensaje(mapaId === 'cueva'
-    ? '🕳️ Entraste a la <b>Cueva Secreta</b>. Dicen que al fondo hay un altar…'
-    : '☀️ Volviste a la <b>Ruta Verde</b>');
+}
+
+function advPonerEn(x, y){
+  const t = advTileEn(x, y);
+  if(!t || !t.walk){ const libre = advLugarLibre(x, y); x = libre.x; y = libre.y; }
+  advX = x; advY = y;
+  advPx = x * ADV_PX; advPy = y * ADV_PX;
+  if(advMapa === 'overworld') advRegion = regionDe(x);
+}
+
+/* Casillero caminable al lado de (x,y) que NO sea una puerta: al volver de la
+   cueva, caer justo sobre la entrada te hacía entrar de nuevo, en bucle. */
+function advLugarLibre(x, y){
+  const cerca = [[0,1], [0,-1], [-1,0], [1,0], [1,1], [-1,1], [0,2]];
+  for(const [dx, dy] of cerca){
+    const t = advTileEn(x + dx, y + dy);
+    if(t && t.walk && !t.entra) return {x:x + dx, y:y + dy};
+  }
+  return {x, y:y + 1};
 }
 
 function advOcupado(){
@@ -2097,27 +2410,126 @@ function advOcupado(){
       || document.getElementById('specialOverlay').classList.contains('show');
 }
 
+/* ---------- Motor de movimiento ----------
+   El jugador se mueve en píxeles, no de a casilleros. La caja de choque son
+   los pies (10x7): así se puede pasar rozando un árbol, como en los cenitales
+   de consola, en vez de quedar trabado por la cabeza. */
+const ADV_VEL = 58;                        // píxeles de mundo por segundo
+const CAJA = {x:3, y:8, w:10, h:7};
+let advEje = {x:0, y:0};                   // hacia dónde empuja el teclado o el joystick
+
+function advChoca(px, py){
+  const x0 = px + CAJA.x, y0 = py + CAJA.y;
+  const esquinas = [[x0, y0], [x0 + CAJA.w - 1, y0], [x0, y0 + CAJA.h - 1], [x0 + CAJA.w - 1, y0 + CAJA.h - 1]];
+  return esquinas.some(([cx, cy]) => {
+    const t = advTileEn(Math.floor(cx / ADV_PX), Math.floor(cy / ADV_PX));
+    return !t || !t.walk;
+  });
+}
+
+function advPaso1(dt){
+  if(advOcupado()){ advPaso = 0; return; }
+  let vx = advEje.x, vy = advEje.y;
+  const largo = Math.hypot(vx, vy);
+  if(largo < .15){ advPaso = 0; advCamino = 0; return; }
+  if(largo > 1){ vx /= largo; vy /= largo; }
+
+  advDir = Math.abs(vx) > Math.abs(vy) ? (vx < 0 ? 'izq' : 'der') : (vy < 0 ? 'arriba' : 'abajo');
+
+  const paso = ADV_VEL * dt;
+  const antesX = advPx, antesY = advPy;
+  const nx = advPx + vx * paso;
+  if(!advChoca(nx, advPy)) advPx = nx;
+  const ny = advPy + vy * paso;
+  if(!advChoca(advPx, ny)) advPy = ny;
+
+  const mapa = ADV_MAPS[advMapa];
+  advPx = Math.max(0, Math.min(mapa.cols * ADV_PX - ADV_PX, advPx));
+  advPy = Math.max(0, Math.min(mapa.rows.length * ADV_PX - ADV_PX, advPy));
+
+  const anduvo = Math.hypot(advPx - antesX, advPy - antesY);
+  if(anduvo > 0){
+    advCamino += anduvo;
+    advPaso = (Math.floor(advCamino / 7) % 2) + 1;   // dos cuadros de caminata
+  }
+
+  // casillero donde están los pies
+  const cx = Math.floor((advPx + 8) / ADV_PX), cy = Math.floor((advPy + 11) / ADV_PX);
+  const cambioCasillero = cx !== advX || cy !== advY;
+  advX = cx; advY = cy;
+  if(advMapa === 'overworld') advRegion = regionDe(cx);
+
+  // si el paso quedó frenado contra un cartel, se lee solo
+  if(cambioCasillero === false && anduvo < paso * .4){
+    const mira = advDir === 'izq' ? [-1,0] : advDir === 'der' ? [1,0] : advDir === 'arriba' ? [0,-1] : [0,1];
+    const frente = advTileEn(cx + mira[0], cy + mira[1]);
+    if(frente && frente.cartel) advLeerCartel(cx + mira[0], cy + mira[1]);
+  }
+
+  const zona = advZonaDe(cx, cy);
+  if(zona !== advZonaActual){ advZonaActual = zona; advMensaje(`📍 <b>${zona}</b>`); }
+
+  const t = advTileEn(cx, cy);
+  if(!t) return;
+  if(cambioCasillero) advPisar(t, cx, cy);
+  if(t.encuentro && advCamino >= 16){
+    advCamino = 0;
+    if(Math.random() <= (ADV_PROB[t.encuentro] || .15)){
+      const bioma = (t.encuentro !== 'legendario' && Math.random() < PROB_LEGENDARIA_SUELTA)
+        ? 'legendario' : t.encuentro;
+      iniciarEncuentro(elegirPesado(poolBioma(bioma)));
+    }
+  }
+}
+
+function advPisar(t, x, y){
+  if(t.entra){ advIrA(t.entra); return; }
+  if(t.accion === 'centro'){ abrirTienda(); return; }
+  if(t.item){
+    const clave = advMapa + ':' + x + ',' + y;
+    if(advTomados.has(clave)) return;
+    advTomados.add(clave);
+    bolas[t.item] += 1;
+    saveProgress(); advSyncHud();
+    advMensaje(`Encontraste una <b>${BOLAS[t.item].nombre}</b> en el piso`);
+  }
+}
+
+/* Los carteles no se pisan (son postes): el mensaje sale al chocarlos. */
+function advLeerCartel(x, y){
+  const txt = (ADV_MAPS[advMapa].carteles || {})[x + ',' + y];
+  if(txt) advMensaje(txt);
+}
+
+function advCiclo(ahora){
+  if(!advAbierto){ advRaf = null; return; }
+  const dt = Math.min(.05, (ahora - advUltimo) / 1000 || 0);
+  advUltimo = ahora;
+  advPaso1(dt);
+  advRender();
+  advRaf = requestAnimationFrame(advCiclo);
+}
+
+/* Compatibilidad con el modo de a pasos: mueve un casillero entero. */
 function advMover(dx, dy){
   if(!advAbierto || advOcupado()) return;
   advDir = dy < 0 ? 'arriba' : dy > 0 ? 'abajo' : dx < 0 ? 'izq' : 'der';
   const nx = advX + dx, ny = advY + dy;
   const t = advTileEn(nx, ny);
-  if(!t || !t.walk){ advRender(); return; }   // se da vuelta aunque no pueda pasar
-  advX = nx; advY = ny;
+  if(!t || !t.walk){
+    if(t && t.cartel) advLeerCartel(nx, ny);
+    advRender();
+    return;
+  }
+  advPonerEn(nx, ny);
+  advCamino = 16;
   advRender();
-  advMensaje(null);
-  advPisar(t);
-}
-
-function advPisar(t){
-  if(t.entra){ advIrA(t.entra); return; }
-  if(t.accion === 'centro'){ abrirTienda(); return; }
-  if(!t.encuentro) return;
-  if(Math.random() > (ADV_PROB[t.encuentro] || .15)) return;
-  const bioma = (t.encuentro !== 'legendario' && Math.random() < PROB_LEGENDARIA_SUELTA)
-    ? 'legendario'
-    : t.encuentro;
-  iniciarEncuentro(elegirPesado(poolBioma(bioma)));
+  advPisar(t, nx, ny);
+  if(t.encuentro && Math.random() <= (ADV_PROB[t.encuentro] || .15)){
+    const bioma = (t.encuentro !== 'legendario' && Math.random() < PROB_LEGENDARIA_SUELTA)
+      ? 'legendario' : t.encuentro;
+    iniciarEncuentro(elegirPesado(poolBioma(bioma)));
+  }
 }
 
 /* ---------- Encuentro y captura ---------- */
@@ -2135,6 +2547,11 @@ function iniciarEncuentro(p){
     : 'Elegí con qué pokébola tirar.';
   document.getElementById('encCloseBtn').textContent = 'Huir';
   renderEncuentro();
+  // fogonazo en el mapa, como cuando arranca un combate
+  const cv = document.getElementById('advMap');
+  cv.classList.remove('flash');
+  void cv.offsetWidth;
+  cv.classList.add('flash');
   document.getElementById('encOverlay').classList.add('show');
   advMensaje(`¡Apareció un <b>${p.name}</b>!`);
 }
@@ -2146,8 +2563,10 @@ function renderEncuentro(){
   const tiros = document.getElementById('encTiros');
   tiros.innerHTML = '';
   for(let i = 0; i < ENC_TIROS; i++){
-    const b = document.createElement('span');
-    b.textContent = '⚪';
+    const b = document.createElement('img');
+    b.src = BOLAS.roja.img;
+    b.alt = 'tiro';
+    b.style.cssText = 'width:20px;height:20px;image-rendering:pixelated;';
     if(i < encuentro.tiros) b.className = 'usado';
     tiros.appendChild(b);
   }
@@ -2158,7 +2577,7 @@ function renderEncuentro(){
     const btn = document.createElement('button');
     btn.className = 'bola-btn';
     btn.disabled = bolas[tipo] <= 0;
-    btn.innerHTML = `<span class="bola-ico">${b.ico}</span><b>${b.nombre}</b>` +
+    btn.innerHTML = `<img class="bola-ico" src="${b.img}" alt=""><b>${b.nombre}</b>` +
       `<span>x${bolas[tipo]}</span><span>${chanceCaptura(encuentro.p, tipo)}% de atraparlo</span>`;
     btn.onclick = () => tirarBola(tipo);
     box.appendChild(btn);
@@ -2232,7 +2651,7 @@ function renderTienda(){
     const b = BOLAS[tipo];
     const fila = document.createElement('div');
     fila.className = 'shop-row';
-    fila.innerHTML = `<span class="bola-ico">${b.ico}</span>
+    fila.innerHTML = `<img class="bola-ico" src="${b.img}" alt="">
       <span class="txt"><b>${b.nombre}${b.cantidad > 1 ? ` x${b.cantidad}` : ''}</b>${b.desc}<br>Tenés ${bolas[tipo]}</span>`;
     const btn = document.createElement('button');
     btn.className = 'open-btn';
@@ -2254,7 +2673,7 @@ function comprarBola(tipo){
   saveProgress();
   renderTienda();
   document.getElementById('shopFeedback').innerHTML =
-    `Compraste ${b.cantidad > 1 ? b.cantidad + ' ' : ''}<b>${b.nombre}</b> ${b.ico}`;
+    `Compraste ${b.cantidad > 1 ? b.cantidad + ' ' : ''}<b>${b.nombre}</b>`;
 }
 
 /* ---------- Abrir / cerrar la aventura ---------- */
@@ -2263,31 +2682,101 @@ function abrirAventura(){
   document.getElementById('advOverlay').classList.add('show');
   if(!advDibujado){
     const inicio = advBuscarTile('overworld', '@');
-    advX = inicio.x; advY = inicio.y;
+    advPonerEn(inicio.x, inicio.y);
+    advZonaActual = '';
   }
   advRender();
   advSyncHud();
-  advMensaje('Caminá hasta la <b>hierba alta</b> 🌿 o el <b>lago</b> 🌊 para que salgan Pokémon');
+  advMensaje('Caminá hasta la <b>hierba alta</b> o el <b>lago</b> para que salgan Pokémon');
+  advUltimo = performance.now();
+  if(!advRaf) advRaf = requestAnimationFrame(advCiclo);
+  // pantalla completa de verdad donde el navegador lo permita
+  try{
+    const el = document.documentElement;
+    if(!document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().catch(() => {});
+  }catch(e){}
 }
 
 function cerrarAventura(){
   advAbierto = false;
+  advEje = {x:0, y:0};
+  if(advRaf){ cancelAnimationFrame(advRaf); advRaf = null; }
   document.getElementById('advOverlay').classList.remove('show');
+  try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }catch(e){}
+}
+
+/* ---------- Teclado (se mantiene apretada la tecla) ---------- */
+const TECLAS = {ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
+                w:[0,-1], s:[0,1], a:[-1,0], d:[1,0]};
+const teclasApretadas = new Set();
+
+function ejeDeTeclado(){
+  let x = 0, y = 0;
+  teclasApretadas.forEach(k => { const d = TECLAS[k]; if(d){ x += d[0]; y += d[1]; } });
+  return {x:Math.max(-1, Math.min(1, x)), y:Math.max(-1, Math.min(1, y))};
 }
 
 document.addEventListener('keydown', e => {
-  if(!advAbierto || advOcupado()) return;
-  const dirs = {ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
-                w:[0,-1], s:[0,1], a:[-1,0], d:[1,0]};
-  const dir = dirs[e.key] || dirs[(e.key || '').toLowerCase()];
-  if(!dir) return;
+  if(!advAbierto) return;
+  const k = TECLAS[e.key] ? e.key : (e.key || '').toLowerCase();
+  if(!TECLAS[k]) return;
   e.preventDefault();
-  advMover(dir[0], dir[1]);
+  teclasApretadas.add(k);
+  if(!stickActivo) advEje = ejeDeTeclado();
+});
+document.addEventListener('keyup', e => {
+  const k = TECLAS[e.key] ? e.key : (e.key || '').toLowerCase();
+  if(!TECLAS[k]) return;
+  teclasApretadas.delete(k);
+  if(!stickActivo) advEje = ejeDeTeclado();
 });
 
-document.querySelectorAll('.adv-dpad button[data-dir]').forEach(btn => {
-  const [dx, dy] = btn.dataset.dir.split(',').map(Number);
-  btn.onclick = () => advMover(dx, dy);
+/* ---------- Joystick ---------- */
+const RADIO_STICK = 48;
+let stickActivo = false;
+let stickPuntero = null;
+
+function moverKnob(dx, dy){
+  const knob = document.getElementById('advKnob');
+  knob.style.transform = `translate(${dx}px, ${dy}px)`;
+}
+
+function stickDesde(ev){
+  const base = document.getElementById('advStick').getBoundingClientRect();
+  const cx = base.left + base.width / 2, cy = base.top + base.height / 2;
+  let dx = ev.clientX - cx, dy = ev.clientY - cy;
+  const largo = Math.hypot(dx, dy);
+  if(largo > RADIO_STICK){ dx = dx / largo * RADIO_STICK; dy = dy / largo * RADIO_STICK; }
+  moverKnob(dx, dy);
+  const vx = dx / RADIO_STICK, vy = dy / RADIO_STICK;
+  const fuerza = Math.hypot(vx, vy);
+  advEje = fuerza < .22 ? {x:0, y:0} : {x:vx, y:vy};   // zona muerta
+}
+
+function soltarStick(){
+  stickActivo = false;
+  stickPuntero = null;
+  moverKnob(0, 0);
+  document.getElementById('advStick').classList.remove('activo');
+  advEje = ejeDeTeclado();
+}
+
+const stickEl = document.getElementById('advStick');
+stickEl.addEventListener('pointerdown', ev => {
+  ev.preventDefault();
+  stickActivo = true;
+  stickPuntero = ev.pointerId;
+  stickEl.setPointerCapture(ev.pointerId);
+  stickEl.classList.add('activo');
+  stickDesde(ev);
+});
+stickEl.addEventListener('pointermove', ev => {
+  if(!stickActivo || ev.pointerId !== stickPuntero) return;
+  ev.preventDefault();
+  stickDesde(ev);
+});
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(tipo => {
+  stickEl.addEventListener(tipo, ev => { if(ev.pointerId === stickPuntero) soltarStick(); });
 });
 
 window.addEventListener('resize', () => { if(advAbierto) advRender(); });
@@ -2345,7 +2834,8 @@ const REGALOS = [
   { id: 'zeta-legendaria-prueba-20260906', para: 'zeta centeno', monedas: 0, legendarias: 1 },
   { id: 'zeta-legendaria-prueba2-20260906', para: 'zeta centeno', monedas: 0, legendarias: 1 },
   { id: 'todos-legendaria-20260906', para: '*',    monedas: 0, legendarias: 1 },
-  { id: 'agusg-2000-20260906', para: 'agus g.',      monedas: 2000 }
+  { id: 'agusg-2000-20260906', para: 'agus g.',      monedas: 2000 },
+  { id: 'zeta-1500-aventura-20260906', para: 'zeta centeno', monedas: 1500 }
 ];
 
 /* Misma normalización que usa el registro de nombres en el servidor:
