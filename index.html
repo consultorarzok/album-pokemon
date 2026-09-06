@@ -1541,7 +1541,8 @@ const REGALOS_KEY = 'album-kanto-regalos';
 const REGALOS = [
   { id: 'zeta-2000-20260906',  para: 'zeta centeno', monedas: 2000 },
   { id: 'todos-900-20260906', para: '*',            monedas: 900  },
-  { id: 'agusg-1200-20260906', para: 'agus g.',      monedas: 1200 }
+  { id: 'agusg-1200-20260906', para: 'agus g.',      monedas: 1200 },
+  { id: 'agusg-legendaria-20260906', para: 'agus g.', monedas: 0, legendarias: 1 }
 ];
 
 /* Misma normalización que usa el registro de nombres en el servidor:
@@ -1558,6 +1559,19 @@ function avisoRegalo(txt){
   document.getElementById('battleOverlay').classList.add('show');
 }
 
+/* Regala una legendaria: primero de las que le faltan al álbum; si ya las
+   tiene todas, entra como repetida (sirve para el canje). */
+function regalarLegendaria(){
+  const legendarias = DATA.filter(p => p.rarity === 'Legendario');
+  if(!legendarias.length) return null;
+  const faltan = legendarias.filter(p => !state[p.id].got);
+  const lista  = faltan.length ? faltan : legendarias;
+  const p = lista[Math.floor(Math.random() * lista.length)];
+  if(state[p.id].got) state[p.id].dup++;
+  else state[p.id].got = true;
+  return p;
+}
+
 function aplicarRegalos(){
   let usados = [];
   try{ usados = JSON.parse(localStorage.getItem(REGALOS_KEY) || '[]'); }catch(e){}
@@ -1569,20 +1583,33 @@ function aplicarRegalos(){
   if(!clave) return;
 
   let total = 0;
+  const regaladas = [];
   REGALOS.forEach(r => {
     if(r.para !== '*' && r.para !== clave) return;   // '*' = para todos los entrenadores
     if(usados.indexOf(r.id) !== -1) return;
-    coins += r.monedas;
+    coins += (r.monedas || 0);
+    for(let i = 0; i < (r.legendarias || 0); i++){
+      const p = regalarLegendaria();
+      if(p) regaladas.push(p);
+    }
     usados.push(r.id);
-    total += r.monedas;
+    total += (r.monedas || 0);
   });
-  if(total === 0) return;
+  if(total === 0 && !regaladas.length) return;
 
   try{ localStorage.setItem(REGALOS_KEY, JSON.stringify(usados)); }catch(e){}
   saveProgress();
   updateCoins();
+  if(regaladas.length){
+    renderGrid();
+    updateProgress();
+  }
   enviarPuntaje();
-  avisoRegalo('Te regalaron <b>' + total + '</b> monedas. ¡A abrir sobres!');
+
+  const partes = [];
+  if(total) partes.push('<b>' + total + '</b> monedas');
+  if(regaladas.length) partes.push('la legendaria <b>' + regaladas.map(p => p.name).join('</b> y <b>') + '</b>');
+  avisoRegalo('Te regalaron ' + partes.join(' y ') + '. ¡A abrir sobres!');
 }
 let rankTab      = 'hoy';
 let ultimoTop    = null;
