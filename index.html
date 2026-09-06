@@ -1533,6 +1533,50 @@ if(!dispositivo){
   try{ localStorage.setItem(DEVICE_KEY, dispositivo); }catch(e){}
 }
 let jugador      = '';
+
+/* Regalos puntuales de monedas. Se aplican UNA sola vez por dispositivo y sólo
+   al entrenador que corresponde; los ids ya cobrados quedan en localStorage.
+   Sirve para reconocer algo fuera del juego sin tocar el localStorage a mano. */
+const REGALOS_KEY = 'album-kanto-regalos';
+const REGALOS = [
+  { id: 'zeta-2000-20260906', para: 'zeta centeno', monedas: 2000 }
+];
+
+/* Misma normalización que usa el registro de nombres en el servidor:
+   sin tildes, en minúsculas y con los espacios colapsados. */
+function claveNombre(n){
+  return (n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function avisoRegalo(txt){
+  document.getElementById('battleTitle').textContent = '¡Regalo!';
+  document.getElementById('battleStage').innerHTML = '<div class="bat-aviso">' + txt + '</div>';
+  document.getElementById('battleFeedback').textContent = '';
+  document.getElementById('battleOverlay').classList.add('show');
+}
+
+function aplicarRegalos(){
+  let usados = [];
+  try{ usados = JSON.parse(localStorage.getItem(REGALOS_KEY) || '[]'); }catch(e){}
+  if(!Array.isArray(usados)) usados = [];
+
+  const clave = claveNombre(jugador);
+  let total = 0;
+  REGALOS.forEach(r => {
+    if(r.para !== clave || usados.indexOf(r.id) !== -1) return;
+    coins += r.monedas;
+    usados.push(r.id);
+    total += r.monedas;
+  });
+  if(total === 0) return;
+
+  try{ localStorage.setItem(REGALOS_KEY, JSON.stringify(usados)); }catch(e){}
+  saveProgress();
+  updateCoins();
+  enviarPuntaje();
+  avisoRegalo('Te regalaron <b>' + total + '</b> monedas. ¡A abrir sobres!');
+}
 let rankTab      = 'hoy';
 let ultimoTop    = null;
 let ultimoEnvio  = 0;
@@ -1658,6 +1702,7 @@ function fijarNombreDesdeLink(nuevo){
     try{ localStorage.setItem(NAME_KEY, jugador); }catch(e){}
     document.getElementById('playerName').textContent = jugador;
     enviarPuntaje();
+    aplicarRegalos();
   })
   .catch(() => {});
 }
@@ -1668,6 +1713,7 @@ function aceptarNombre(val){
   document.getElementById('playerName').textContent = jugador;
   document.getElementById('nameOverlay').classList.remove('show');
   enviarPuntaje();
+  aplicarRegalos();
 }
 
 /* Reserva el nombre en el servidor: dos entrenadores no pueden llamarse igual
@@ -1736,6 +1782,7 @@ try{
 }catch(e){ nombreDelLink = ''; }
 
 document.getElementById('playerName').textContent = jugador || '-';
+aplicarRegalos();
 cargarTop();
 
 if(nombreDelLink && nombreDelLink !== jugador){
