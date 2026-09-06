@@ -979,7 +979,7 @@ DATA.forEach(p => state[p.id] = {got:false, dup:0});
 
 function saveProgress(){
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({coins, state, bolas}));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({coins, state, bolas, comprasDia}));
   }catch(e){
     console.warn('No se pudo guardar el progreso', e);
   }
@@ -1001,6 +1001,7 @@ function loadProgress(){
         if(typeof data.bolas[k] === 'number') bolas[k] = data.bolas[k];
       });
     }
+    if(data.comprasDia && typeof data.comprasDia === 'object') comprasDia = data.comprasDia;
   }catch(e){
     console.warn('No se pudo leer el progreso guardado', e);
   }
@@ -1012,6 +1013,7 @@ function resetProgress(){
   coins = 300;
   DATA.forEach(p => state[p.id] = {got:false, dup:0});
   Object.assign(bolas, BOLAS_INICIALES);
+  comprasDia = {};
   renderGrid();
   updateProgress();
   updateCoins();
@@ -1798,9 +1800,29 @@ const BOLAS = {
   roja:    {nombre:'Poké Ball',   img:ITEM_CDN + 'poke-ball.png',   precio:50,  cantidad:6, mult:1,   desc:'La común. Se venden de a 6.'},
   azul:    {nombre:'Súper Ball',  img:ITEM_CDN + 'great-ball.png',  precio:60,  cantidad:1, mult:1.6, desc:'Atrapa bastante mejor que la roja.'},
   ultra:   {nombre:'Ultra Ball',  img:ITEM_CDN + 'ultra-ball.png',  precio:120, cantidad:1, mult:2.6, desc:'La negra y amarilla: la mejor sin ser segura.'},
-  maestra: {nombre:'Master Ball', img:ITEM_CDN + 'master-ball.png', precio:500, cantidad:1, mult:99, seguro:true,
-            desc:'La violeta. Atrapa SIEMPRE, hasta un legendario. Por eso es carísima.'}
+  maestra: {nombre:'Master Ball', img:ITEM_CDN + 'master-ball.png', precio:500, cantidad:1, mult:99, seguro:true, porDia:1,
+            desc:'La violeta. Atrapa SIEMPRE, hasta un legendario. Sale carísima y sólo se vende 1 por día.'}
 };
+
+/* Tope diario de la Master Ball. El día se toma del reloj del dispositivo con
+   la zona de Jujuy: es un juego familiar, no vale la pena blindarlo contra
+   alguien que se cambie la hora del celular. */
+const ZONA_HORARIA = 'America/Argentina/Jujuy';
+function diaDeHoy(){
+  try{ return new Date().toLocaleDateString('en-CA', {timeZone: ZONA_HORARIA}); }
+  catch(e){ return new Date().toISOString().slice(0, 10); }
+}
+let comprasDia = {};                 // {'2026-09-06': {maestra:1}}
+
+function compradasHoy(tipo){
+  const hoy = diaDeHoy();
+  return (comprasDia[hoy] || {})[tipo] || 0;
+}
+function puedeComprar(tipo){
+  const b = BOLAS[tipo];
+  if(coins < b.precio) return false;
+  return !b.porDia || compradasHoy(tipo) < b.porDia;
+}
 const BOLA_IMG = {};
 Object.keys(BOLAS).forEach(t => { const im = new Image(); im.src = BOLAS[t].img; BOLA_IMG[t] = im; });
 const BOLAS_INICIALES = {roja:5, azul:0, ultra:0, maestra:0};
@@ -2655,12 +2677,14 @@ function renderTienda(){
     const fila = document.createElement('div');
     fila.className = 'shop-row';
     fila.innerHTML = `<img class="bola-ico" src="${b.img}" alt="">
-      <span class="txt"><b>${b.nombre}${b.cantidad > 1 ? ` x${b.cantidad}` : ''}</b>${b.desc}<br>Tenés ${bolas[tipo]}</span>`;
+      <span class="txt"><b>${b.nombre}${b.cantidad > 1 ? ` x${b.cantidad}` : ''}</b>${b.desc}<br>Tenés ${bolas[tipo]}${b.porDia ? ' · ' + (compradasHoy(tipo) >= b.porDia ? '<b>ya compraste la de hoy</b>' : 'te queda la de hoy') : ''}</span>`;
     const btn = document.createElement('button');
     btn.className = 'open-btn';
     btn.style.padding = '9px 14px';
-    btn.textContent = `${b.precio} 🪙`;
-    btn.disabled = coins < b.precio;
+    const agotadaHoy = b.porDia && compradasHoy(tipo) >= b.porDia;
+    btn.textContent = agotadaHoy ? 'hoy no' : `${b.precio} 🪙`;
+    btn.title = agotadaHoy ? 'Sólo se vende una por día: volvé mañana' : '';
+    btn.disabled = !puedeComprar(tipo);
     btn.onclick = () => comprarBola(tipo);
     fila.appendChild(btn);
     lista.appendChild(fila);
@@ -2669,14 +2693,20 @@ function renderTienda(){
 
 function comprarBola(tipo){
   const b = BOLAS[tipo];
-  if(coins < b.precio) return;
+  if(!puedeComprar(tipo)) return;
   coins -= b.precio;
   bolas[tipo] += b.cantidad;
+  if(b.porDia){
+    const hoy = diaDeHoy();
+    comprasDia = {[hoy]: Object.assign({}, comprasDia[hoy])};   // sólo se guarda el día de hoy
+    comprasDia[hoy][tipo] = (comprasDia[hoy][tipo] || 0) + 1;
+  }
   updateCoins();
   saveProgress();
   renderTienda();
   document.getElementById('shopFeedback').innerHTML =
-    `Compraste ${b.cantidad > 1 ? b.cantidad + ' ' : ''}<b>${b.nombre}</b>`;
+    `Compraste ${b.cantidad > 1 ? b.cantidad + ' ' : ''}<b>${b.nombre}</b>` +
+    (b.porDia ? ' · la próxima, mañana' : '');
 }
 
 /* ---------- Abrir / cerrar la aventura ---------- */
