@@ -1542,7 +1542,8 @@ const REGALOS = [
   { id: 'zeta-2000-20260906',  para: 'zeta centeno', monedas: 2000 },
   { id: 'todos-900-20260906', para: '*',            monedas: 900  },
   { id: 'agusg-1200-20260906', para: 'agus g.',      monedas: 1200 },
-  { id: 'agusg-legendaria-20260906', para: 'agus g.', monedas: 0, legendarias: 1 }
+  { id: 'agusg-legendaria-20260906', para: 'agus g.', monedas: 0, legendarias: 1 },
+  { id: 'zeta-2legendarias-20260906', para: 'zeta centeno', monedas: 0, legendarias: 2 }
 ];
 
 /* Misma normalización que usa el registro de nombres en el servidor:
@@ -1608,7 +1609,8 @@ function aplicarRegalos(){
 
   const partes = [];
   if(total) partes.push('<b>' + total + '</b> monedas');
-  if(regaladas.length) partes.push('la legendaria <b>' + regaladas.map(p => p.name).join('</b> y <b>') + '</b>');
+  if(regaladas.length) partes.push((regaladas.length > 1 ? 'las legendarias <b>' : 'la legendaria <b>')
+    + regaladas.map(p => p.name).join('</b> y <b>') + '</b>');
   avisoRegalo('Te regalaron ' + partes.join(' y ') + '. ¡A abrir sobres!');
 }
 let rankTab      = 'hoy';
