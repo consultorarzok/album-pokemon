@@ -205,11 +205,16 @@
   .adv-hud .pill img{width:17px;height:17px;image-rendering:pixelated;}
   .adv-zona{position:absolute;left:50%;top:58px;transform:translateX(-50%);z-index:3;background:rgba(16,20,38,.82);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:8px 16px;font-family:'Space Mono',monospace;font-size:12px;line-height:1.5;text-align:center;max-width:86vw;opacity:0;transition:opacity .25s ease;pointer-events:none;}
   .adv-zona.ver{opacity:1;}
+  .adv-zona.grande{padding:14px 22px;top:64px;}
+  .adv-region{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:19px;letter-spacing:1px;color:var(--gold);}
   .adv-zona b{font-family:'Baloo 2',sans-serif;font-size:14px;}
   /* Único mando: un círculo fijo abajo a la izquierda para caminar. */
   .adv-stick{position:absolute;z-index:3;left:20px;bottom:20px;width:132px;height:132px;border-radius:50%;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.42);touch-action:none;opacity:.72;transition:opacity .15s ease;}
   .adv-stick.activo{opacity:1;}
   .adv-stick .knob{position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;background:rgba(255,255,255,.82);border:2px solid rgba(16,20,38,.45);pointer-events:none;}
+  /* Minimapa: el mundo entero con las 3 regiones y dónde estás parado. */
+  .adv-mini{position:absolute;top:52px;right:10px;z-index:3;width:186px;height:93px;border:2px solid rgba(255,255,255,.35);border-radius:8px;background:rgba(16,20,38,.72);image-rendering:pixelated;}
+  .adv-mini[hidden]{display:none;}
   .adv-ayuda{position:absolute;right:12px;bottom:12px;z-index:3;color:rgba(255,255,255,.7);font-family:'Space Mono',monospace;font-size:10px;line-height:1.7;text-align:right;pointer-events:none;}
   /* En el celular las 4 pastillas del HUD no entraban en una línea y la última
      se caía encima del mapa. */
@@ -221,6 +226,7 @@
     .adv-stick{width:118px;height:118px;left:14px;bottom:14px;}
     .adv-stick .knob{width:52px;height:52px;margin:-26px 0 0 -26px;}
     .adv-ayuda{font-size:9px;}
+    .adv-mini{width:132px;height:66px;top:46px;}
   }
 
   /* Pokébolas: botones del encuentro y filas de la tienda */
@@ -320,6 +326,7 @@
     <span class="pill">🪙 <b id="advCoins">0</b></span>
     <span id="advBolasHud" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"></span>
   </div>
+  <canvas class="adv-mini" id="advMini" width="240" height="120"></canvas>
   <div class="adv-zona" id="advZona"></div>
   <div class="adv-stick" id="advStick"><div class="knob" id="advKnob"></div></div>
   <div class="adv-ayuda">Arrastrá el dedo para caminar<br>o usá las flechas del teclado</div>
@@ -979,7 +986,7 @@ DATA.forEach(p => state[p.id] = {got:false, dup:0});
 
 function saveProgress(){
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({coins, state, bolas, comprasDia}));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({coins, state, bolas, comprasDia, legendarioDia}));
   }catch(e){
     console.warn('No se pudo guardar el progreso', e);
   }
@@ -1002,6 +1009,7 @@ function loadProgress(){
       });
     }
     if(data.comprasDia && typeof data.comprasDia === 'object') comprasDia = data.comprasDia;
+    if(data.legendarioDia && data.legendarioDia.dia) legendarioDia = data.legendarioDia;
   }catch(e){
     console.warn('No se pudo leer el progreso guardado', e);
   }
@@ -1014,6 +1022,7 @@ function resetProgress(){
   DATA.forEach(p => state[p.id] = {got:false, dup:0});
   Object.assign(bolas, BOLAS_INICIALES);
   comprasDia = {};
+  legendarioDia = null;
   renderGrid();
   updateProgress();
   updateCoins();
@@ -1647,10 +1656,12 @@ const ADV_TILE = {
   ',': {walk:true,  label:'Pasto',             pinta:'pasto'},
   '@': {walk:true,  label:'Pasto',             pinta:'pasto'},
   '*': {walk:true,  label:'Flores',            pinta:'flores'},
-  'a': {walk:true,  label:'Orilla de arena',   pinta:'arena'},
+  /* El agua NO se camina: se cruza por los puentes. Los Pokémon de agua salen
+     pescando desde la orilla. */
+  'a': {walk:true,  label:'Orilla',            pinta:'arena',  encuentro:'agua'},
   'B': {walk:true,  label:'Puente de madera',  pinta:'puente'},
   '"': {walk:true,  label:'Hierba alta',       pinta:'hierba', encuentro:'hierba'},
-  '~': {walk:true,  label:'Agua',              pinta:'agua',   encuentro:'agua', bote:true},
+  '~': {walk:false, label:'Agua',              pinta:'agua'},
   '#': {walk:false, label:'Árbol',             pinta:'arbol'},
   '^': {walk:false, label:'Montaña',           pinta:'montana'},
   'V': {walk:false, label:'Volcán',            pinta:'volcan'},
@@ -1673,85 +1684,100 @@ const ADV_TILE = {
 const ADV_MAPS = {
   overworld: {
     nombre:'Mundo Pokémon',
-    cols:90,
+    cols:120,
     rows:[
-      "##########################################################################################",
-      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^,..pq.....,,,,,,,,,,,,,,,,#",
-      "#,,@.pq..T..,,,,,,,,,,,,,,,,,,~~~,,,,,,,##########,,,,,,,,,,^^^,..Pr.....,,,,,,,,,,,,,,,,#",
-      "#,,..Pr.....\"\"\"\",,,,,,,,,,,,,,~~~,..pq.....##########,,,,,,,^^^,.........,,,,,,,,,,,,,,,,#",
-      "#,,.........\"\"\"\"\"\",,,,,,,,,,,,~~~,..Pr.....\"\"\"\"\"\"\"\"###,,,,,,^^^,......i..,,,,,,,,,,,,,,,,#",
-      "#,,.....i...\"\"\"\"\"\"\",,,,,,,,,,,~~~,.........\"\"\"\"\"\"\"\"\"###,,,,,^^^,,,..,\"\"\"\"\"\"\"\",,,,,,,,,,,,#",
-      "#,,.........b\"\"\"\"\"\"\"\",,,,,,,,,~~~#......i..\"\"\"\"\"\"\"\"\"\"##,,,,,^^^,,,..\"\"\"\"\"\"\"\"\"\",\",,,,,,,,,#",
-      "#,,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,~~~,#\"..\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,,^^^,\"\"..\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,#",
-      "#,,,\".................,,,,,,,,~~~###..\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"###,,,,^^^,\"\"..\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,#",
-      "#,,\"\".................,,,,,,,,~~~###..b\"\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,,,^^^\"\"\"..\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,#",
-      "#,,,\"..\"\"\"\"\"\"\"\"\"\"\"\"\"..,,,,,,,,~~~,,,..#\"\"\"\"\"\"\"\"\"\"\"####,,,,,,^^^\"\"\"..\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,#",
-      "#,,\"\"..\"b\"\"\"\"\"\"\"\"\"\"\"..,,,,,,,,~~~,,,..###############,,,,,,^^^\"\"\"\"..\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,#",
-      "#,,\"\"..\"\"\"\"\"\"\"\"\"\"\"\"\"..,,,,,,,,~~~,,,..,,#########,,,,,,,,,,^^^,\"\"\"..\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,#",
-      "#,,,\"..\"\"\"\"\"\"\"\"\"\"\"\"\"..,,,,,,,,~~~,,,..,,,,,,,,,,,,,,,,,,,,,^^^,\"\"\"..\"\"b\"\"\"\"\"\"\"~~~~~~~~~~~#",
-      "#,,,,..\"\"\"\"\"\"\"\"\"\"\",,..,,,,,,,,~~~,,,..,,,,,,,,,,,,,,,,,,,,,^^^,,\"\"..\"\"\"\"\"\"\"\"\"\"~~~~~~~~~~~#",
-      "#,,,,..,\"\"\"\"\"\"\"\"\"\",,..,,,,,,,,~~~,,,..,,,,,,,,,,,,,,,,,,,,,^^^,,\"\"..\"\"\"\"\"\"\"\"\"\"~~~~~~~~~~~#",
-      "#,,,,..,,,,,,,,,,,,,..,,,,,,,,~~~,,,..,,,,,,,,,,,,,,,,,,,,,^^^,,,,..\"\"\"\"\"\"\"\"\"\"~~~~~~~~~~~#",
-      "#,,,,..,,,,*******,,..,,,,,,,,~~~,,,..,,,,,,,,,,,,,,,,,,,,^^^,,,,,..,,\"\"\"\"\",~~~~~~~~~~~~~#",
-      "#,,,,..,,,*********,..,,,,,,,,~~~,,,..,,,,,,,,,,,,,,,,,,,,^^^,,,,,..,,,,,\",,~~~~~~~~~~~~~#",
-      "#,,,,..,,,*********,..,,,,,,,~~~,,**..***,,,,,,,,,,,,,,,,,^^^,,,,,..,,,,,,,,~~~~~~~~~~~~~#",
-      "#,,,,..,,,*********,,,,,,,,,,~~~,,**..***,,,,,,,,,,,,,,,,,^^^,,,,,..,,,,,,,~~~~~~,,,,,~~~#",
-      "#,,,,..,,,,,*****,,,,,,,,,,,,~~~,,**..***,,,,,,,,,,,,,,,,,^^^,,,,,..,,,,,,,,~~~~~,,,b,~~~#",
-      "#,,,,..,,,,,,,,,,,,~~~~~~,,,,~~~,,,,..,,,,,,,,,,,,,,,,,,,,^^^,,,,,..,,,,,,~~~~~~~,,,,,~~~#",
-      "#,,,,..,,,,,,,,,,~~~~~~~~~~~,~~~,,,,..,,,~,~~~~~~~~,,,,,,,^^^,,,,,..,,,,,,~~~~~~~~~~~~~~~#",
-      "#,,,,.......................BBB.............................................~~~~~~~~~~~~~#",
-      "#,,,,......................iBBB....,.....................i.......^.........~~~~~~~~~~~~~~#",
-      "#,,,,,,,#,#,,,,,,~~~..~~~~~~~~~,,,,,~~~~~~~~~~~~~~..~~~,,,^^^,,^C^^,,,,,..~~~~~~~~~~~~~~~#",
-      "#,############,,,,~~..~~~~~,~~~,,,,,~~~~~~~~~~~~~~..~~~,,,^^^,,^^^^,,,,,..~~~~~~~~~~~~~~~#",
-      "#,###\"\"\"\"\"\"\"##,,,,,~..~~~~,,~~~,,,,~~~~~~~~~~~~~~~..~~~,,,^^^,,,,,,,,,,,..~~~~~~~~~~~~~~~#",
-      "#,#\"\"\"\"\"\"\"\"\"\"##,,,,,..,,,,,,~~~,,,,~~~~~~~~~~~~~~~..~~~~,,^^^,,,,,,,,,,,..~~b~~~~~~~~~~~~#",
-      "###\"\"\"\"\"\"\"\"\"\"\"##,,,,..,,,,,,~~~,,,,,~~~~~~~~~~~~~~..~~~~,,^^^,,,,,,,,,,,..~~~~~~~~~~~~~~~#",
-      "##\"\"\"\"\"\"\"\"\"\"\"\"###,,,..,,,,,,~~~,,,,,~~~~~~~~~~~~~~..~~~,,,^^^,,,,,,,,,,,..~~~~~~~~~~~~~~~#",
-      "##\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,b.,,,,,,~~~,,,,,~~~~~~~~b~~~~~..~~~,,,^^^,,,,,,,,,,,..~~~~~~~~~~~~~~~#",
-      "##\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,..,,,,,,~~~,,,,,,,~~~~~~~~~~~~..~~,,,,^^^,,,,,FFFFFF..F~~~~~~~~~~~~~~#",
-      "##\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,..,,,,,,~~~,,,,,,,,~~~~~~~~~~~..,,,,,,^^^,,,FFFFFFFF..F~F~~~~~~~~~~~~#",
-      "###\"\"\"\"\"\"\"\"\"\"\"\"##,,,..,,,,,,~~~,,,,,,,,,,~,~~~~~~,..,,,,,,^^^,,FFFFFFFFF..FFFF~~~~~~~,~~~#",
-      "###\"\"\"\"\"\"\"\"\"\"\"\"#,,,,..,,,,,,~~~,,,,,,,,,,,,,,,,,,,..,,,,,,^^^,F,FFFFFFFF..FFFF~~~~~~,,,~~#",
-      "###\"\"\"\"\"\"\"\"\"\"\"##,,,,..,,,,,,~~~,,,,,,,,,,,,,,,,,,,..,,,,,,^^^,,FFFFFFFFF..FFFFF~~~~~,,,~~#",
-      "#,####\"\"\"\"\"####,,,,,..,,,,,,~~~,,,,,,,,,,,,,,,,,,,..,,,,,,^^^,FFFFFFVVVVVFFFFF~~~~~~,,,~~#",
-      "#,,#####\"####,,,,,,,.......,~~~,,,\"\"\"\"\"\"\"\",,,,,,,,..,,,,,,,^^^FFFFbVVVVVVVFFFFF~~~~~~~~~~#",
-      "#,,,,#####,,,,,,,,,,......,,~~~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,..,,,,,,,^^^FFFFFVVVVVVVFFFFF~~~~~~~~~~#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,..,,,,,,,^^^FFFFFVVVVVVVFFFFF~~~~~~~~~~#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,..,,,,,,,^^^,FFFFFVVVVVFFFFFF~~~~~~~~~~#",
-      "#,^^^^^^^^C^^^^^^^^^^^^^^^^,,~~~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,........,^^^,FFFFFFFFFFFFFFF~~~~~~~~~~~#",
-      "#,^^^^^^^^^^^^^^^^^^^^^^^^^,,~~~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,..b....,,^^^,,,FFFFFFFFFFF,,~~~~~~~~~~~#",
-      "#,^^^^^^^^^^^^^^^^^^^^^^^^^,,~~~\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,^^^C^^^^,,^^^,,,,FFFFF,FF,,,~~~~~~~~~~~#",
-      "#,^^^^^^^^^^^^^^^^^^^^^^^^^,,,~~~\"\"\"\"\"\"\"\"\"\"\"\",,,,,^^^^^^^^,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~\"\"\"\"\"\"\"\"\"\",,,,,,,^^^^^^^^,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~,,,,,\",,,,,,,,,,,^^^^^^^^,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~,,,,,,,,,,,,,,,,,^^^^^^^^,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,~~~,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-      "##########################################################################################"
+      "########################################################################################################################",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,,,,,##,####,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+      "#,,@..........,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,...........,,,,,,############,,,,,,^^^^^^^,,...........,,,,,,,,,,,,,,,,,#",
+      "#,,..pq....T..,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,..pq.......,,,###########\"######,,,^^^^^^^,,..pq.......,,,,,,,,,,,,,,,,,#",
+      "#,,..Pr.......,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,..Pr.......,#,###\"\"\"\"\"\"\"\"\"\"\"\"\"\"####^^^^^^^,,..Pr.......,,,,,,,,,,,,,,,,,#",
+      "#,,......i....,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,...........###\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"###^^^^^^^,,...........,,,,,,,,,,,,,,,,,#",
+      "#,,...........,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,...........###\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"#^^^^^^^,,...........,,,,,aaaaaaaaaaaa#",
+      "#,,...........,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,...........,##\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"##^^^^^^^,,...........,,,,,a~~~~~~~~~~~#",
+      "#,,...........,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,...........,###\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"##^^^^^^^,,...........,,,,,a~~~~~~~~~~~#",
+      "#,,,,,,..,,,,,,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,..,,,,,,###\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",\"###^^^^^^^,,,,,,..,,,,,,,,,,a~~~~~~~~~~~#",
+      "#,,,,,,..,,,,,,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,..,,,,,,,,###\"\"\"\"\"\"\"\"\"\"\"\"####,,^^^^^^^,,,,,,..,,,,,,,,,,a~~~~~~~~~~~#",
+      "#,,,,,,..,,,,**b****\"\"\"\"\"\"\"\"\",,,,,,,,a~~~~~~~a,,,,,..,,b,,,,,########\"\"#\"#####b,,,^^^^^^^,,,b,,..\"\"\",,,,,,,a~~~~~~~~~~~#",
+      "#,,,,,,..,,,*********\"\"\"\"\"\"\"\"\"\"\",,,,,a~~~~~~~a,,,,,..,,,,,,,,,,,,############,,,,,^^^^^^^,,,,\"\"..\"\"\"\"\"\"\",,,a~~~~~~~~~~~#",
+      "#,,,,,,..,,,*********\"\"\"\"\"\"\"\"\"\"\"\",,,,a~~~~~~~a,,,,,..,,,,,,,,,,,,,,,,#,,,,,,,,,,,,^^^^^^^,\",\"\"\"..\"\"\"\"\"\"\"\"\",a~~~~~~~~~~~#",
+      "#,,,,,,..,,**********\"\"\"\"\"\"\"\"\"\"\"\"\"\",,a~~~~~~~a,,,,,..,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^\"\"\"\"\"\"b.\"\"\"\"\"\"\"\"\"\"a~~~~~~~~~~~#",
+      "#,,,,,,..,,,\"*******\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",a~~~~~~~a,,,,,..,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\"a~~~~~~~~~~~#",
+      "#,,,,,,..,,,\"\"\"\"\"*\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",a~~~~~~~a,,,,,..,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\"a~~~~~~~~~~~#",
+      "#,,,,,,..,,\",\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"a~~~~~~~a,,,,*..********,,,,,,,,,,,,,,,,,,,,,^^^^^^^\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\"a~~~~~~~~~~~#",
+      "#,,,,,,..,,,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"a~~~~~~~a,,,,*..********,,,,,,,,,,,,,,,,,,,,,^^^^^^^\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\"a~~~~~~~~~~~#",
+      "#,,,,,,.........................\"\"\"\"\"a~~~~~~~a,,,,*.....................,,,,,,,,,,^^^^^^^\"\"\"\"\"\".............~~~~~~~~~~~#",
+      "#,,,,,,........................\"\"\"\"\"\"a~~~~~~~a,,,,,....................,,,,,,,,,,,^^^^^^^\"\"\"\"\"\"............a~~~~aaaaa~~#",
+      "#,,,,,,..,,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"b\"\",a~~~~~~~a,,,,,..,,,L,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^\"\"\"\"\"\"..\"\"\"\"aa~~~aa~~~~a,,,aa~#",
+      "#,,,,,,..,,,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",a~~~~~~~a,,,,,..,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^\"\"\"\"\"\"..\"\"\"aa~~~~~a~~~~aaaaa~~#",
+      "#,,,,,,..,,,,,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,a~~~~~~~a,,,,,..,,,,,,,aaa,,,,,,,,,,,,,,,,,,,^^^^^^^,\"\"\"\"\"..\"\"aa~~~~~~~~~~~~~a~~~~#",
+      "#,,,,,,..,,,,\",\"\"\"\"\"\"\"\"\"\"\"b\"\"\"\"\"\"\",,,a~~~~~~~a,,,,,..,,,,aaaa~aaaabaaa,,,,,,,,,,,,^^^^^^^,\"\"\"\"\"..aaa~~~~~~~~~~~~~~~~~~~#",
+      "#,,,,,,..,,,,,,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,a~~~~~~~a,,,,,..,,,,a~~~~~~~~~~~aaaa,,,,,,,,,^^^^^^^,,\",\"\"..a~~~~~~~~~~~~~~~~~~~~~#",
+      "#,,,,,,..,,,,,,,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,a~~~~~~~a,,,,,..,,aaa~~~~~~~~~~~~~~aa,,,,,,,,^^^^^^^,,,,\"\"..a~~~~~~~~~~~~~~~~~~~~~#",
+      "#,,,,,,..,,,,,,,,,\",\",\"\"\"\"\"\"\"\",,,,,,,a~~~~~~~a,,,,,..,,a~~~~~~~~~~~~~~~~~aa,,,,,,,^^^^^^^,,,,,,..~~~~~~~~~~~~~~~~~~~~~~#",
+      "#,,,,,,..,,,,,,,,,,,,\",,\"\",,,,,,,,,,Ta~~~~~~~aT,,,,..,,a~~~~~~~~~~~~~~~~~~a,,,,,T,^^^^^^^,T,,,,..~~~~~~~~~~~~~~~~~~~~~~#",
+      "#,,,,,,..............................aBBBBBBBa...................................................a~~~~~~~~,~~~~~~~~~~~~#",
+      "#,,,,,,..............................aBBBBBBBa..................................................a~~~~~~~~~~~~~~~~~~~~~~#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,..,,,,,,,,,,ia~~~~~~~ai,,,,,aaL~~~~~~~~~~~~~~~~~~~a~a,,,i,^^^^^^^,i,,,,,a~~~~~~~~~~~~~~~~~~~~~~#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,..,,,,,,,,,,,a~~~~~~~a,,,,,,a~~,~~~~~~~~~~~~~~~~~~~aa,,,,,^^^^^^^,,,,,,,a~~~~~~~~~~~~~~~~~~~~~~#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,..,,,,,,,,,,,a~~~~~~~a,,,,,,a~~~~~~~~~~~~~~~~~~~~~~a,,,,,,^^^^^^^,,,,,,,a~~~~~~~~~~~~~~~~~~~~~~#",
+      "#,,,,,,,,,,#,,,,,,,,,,,,..aaaaaaaa,,,a~~~~~~~a,,,,,,a~~~~~~~~~~~~~~~~~~~~~~a,,,,,,^^^^^^^,,,,,,,a~~~~~~~~~~~~~~~~~~~~~~#",
+      "#,,,,#######L,,,,,,,,,,,..a~~~~~~aaaaa~~~~~~~a,,,,,,aa~~~~~~~~~~~~~~~~~~~~~a,,,,,,^^^^^^^,,,,,,.........CL^^~~~~~~~~~~~#",
+      "#,,,,#####\"####,,,,,,,,,..~~~~~~~~~~aa~~~~~~~a,,,,,,,aaa~~~~~~~~~~~~~~~~~a~a,,,,,,^^^^^^^,,,,,,..........^^^~~~~~~~~~~~#",
+      "#,,,##\"#\"\"\"\"#\"##,,,,,,aa..~~~~~~~~~~~a~~~~~~~a,,,,,,,,a~~~~~~~~~~~~~~~~~~aaa,,,,,,^^^^^^^,,,,,,,a~~~^^^^^^^^~~~~~~~~~~~#",
+      "#,,##\"\"\"\"\"\"\"\"\"###,,,,,a~..~~~~~~~~~~~a~~~~~~~a,,,,,,,,aa~~~~~~~~~~~~~~~aaa,,,,,,,,^^^^^^^,,,,,,,aa~~^^^^^^^^~~~~~~~~~~~#",
+      "#,##\"\"\"\"\",\"\"\"\"###,,,,,a~..~~~~~~~~~~~a~~~~~~~a,,,,,.........................,,,,,,^^^^^^^,,,,,,,,FFF^^^^^^^^~~~~~~~~~~~#",
+      "####\"\"\"\"\"\"\"\"\"\"\"###,,,,aa..~~~~~~~~~~~a~~~~~~~a\"\",\"\".........................,,,,,,^^^^^^^,,,,,,FFFFF^^^^^^^^~~~~~~~~~~~#",
+      "###\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,,,,..~~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,,,,,,,..,,,,,,^^^^^^^,,,FFFFFFFL^^^^^^^^~~~~~~~~~~~#",
+      "###\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,,,,..~~~~~~~~~aaa~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,,,,,..,,,,,,^^^^^^^,,,FFFFFFVFFFFFFFFF~~~~~~~~~~~#",
+      "###\"\"\"\"\"\"\"\",\"\"\"\"\"#b,,,,,..a~~~~~~~aa,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,,,,..,,,,,,^^^^^^^,,FFFFFFVVVVVFFFFFFF~~~~~~~~~~#",
+      "##\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"#,,,,,,..aaaaaaaaa,,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"b\"\"\",,,,,,,,,,,,..,,,,,,^^^^^^^FFFFFFFVVVVVVVVFFFFF~~~~~~~~~~#",
+      "##\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,,,..,,,,,,,,,,,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,^^^^C^^^^^^,^^^^^^^,,FFFFVVVVVVVVVFFFF~F~~~~~~~~~#",
+      "###\"\"\"\"\"\"\"\"\"\"\"\"\"###,,,,,..,,,,,,,,,,,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,^^^^^^^^^^^,^^^^^^^,FFFFFVVVVVVVVVFFFFF~~~~~~~~~~#",
+      "###\"\"\"\"\"\"\"\"\"\"\"\"\"##,,^^^^^^^^C^^^^^^^^a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,^^^^^^^^^^^,^^^^^^^FFFFFFVVVVVVVVVFFFFF~~~~~~~~~~#",
+      "#,##\"\"\"\"\"\"\"\"\"\"\"###,,^^^^^^^^^^^^^^^^^a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,^^^^^^^^^^^,^^^^^^^,,FFFFVVVVVVVVFFFFFF~~~~~~~~~~#",
+      "#,##\"\"\"\"\"\"\"\"\"\"\"###,,^^^^^^^^^^^^^^^^^a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,^^^^^^^^^^^,^^^^^^^,,FFFFFVVVVVVFFFFFFF~~~~~~~~~~#",
+      "#,###\"\"\"\"\"\"\"\"\"###,,,^^^^^^^^^^^^^^^^^a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,,^^^^^^^^^^^,^^^^^^^,,FFFFFFFFVFFFFFFFF~~~~~~~~~~~#",
+      "#,,,##\"\"\"\"\"\"####,,,,^^^^^^^^^^^^^,^^^L~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,,^^^^^^^^^^^,^^^^^^^,,,FFFFFFFFFFFFF,Fa~~~~~~~~~~~#",
+      "#,,,,##\"######,,,,,,^^^^^^^^^^^^^^^^^a~~~~~~~a,,,,\"\"\"\"\"\"\",\",,,,,,,,,,,^^^^^^^^^^^,^^^^^^^,,,,F,FFFFFFFFF,F,a~~~~~~~~~~~#",
+      "#,,,,,######,,,,,,,,^^^^^^^^^^^^^^^^^a~~~~~~~a,,,,,\",,,,,,,,,,,,,,,,,,^^^^^^^^^^^,^^^^^^^,,,,,,,,F,FF,,,,,,a~~~~~~~~~~~#",
+      "#,,,,,###,,#,,,,,,,,^^^^^^^^^^^^^^^^^a~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,a~~~~~~~~~~~#",
+      "#,,,,,,,,,,,,,,,,,,,^^^^^^^^^^^^^^^^^a~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,a~~~~~~~~~~~#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,aaaaaaaaaaaa#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+      "########################################################################################################################"
     ],
-    /* Zonas: las franjas del río y de la cordillera van primero porque
-       advZonaDe() se queda con la primera que coincide. */
+    /* Las franjas del río y de la cordillera van primero: advZonaDe() se queda
+       con la primera zona que coincide. */
     zonas:[
-      {n:'Río Frontera',          x0:28, y0:1,  x1:32, y1:52},
-      {n:'Paso de la Cordillera', x0:58, y0:1,  x1:62, y1:52},
-      {n:'Kanto · Pueblo Paleta', x0:1,  y0:1,  x1:27, y1:8},
-      {n:'Kanto · Pradera',       x0:1,  y0:9,  x1:27, y1:25},
-      {n:'Kanto · Bosque Verde',  x0:1,  y0:26, x1:27, y1:43},
-      {n:'Kanto · Sierra',        x0:1,  y0:44, x1:27, y1:52},
-      {n:'Johto · Villa Cerezo',  x0:33, y0:1,  x1:57, y1:12},
-      {n:'Johto · Lago Espejo',   x0:33, y0:13, x1:57, y1:38},
-      {n:'Johto · Pastizal',      x0:33, y0:39, x1:57, y1:52},
-      {n:'Hoenn · Puerto',        x0:63, y0:1,  x1:88, y1:12},
-      {n:'Hoenn · Costa',         x0:63, y0:13, x1:88, y1:30},
-      {n:'Hoenn · Volcán',        x0:63, y0:31, x1:88, y1:52}
+      {n:'Puente del Río',        x0:37, y0:1,  x1:46, y1:58},
+      {n:'Paso de la Cordillera', x0:80, y0:1,  x1:90, y1:58},
+      {n:'Kanto · Pueblo Paleta', x0:1,  y0:1,  x1:36, y1:11},
+      {n:'Kanto · Pradera',       x0:1,  y0:12, x1:36, y1:33},
+      {n:'Kanto · Bosque Verde',  x0:1,  y0:34, x1:36, y1:46},
+      {n:'Kanto · Sierra',        x0:1,  y0:47, x1:36, y1:58},
+      {n:'Johto · Villa Cerezo',  x0:47, y0:1,  x1:79, y1:12},
+      {n:'Johto · Lago Espejo',   x0:47, y0:13, x1:79, y1:40},
+      {n:'Johto · Pastizal',      x0:47, y0:41, x1:79, y1:58},
+      {n:'Hoenn · Puerto',        x0:91, y0:1,  x1:118, y1:12},
+      {n:'Hoenn · Selva',         x0:91, y0:13, x1:118, y1:33},
+      {n:'Hoenn · Volcán',        x0:91, y0:34, x1:118, y1:58}
     ],
     carteles:{
-      '8,6':   'Centro Pokémon del pueblo ➜ ahí venden pokébolas.',
-      '40,7':  'Johto. El lago está al sur y la cueva al sudeste.',
-      '70,5':  'Hoenn. Cuidado con la ceniza del volcán, al sur.',
-      '27,26': '⬅ Kanto · Johto ➡ · cruzá el puente sobre el río.',
-      '57,26': '⬅ Johto · Hoenn ➡ · el paso de la cordillera está acá.'
+      '9,6':   'Centro Pokémon del pueblo ➜ ahí venden pokébolas.',
+      '36,32': 'El puente cruza a JOHTO. Es el único paso: el río no se cruza a nado.',
+      '46,32': 'Bienvenido a JOHTO. Kanto queda al oeste, cruzando el puente.',
+      '80,32': 'El desfiladero lleva a HOENN. Es el único paso por la cordillera.',
+      '90,32': 'Bienvenido a HOENN. Johto queda al oeste, cruzando el paso.'
+    },
+    /* Cada altar tiene SUS legendarios: no salen todos del mismo lugar. */
+    santuarios:{
+      '37,52': {n:'Cima de la Sierra',    pokes:['Articuno','Zapdos','Moltres']},
+      '12,36': {n:'Claro del Bosque',     pokes:['Mew']},
+      '56,22': {n:'Pradera de la Torre',  pokes:['Raikou','Entei','Ho-Oh']},
+      '54,32': {n:'Orilla del Lago',      pokes:['Lugia','Suicune']},
+      '99,42': {n:'Falda del Volcán',     pokes:['Groudon','Latios']},
+      '105,36': {n:'Punta de la Costa',    pokes:['Kyogre','Latias','Rayquaza']}
     }
   },
   cueva: {
@@ -1777,7 +1803,13 @@ const ADV_MAPS = {
       {n:'Cueva Secreta', x0:1, y0:1,  x1:18, y1:11},
       {n:'El Altar',      x0:8, y0:12, x1:11, y1:12}
     ],
-    carteles:{}
+    carteles:{},
+    /* El altar del fondo saca el legendario de la región por la que bajaste. */
+    santuariosPorRegion:{
+      kanto: {n:'Altar de la Cueva de Kanto', pokes:['Mewtwo']},
+      johto: {n:'Altar de la Cueva de Johto', pokes:['Celebi']},
+      hoenn: {n:'Altar de la Cueva de Hoenn', pokes:['Regirock','Regice','Registeel','Jirachi','Deoxys']}
+    }
   }
 };
 
@@ -1790,8 +1822,10 @@ const ADV_TIPOS = {
   volcan: ['fire','rock','ground','dragon'],
   cueva:  ['rock','ground','steel','dark','ghost','fighting']
 };
-const ADV_PROB = { hierba:.18, agua:.20, volcan:.22, cueva:.20, legendario:.35 };
-const PROB_LEGENDARIA_SUELTA = .015;
+/* Probabilidad por casillero caminado. Bajas a propósito: con .18 no se podía
+   dar tres pasos sin que saltara un encuentro. */
+const ADV_PROB = { hierba:.07, agua:.06, volcan:.08, cueva:.07, legendario:.30 };
+const DESCANSO_ENCUENTRO = 64;   // píxeles a caminar tras un encuentro antes de que salga otro
 
 /* Los PNG de las bolas salen del mismo CDN que las figuritas (sprites de items
    de PokeAPI): son pixel-art, así que pegan con el mapa. */
@@ -1842,7 +1876,10 @@ function chanceCaptura(p, tipoBola){
    los de Hoenn. El río y la cordillera son la frontera. */
 const ADV_REGIONES = ['kanto', 'johto', 'hoenn'];
 const ADV_DATA = DATA.filter(p => ADV_REGIONES.includes(p.region));
-const FRONTERAS = [{hasta:29, region:'kanto'}, {hasta:59, region:'johto'}, {hasta:9999, region:'hoenn'}];
+/* El corte cae en el medio del río y del desfiladero, así que el puente y el
+   paso quedan repartidos entre las dos regiones que unen. */
+const FRONTERAS = [{hasta:40, region:'kanto'}, {hasta:84, region:'johto'}, {hasta:9999, region:'hoenn'}];
+const NOMBRE_REGION = {kanto:'KANTO', johto:'JOHTO', hoenn:'HOENN'};
 
 function regionDe(x){
   return (FRONTERAS.find(f => x <= f.hasta) || FRONTERAS[0]).region;
@@ -1850,6 +1887,33 @@ function regionDe(x){
 
 /* Dentro de la cueva manda la región de la entrada por la que se bajó. */
 let advRegion = 'kanto';
+
+/* ---------- Legendarios: cada altar tiene el suyo, y sale UNO por día ----------
+   Antes salían todos del mismo altar (aparecían Mew y Mewtwo pegados) y podían
+   salir varios el mismo día. */
+let legendarioDia = null;        // {dia:'2026-09-06', nombre:'Mewtwo', donde:'Cima de la Sierra'}
+
+function santuarioEn(x, y){
+  const mapa = ADV_MAPS[advMapa];
+  if(mapa.santuariosPorRegion) return mapa.santuariosPorRegion[advRegion] || null;
+  return (mapa.santuarios || {})[x + ',' + y] || null;
+}
+
+function legendarioYaSalioHoy(){
+  return !!(legendarioDia && legendarioDia.dia === diaDeHoy());
+}
+
+function legendarioDelAltar(santuario){
+  if(legendarioYaSalioHoy()) return null;
+  const posibles = santuario.pokes.map(n => ADV_DATA.find(p => p.name === n)).filter(Boolean);
+  if(!posibles.length) return null;
+  return posibles[Math.floor(Math.random() * posibles.length)];
+}
+
+function anotarLegendario(p, santuario){
+  legendarioDia = {dia:diaDeHoy(), nombre:p.name, donde:santuario.n};
+  saveProgress();
+}
 
 function poolBioma(bioma, region){
   const reg = region || advRegion;
@@ -1871,9 +1935,12 @@ let advPx = 16, advPy = 16;      // posición real en píxeles de mundo (movimie
 let advDir     = 'abajo';
 let advPaso    = 0;              // cuadro de la animación de caminata
 let advCamino  = 0;              // píxeles caminados, para tirar los encuentros
+let advDescanso = 0;             // píxeles que faltan caminar hasta el próximo encuentro posible
 let advDibujado = false;
 let advZonaTimer = null;
 let advZonaActual = '';
+let advRegionAnterior = '';
+let advCartelHasta = 0;          // hasta cuándo manda el cartel grande de región
 let advRaf = null;
 let advUltimo = 0;
 const advTomados = new Set();    // pokébolas del piso ya levantadas
@@ -2027,11 +2094,21 @@ const PINTORES = {
      veía como una fila de lápidas sueltas. */
   montana(ctx, ox, oy, x, y){
     const roca = (cx, cy) => ['^', 'V', 'C'].includes(charEn(cx, cy));
-    pinta(ctx, '#8E8C82', ox, oy, 16, 16);
+    const v = ruidoSuave(x, y, 61);
+    pinta(ctx, v > .6 ? '#96948A' : v < .35 ? '#828077' : '#8E8C82', ox, oy, 16, 16);
     for(let i = 0; i < 6; i++){
       const rx = ox + Math.floor(ruido(x, y, i + 8) * 14);
       const ry = oy + 3 + Math.floor(ruido(x, y, i + 70) * 10);
       pinta(ctx, i % 2 ? '#7C7A72' : '#A9A79B', rx, ry, 3, 1);
+    }
+    /* Crestas adentro del macizo: una cordillera de 7 casilleros de ancho sin
+       esto quedaba como una plancha gris. */
+    if(ruido(x, y, 62) > .5 && roca(x, y - 1) && roca(x, y + 1)){
+      const cx0 = ox + 2 + Math.floor(ruido(x, y, 63) * 6);
+      for(let i = 0; i < 7; i++){
+        pinta(ctx, '#B9B7AA', cx0 + i, oy + 9 - Math.min(i, 6 - i) * 2, Math.max(1, 3 - i % 2), 1);
+        pinta(ctx, '#6B6960', cx0 + i, oy + 10 - Math.min(i, 6 - i) * 2, 2, 2);
+      }
     }
     if(!roca(x, y - 1)){ pinta(ctx, '#C3C1B4', ox, oy, 16, 2); pinta(ctx, '#A9A79B', ox, oy + 2, 16, 1); }
     if(!roca(x, y + 1)){ pinta(ctx, '#6E6C64', ox, oy + 12, 16, 3); pinta(ctx, '#4C4A44', ox, oy + 15, 16, 1); }
@@ -2305,6 +2382,21 @@ function advMensaje(txt){
   advZonaTimer = setTimeout(() => { advZonaTimer = null; box.classList.remove('ver'); }, 2800);
 }
 
+/* Cartel grande al cruzar una frontera: antes las regiones estaban pegadas y
+   no se notaba en cuál estabas. */
+function advCartelRegion(region){
+  const box = document.getElementById('advZona');
+  if(advZonaTimer){ clearTimeout(advZonaTimer); advZonaTimer = null; }
+  box.innerHTML = `<span class="adv-region">🏞️ Entrás a ${NOMBRE_REGION[region] || region}</span>` +
+    `<br><span style="opacity:.85">Acá salen los Pokémon de ${NOMBRE_REGION[region] || region}</span>`;
+  box.classList.add('ver', 'grande');
+  advCartelHasta = Date.now() + 3200;
+  advZonaTimer = setTimeout(() => {
+    advZonaTimer = null;
+    box.classList.remove('ver', 'grande');
+  }, 3200);
+}
+
 function advZonaDe(x, y){
   const zonas = ADV_MAPS[advMapa].zonas || [];
   const z = zonas.find(z => x >= z.x0 && x <= z.x1 && y >= z.y0 && y <= z.y1);
@@ -2312,7 +2404,7 @@ function advZonaDe(x, y){
 }
 
 /* ---------- Fondo pre-dibujado ----------
-   Con 36x24 casilleros, repintar tile por tile en cada cuadro del movimiento
+   Con 90x54 casilleros, repintar tile por tile en cada cuadro del movimiento
    fluido era carísimo. El mapa se dibuja UNA vez en un canvas aparte y cada
    cuadro sólo copia el pedazo visible. */
 const advFondos = {};
@@ -2383,7 +2475,60 @@ function advRender(){
   });
 
   dibujarJugador(ctx, advPx - camX, advPy - camY);
+  dibujarMini();
   advDibujado = true;
+}
+
+/* ---------- Minimapa ----------
+   Versión chiquita del mundo (2 px por casillero) con las fronteras marcadas y
+   un punto donde estás. Sirve para saber en qué región andás. */
+let advMiniFondo = null;
+const MINI_PX = 2;
+
+function miniFondo(){
+  if(advMiniFondo) return advMiniFondo;
+  const mapa = ADV_MAPS.overworld;
+  const cv = document.createElement('canvas');
+  cv.width = mapa.cols * MINI_PX;
+  cv.height = mapa.rows.length * MINI_PX;
+  const ctx = cv.getContext('2d');
+  const color = {'~':'#2C68C8', 'a':'#E8D9A8', 'B':'#8A5F35', '#':'#2E7A2C', '"':'#2F7A2A',
+                 '^':'#8E8C82', 'V':'#54301F', 'F':'#6F3E21', '.':'#C6AC7C', 'P':'#C0392B',
+                 'p':'#C0392B', 'q':'#C0392B', 'r':'#EFE7D5', 'C':'#151420', 'L':'#C6A6FF',
+                 'T':'#C0392B', 'i':'#B98A50', 'b':'#FFFFFF'};
+  mapa.rows.forEach((fila, y) => {
+    [...fila].forEach((ch, x) => {
+      ctx.fillStyle = color[ch] || '#4E9E33';
+      ctx.fillRect(x * MINI_PX, y * MINI_PX, MINI_PX, MINI_PX);
+    });
+  });
+  // líneas de frontera + inicial de cada región
+  ctx.fillStyle = 'rgba(255,255,255,.55)';
+  FRONTERAS.slice(0, -1).forEach(f => ctx.fillRect(f.hasta * MINI_PX, 0, 1, cv.height));
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'center';
+  [['K', 20], ['J', 62], ['H', 102]].forEach(([letra, col]) => {
+    ctx.fillText(letra, col * MINI_PX, 13);
+  });
+  advMiniFondo = cv;
+  return cv;
+}
+
+function dibujarMini(){
+  const cv = document.getElementById('advMini');
+  if(!cv) return;
+  if(advMapa !== 'overworld'){ cv.hidden = true; return; }   // adentro de la cueva no sirve
+  cv.hidden = false;
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(miniFondo(), 0, 0);
+  const px = (advPx / ADV_PX) * MINI_PX, py = (advPy / ADV_PX) * MINI_PX;
+  ctx.fillStyle = '#141728';
+  ctx.fillRect(px - 3, py - 3, 7, 7);
+  ctx.fillStyle = '#F0B400';
+  ctx.fillRect(px - 2, py - 2, 5, 5);
 }
 
 /* Hay una cueva por región y todas dan al mismo interior, así que se guarda
@@ -2492,19 +2637,48 @@ function advPaso1(dt){
   }
 
   const zona = advZonaDe(cx, cy);
-  if(zona !== advZonaActual){ advZonaActual = zona; advMensaje(`📍 <b>${zona}</b>`); }
+  if(advRegion !== advRegionAnterior && advMapa === 'overworld'){
+    advRegionAnterior = advRegion;
+    advZonaActual = zona;
+    advCartelRegion(advRegion);
+  } else if(zona !== advZonaActual){
+    advZonaActual = zona;
+    /* El cartel de la región tiene prioridad: si se anuncia la zona apenas
+       cruzás, el "Entrás a JOHTO" dura dos pasos y no se llega a leer. */
+    if(Date.now() > advCartelHasta) advMensaje(`📍 <b>${zona}</b>`);
+  }
 
   const t = advTileEn(cx, cy);
   if(!t) return;
   if(cambioCasillero) advPisar(t, cx, cy);
+  if(advDescanso > 0){ advDescanso -= anduvo; return; }   // recién salió uno: dejalo caminar
   if(t.encuentro && advCamino >= 16){
     advCamino = 0;
+    if(t.encuentro === 'legendario'){ tirarAltar(cx, cy); return; }
     if(Math.random() <= (ADV_PROB[t.encuentro] || .15)){
-      const bioma = (t.encuentro !== 'legendario' && Math.random() < PROB_LEGENDARIA_SUELTA)
-        ? 'legendario' : t.encuentro;
-      iniciarEncuentro(elegirPesado(poolBioma(bioma)));
+      advDescanso = DESCANSO_ENCUENTRO;
+      iniciarEncuentro(elegirPesado(poolBioma(t.encuentro)));
     }
   }
+}
+
+/* Los legendarios SÓLO salen en los altares, uno por día en todo el mundo. */
+function tirarAltar(x, y){
+  const santuario = santuarioEn(x, y);
+  if(!santuario) return;
+  if(legendarioYaSalioHoy()){
+    advMensaje(`✨ El altar está en silencio. Hoy ya apareció <b>${legendarioDia.nombre}</b>` +
+               (legendarioDia.donde ? ` en ${legendarioDia.donde}` : '') + '. Volvé mañana.');
+    advDescanso = DESCANSO_ENCUENTRO * 4;
+    return;
+  }
+  if(Math.random() > ADV_PROB.legendario) return;
+  const p = legendarioDelAltar(santuario);
+  if(!p) return;
+  anotarLegendario(p, santuario);
+  advDescanso = DESCANSO_ENCUENTRO;
+  advMensaje(`✨ <b>${santuario.n}</b> se ilumina…`);
+  iniciarEncuentro(p);
 }
 
 function advPisar(t, x, y){
@@ -2550,10 +2724,11 @@ function advMover(dx, dy){
   advCamino = 16;
   advRender();
   advPisar(t, nx, ny);
+  if(advDescanso > 0){ advDescanso -= ADV_PX; return; }
+  if(t.encuentro === 'legendario'){ tirarAltar(nx, ny); return; }
   if(t.encuentro && Math.random() <= (ADV_PROB[t.encuentro] || .15)){
-    const bioma = (t.encuentro !== 'legendario' && Math.random() < PROB_LEGENDARIA_SUELTA)
-      ? 'legendario' : t.encuentro;
-    iniciarEncuentro(elegirPesado(poolBioma(bioma)));
+    advDescanso = DESCANSO_ENCUENTRO;
+    iniciarEncuentro(elegirPesado(poolBioma(t.encuentro)));
   }
 }
 
