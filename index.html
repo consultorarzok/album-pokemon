@@ -203,9 +203,9 @@
   .adv-hud{position:absolute;top:10px;right:10px;z-index:3;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:62vw;}
   .adv-hud .pill{display:flex;align-items:center;gap:5px;background:rgba(16,20,38,.78);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:4px 10px;color:#fff;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;}
   .adv-hud .pill img{width:17px;height:17px;image-rendering:pixelated;}
-  .adv-zona{position:absolute;left:50%;top:58px;transform:translateX(-50%);z-index:3;background:rgba(16,20,38,.82);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:8px 16px;font-family:'Space Mono',monospace;font-size:12px;line-height:1.5;text-align:center;max-width:86vw;opacity:0;transition:opacity .25s ease;pointer-events:none;}
+  .adv-zona{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:3;background:rgba(16,20,38,.82);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:8px 16px;font-family:'Space Mono',monospace;font-size:12px;line-height:1.5;text-align:center;max-width:86vw;opacity:0;transition:opacity .25s ease;pointer-events:none;}
   .adv-zona.ver{opacity:1;}
-  .adv-zona.grande{padding:14px 22px;top:64px;}
+  .adv-zona.grande{padding:14px 22px;}
   .adv-region{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:19px;letter-spacing:1px;color:var(--gold);}
   .adv-zona b{font-family:'Baloo 2',sans-serif;font-size:14px;}
   /* Único mando: un círculo fijo abajo a la izquierda para caminar. */
@@ -227,6 +227,7 @@
     .adv-stick .knob{width:52px;height:52px;margin:-26px 0 0 -26px;}
     .adv-ayuda{font-size:9px;}
     .adv-mini{width:132px;height:66px;top:46px;}
+    .adv-zona{bottom:auto;top:120px;max-width:80vw;}
   }
 
   /* Pokébolas: botones del encuentro y filas de la tienda */
