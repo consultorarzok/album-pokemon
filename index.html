@@ -318,9 +318,7 @@
   <button class="adv-back" id="advCloseBtn">◀ Atrás</button>
   <div class="adv-hud">
     <span class="pill">🪙 <b id="advCoins">0</b></span>
-    <span class="pill"><img id="advIcoRoja" alt="Poké Ball"> <b id="advRoja">0</b></span>
-    <span class="pill"><img id="advIcoAzul" alt="Súper Ball"> <b id="advAzul">0</b></span>
-    <span class="pill"><img id="advIcoMaestra" alt="Master Ball"> <b id="advMaestra">0</b></span>
+    <span id="advBolasHud" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"></span>
   </div>
   <div class="adv-zona" id="advZona"></div>
   <div class="adv-stick" id="advStick"><div class="knob" id="advKnob"></div></div>
@@ -334,7 +332,7 @@
     <div id="encName" style="font-family:'Baloo 2',sans-serif;font-size:17px;margin-bottom:5px;"></div>
     <div id="encInfo" style="font-size:11px;color:var(--ink-dim);margin-bottom:12px;"></div>
     <div class="enc-tiros" id="encTiros"></div>
-    <div id="encBolas" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:340px;width:100%;margin:0 auto 12px;"></div>
+    <div id="encBolas" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr));gap:8px;max-width:380px;width:100%;margin:0 auto 12px;"></div>
     <div id="encFeedback" style="font-family:'Baloo 2',sans-serif;font-size:13px;min-height:20px;margin-bottom:12px;line-height:1.5;"></div>
     <button class="close-btn" id="encCloseBtn">Huir</button>
   </div>
@@ -1798,18 +1796,21 @@ const PROB_LEGENDARIA_SUELTA = .015;
 const ITEM_CDN = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/';
 const BOLAS = {
   roja:    {nombre:'Poké Ball',   img:ITEM_CDN + 'poke-ball.png',   precio:50,  cantidad:6, mult:1,   desc:'La común. Se venden de a 6.'},
-  azul:    {nombre:'Súper Ball',  img:ITEM_CDN + 'great-ball.png',  precio:60,  cantidad:1, mult:1.6, desc:'Atrapa bastante mejor.'},
-  maestra: {nombre:'Master Ball', img:ITEM_CDN + 'master-ball.png', precio:100, cantidad:1, mult:4,   desc:'La más fuerte, para legendarios.'}
+  azul:    {nombre:'Súper Ball',  img:ITEM_CDN + 'great-ball.png',  precio:60,  cantidad:1, mult:1.6, desc:'Atrapa bastante mejor que la roja.'},
+  ultra:   {nombre:'Ultra Ball',  img:ITEM_CDN + 'ultra-ball.png',  precio:120, cantidad:1, mult:2.6, desc:'La negra y amarilla: la mejor sin ser segura.'},
+  maestra: {nombre:'Master Ball', img:ITEM_CDN + 'master-ball.png', precio:500, cantidad:1, mult:99, seguro:true,
+            desc:'La violeta. Atrapa SIEMPRE, hasta un legendario. Por eso es carísima.'}
 };
 const BOLA_IMG = {};
 Object.keys(BOLAS).forEach(t => { const im = new Image(); im.src = BOLAS[t].img; BOLA_IMG[t] = im; });
-const BOLAS_INICIALES = {roja:5, azul:0, maestra:0};
+const BOLAS_INICIALES = {roja:5, azul:0, ultra:0, maestra:0};
 const bolas = Object.assign({}, BOLAS_INICIALES);
 
 const CAPTURA_BASE = {'Común':70, 'Poco Común':50, 'Rara':25, 'Legendario':6};
 const ENC_TIROS = 3;
 
 function chanceCaptura(p, tipoBola){
+  if(BOLAS[tipoBola].seguro) return 100;       // la Master no falla nunca
   const base = CAPTURA_BASE[p.rarity] || 40;
   return Math.max(3, Math.min(95, Math.round(base * BOLAS[tipoBola].mult)));
 }
@@ -2255,18 +2256,20 @@ function advBuscarTile(mapaId, chars){
   return {x:1, y:1};
 }
 
+/* El HUD muestra la Poké Ball siempre y las demás sólo si tenés alguna: con
+   cuatro pastillas fijas no entraban en la pantalla del celular. */
 function advSyncHud(){
   const c = document.getElementById('advCoins');
   if(!c) return;
   c.textContent = coins;
-  ['Roja', 'Azul', 'Maestra'].forEach((n, i) => {
-    const ico = document.getElementById('advIco' + n);
-    const tipo = ['roja', 'azul', 'maestra'][i];
-    if(ico && !ico.src) ico.src = BOLAS[tipo].img;
-  });
-  document.getElementById('advRoja').textContent    = bolas.roja;
-  document.getElementById('advAzul').textContent    = bolas.azul;
-  document.getElementById('advMaestra').textContent = bolas.maestra;
+  const caja = document.getElementById('advBolasHud');
+  const visibles = Object.keys(BOLAS).filter(t => t === 'roja' || bolas[t] > 0);
+  const firma = visibles.map(t => t + bolas[t]).join('|');
+  if(caja.dataset.firma !== firma){
+    caja.dataset.firma = firma;
+    caja.innerHTML = visibles.map(t =>
+      `<span class="pill"><img src="${BOLAS[t].img}" alt="${BOLAS[t].nombre}"> <b>${bolas[t]}</b></span>`).join('');
+  }
   const sc = document.getElementById('shopCoins');
   if(sc) sc.textContent = coins;
 }
@@ -2556,7 +2559,7 @@ function iniciarEncuentro(p){
   advMensaje(`¡Apareció un <b>${p.name}</b>!`);
 }
 
-function totalBolas(){ return bolas.roja + bolas.azul + bolas.maestra; }
+function totalBolas(){ return Object.keys(BOLAS).reduce((a, t) => a + (bolas[t] || 0), 0); }
 
 function renderEncuentro(){
   if(!encuentro) return;
@@ -2578,7 +2581,7 @@ function renderEncuentro(){
     btn.className = 'bola-btn';
     btn.disabled = bolas[tipo] <= 0;
     btn.innerHTML = `<img class="bola-ico" src="${b.img}" alt=""><b>${b.nombre}</b>` +
-      `<span>x${bolas[tipo]}</span><span>${chanceCaptura(encuentro.p, tipo)}% de atraparlo</span>`;
+      `<span>x${bolas[tipo]}</span><span>${BOLAS[tipo].seguro ? 'seguro' : chanceCaptura(encuentro.p, tipo) + '% de atraparlo'}</span>`;
     btn.onclick = () => tirarBola(tipo);
     box.appendChild(btn);
   });
