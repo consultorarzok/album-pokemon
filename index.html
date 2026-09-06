@@ -1568,9 +1568,11 @@ function regalarLegendaria(){
   const faltan = legendarias.filter(p => !state[p.id].got);
   const lista  = faltan.length ? faltan : legendarias;
   const p = lista[Math.floor(Math.random() * lista.length)];
-  if(state[p.id].got) state[p.id].dup++;
-  else state[p.id].got = true;
-  return p;
+  const isNew = !state[p.id].got;
+  if(isNew) state[p.id].got = true;
+  else state[p.id].dup++;
+  /* Mismo formato que usa openPack(), así entra directo en la carta dorada. */
+  return {p, isNew};
 }
 
 function aplicarRegalos(){
@@ -1590,8 +1592,8 @@ function aplicarRegalos(){
     if(usados.indexOf(r.id) !== -1) return;
     coins += (r.monedas || 0);
     for(let i = 0; i < (r.legendarias || 0); i++){
-      const p = regalarLegendaria();
-      if(p) regaladas.push(p);
+      const pull = regalarLegendaria();
+      if(pull) regaladas.push(pull);
     }
     usados.push(r.id);
     total += (r.monedas || 0);
@@ -1610,8 +1612,13 @@ function aplicarRegalos(){
   const partes = [];
   if(total) partes.push('<b>' + total + '</b> monedas');
   if(regaladas.length) partes.push((regaladas.length > 1 ? 'las legendarias <b>' : 'la legendaria <b>')
-    + regaladas.map(p => p.name).join('</b> y <b>') + '</b>');
-  avisoRegalo('Te regalaron ' + partes.join(' y ') + '. ¡A abrir sobres!');
+    + regaladas.map(pull => pull.p.name).join('</b> y <b>') + '</b>');
+  const aviso = () => avisoRegalo('Te regalaron ' + partes.join(' y ') + '. ¡A abrir sobres!');
+
+  /* La legendaria regalada se muestra con la misma carta dorada del sobre,
+     una por una; recién después aparece el cartel del regalo. */
+  if(regaladas.length) playSpecialSequence(regaladas, 0, aviso);
+  else aviso();
 }
 let rankTab      = 'hoy';
 let ultimoTop    = null;
