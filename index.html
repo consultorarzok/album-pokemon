@@ -994,7 +994,8 @@ DATA.forEach(p => state[p.id] = {got:false, dup:0});
 
 function saveProgress(){
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({coins, state, bolas, comprasDia, legendariosDia}));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({coins, state, bolas, comprasDia, legendariosDia,
+      tomados: [...advTomados]}));
   }catch(e){
     console.warn('No se pudo guardar el progreso', e);
   }
@@ -1018,6 +1019,10 @@ function loadProgress(){
     }
     if(data.comprasDia && typeof data.comprasDia === 'object') comprasDia = data.comprasDia;
     if(data.legendariosDia && data.legendariosDia.dia) legendariosDia = data.legendariosDia;
+    /* Los objetos del piso son de UNA sola vez. Sin esto, recargar la página
+       los hacía reaparecer a todos y se podían juntar infinitas monedas y
+       pokébolas -incluida la Master Ball-. */
+    if(Array.isArray(data.tomados)) data.tomados.forEach(k => advTomados.add(k));
   }catch(e){
     console.warn('No se pudo leer el progreso guardado', e);
   }
@@ -1031,6 +1036,7 @@ function resetProgress(){
   Object.assign(bolas, BOLAS_INICIALES);
   comprasDia = {};
   legendariosDia = {dia: null, obtenidos: {}};
+  advTomados.clear();
   renderGrid();
   updateProgress();
   updateCoins();
@@ -2734,8 +2740,11 @@ function bolaDelPiso(x, y){
 }
 
 /* Cuánto vale cada moneda tirada en el piso. Igual criterio que las
-   pokébolas: sale por posición, no al azar en cada visita. */
-const MONEDA_PISO_VALORES = [[25, 60], [50, 30], [100, 10]];
+   pokébolas: sale por posición, no al azar en cada visita.
+   Valores chicos a propósito: las monedas se ganan en el quiz (15 por
+   acierto) y en la pelea; lo del piso es un extra de una sola vez, no una
+   fuente que compita con esos dos. Juntarlas TODAS da ~155, o sea un sobre. */
+const MONEDA_PISO_VALORES = [[5, 60], [10, 30], [20, 10]];
 function monedasDelPiso(x, y){
   const total = MONEDA_PISO_VALORES.reduce((a, [, peso]) => a + peso, 0);
   let tiro = ruido(x, y, 91) * total;

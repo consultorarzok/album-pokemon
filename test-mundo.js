@@ -326,8 +326,34 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
     m.rows.forEach((f, y) => [...f].forEach((c, x) => { if(c === 'c') pos.push([x, y]); }));
     return {cuantas: pos.length, valores: pos.map(([x, y]) => monedasDelPiso(x, y))};
   });
+  const PACK_COST_ESPERADO = 150;
   check(`hay ${monedas.cuantas} monedas tiradas en el mundo`, monedas.cuantas >= 15);
-  check('cada moneda vale 25, 50 o 100', monedas.valores.every(v => [25, 50, 100].includes(v)));
+  check('cada moneda vale 5, 10 o 20', monedas.valores.every(v => [5, 10, 20].includes(v)));
+  const total = monedas.valores.reduce((a, v) => a + v, 0);
+  /* El grueso de las monedas se gana en el quiz y en la pelea: juntar TODAS
+     las del piso no puede valer más que un par de sobres. */
+  check(`juntarlas todas da ${total}, menos de dos sobres`, total < 2 * PACK_COST_ESPERADO);
+  const objetosUnaVez = await page.evaluate(() => {
+    const m = ADV_MAPS.overworld;
+    let pos = null;
+    m.rows.forEach((f, y) => [...f].forEach((c, x) => { if(c === 'c' && !pos) pos = [x, y]; }));
+    advMapa = 'overworld';
+    advTomados.clear();
+    const antes = coins;
+    advPonerEn(pos[0], pos[1] - 1); advEje = {x:0, y:1};
+    for(let i = 0; i < 60; i++) advPaso1(1/60);
+    advEje = {x:0, y:0};
+    const trasLevantar = coins;
+    saveProgress();
+    // simular que se recarga la página
+    const tomadosAntes = advTomados.size;
+    advTomados.clear();
+    loadProgress();
+    return {subio: trasLevantar > antes, tomadosAntes, tomadosTrasRecargar: advTomados.size};
+  });
+  check('levantar una moneda suma', objetosUnaVez.subio);
+  check('los objetos del piso son de una sola vez (sobreviven a recargar)',
+    objetosUnaVez.tomadosTrasRecargar === objetosUnaVez.tomadosAntes && objetosUnaVez.tomadosAntes > 0);
   ['kanto','johto','hoenn'].forEach(r => {
     const z = alcance.porRegion[r];
     check(`en ${r} hay hierba (${z.hierba}) y orilla (${z.orilla}) accesibles`, z.hierba > 20 && z.orilla > 5);
