@@ -2477,24 +2477,35 @@ const COLOR_JUGADOR_SOMBRA = {
   H:'#241608', S:'#D9AD82', G:'#B8232C', R:'#8E1D1D',
   J:'#121419', P:'#233A66', Y:'#B8890A', Z:'#C7C7C7'
 };
+const COLOR_JUGADOR_LUZ = {
+  H:'#5C3A1E', S:'#FFE0C0', G:'#F0625F', R:'#DE4A44',
+  J:'#33394A', P:'#4C6FB0', Y:'#FFD34D', Z:'#FFFFFF'
+};
+/* Proporciones: los hombros (fila 8, 8px) son el punto más ancho de todo el
+   cuerpo -como en cualquier sprite chibi de Pokémon-, y todo lo de abajo se
+   angosta a partir de ahí (torso 8px, cintura/piernas 6px). La versión
+   anterior tenía la cadera y las piernas en 10px, MÁS ancha que los hombros
+   (8px): por eso se veía "gordo". El pie vuelve a abrirse a 8px porque el
+   calzado siempre es más ancho que el tobillo, pero sin pasarse del ancho
+   de hombros. */
 const SPRITE_JUGADOR = {
   abajo: [
     '................','.....GGGGGG.....','....GGGGGGGG....','....HHGGGGHH....',
     '....HSSSSSSH....','....HSESSESH....','....HSSSSSSH....','.....SSSSSS.....',
-    '....RRRRRRRR....','...RRJJJJJJRR...','...SJJJJJJJJS...','...PPPPPPPPPP...',
-    '...PPPPPPPPPP...','....PPPPPPPP....','....ZZ....ZZ....','................'
+    '....RRRRRRRR....','....RRJJJJRR....','....SJJJJJJS....','.....PPPPPP.....',
+    '.....PPPPPP.....','.....PPPPPP.....','....ZZ....ZZ....','................'
   ],
   arriba: [
     '................','.....GGGGGG.....','....GGGGGGGG....','....GGGGGGGG....',
     '....GGGGGGGG....','....HHGGGGHH....','....HHHHHHHH....','.....HHHHHH.....',
-    '....RRRRRRRR....','...RRYYYYYYRR...','...RYYYYYYYYR...','...PPPPPPPPPP...',
-    '...PPPPPPPPPP...','....PPPPPPPP....','....ZZ....ZZ....','................'
+    '....RRRRRRRR....','....RRYYYYRR....','....RYYYYYYR....','.....PPPPPP.....',
+    '.....PPPPPP.....','.....PPPPPP.....','....ZZ....ZZ....','................'
   ],
   lado: [
     '................','.....GGGGGG.....','....GGGGGGGG....','....GGGGGGGGG...',
     '....GGSSSSSH....','....GGSSESS.....','....GGSSSSS.....','.....HSSSSS.....',
-    '.....RRRRRR.....','....RRRRRRRR....','....RRRRRRRS....','....PPPPPPPP....',
-    '....PPPPPPPP....','.....PPPPPP.....','.....ZZZZ.......','................'
+    '.....RRRRRR.....','.....RRRRRR.....','.....RRRRRS.....','.....PPPPPP.....',
+    '.....PPPPPP.....','......PPPP......','......ZZZZ......','................'
   ]
 };
 
@@ -2517,11 +2528,14 @@ function spriteJugadorCacheado(dir, espejo, paso){
       let dx = 0;
       if(paso && fy >= 14) dx = (paso === 1 ? 1 : -1) * (fx < 8 ? 1 : -1);
       const px0 = espejo ? 15 - fx - dx : fx + dx;
-      /* Sombra de dos tonos: se oscurece el borde derecho de cada forma
-         (donde el próximo carácter de la fila ya no es el mismo), como luz
-         viniendo de arriba a la izquierda. */
+      /* Sombreado de tres tonos, luz viniendo de arriba a la izquierda: se
+         aclara el borde izquierdo de cada forma y se oscurece el derecho
+         (donde el carácter vecino ya no es el mismo). */
       const esBordeDerecho = fx === sprite[fy].length - 1 || sprite[fy][fx + 1] !== ch;
-      const color = (esBordeDerecho && COLOR_JUGADOR_SOMBRA[ch]) || base;
+      const esBordeIzquierdo = fx === 0 || sprite[fy][fx - 1] !== ch;
+      let color = base;
+      if(esBordeDerecho && COLOR_JUGADOR_SOMBRA[ch]) color = COLOR_JUGADOR_SOMBRA[ch];
+      else if(esBordeIzquierdo && COLOR_JUGADOR_LUZ[ch]) color = COLOR_JUGADOR_LUZ[ch];
       pinta(cctx, color, px0, fy);
     });
   });
