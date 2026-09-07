@@ -1924,6 +1924,59 @@ function anotarLegendario(p, santuario){
   saveProgress();
 }
 
+/* ---------- Avistamiento: el legendario se ve parado en el altar ----------
+   Cuando el tiro de dados de tirarAltar() sale bien, el Pokémon se muestra un
+   instante sobre el altar, en el mundo, antes de pasar a la pantalla de
+   captura — como un avistamiento. El sprite sale de bajar de resolución la
+   imagen real (misma técnica que dibujarBola con las pokébolas del piso), no
+   de un dibujo a mano: sería un montón de legendarios distintos para pintar
+   pixel por pixel. */
+const LEG_SPRITE_CACHE = {};
+function spriteLegendario(p){
+  let entry = LEG_SPRITE_CACHE[p.name];
+  if(entry) return entry.canvas;
+  entry = {canvas: null};
+  LEG_SPRITE_CACHE[p.name] = entry;
+  const img = new Image();
+  img.onload = () => {
+    try{
+      /* Paso 1: reducir con suavizado (conserva la silueta). Paso 2: reducir
+         de nuevo SIN suavizado, que es lo que la vuelve "pixel art" en vez de
+         una miniatura prolija. */
+      const inter = document.createElement('canvas');
+      inter.width = inter.height = 64;
+      const ictx = inter.getContext('2d');
+      ictx.imageSmoothingEnabled = true;
+      ictx.drawImage(img, 0, 0, 64, 64);
+      const final = document.createElement('canvas');
+      final.width = final.height = 14;
+      const fctx = final.getContext('2d');
+      fctx.imageSmoothingEnabled = false;
+      fctx.drawImage(inter, 0, 0, 14, 14);
+      entry.canvas = final;
+    }catch(e){ /* si falla, se sigue mostrando el destello de reserva */ }
+  };
+  img.src = p.img;
+  return null;
+}
+
+let legendarioVisible = null;              // {p, mapa, x, y, hasta}
+const LEGENDARIO_REVEAL_MS = 900;
+
+function mostrarLegendarioEnMapa(p, x, y){
+  spriteLegendario(p);                     // dispara la carga si hace falta
+  legendarioVisible = {p, mapa: advMapa, x, y, hasta: Date.now() + LEGENDARIO_REVEAL_MS};
+}
+
+function dibujarLegendario(ctx, p, ox, oy){
+  ox = Math.round(ox); oy = Math.round(oy);
+  ctx.fillStyle = 'rgba(0,0,0,.35)';
+  ctx.fillRect(ox + 3, oy + 14, 10, 2);
+  const spr = spriteLegendario(p);
+  if(spr) ctx.drawImage(spr, ox + 1, oy + 1);
+  else pinta(ctx, '#FFD63A', ox + 6, oy + 5, 4, 4);   // mientras carga el sprite
+}
+
 function poolBioma(bioma, region){
   const reg = region || advRegion;
   const dePar = ADV_DATA.filter(p => p.region === reg);
@@ -2483,6 +2536,12 @@ function advRender(){
     });
   });
 
+  if(legendarioVisible && legendarioVisible.mapa === advMapa && Date.now() < legendarioVisible.hasta){
+    dibujarLegendario(ctx, legendarioVisible.p, legendarioVisible.x * ADV_PX - camX, legendarioVisible.y * ADV_PX - camY);
+  } else if(legendarioVisible && Date.now() >= legendarioVisible.hasta){
+    legendarioVisible = null;
+  }
+
   dibujarJugador(ctx, advPx - camX, advPy - camY);
   dibujarMini();
   advDibujado = true;
@@ -2586,7 +2645,8 @@ function advOcupado(){
   return document.getElementById('encOverlay').classList.contains('show')
       || document.getElementById('shopOverlay').classList.contains('show')
       || document.getElementById('overlay').classList.contains('show')
-      || document.getElementById('specialOverlay').classList.contains('show');
+      || document.getElementById('specialOverlay').classList.contains('show')
+      || !!(legendarioVisible && Date.now() < legendarioVisible.hasta);   // se queda quieto mirando el avistamiento
 }
 
 /* ---------- Motor de movimiento ----------
@@ -2688,7 +2748,8 @@ function tirarAltar(x, y){
   anotarLegendario(p, santuario);
   advDescanso = DESCANSO_ENCUENTRO;
   advMensaje(`✨ <b>${santuario.n}</b> se ilumina…`);
-  iniciarEncuentro(p);
+  mostrarLegendarioEnMapa(p, x, y);
+  setTimeout(() => iniciarEncuentro(p), LEGENDARIO_REVEAL_MS);
 }
 
 function advPisar(t, x, y){
