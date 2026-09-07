@@ -2558,7 +2558,7 @@ const RED_SHEET = new Image();
 RED_SHEET.src = 'images/red_walk.png';
 const RED_FRAME_W = 48, RED_FRAME_H = 72;
 const RED_FILA = {abajo: 0, izq: 1, der: 2, arriba: 3};
-const RED_FINAL_W = 19, RED_FINAL_H = 28;   // mantiene la proporción 48:72 del original
+const RED_FINAL_W = 14, RED_FINAL_H = 21;   // mantiene la proporción 48:72 del original
 
 /* Sólo hay 16 combinaciones (4 direcciones x 4 cuadros), así que el recorte
    + suavizado + contorno se hace una sola vez por combinación y se cachea. */
@@ -2585,55 +2585,19 @@ function dibujarJugador(ctx, ox, oy){
   ctx.fillStyle = 'rgba(0,0,0,.28)';
   ctx.fillRect(ox + 4, oy + 14, 8, 2);
   const spr = spriteJugadorCacheado(advDir, advPaso);
-  if(spr) ctx.drawImage(spr, ox - 3, oy - 14);
+  if(spr) ctx.drawImage(spr, ox, oy - 7);   // 14+2 de contorno = 16, justo el ancho del tile
 }
 
-/* Las pokébolas tiradas en el piso usan el ícono real del CDN reducido CON
-   suavizado (`imageSmoothingEnabled=true`, como un <img> normal) -es lo
-   mismo que hace el HUD/la tienda/la pantalla de captura, y por eso ahí se
-   ven bien-, con el mismo contorno que el resto de los sprites.
-   ⚠️ EXCEPTO la roja: `poke-ball.png` en este CDN sale naranja arriba y
-   lila abajo (no rojo/blanco) A CUALQUIER TAMAÑO -lo comprobé de 9px a
-   30px, con y sin suavizado, es el archivo fuente el que tiene esos
-   colores, no un problema de escalado-. Las otras tres (azul/ultra/
-   maestra) están bien coloreadas. Para la roja se sigue dibujando a mano
-   el círculo rojo/blanco de siempre. */
-const BOLA_SPRITE_CACHE = {};
-function spriteBolaDibujada(){
-  const cv = document.createElement('canvas');
-  cv.width = cv.height = 9;
-  const cctx = cv.getContext('2d');
-  const anchos = [3, 6, 8, 8, 6, 3];
-  anchos.forEach((w, i) => {
-    const color = i < 2 ? '#F03028' : i > 3 ? '#FFFFFF' : '#1C1C1C';
-    pinta(cctx, color, Math.round((9 - w) / 2), i + 1, w, 1);
-  });
-  pinta(cctx, '#151515', 3, 3, 3, 2);
-  pinta(cctx, '#FFFFFF', 4, 4, 1, 1);
-  return agregarBordeCanvas(cv, '#14100A');
-}
-function spriteBola(tipo){
-  if(BOLA_SPRITE_CACHE[tipo]) return BOLA_SPRITE_CACHE[tipo];
-  if(tipo === 'roja'){
-    const spr = spriteBolaDibujada();
-    BOLA_SPRITE_CACHE[tipo] = spr;
-    return spr;
-  }
-  const im = BOLA_IMG[tipo];
-  if(!im || !im.complete || !im.naturalWidth) return null;
-  const cv = document.createElement('canvas');
-  cv.width = cv.height = 9;
-  const cctx = cv.getContext('2d');
-  cctx.imageSmoothingEnabled = true;
-  cctx.drawImage(im, 0, 0, 9, 9);
-  const conBorde = agregarBordeCanvas(cv, '#14100A');
-  BOLA_SPRITE_CACHE[tipo] = conBorde;
-  return conBorde;
-}
+/* Las pokébolas tiradas en el piso usan el ícono real del CDN, con la MISMA
+   receta que el HUD: `image-rendering:pixelated`, o sea reducción sin
+   suavizado (nearest). Ese es el detalle que importa —probado de 9 a 16px,
+   con nearest la bola se sigue leyendo como bola, y con suavizado se
+   convierte en un borrón—. 11px: más chica que el tile, sin taparlo, y con
+   suficiente detalle para reconocerse. */
 function dibujarBola(ctx, tipo, ox, oy){
   ox = Math.round(ox); oy = Math.round(oy);
-  const spr = spriteBola(tipo);
-  if(spr) ctx.drawImage(spr, ox + 3, oy + 3);   // 9px + 2px de contorno, centrado en el tile de 16
+  const im = BOLA_IMG[tipo] || BOLA_IMG.roja;
+  if(im && im.complete && im.naturalWidth) ctx.drawImage(im, ox + 3, oy + 3, 11, 11);
   else { pinta(ctx, '#FFFFFF', ox + 6, oy + 6, 5, 5); pinta(ctx, '#EE1515', ox + 6, oy + 6, 5, 3); }
 }
 
