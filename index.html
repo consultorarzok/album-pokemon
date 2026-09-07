@@ -1953,22 +1953,21 @@ function spriteLegendario(p){
   img.crossOrigin = 'anonymous';
   img.onload = () => {
     try{
-      /* Paso 1: reducir con suavizado a 32 (conserva mejor la silueta que
-         saltar directo a un tamaño chico). Paso 2: reducir de nuevo a 18
+      /* Paso 1: reducir con suavizado a 48 (conserva mejor la silueta que
+         saltar directo a un tamaño chico). Paso 2: reducir de nuevo a 26
          SIN suavizado, que es lo que lo vuelve "pixel art" en vez de una
-         miniatura prolija. Probado contra ir directo a 14px: con este paso
-         intermedio de 32 se distinguen mucho mejor los miembros y el color
-         de cada legendario (ver memoria del proyecto). */
+         miniatura prolija. Subido de 18 a 26: Zeta pidió que el altar (ahora
+         una plataforma grande) y el legendario se vean más imponentes. */
       const inter = document.createElement('canvas');
-      inter.width = inter.height = 32;
+      inter.width = inter.height = 48;
       const ictx = inter.getContext('2d');
       ictx.imageSmoothingEnabled = true;
-      ictx.drawImage(img, 0, 0, 32, 32);
+      ictx.drawImage(img, 0, 0, 48, 48);
       const final = document.createElement('canvas');
-      final.width = final.height = 18;
+      final.width = final.height = 26;
       const fctx = final.getContext('2d');
       fctx.imageSmoothingEnabled = false;
-      fctx.drawImage(inter, 0, 0, 18, 18);
+      fctx.drawImage(inter, 0, 0, 26, 26);
       /* Contorno oscuro: sin esto se ve como una miniatura borrosa flotando
          en el pasto; con el borde lee como un sprite de verdad. */
       entry.canvas = agregarBordeCanvas(final, '#14100A');
@@ -1991,10 +1990,10 @@ function dibujarLegendario(ctx, p, ox, oy){
   ctx.fillStyle = 'rgba(0,0,0,.35)';
   ctx.fillRect(ox + 3, oy + 14, 10, 2);
   const spr = spriteLegendario(p);
-  /* El sprite (18px + 2px de contorno = 20px) es más grande que el tile
-     (16px) a propósito: un legendario tiene que sentirse más imponente. Se
-     ancla por los pies, alineado con la sombra. */
-  if(spr) ctx.drawImage(spr, ox - 2, oy - 6);
+  /* El sprite (26px + 2px de contorno = 28px) es bastante más grande que el
+     tile (16px) a propósito: ahora hay una plataforma grande debajo que lo
+     banca. Se ancla por los pies, alineado con la sombra. */
+  if(spr) ctx.drawImage(spr, ox - 6, oy - 14);
   else pinta(ctx, '#FFD63A', ox + 6, oy + 5, 4, 4);   // mientras carga el sprite
 }
 
@@ -2340,13 +2339,12 @@ const PINTORES = {
       pinta(ctx, t.escombroOscuro, rx, ry + 3, 4, 1);
     }
   },
+  /* Relleno de base del tile del altar: la plataforma de verdad (mucho más
+     grande, se mete en los vecinos) la pinta dibujarPlataformaAltar() en una
+     pasada aparte -ver advFondo()-. Esto sólo evita un hueco si algún
+     redondeo del círculo no llega a cubrir el tile entero. */
   altar(ctx, ox, oy){
-    pinta(ctx, '#2A2340', ox, oy, 16, 16);
-    pinta(ctx, '#3C3260', ox + 2, oy + 4, 12, 10);
-    pinta(ctx, '#6B5BB0', ox + 3, oy + 5, 10, 2);
-    pinta(ctx, '#C6A6FF', ox + 7, oy + 7, 2, 5);
-    pinta(ctx, '#FFE9A8', ox + 4, oy + 2, 2, 2);
-    pinta(ctx, '#FFE9A8', ox + 11, oy + 9, 2, 2);
+    pinta(ctx, '#83837A', ox, oy, 16, 16);
   },
   salida(ctx, ox, oy, x, y){
     PINTORES.pisoCueva(ctx, ox, oy, x, y);
@@ -2429,6 +2427,35 @@ const PINTORES = {
     pinta(ctx, '#C9BFA6', ox + 1, oy + 14, 15, 2);
   }
 };
+
+/* Plataforma del altar: un círculo grande de piedra/cemento centrado en el
+   tile del altar, que se mete adentro de los casilleros vecinos -así se ve
+   como una losa ceremonial de verdad y no un cuadradito de 16px-. Gris de
+   cemento a propósito (no el morado místico de antes): así no le compite el
+   color a NINGÚN legendario, sea del tono que sea. Se pinta en una pasada
+   aparte después de todos los tiles (ver advFondo) para que los vecinos no
+   la tapen. */
+function dibujarPlataformaAltar(ctx, ox, oy){
+  const cx = ox + 8, cy = oy + 8, r = 26;
+  for(let dy = -r; dy <= r; dy++){
+    const mitad = Math.sqrt(Math.max(0, r * r - dy * dy));
+    const w = Math.round(mitad * 2);
+    if(w <= 0) continue;
+    const y = cy + dy;
+    const esBorde = mitad > r - 2.5;
+    const v = ruido(Math.round((cx + dy) / 3), Math.round(dy / 3), 91);
+    const color = esBorde ? '#5B5B54' : (v > .55 ? '#9B9B92' : v < .3 ? '#82827A' : '#8E8E86');
+    pinta(ctx, color, Math.round(cx - w / 2), y, w, 1);
+  }
+  // juntas de la losa, simples líneas rectas: dan sensación de piedra tallada
+  pinta(ctx, '#6E6E66', cx - 1, cy - r + 5, 2, r - 11);
+  pinta(ctx, '#6E6E66', cx - r + 6, cy - 1, r - 12, 2);
+  // pedestal central, un escalón más claro con un brillo tenue
+  pinta(ctx, '#75756C', ox + 1, oy + 2, 14, 12);
+  pinta(ctx, '#8C8C82', ox + 2, oy + 3, 12, 2);
+  pinta(ctx, '#DCE6E0', ox + 6, oy + 5, 4, 6);
+  pinta(ctx, '#F5F0DC', ox + 7, oy + 6, 2, 3);
+}
 
 /* Contorno oscuro genérico: los sprites de Pokémon (entrenador y overworld)
    siempre llevan un borde de 1px separándolos del fondo -si no, un sprite
@@ -2635,12 +2662,19 @@ function advFondo(mapaId){
   ctx.imageSmoothingEnabled = false;
   const antes = advMapa;
   advMapa = mapaId;                       // los pintores miran vecinos con charEn
+  const altares = [];
   mapa.rows.forEach((fila, y) => {
     [...fila].forEach((ch, x) => {
       const t = ADV_TILE[ch] || ADV_TILE['.'];
+      if(ch === 'L') altares.push([x, y]);
       (PINTORES[t.pinta] || PINTORES.pasto)(ctx, x * ADV_PX, y * ADV_PX, x, y);
     });
   });
+  /* La plataforma del altar se pinta en una pasada aparte, DESPUÉS de todos
+     los tiles: se mete adentro de los casilleros vecinos (por eso queda más
+     grande e imponente) y si se pintara tile por tile, el vecino de abajo o
+     de la derecha -que todavía no se dibujó- la taparía con su propio fondo. */
+  altares.forEach(([x, y]) => dibujarPlataformaAltar(ctx, x * ADV_PX, y * ADV_PX));
   advMapa = antes;
   advFondos[clave] = cv;
   return cv;
@@ -2650,9 +2684,12 @@ function advFondo(mapaId){
    pedazo del mapa y la cámara sigue al jugador). */
 function advEscala(ancho, alto){
   const chico = Math.min(ancho, alto);
-  if(chico < 420)  return 2.6;
-  if(chico < 700)  return 3.2;
-  return 4;
+  let base = chico < 420 ? 2.6 : chico < 700 ? 3.2 : 4;
+  /* Durante el avistamiento la cámara se aleja un poco: así el altar-plataforma
+     y el legendario (más grandes que antes) entran enteros en pantalla, en vez
+     de sentirse apretados o cortados por los bordes. */
+  if(legendarioVisible && Date.now() < legendarioVisible.hasta) base *= 0.72;
+  return base;
 }
 
 function advRender(){
