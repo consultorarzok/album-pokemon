@@ -1862,7 +1862,12 @@ function puedeComprar(tipo){
   return !b.porDia || compradasHoy(tipo) < b.porDia;
 }
 const BOLA_IMG = {};
-Object.keys(BOLAS).forEach(t => { const im = new Image(); im.src = BOLAS[t].img; BOLA_IMG[t] = im; });
+Object.keys(BOLAS).forEach(t => {
+  const im = new Image();
+  im.crossOrigin = 'anonymous';   // hace falta para poder leerle los píxeles y agregarle contorno
+  im.src = BOLAS[t].img;
+  BOLA_IMG[t] = im;
+});
 const BOLAS_INICIALES = {roja:5, azul:0, ultra:0, maestra:0};
 const bolas = Object.assign({}, BOLAS_INICIALES);
 
@@ -2457,88 +2462,33 @@ function agregarBordeCanvas(origen, colorBorde){
   return out;
 }
 
-/* Sprite del entrenador, 16x16 a mano: gorra y campera roja, jean azul y
-   mochila amarilla, como Red en los juegos originales de Kanto. Con
-   contorno oscuro y sombreado de dos tonos (más oscuro en el borde derecho
-   de cada forma) para que se vea como un sprite de verdad y no un dibujo
-   plano. */
-const COLOR_JUGADOR = {
-  H:'#3A2412',   // pelo, asoma bajo la gorra
-  S:'#F5C9A0',   // piel
-  E:'#241F33',   // ojos
-  G:'#E3323C',   // gorra
-  R:'#C62828',   // campera/chaleco
-  J:'#20232B',   // detalle oscuro de la campera (cierre, mangas)
-  P:'#33518F',   // jean
-  Y:'#F2B705',   // mochila
-  Z:'#EDEDED'    // zapatillas
-};
-const COLOR_JUGADOR_SOMBRA = {
-  H:'#241608', S:'#D9AD82', G:'#B8232C', R:'#8E1D1D',
-  J:'#121419', P:'#233A66', Y:'#B8890A', Z:'#C7C7C7'
-};
-const COLOR_JUGADOR_LUZ = {
-  H:'#5C3A1E', S:'#FFE0C0', G:'#F0625F', R:'#DE4A44',
-  J:'#33394A', P:'#4C6FB0', Y:'#FFD34D', Z:'#FFFFFF'
-};
-/* Proporciones: los hombros (fila 8, 8px) son el punto más ancho de todo el
-   cuerpo -como en cualquier sprite chibi de Pokémon-, y todo lo de abajo se
-   angosta a partir de ahí (torso 8px, cintura/piernas 6px). La versión
-   anterior tenía la cadera y las piernas en 10px, MÁS ancha que los hombros
-   (8px): por eso se veía "gordo". El pie vuelve a abrirse a 8px porque el
-   calzado siempre es más ancho que el tobillo, pero sin pasarse del ancho
-   de hombros. */
-const SPRITE_JUGADOR = {
-  abajo: [
-    '................','.....GGGGGG.....','....GGGGGGGG....','....HHGGGGHH....',
-    '....HSSSSSSH....','....HSESSESH....','....HSSSSSSH....','.....SSSSSS.....',
-    '....RRRRRRRR....','....RRJJJJRR....','....SJJJJJJS....','.....PPPPPP.....',
-    '.....PPPPPP.....','.....PPPPPP.....','....ZZ....ZZ....','................'
-  ],
-  arriba: [
-    '................','.....GGGGGG.....','....GGGGGGGG....','....GGGGGGGG....',
-    '....GGGGGGGG....','....HHGGGGHH....','....HHHHHHHH....','.....HHHHHH.....',
-    '....RRRRRRRR....','....RRYYYYRR....','....RYYYYYYR....','.....PPPPPP.....',
-    '.....PPPPPP.....','.....PPPPPP.....','....ZZ....ZZ....','................'
-  ],
-  lado: [
-    '................','.....GGGGGG.....','....GGGGGGGG....','....GGGGGGGGG...',
-    '....GGSSSSSH....','....GGSSESS.....','....GGSSSSS.....','.....HSSSSS.....',
-    '.....RRRRRR.....','.....RRRRRR.....','.....RRRRRS.....','.....PPPPPP.....',
-    '.....PPPPPP.....','......PPPP......','......ZZZZ......','................'
-  ]
-};
+/* Sprite del entrenador: hoja real de Red (4 direcciones x 4 cuadros de
+   caminata) que pasó Zeta, recortada a una grilla prolija de 48x72 por
+   cuadro en images/red_walk.png. Local (mismo origen que el juego en
+   GitHub Pages), así que no hace falta crossOrigin para leerle los
+   píxeles. Reemplaza al dibujo a mano de antes -Zeta pidió explícitamente
+   usar una imagen real, como con las pokébolas-. */
+const RED_SHEET = new Image();
+RED_SHEET.src = 'images/red_walk.png';
+const RED_FRAME_W = 48, RED_FRAME_H = 72;
+const RED_FILA = {abajo: 0, izq: 1, der: 2, arriba: 3};
+const RED_FINAL_W = 19, RED_FINAL_H = 28;   // mantiene la proporción 48:72 del original
 
-/* Sólo hay un puñado de combinaciones visuales (dirección x espejo x cuadro
-   de paso), así que el sprite con sombreado + contorno se arma una sola vez
-   por combinación y se cachea -aplicar el contorno pixel por pixel en CADA
-   cuadro sería tirar trabajo a la basura-. */
+/* Sólo hay 16 combinaciones (4 direcciones x 4 cuadros), así que el recorte
+   + suavizado + contorno se hace una sola vez por combinación y se cachea. */
 const JUGADOR_SPRITE_CACHE = {};
-function spriteJugadorCacheado(dir, espejo, paso){
-  const clave = dir + '|' + espejo + '|' + paso;
+function spriteJugadorCacheado(dir, paso){
+  const clave = dir + '|' + paso;
   if(JUGADOR_SPRITE_CACHE[clave]) return JUGADOR_SPRITE_CACHE[clave];
-  const sprite = SPRITE_JUGADOR[dir] || SPRITE_JUGADOR.lado;
+  if(!RED_SHEET.complete || !RED_SHEET.naturalWidth) return null;   // todavía cargando
+  const fila = RED_FILA[dir] ?? 0;
   const cv = document.createElement('canvas');
-  cv.width = 16; cv.height = 16;
+  cv.width = RED_FINAL_W; cv.height = RED_FINAL_H;
   const cctx = cv.getContext('2d');
-  sprite.forEach((fila, fy) => {
-    [...fila].forEach((ch, fx) => {
-      const base = COLOR_JUGADOR[ch];
-      if(!base) return;
-      let dx = 0;
-      if(paso && fy >= 14) dx = (paso === 1 ? 1 : -1) * (fx < 8 ? 1 : -1);
-      const px0 = espejo ? 15 - fx - dx : fx + dx;
-      /* Sombreado de tres tonos, luz viniendo de arriba a la izquierda: se
-         aclara el borde izquierdo de cada forma y se oscurece el derecho
-         (donde el carácter vecino ya no es el mismo). */
-      const esBordeDerecho = fx === sprite[fy].length - 1 || sprite[fy][fx + 1] !== ch;
-      const esBordeIzquierdo = fx === 0 || sprite[fy][fx - 1] !== ch;
-      let color = base;
-      if(esBordeDerecho && COLOR_JUGADOR_SOMBRA[ch]) color = COLOR_JUGADOR_SOMBRA[ch];
-      else if(esBordeIzquierdo && COLOR_JUGADOR_LUZ[ch]) color = COLOR_JUGADOR_LUZ[ch];
-      pinta(cctx, color, px0, fy);
-    });
-  });
+  cctx.imageSmoothingEnabled = true;   // reducir CON suavizado: la clave de por qué las pokébolas del HUD se ven bien
+  cctx.drawImage(RED_SHEET,
+    paso * RED_FRAME_W, fila * RED_FRAME_H, RED_FRAME_W, RED_FRAME_H,
+    0, 0, RED_FINAL_W, RED_FINAL_H);
   const sprConBorde = agregarBordeCanvas(cv, '#1A1310');
   JUGADOR_SPRITE_CACHE[clave] = sprConBorde;
   return sprConBorde;
@@ -2548,36 +2498,57 @@ function dibujarJugador(ctx, ox, oy){
   ox = Math.round(ox); oy = Math.round(oy);
   ctx.fillStyle = 'rgba(0,0,0,.28)';
   ctx.fillRect(ox + 4, oy + 14, 8, 2);
-  const espejo = advDir === 'izq';
-  const spr = spriteJugadorCacheado(advDir, espejo, advPaso);
-  ctx.drawImage(spr, ox - 1, oy - 1);
+  const spr = spriteJugadorCacheado(advDir, advPaso);
+  if(spr) ctx.drawImage(spr, ox - 3, oy - 14);
 }
 
-/* Las pokébolas tiradas en el piso se dibujan a mano, igual que el resto del
-   mundo: el ícono del CDN (poke-ball.png) sale mal coloreado a este tamaño
-   -naranja y lila en vez de rojo y blanco- y a los 12x12 px del tile queda
-   borroneado, "pegado" con el pasto de fondo. */
-/* Silueta circular más chica (9 filas, 8px de ancho máximo): las de 12
-   filas ocupaban casi todo el tile de 16px y se veían enormes tiradas en
-   el piso -un ítem no debería competir en tamaño con el propio personaje-. */
-const BOLA_ANCHOS = [3, 6, 8, 8, 8, 8, 8, 6, 3];
-const BOLA_PINTURA = {
-  roja:    {arriba: '#F03028', banda: '#1C1C1C', abajo: '#FFFFFF'},
-  azul:    {arriba: '#3D7DCA', banda: '#1C1C1C', abajo: '#FFFFFF'},
-  ultra:   {arriba: '#2B2B2B', banda: '#FFD63A', abajo: '#FFFFFF'},
-  maestra: {arriba: '#9A3FE0', banda: '#1C1C1C', abajo: '#FFFFFF'}
-};
+/* Las pokébolas tiradas en el piso usan el ícono real del CDN reducido CON
+   suavizado (`imageSmoothingEnabled=true`, como un <img> normal) -es lo
+   mismo que hace el HUD/la tienda/la pantalla de captura, y por eso ahí se
+   ven bien-, con el mismo contorno que el resto de los sprites.
+   ⚠️ EXCEPTO la roja: `poke-ball.png` en este CDN sale naranja arriba y
+   lila abajo (no rojo/blanco) A CUALQUIER TAMAÑO -lo comprobé de 9px a
+   30px, con y sin suavizado, es el archivo fuente el que tiene esos
+   colores, no un problema de escalado-. Las otras tres (azul/ultra/
+   maestra) están bien coloreadas. Para la roja se sigue dibujando a mano
+   el círculo rojo/blanco de siempre. */
+const BOLA_SPRITE_CACHE = {};
+function spriteBolaDibujada(){
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = 9;
+  const cctx = cv.getContext('2d');
+  const anchos = [3, 6, 8, 8, 6, 3];
+  anchos.forEach((w, i) => {
+    const color = i < 2 ? '#F03028' : i > 3 ? '#FFFFFF' : '#1C1C1C';
+    pinta(cctx, color, Math.round((9 - w) / 2), i + 1, w, 1);
+  });
+  pinta(cctx, '#151515', 3, 3, 3, 2);
+  pinta(cctx, '#FFFFFF', 4, 4, 1, 1);
+  return agregarBordeCanvas(cv, '#14100A');
+}
+function spriteBola(tipo){
+  if(BOLA_SPRITE_CACHE[tipo]) return BOLA_SPRITE_CACHE[tipo];
+  if(tipo === 'roja'){
+    const spr = spriteBolaDibujada();
+    BOLA_SPRITE_CACHE[tipo] = spr;
+    return spr;
+  }
+  const im = BOLA_IMG[tipo];
+  if(!im || !im.complete || !im.naturalWidth) return null;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = 9;
+  const cctx = cv.getContext('2d');
+  cctx.imageSmoothingEnabled = true;
+  cctx.drawImage(im, 0, 0, 9, 9);
+  const conBorde = agregarBordeCanvas(cv, '#14100A');
+  BOLA_SPRITE_CACHE[tipo] = conBorde;
+  return conBorde;
+}
 function dibujarBola(ctx, tipo, ox, oy){
   ox = Math.round(ox); oy = Math.round(oy);
-  const c = BOLA_PINTURA[tipo] || BOLA_PINTURA.roja;
-  const desde = oy + 4;
-  BOLA_ANCHOS.forEach((w, i) => {
-    if(w <= 0) return;
-    const color = i < 4 ? c.arriba : i > 5 ? c.abajo : c.banda;
-    pinta(ctx, color, ox + Math.round((16 - w) / 2), desde + i, w, 1);
-  });
-  pinta(ctx, '#151515', ox + 7, desde + 3, 3, 2);
-  pinta(ctx, '#FFFFFF', ox + 7, desde + 4, 1, 1);
+  const spr = spriteBola(tipo);
+  if(spr) ctx.drawImage(spr, ox + 3, oy + 3);   // 9px + 2px de contorno, centrado en el tile de 16
+  else { pinta(ctx, '#FFFFFF', ox + 6, oy + 6, 5, 5); pinta(ctx, '#EE1515', ox + 6, oy + 6, 5, 3); }
 }
 
 function advTileEn(x, y){
@@ -2872,7 +2843,7 @@ function advPaso1(dt){
   const anduvo = Math.hypot(advPx - antesX, advPy - antesY);
   if(anduvo > 0){
     advCamino += anduvo;
-    advPaso = (Math.floor(advCamino / 7) % 2) + 1;   // dos cuadros de caminata
+    advPaso = Math.floor(advCamino / 7) % 4;   // los 4 cuadros de caminata de la hoja de Red
   }
 
   // casillero donde están los pies
