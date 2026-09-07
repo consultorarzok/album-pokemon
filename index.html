@@ -3485,7 +3485,7 @@ const REGALOS = [
   { id: 'todos-bolas-aventura-20260907', para: '*', monedas: 0,
     bolas: {roja: 50, azul: 50, ultra: 50, maestra: 2}, aventura: true,
     excluir: ['zeta centeno'] },
-  { id: 'mostaza-4000-20260907', para: 'mostaza', monedas: 4000 }
+  { id: 'mostaza-4000-20260907', para: ['mostaza', 'el mostaza'], monedas: 4000 }
 ];
 
 /* Misma normalización que usa el registro de nombres en el servidor:
@@ -3532,7 +3532,11 @@ function aplicarRegalos(){
   const regaladas = [];
   const bolasGanadas = {};
   REGALOS.forEach(r => {
-    if(r.para !== '*' && r.para !== clave) return;   // '*' = para todos los entrenadores
+    /* 'para' puede ser un nombre, '*' (todos) o una LISTA de nombres: sirve
+       cuando no se sabe con cuál variante se registró (a "El Mostaza" no le
+       llegaba el regalo porque estaba puesto para "mostaza" a secas). */
+    const destinos = Array.isArray(r.para) ? r.para : [r.para];
+    if(!destinos.includes('*') && !destinos.includes(clave)) return;
     if(r.excluir && r.excluir.indexOf(clave) !== -1) return;
     if(usados.indexOf(r.id) !== -1) return;
     coins += (r.monedas || 0);
