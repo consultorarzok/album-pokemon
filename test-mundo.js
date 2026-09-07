@@ -33,16 +33,22 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
       region: advRegion, x: advX, y: advY
     };
   });
-  check(`mundo gigante de ${mundo.cols}x${mundo.filas} = ${mundo.cols * mundo.filas} casilleros`, mundo.cols === 120 && mundo.filas === 60);
+  check(`mundo gigante de ${mundo.cols}x${mundo.filas} = ${mundo.cols * mundo.filas} casilleros`, mundo.cols === 160 && mundo.filas === 84);
   check('el juego ocupa toda la pantalla', mundo.anchoOk);
-  check('fondo pre-dibujado 1920x960 px', mundo.fondo === '1920x960');
+  check('fondo pre-dibujado 2560x1344 px', mundo.fondo === '2560x1344');
   check('hay un Centro Pokémon por región', mundo.centros === 3);
   check('hay una cueva por región', mundo.cuevas === 3);
   check('arranca en Kanto', mundo.region === 'kanto');
 
   console.log('\n— Las 3 regiones —');
   const regs = await page.evaluate(() => ({
-    limites: [regionDe(5), regionDe(60), regionDe(100)],
+    /* Se muestrea el centro de cada franja a partir de FRONTERAS, así el test
+       no se rompe cada vez que cambia el ancho del mapa. */
+    limites: (() => {
+      const cortes = FRONTERAS.map(f => Math.min(f.hasta, ADV_MAPS.overworld.cols - 1));
+      let desde = 0;
+      return cortes.map(hasta => { const x = Math.round((desde + hasta) / 2); desde = hasta; return regionDe(x); });
+    })(),
     kanto: [...new Set(poolBioma('hierba', 'kanto').map(p => p.region))],
     johto: [...new Set(poolBioma('agua', 'johto').map(p => p.region))],
     hoenn: [...new Set(poolBioma('volcan', 'hoenn').map(p => p.region))],
@@ -312,7 +318,8 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   });
   check('se llega a los 3 Centros (' + alcance.centros + ')', alcance.centros === '3/3');
   check('se llega a las 3 cuevas (' + alcance.cuevas + ')', alcance.cuevas === '3/3');
-  check('se llega a las 10 pokébolas del piso (' + alcance.bolas + ')', alcance.bolas === '10/10');
+  const [bolasOk, bolasTot] = alcance.bolas.split('/');
+  check('se llega a todas las pokébolas del piso (' + alcance.bolas + ')', bolasOk === bolasTot && +bolasTot > 0);
   ['kanto','johto','hoenn'].forEach(r => {
     const z = alcance.porRegion[r];
     check(`en ${r} hay hierba (${z.hierba}) y orilla (${z.orilla}) accesibles`, z.hierba > 20 && z.orilla > 5);
@@ -353,14 +360,25 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   check('sin el puente Johto es inalcanzable: el río separa de verdad', !cruce.johtoSinPuente);
   check('el paso tiene arcos y carteles (' + cruce.toriis + ' torii, ' + cruce.carteles + ' carteles)', cruce.toriis >= 4 && cruce.carteles >= 5);
 
-  const cartel = await page.evaluate(async () => {
-    advPonerEn(46, 31); advRegionAnterior = 'kanto'; advRegion = 'kanto';
+  const cartel = await page.evaluate(async (pasoY) => {
+    /* Los encuentros se apagan un momento: si salta uno al cruzar, su mensaje
+       pisa el cartel de la región y el test mide cualquier cosa. Se anula
+       iniciarEncuentro en vez de ADV_PROB porque advPaso1 tiene un `|| .15`
+       de reserva y poner las probabilidades en 0 no alcanza. */
+    const encOriginal = iniciarEncuentro;
+    window.iniciarEncuentro = () => {};
+    const m = ADV_MAPS.overworld;
+    let xPuente = 0;
+    for(let x = 0; x < m.cols; x++) if(m.rows[pasoY][x] === 'B'){ xPuente = x; break; }
+    advPonerEn(xPuente - 2, pasoY); advRegionAnterior = 'kanto'; advRegion = 'kanto';
     advEje = {x:1, y:0};
-    for(let i = 0; i < 60; i++) advPaso1(1 / 60);
+    for(let i = 0; i < 240; i++) advPaso1(1 / 60);
     advEje = {x:0, y:0};
     const box = document.getElementById('advZona');
-    return {texto: box.textContent, grande: box.classList.contains('grande'), region: advRegion};
-  });
+    const r = {texto: box.textContent, grande: box.classList.contains('grande'), region: advRegion};
+    window.iniciarEncuentro = encOriginal;
+    return r;
+  }, 42);
   check('al cruzar avisa en qué región entrás ("' + cartel.texto.slice(0, 28) + '…")', cartel.grande && /JOHTO/.test(cartel.texto));
 
   console.log('\n— Legendarios: cada altar el suyo, uno por día —');
@@ -372,43 +390,54 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
     !Object.values(ADV_MAPS.overworld.santuarios).some(s => s.pokes.includes('Mewtwo'))));
 
   const salida = await page.evaluate((alt) => {
-    legendarioDia = null;
+    legendariosDia = {dia: null, obtenidos: {}};
     Math.random = () => 0.01;
     const [x, y] = alt.k.split(',').map(Number);
     advMapa = 'overworld'; advPonerEn(x, y);
     let salio = null;
-    const original = iniciarEncuentro;
-    window.iniciarEncuentro = p => { salio = p.name; };
-    tirarAltar(x, y);
-    const primero = {salio, dia: legendarioDia && legendarioDia.nombre, donde: legendarioDia && legendarioDia.donde};
-    salio = null;
-    tirarAltar(x, y);                       // segundo intento el mismo día
-    const segundo = salio;
+    const original = mostrarLegendarioEnMapa;
+    window.mostrarLegendarioEnMapa = p => { salio = p.name; };
+    const sacar = () => { salio = null; tirarAltar(x, y); return salio; };
+    const primero = sacar();
+    /* El altar tiene varios legendarios: se vacía sacándolos a todos, y recién
+       ahí tiene que quedarse en silencio. */
+    const restantes = alt.pokes.length - 1;
+    for(let i = 0; i < restantes; i++) sacar();
+    const agotado = sacar();
     const aviso = document.getElementById('advZona').textContent;
-    window.iniciarEncuentro = original;
-    return {primero, segundo, aviso, esperados: alt.pokes};
+    window.mostrarLegendarioEnMapa = original;
+    return {primero, anotados: Object.keys(legendariosDia.obtenidos), agotado, aviso, esperados: alt.pokes};
   }, altares[0]);
-  check(`en ${altares[0].n} salió ${salida.primero.salio} (de ${salida.esperados.join('/')})`, salida.esperados.includes(salida.primero.salio));
-  check('queda anotado como el legendario del día', salida.primero.dia === salida.primero.salio);
-  check('el segundo del día ya no aparece', salida.segundo === null);
-  check('el altar avisa que hoy ya salió uno', /ya apareció/.test(salida.aviso));
+  check(`en ${altares[0].n} salió ${salida.primero} (de ${salida.esperados.join('/')})`, salida.esperados.includes(salida.primero));
+  check('quedan anotados los que ya salieron hoy', salida.anotados.length === salida.esperados.length);
+  check('agotado el altar, no sale ninguno más hoy', salida.agotado === null);
+  check('el altar avisa cuáles salieron hoy', /ya aparecieron/.test(salida.aviso));
   const otroAltar = await page.evaluate((alt) => {
     Math.random = () => 0.01;
     const [x, y] = alt.k.split(',').map(Number);
     advPonerEn(x, y);
     let salio = null;
-    const original = iniciarEncuentro;
-    window.iniciarEncuentro = p => { salio = p.name; };
+    const original = mostrarLegendarioEnMapa;
+    window.mostrarLegendarioEnMapa = p => { salio = p.name; };
     tirarAltar(x, y);
-    window.iniciarEncuentro = original;
+    window.mostrarLegendarioEnMapa = original;
     return salio;
   }, altares[3]);
-  check('el tope vale para TODO el mundo, no por altar', otroAltar === null);
-  const guardado = await page.evaluate(() => { saveProgress(); legendarioDia = null; loadProgress(); return legendarioDia; });
-  check('el legendario del día sobrevive a recargar', guardado && guardado.dia === await page.evaluate(() => diaDeHoy()));
-  const mañana = await page.evaluate(() => { legendarioDia = {dia:'2020-01-01', nombre:'Mew'}; return legendarioYaSalioHoy(); });
+  check('el cupo es POR NOMBRE: otro altar sigue dando su legendario', otroAltar !== null);
+  const guardado = await page.evaluate(() => {
+    saveProgress();
+    legendariosDia = {dia: null, obtenidos: {}};
+    loadProgress();
+    return legendariosDia;
+  });
+  check('lo que salió hoy sobrevive a recargar',
+    guardado && guardado.dia === await page.evaluate(() => diaDeHoy()) && Object.keys(guardado.obtenidos).length > 0);
+  const mañana = await page.evaluate(() => {
+    legendariosDia = {dia:'2020-01-01', obtenidos:{Mew:'x'}};
+    return legendarioYaSalioHoy('Mew');
+  });
   check('al día siguiente vuelve a haber legendario', mañana === false);
-  await page.evaluate(() => { legendarioDia = null; saveProgress(); });
+  await page.evaluate(() => { legendariosDia = {dia: null, obtenidos: {}}; saveProgress(); });
 
   console.log('\n— Minimapa —');
   const mini = await page.evaluate(() => {
