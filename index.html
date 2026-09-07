@@ -987,7 +987,7 @@ DATA.forEach(p => state[p.id] = {got:false, dup:0});
 
 function saveProgress(){
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({coins, state, bolas, comprasDia, legendarioDia}));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({coins, state, bolas, comprasDia, legendariosDia}));
   }catch(e){
     console.warn('No se pudo guardar el progreso', e);
   }
@@ -1010,7 +1010,7 @@ function loadProgress(){
       });
     }
     if(data.comprasDia && typeof data.comprasDia === 'object') comprasDia = data.comprasDia;
-    if(data.legendarioDia && data.legendarioDia.dia) legendarioDia = data.legendarioDia;
+    if(data.legendariosDia && data.legendariosDia.dia) legendariosDia = data.legendariosDia;
   }catch(e){
     console.warn('No se pudo leer el progreso guardado', e);
   }
@@ -1023,7 +1023,7 @@ function resetProgress(){
   DATA.forEach(p => state[p.id] = {got:false, dup:0});
   Object.assign(bolas, BOLAS_INICIALES);
   comprasDia = {};
-  legendarioDia = null;
+  legendariosDia = {dia: null, obtenidos: {}};
   renderGrid();
   updateProgress();
   updateCoins();
@@ -1889,10 +1889,11 @@ function regionDe(x){
 /* Dentro de la cueva manda la región de la entrada por la que se bajó. */
 let advRegion = 'kanto';
 
-/* ---------- Legendarios: cada altar tiene el suyo, y sale UNO por día ----------
-   Antes salían todos del mismo altar (aparecían Mew y Mewtwo pegados) y podían
-   salir varios el mismo día. */
-let legendarioDia = null;        // {dia:'2026-09-06', nombre:'Mewtwo', donde:'Cima de la Sierra'}
+/* ---------- Legendarios: cada altar tiene el suyo, y cada NOMBRE sale a lo
+   sumo UNA vez por día ---------- El cupo es por legendario, no por altar ni
+   compartido entre todos: el mismo día pueden salir Mew Y Articuno, cada uno
+   una sola vez. */
+let legendariosDia = {dia: null, obtenidos: {}};   // {dia:'2026-09-06', obtenidos:{Mewtwo:'Cima de la Sierra'}}
 
 function santuarioEn(x, y){
   const mapa = ADV_MAPS[advMapa];
@@ -1900,19 +1901,26 @@ function santuarioEn(x, y){
   return (mapa.santuarios || {})[x + ',' + y] || null;
 }
 
-function legendarioYaSalioHoy(){
-  return !!(legendarioDia && legendarioDia.dia === diaDeHoy());
+function legendarioYaSalioHoy(nombre){
+  if(!legendariosDia.dia || legendariosDia.dia !== diaDeHoy()) return false;
+  return !!legendariosDia.obtenidos[nombre];
+}
+
+function legendariosAgotadosHoy(santuario){
+  return santuario.pokes.every(n => legendarioYaSalioHoy(n));
 }
 
 function legendarioDelAltar(santuario){
-  if(legendarioYaSalioHoy()) return null;
-  const posibles = santuario.pokes.map(n => ADV_DATA.find(p => p.name === n)).filter(Boolean);
+  const posibles = santuario.pokes
+    .map(n => ADV_DATA.find(p => p.name === n))
+    .filter(p => p && !legendarioYaSalioHoy(p.name));
   if(!posibles.length) return null;
   return posibles[Math.floor(Math.random() * posibles.length)];
 }
 
 function anotarLegendario(p, santuario){
-  legendarioDia = {dia:diaDeHoy(), nombre:p.name, donde:santuario.n};
+  if(!legendariosDia.dia || legendariosDia.dia !== diaDeHoy()) legendariosDia = {dia: diaDeHoy(), obtenidos: {}};
+  legendariosDia.obtenidos[p.name] = santuario.n;
   saveProgress();
 }
 
@@ -2663,13 +2671,14 @@ function advPaso1(dt){
   }
 }
 
-/* Los legendarios SÓLO salen en los altares, uno por día en todo el mundo. */
+/* Los legendarios SÓLO salen en los altares, uno por día CADA UNO: el mismo
+   altar puede seguir dando otro legendario distinto de su lista el mismo día. */
 function tirarAltar(x, y){
   const santuario = santuarioEn(x, y);
   if(!santuario) return;
-  if(legendarioYaSalioHoy()){
-    advMensaje(`✨ El altar está en silencio. Hoy ya apareció <b>${legendarioDia.nombre}</b>` +
-               (legendarioDia.donde ? ` en ${legendarioDia.donde}` : '') + '. Volvé mañana.');
+  if(legendariosAgotadosHoy(santuario)){
+    const salidos = santuario.pokes.filter(n => legendarioYaSalioHoy(n));
+    advMensaje(`✨ El altar está en silencio. Hoy ya aparecieron <b>${salidos.join('</b>, <b>')}</b> acá. Volvé mañana.`);
     advDescanso = DESCANSO_ENCUENTRO * 4;
     return;
   }
