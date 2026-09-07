@@ -188,12 +188,19 @@ g[4][4] = '@'
 BOLAS = [(20, 14), (34, 24), (13, 40), (45, 34), (26, 62), (40, 12),
          (70, 14), (84, 26), (63, 46), (95, 50), (74, 66), (100, 30),
          (124, 16), (131, 28), (119, 50), (143, 24), (127, 58), (137, 40)]
+# monedas sueltas por el piso, repartidas por las tres regiones
+MONEDAS = [(16, 8), (28, 20), (12, 30), (36, 44), (21, 55), (46, 34), (33, 68), (8, 46),
+           (66, 8), (80, 18), (72, 34), (90, 44), (62, 58), (97, 28), (78, 74), (101, 66),
+           (122, 10), (130, 22), (117, 38), (140, 30), (126, 52), (144, 62), (134, 76), (114, 60)]
 for (x, y) in BOLAS:
     if g[y][x] in ',*"a.emuNF':
         g[y][x] = 'b'
+for (x, y) in MONEDAS:
+    if g[y][x] in ',*"a.emuNF':
+        g[y][x] = 'c'
 
 # ============================ VALIDACIÓN ============================
-CAM = set('.,@*"aBFCPbkoLEeumNZ') - set('Z')        # Z (montaña nevada) NO se camina
+CAM = set('.,@*"aBFCPbckoLEeumNZ') - set('Z')       # Z (montaña nevada) NO se camina
 problemas = []
 
 
@@ -306,7 +313,8 @@ ALTARES = colocar_altares(PEDIDOS)
 vis = bfs()
 
 bolas_pos = [(x, y) for y in range(H) for x in range(W) if g[y][x] == 'b']
-for orig, nuevo in mudar(CUEVAS, 'C') + mudar(bolas_pos, 'b'):
+monedas_pos = [(x, y) for y in range(H) for x in range(W) if g[y][x] == 'c']
+for orig, nuevo in mudar(CUEVAS, 'C') + mudar(bolas_pos, 'b') + mudar(monedas_pos, 'c'):
     print('movido', orig, '->', nuevo)
 vis = bfs()
 
@@ -315,7 +323,8 @@ print(f'{W}x{H} = {W*H} casilleros · alcanzables a pie: {len(vis)}')
 
 # 1. POIs alcanzables
 for nombre, puntos in [('centros', CENTROS), ('cuevas', CUEVAS),
-                       ('altares', [p for p, _, _ in ALTARES]), ('bolas', bolas_pos)]:
+                       ('altares', [p for p, _, _ in ALTARES]), ('bolas', bolas_pos),
+                       ('monedas', monedas_pos)]:
     malos = [p for p in puntos if p not in vis]
     print(f'  {nombre:8} {len(puntos)-len(malos)}/{len(puntos)}', malos if malos else '')
     if malos:

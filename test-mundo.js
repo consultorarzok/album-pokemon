@@ -320,6 +320,14 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   check('se llega a las 3 cuevas (' + alcance.cuevas + ')', alcance.cuevas === '3/3');
   const [bolasOk, bolasTot] = alcance.bolas.split('/');
   check('se llega a todas las pokébolas del piso (' + alcance.bolas + ')', bolasOk === bolasTot && +bolasTot > 0);
+  const monedas = await page.evaluate(() => {
+    const m = ADV_MAPS.overworld;
+    const pos = [];
+    m.rows.forEach((f, y) => [...f].forEach((c, x) => { if(c === 'c') pos.push([x, y]); }));
+    return {cuantas: pos.length, valores: pos.map(([x, y]) => monedasDelPiso(x, y))};
+  });
+  check(`hay ${monedas.cuantas} monedas tiradas en el mundo`, monedas.cuantas >= 15);
+  check('cada moneda vale 25, 50 o 100', monedas.valores.every(v => [25, 50, 100].includes(v)));
   ['kanto','johto','hoenn'].forEach(r => {
     const z = alcance.porRegion[r];
     check(`en ${r} hay hierba (${z.hierba}) y orilla (${z.orilla}) accesibles`, z.hierba > 20 && z.orilla > 5);
