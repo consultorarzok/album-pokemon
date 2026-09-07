@@ -2435,26 +2435,85 @@ const PINTORES = {
    color a NINGÚN legendario, sea del tono que sea. Se pinta en una pasada
    aparte después de todos los tiles (ver advFondo) para que los vecinos no
    la tapen. */
-function dibujarPlataformaAltar(ctx, ox, oy){
-  const cx = ox + 8, cy = oy + 8, r = 26;
-  for(let dy = -r; dy <= r; dy++){
-    const mitad = Math.sqrt(Math.max(0, r * r - dy * dy));
-    const w = Math.round(mitad * 2);
-    if(w <= 0) continue;
-    const y = cy + dy;
-    const esBorde = mitad > r - 2.5;
-    const v = ruido(Math.round((cx + dy) / 3), Math.round(dy / 3), 91);
-    const color = esBorde ? '#5B5B54' : (v > .55 ? '#9B9B92' : v < .3 ? '#82827A' : '#8E8E86');
-    pinta(ctx, color, Math.round(cx - w / 2), y, w, 1);
+/* Los grises son los MISMOS de la montaña del mapa (PINTORES.montana), no
+   una paleta nueva: así el altar se lee como piedra de este mundo y no como
+   un parche pegado encima. */
+const PIEDRA_ALTAR = {
+  base:   '#8E8C82',
+  claro:  '#A9A79B',
+  oscuro: '#6E6C64',
+  borde:  '#4C4A44',
+  junta:  '#7C7A72',
+  canto:  '#5C5A54'
+};
+
+const ALTAR_LADO = 44;                      // losa cuadrada de 44x44 (casi 3 tiles)
+
+/* Dibuja la losa en coordenadas propias (0,0 = esquina de la losa). */
+function dibujarLosaAltar(ctx){
+  const P = PIEDRA_ALTAR, lado = ALTAR_LADO;
+  pinta(ctx, P.borde, 0, 0, lado, lado);
+  pinta(ctx, P.base,  1, 1, lado - 2, lado - 2);
+
+  // baldosas: juntas cada 11px, igual criterio que el camino de piedra
+  for(let i = 11; i < lado - 1; i += 11){
+    pinta(ctx, P.junta, i, 1, 1, lado - 2);
+    pinta(ctx, P.junta, 1, i, lado - 2, 1);
   }
-  // juntas de la losa, simples líneas rectas: dan sensación de piedra tallada
-  pinta(ctx, '#6E6E66', cx - 1, cy - r + 5, 2, r - 11);
-  pinta(ctx, '#6E6E66', cx - r + 6, cy - 1, r - 12, 2);
-  // pedestal central, un escalón más claro con un brillo tenue
-  pinta(ctx, '#75756C', ox + 1, oy + 2, 14, 12);
-  pinta(ctx, '#8C8C82', ox + 2, oy + 3, 12, 2);
-  pinta(ctx, '#DCE6E0', ox + 6, oy + 5, 4, 6);
-  pinta(ctx, '#F5F0DC', ox + 7, oy + 6, 2, 3);
+  // manchas de desgaste, mismo truco de ruido que el resto de los pintores
+  for(let i = 0; i < 22; i++){
+    const rx = 2 + Math.floor(ruido(i, 0, 91 + i) * (lado - 6));
+    const ry = 2 + Math.floor(ruido(0, i, 130 + i) * (lado - 6));
+    pinta(ctx, i % 2 ? P.claro : P.oscuro, rx, ry, 2, 1);
+  }
+  // canto iluminado arriba y sombreado abajo (luz desde arriba a la izquierda)
+  pinta(ctx, P.claro,  1, 1, lado - 2, 1);
+  pinta(ctx, P.oscuro, 1, lado - 2, lado - 2, 1);
+
+  // una columna en cada esquina
+  const dentro = 4, ancho = 6, alto = 14;
+  [[dentro, dentro],
+   [lado - dentro - ancho, dentro],
+   [dentro, lado - dentro - alto],
+   [lado - dentro - ancho, lado - dentro - alto]]
+    .forEach(([px, py]) => dibujarColumnaAltar(ctx, px, py));
+
+  // pedestal central: es donde se para el legendario
+  const c = lado / 2;
+  pinta(ctx, P.borde,  c - 8, c - 6, 16, 13);
+  pinta(ctx, P.oscuro, c - 7, c - 5, 14, 11);
+  pinta(ctx, P.claro,  c - 6, c - 4, 12, 2);
+  pinta(ctx, P.base,   c - 6, c - 2, 12, 7);
+}
+
+/* Se arma en un canvas propio (coordenadas locales, más fácil de leer) y se
+   pega entero sobre el fondo del mundo.
+   ⚠️ Se probó recortarla contra el agua para que no se meta en el lago del
+   altar de la Cima de la Sierra, pero ahí la losa queda cortada al medio y
+   pierde dos de las cuatro columnas: se ve rota, no prolija. Entre eso y que
+   el borde de piedra pise un poco la orilla -que lee como un muelle-, se
+   eligió lo segundo: el altar es igual de cuadrado y simétrico en los 6. */
+function dibujarPlataformaAltar(ctx, ox, oy){
+  const lado = ALTAR_LADO;
+  const losa = document.createElement('canvas');
+  losa.width = losa.height = lado;
+  dibujarLosaAltar(losa.getContext('2d'));
+  ctx.drawImage(losa, ox + 8 - lado / 2, oy + 8 - lado / 2);
+}
+
+/* Columna de 6x14: base, fuste con cara iluminada y canto oscuro, capitel y
+   sombra sobre la losa. Mismo lenguaje que el torii y los árboles del mapa,
+   que también se dibujan como elementos verticales con sombra al pie. */
+function dibujarColumnaAltar(ctx, x, y){
+  const P = PIEDRA_ALTAR;
+  pinta(ctx, 'rgba(0,0,0,.25)', x + 1, y + 13, 8, 2);   // sombra al pie
+  pinta(ctx, P.oscuro, x - 1, y,      8, 3);            // capitel
+  pinta(ctx, P.claro,  x - 1, y,      8, 1);
+  pinta(ctx, P.base,   x,     y + 3,  6, 9);            // fuste
+  pinta(ctx, P.claro,  x,     y + 3,  2, 9);            // cara iluminada
+  pinta(ctx, P.canto,  x + 5, y + 3,  1, 9);            // canto sombreado
+  pinta(ctx, P.oscuro, x - 1, y + 11, 8, 3);            // base
+  pinta(ctx, P.borde,  x - 1, y + 13, 8, 1);
 }
 
 /* Contorno oscuro genérico: los sprites de Pokémon (entrenador y overworld)
