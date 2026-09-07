@@ -1891,6 +1891,10 @@ const ADV_TIPOS = {
 const ADV_PROB = { hierba:.07, agua:.06, volcan:.08, cueva:.07, hielo:.08,
                    electrico:.08, psiquico:.08, cienaga:.08, legendario:.30 };
 const DESCANSO_ENCUENTRO = 64;   // píxeles a caminar tras un encuentro antes de que salga otro
+/* El avistamiento ya no exige pisar el altar: alcanza con andar cerca. La
+   cámara se aleja sola en advEscala() según haga falta para que jugador y
+   altar entren los dos en pantalla, así que este radio puede ser generoso. */
+const RADIO_AVISTAMIENTO = 10;   // casilleros de distancia (Chebyshev) al altar
 
 /* Los PNG de las bolas salen del mismo CDN que las figuritas (sprites de items
    de PokeAPI): son pixel-art, así que pegan con el mapa. */
@@ -1967,10 +1971,39 @@ let advRegion = 'kanto';
    una sola vez. */
 let legendariosDia = {dia: null, obtenidos: {}};   // {dia:'2026-09-06', obtenidos:{Mewtwo:'Cima de la Sierra'}}
 
-function santuarioEn(x, y){
+/* Todos los altares del mapa actual, con su casillero. La cueva tiene un solo
+   altar fijo por mapa (el mismo dibujo para las 3 regiones): se ubica una vez
+   buscando la 'L' en las filas y se cachea en el propio objeto del mapa. */
+function altaresDelMapaActual(){
   const mapa = ADV_MAPS[advMapa];
-  if(mapa.santuariosPorRegion) return mapa.santuariosPorRegion[advRegion] || null;
-  return (mapa.santuarios || {})[x + ',' + y] || null;
+  if(mapa.santuarios){
+    return Object.keys(mapa.santuarios).map(clave => {
+      const [x, y] = clave.split(',').map(Number);
+      return {x, y, santuario: mapa.santuarios[clave]};
+    });
+  }
+  if(mapa.santuariosPorRegion){
+    if(!mapa._altarXY){
+      for(let y = 0; y < mapa.rows.length; y++){
+        const x = mapa.rows[y].indexOf('L');
+        if(x !== -1){ mapa._altarXY = {x, y}; break; }
+      }
+    }
+    const santuario = mapa.santuariosPorRegion[advRegion];
+    return (mapa._altarXY && santuario) ? [{x: mapa._altarXY.x, y: mapa._altarXY.y, santuario}] : [];
+  }
+  return [];
+}
+
+/* El altar más cercano al casillero (cx,cy), con la distancia Chebyshev
+   (la que importa para "entra en pantalla", no la diagonal real). */
+function altarMasCercano(cx, cy){
+  let mejor = null;
+  for(const a of altaresDelMapaActual()){
+    const dist = Math.max(Math.abs(a.x - cx), Math.abs(a.y - cy));
+    if(!mejor || dist < mejor.dist) mejor = {x: a.x, y: a.y, santuario: a.santuario, dist};
+  }
+  return mejor;
 }
 
 function legendarioYaSalioHoy(nombre){
@@ -2886,15 +2919,29 @@ function advFondo(mapaId){
   return cv;
 }
 
+/* El avistamiento activo (si lo hay) para el mapa que se está por dibujar. */
+function avistamientoActivo(){
+  return (legendarioVisible && legendarioVisible.mapa === advMapa && Date.now() < legendarioVisible.hasta)
+    ? legendarioVisible : null;
+}
+
 /* Zoom: casilleros grandes (el juego ocupa toda la pantalla, así que se ve un
    pedazo del mapa y la cámara sigue al jugador). */
 function advEscala(ancho, alto){
   const chico = Math.min(ancho, alto);
   let base = chico < 420 ? 2.6 : chico < 700 ? 3.2 : 4;
-  /* Durante el avistamiento la cámara se aleja un poco: así el altar-plataforma
-     y el legendario (más grandes que antes) entran enteros en pantalla, en vez
-     de sentirse apretados o cortados por los bordes. */
-  if(legendarioVisible && Date.now() < legendarioVisible.hasta) base *= 0.72;
+  /* El avistamiento ya no pasa siempre pegado al altar (RADIO_AVISTAMIENTO):
+     la cámara se aleja lo que haga falta para que jugador y altar-plataforma
+     entren los dos en pantalla, con aire, en vez de un alejamiento fijo que
+     sólo alcanzaba para la distancia de "parado encima". */
+  const avist = avistamientoActivo();
+  if(avist){
+    const MARGEN = 5 * ADV_PX;
+    const distX = Math.abs(avist.x * ADV_PX - advPx) + MARGEN;
+    const distY = Math.abs(avist.y * ADV_PX - advPy) + MARGEN;
+    base = Math.min(base * 0.72, ancho / distX, alto / distY);
+    base = Math.max(base, 1.3);   // piso: que no se achique tanto que deje de leerse
+  }
   return base;
 }
 
@@ -2910,9 +2957,15 @@ function advRender(){
   const vh = Math.ceil(altoCss  / escala);
   if(cv.width !== vw || cv.height !== vh){ cv.width = vw; cv.height = vh; }
 
+  // durante el avistamiento la cámara no sigue solo al jugador: se centra
+  // en el punto medio entre el jugador y el altar, para que entren los dos.
+  const avist = avistamientoActivo();
+  const centroX = avist ? (advPx + 8 + avist.x * ADV_PX + 8) / 2 : advPx + 8;
+  const centroY = avist ? (advPy + 8 + avist.y * ADV_PX + 8) / 2 : advPy + 8;
+
   const mundoW = mapa.cols * ADV_PX, mundoH = mapa.rows.length * ADV_PX;
-  let camX = Math.round(advPx + 8 - vw / 2);
-  let camY = Math.round(advPy + 8 - vh / 2);
+  let camX = Math.round(centroX - vw / 2);
+  let camY = Math.round(centroY - vh / 2);
   camX = mundoW <= vw ? Math.round((mundoW - vw) / 2) : Math.max(0, Math.min(mundoW - vw, camX));
   camY = mundoH <= vh ? Math.round((mundoH - vh) / 2) : Math.max(0, Math.min(mundoH - vh, camY));
 
@@ -3120,20 +3173,29 @@ function advPaso1(dt){
   if(!t) return;
   if(cambioCasillero) advPisar(t, cx, cy);
   if(advDescanso > 0){ advDescanso -= anduvo; return; }   // recién salió uno: dejalo caminar
-  if(t.encuentro && advCamino >= 16){
-    advCamino = 0;
-    if(t.encuentro === 'legendario'){ tirarAltar(cx, cy); return; }
-    if(Math.random() <= (ADV_PROB[t.encuentro] || .15)){
-      advDescanso = DESCANSO_ENCUENTRO;
-      iniciarEncuentro(elegirPesado(poolBioma(t.encuentro)));
+  if(advCamino >= 16){
+    const cerca = altarMasCercano(cx, cy);
+    if(cerca && cerca.dist <= RADIO_AVISTAMIENTO){
+      advCamino = 0;
+      tirarAltar(cerca.santuario, cerca.x, cerca.y);
+      return;
+    }
+    if(t.encuentro){
+      advCamino = 0;
+      if(Math.random() <= (ADV_PROB[t.encuentro] || .15)){
+        advDescanso = DESCANSO_ENCUENTRO;
+        iniciarEncuentro(elegirPesado(poolBioma(t.encuentro)));
+      }
     }
   }
 }
 
 /* Los legendarios SÓLO salen en los altares, uno por día CADA UNO: el mismo
-   altar puede seguir dando otro legendario distinto de su lista el mismo día. */
-function tirarAltar(x, y){
-  const santuario = santuarioEn(x, y);
+   altar puede seguir dando otro legendario distinto de su lista el mismo día.
+   Ya no hace falta pisar el altar: se llama con el más cercano dentro de
+   RADIO_AVISTAMIENTO, así que (x,y) puede quedar lejos de donde está parado
+   el jugador. */
+function tirarAltar(santuario, x, y){
   if(!santuario) return;
   if(legendariosAgotadosHoy(santuario)){
     const salidos = santuario.pokes.filter(n => legendarioYaSalioHoy(n));
@@ -3203,7 +3265,8 @@ function advMover(dx, dy){
   advRender();
   advPisar(t, nx, ny);
   if(advDescanso > 0){ advDescanso -= ADV_PX; return; }
-  if(t.encuentro === 'legendario'){ tirarAltar(nx, ny); return; }
+  const cerca = altarMasCercano(nx, ny);
+  if(cerca && cerca.dist <= RADIO_AVISTAMIENTO){ tirarAltar(cerca.santuario, cerca.x, cerca.y); return; }
   if(t.encuentro && Math.random() <= (ADV_PROB[t.encuentro] || .15)){
     advDescanso = DESCANSO_ENCUENTRO;
     iniciarEncuentro(elegirPesado(poolBioma(t.encuentro)));
