@@ -473,7 +473,7 @@ const REGION_LABEL = { kanto:'Kanto', johto:'Johto', hoenn:'Hoenn', sinnoh:'Sinn
 
 const KANTO_DATA = [
 [1,"Bulbasaur","grass","Común",70],[2,"Ivysaur","grass","Poco Común",25],[3,"Venusaur","grass","Rara",8],
-[4,"Charmander","fire","Común",70],[5,"Charmeleon","fire","Poco Común",25],[6,"Charizard","fire","Rara",8],
+[4,"Charmander","fire","Común",70],[5,"Charmeleon","fire","Poco Común",25],[6,"Charizard","fire","Épico",4],
 [7,"Squirtle","water","Común",70],[8,"Wartortle","water","Poco Común",25],[9,"Blastoise","water","Rara",8],
 [10,"Caterpie","bug","Común",70],[11,"Metapod","bug","Poco Común",25],[12,"Butterfree","bug","Rara",8],
 [13,"Weedle","bug","Común",70],[14,"Kakuna","bug","Poco Común",25],[15,"Beedrill","bug","Rara",8],
@@ -481,7 +481,7 @@ const KANTO_DATA = [
 [19,"Rattata","normal","Común",70],[20,"Raticate","normal","Poco Común",25],
 [21,"Spearow","normal","Común",70],[22,"Fearow","normal","Poco Común",25],
 [23,"Ekans","poison","Común",70],[24,"Arbok","poison","Poco Común",25],
-[25,"Pikachu","electric","Poco Común",25],[26,"Raichu","electric","Rara",8],
+[25,"Pikachu","electric","Épico",4],[26,"Raichu","electric","Rara",8],
 [27,"Sandshrew","ground","Común",70],[28,"Sandslash","ground","Poco Común",25],
 [29,"Nidoran (H)","poison","Común",70],[30,"Nidorina","poison","Poco Común",25],[31,"Nidoqueen","poison","Rara",8],
 [32,"Nidoran (M)","poison","Común",70],[33,"Nidorino","poison","Poco Común",25],[34,"Nidoking","poison","Rara",8],
@@ -511,7 +511,7 @@ const KANTO_DATA = [
 [86,"Seel","water","Común",70],[87,"Dewgong","water","Poco Común",25],
 [88,"Grimer","poison","Común",70],[89,"Muk","poison","Poco Común",25],
 [90,"Shellder","water","Común",70],[91,"Cloyster","water","Rara",8],
-[92,"Gastly","ghost","Común",70],[93,"Haunter","ghost","Poco Común",25],[94,"Gengar","ghost","Rara",8],
+[92,"Gastly","ghost","Común",70],[93,"Haunter","ghost","Poco Común",25],[94,"Gengar","ghost","Épico",4],
 [95,"Onix","rock","Poco Común",25],
 [96,"Drowzee","psychic","Común",70],[97,"Hypno","psychic","Poco Común",25],
 [98,"Krabby","water","Común",70],[99,"Kingler","water","Poco Común",25],
@@ -535,18 +535,18 @@ const KANTO_DATA = [
 [126,"Magmar","fire","Poco Común",25],
 [127,"Pinsir","bug","Rara",8],
 [128,"Tauros","normal","Poco Común",25],
-[129,"Magikarp","water","Común",70],[130,"Gyarados","water","Rara",8],
-[131,"Lapras","water","Rara",8],
-[132,"Ditto","normal","Poco Común",25],
-[133,"Eevee","normal","Poco Común",25],
+[129,"Magikarp","water","Común",70],[130,"Gyarados","water","Épico",4],
+[131,"Lapras","water","Épico",4],
+[132,"Ditto","normal","Épico",4],
+[133,"Eevee","normal","Épico",4],
 [134,"Vaporeon","water","Rara",8],[135,"Jolteon","electric","Rara",8],[136,"Flareon","fire","Rara",8],
 [137,"Porygon","normal","Poco Común",25],
 [138,"Omanyte","rock","Común",70],[139,"Omastar","rock","Rara",8],
 [140,"Kabuto","rock","Común",70],[141,"Kabutops","rock","Rara",8],
 [142,"Aerodactyl","rock","Rara",8],
-[143,"Snorlax","normal","Rara",8],
+[143,"Snorlax","normal","Épico",4],
 [144,"Articuno","ice","Legendario",2],[145,"Zapdos","electric","Legendario",2],[146,"Moltres","fire","Legendario",2],
-[147,"Dratini","dragon","Común",8],[148,"Dragonair","dragon","Poco Común",8],[149,"Dragonite","dragon","Rara",2],
+[147,"Dratini","dragon","Común",8],[148,"Dragonair","dragon","Poco Común",8],[149,"Dragonite","dragon","Épico",4],
 [150,"Mewtwo","psychic","Legendario",2],[151,"Mew","psychic","Legendario",2]
 ].map(r => ({
   id:r[0], name:r[1], type:r[2], rarity:r[3], weight:r[4], region:'kanto',
@@ -578,8 +578,8 @@ const JOHTO_RAW = [
 [191,"Sunkern","grass","Común",70],[192,"Sunflora","grass","Poco Común",25],
 [193,"Yanma","bug","Poco Común",25],
 [194,"Wooper","water","Común",70],[195,"Quagsire","water","Poco Común",25],
-[196,"Espeon","psychic","Rara",8],
-[197,"Umbreon","dark","Rara",8],
+[196,"Espeon","psychic","Épico",4],
+[197,"Umbreon","dark","Épico",4],
 [198,"Murkrow","dark","Poco Común",25],
 [199,"Slowking","water","Rara",8],
 [200,"Misdreavus","ghost","Poco Común",25],
@@ -618,7 +618,7 @@ const JOHTO_RAW = [
 [241,"Miltank","normal","Poco Común",25],
 [242,"Blissey","normal","Rara",8],
 [243,"Raikou","electric","Legendario",2],[244,"Entei","fire","Legendario",2],[245,"Suicune","water","Legendario",2],
-[246,"Larvitar","rock","Común",70],[247,"Pupitar","rock","Poco Común",25],[248,"Tyranitar","rock","Rara",8],
+[246,"Larvitar","rock","Común",70],[247,"Pupitar","rock","Poco Común",25],[248,"Tyranitar","rock","Épico",4],
 [249,"Lugia","psychic","Legendario",2],[250,"Ho-Oh","fire","Legendario",2],[251,"Celebi","psychic","Legendario",2]
 ].map(r => ({
   id:r[0], name:r[1], type:r[2], rarity:r[3], weight:r[4], region:'johto',
@@ -626,8 +626,8 @@ const JOHTO_RAW = [
 }));
 
 const HOENN_RAW = [
-[252,"Treecko","grass","Común",70],[253,"Grovyle","grass","Poco Común",25],[254,"Sceptile","grass","Rara",8],
-[255,"Torchic","fire","Común",70],[256,"Combusken","fire","Poco Común",25],[257,"Blaziken","fire","Rara",8],
+[252,"Treecko","grass","Común",70],[253,"Grovyle","grass","Poco Común",25],[254,"Sceptile","grass","Épico",4],
+[255,"Torchic","fire","Común",70],[256,"Combusken","fire","Poco Común",25],[257,"Blaziken","fire","Épico",4],
 [258,"Mudkip","water","Común",70],[259,"Marshtomp","water","Poco Común",25],[260,"Swampert","water","Rara",8],
 [261,"Poochyena","dark","Común",70],[262,"Mightyena","dark","Poco Común",25],
 [263,"Zigzagoon","normal","Común",70],[264,"Linoone","normal","Poco Común",25],
@@ -637,7 +637,7 @@ const HOENN_RAW = [
 [273,"Seedot","grass","Común",70],[274,"Nuzleaf","grass","Poco Común",25],[275,"Shiftry","grass","Rara",8],
 [276,"Taillow","normal","Común",70],[277,"Swellow","normal","Poco Común",25],
 [278,"Wingull","water","Común",70],[279,"Pelipper","water","Poco Común",25],
-[280,"Ralts","psychic","Común",70],[281,"Kirlia","psychic","Poco Común",25],[282,"Gardevoir","psychic","Rara",8],
+[280,"Ralts","psychic","Común",70],[281,"Kirlia","psychic","Poco Común",25],[282,"Gardevoir","psychic","Épico",4],
 [283,"Surskit","bug","Común",70],[284,"Masquerain","bug","Poco Común",25],
 [285,"Shroomish","grass","Común",70],[286,"Breloom","grass","Poco Común",25],
 [287,"Slakoth","normal","Común",70],[288,"Vigoroth","normal","Poco Común",25],[289,"Slaking","normal","Rara",8],
@@ -662,7 +662,7 @@ const HOENN_RAW = [
 [324,"Torkoal","fire","Poco Común",25],
 [325,"Spoink","psychic","Común",70],[326,"Grumpig","psychic","Poco Común",25],
 [327,"Spinda","normal","Poco Común",25],
-[328,"Trapinch","ground","Común",70],[329,"Vibrava","ground","Poco Común",25],[330,"Flygon","ground","Rara",8],
+[328,"Trapinch","ground","Común",70],[329,"Vibrava","ground","Poco Común",25],[330,"Flygon","ground","Épico",4],
 [331,"Cacnea","grass","Común",70],[332,"Cacturne","grass","Poco Común",25],
 [333,"Swablu","normal","Común",70],[334,"Altaria","dragon","Rara",8],
 [335,"Zangoose","normal","Poco Común",25],
@@ -673,7 +673,7 @@ const HOENN_RAW = [
 [343,"Baltoy","ground","Común",70],[344,"Claydol","ground","Poco Común",25],
 [345,"Lileep","rock","Común",70],[346,"Cradily","rock","Poco Común",25],
 [347,"Anorith","rock","Común",70],[348,"Armaldo","rock","Poco Común",25],
-[349,"Feebas","water","Común",70],[350,"Milotic","water","Rara",8],
+[349,"Feebas","water","Común",70],[350,"Milotic","water","Épico",4],
 [351,"Castform","normal","Poco Común",25],
 [352,"Kecleon","normal","Poco Común",25],
 [353,"Shuppet","ghost","Común",70],[354,"Banette","ghost","Poco Común",25],
@@ -687,8 +687,8 @@ const HOENN_RAW = [
 [366,"Clamperl","water","Común",70],[367,"Huntail","water","Rara",8],[368,"Gorebyss","water","Rara",8],
 [369,"Relicanth","water","Rara",8],
 [370,"Luvdisc","water","Poco Común",25],
-[371,"Bagon","dragon","Común",70],[372,"Shelgon","dragon","Poco Común",25],[373,"Salamence","dragon","Rara",8],
-[374,"Beldum","steel","Común",70],[375,"Metang","steel","Poco Común",25],[376,"Metagross","steel","Rara",8],
+[371,"Bagon","dragon","Común",70],[372,"Shelgon","dragon","Poco Común",25],[373,"Salamence","dragon","Épico",4],
+[374,"Beldum","steel","Común",70],[375,"Metang","steel","Poco Común",25],[376,"Metagross","steel","Épico",4],
 [377,"Regirock","rock","Legendario",2],[378,"Regice","ice","Legendario",2],[379,"Registeel","steel","Legendario",2],
 [380,"Latias","dragon","Legendario",2],[381,"Latios","dragon","Legendario",2],
 [382,"Kyogre","water","Legendario",2],[383,"Groudon","ground","Legendario",2],[384,"Rayquaza","dragon","Legendario",2],
@@ -705,7 +705,7 @@ const SINNOH_RAW = [
 [396,"Starly","normal","Común",70],[397,"Staravia","normal","Poco Común",25],[398,"Staraptor","normal","Rara",8],
 [399,"Bidoof","normal","Común",70],[400,"Bibarel","normal","Poco Común",25],
 [401,"Kricketot","bug","Común",70],[402,"Kricketune","bug","Poco Común",25],
-[403,"Shinx","electric","Común",70],[404,"Luxio","electric","Poco Común",25],[405,"Luxray","electric","Rara",8],
+[403,"Shinx","electric","Común",70],[404,"Luxio","electric","Poco Común",25],[405,"Luxray","electric","Épico",4],
 [406,"Budew","grass","Común",70],[407,"Roserade","grass","Rara",8],
 [408,"Cranidos","rock","Común",70],[409,"Rampardos","rock","Poco Común",25],
 [410,"Shieldon","rock","Común",70],[411,"Bastiodon","rock","Poco Común",25],
@@ -729,9 +729,9 @@ const SINNOH_RAW = [
 [440,"Happiny","normal","Común",70],
 [441,"Chatot","normal","Poco Común",25],
 [442,"Spiritomb","ghost","Rara",8],
-[443,"Gible","dragon","Común",70],[444,"Gabite","dragon","Poco Común",25],[445,"Garchomp","dragon","Rara",8],
+[443,"Gible","dragon","Común",70],[444,"Gabite","dragon","Poco Común",25],[445,"Garchomp","dragon","Épico",4],
 [446,"Munchlax","normal","Poco Común",25],
-[447,"Riolu","fighting","Común",70],[448,"Lucario","fighting","Rara",8],
+[447,"Riolu","fighting","Común",70],[448,"Lucario","fighting","Épico",4],
 [449,"Hippopotas","ground","Común",70],[450,"Hippowdon","ground","Poco Común",25],
 [451,"Skorupi","poison","Común",70],[452,"Drapion","poison","Poco Común",25],
 [453,"Croagunk","poison","Común",70],[454,"Toxicroak","poison","Poco Común",25],
@@ -795,7 +795,7 @@ const UNOVA_RAW = [
 [560,"Scrafty","dark","Rara",8],[561,"Sigilyph","psychic","Poco Común",25],[562,"Yamask","ghost","Común",70],
 [563,"Cofagrigus","ghost","Rara",8],[564,"Tirtouga","water","Común",70],[565,"Carracosta","water","Rara",8],
 [566,"Archen","rock","Común",70],[567,"Archeops","rock","Rara",8],[568,"Trubbish","poison","Común",70],
-[569,"Garbodor","poison","Rara",8],[570,"Zorua","dark","Común",70],[571,"Zoroark","dark","Rara",8],
+[569,"Garbodor","poison","Rara",8],[570,"Zorua","dark","Común",70],[571,"Zoroark","dark","Épico",4],
 [572,"Minccino","normal","Común",70],[573,"Cinccino","normal","Rara",8],[574,"Gothita","psychic","Común",70],
 [575,"Gothorita","psychic","Poco Común",25],[576,"Gothitelle","psychic","Rara",8],[577,"Solosis","psychic","Común",70],
 [578,"Duosion","psychic","Poco Común",25],[579,"Reuniclus","psychic","Rara",8],[580,"Ducklett","water","Común",70],
@@ -808,7 +808,7 @@ const UNOVA_RAW = [
 [599,"Klink","steel","Común",70],[600,"Klang","steel","Poco Común",25],[601,"Klinklang","steel","Rara",8],
 [602,"Tynamo","electric","Común",70],[603,"Eelektrik","electric","Poco Común",25],[604,"Eelektross","electric","Rara",8],
 [605,"Elgyem","psychic","Común",70],[606,"Beheeyem","psychic","Rara",8],[607,"Litwick","ghost","Común",70],
-[608,"Lampent","ghost","Poco Común",25],[609,"Chandelure","ghost","Rara",8],[610,"Axew","dragon","Común",70],
+[608,"Lampent","ghost","Poco Común",25],[609,"Chandelure","ghost","Épico",4],[610,"Axew","dragon","Común",70],
 [611,"Fraxure","dragon","Poco Común",25],[612,"Haxorus","dragon","Rara",8],[613,"Cubchoo","ice","Común",70],
 [614,"Beartic","ice","Rara",8],[615,"Cryogonal","ice","Rara",8],[616,"Shelmet","bug","Común",70],
 [617,"Accelgor","bug","Rara",8],[618,"Stunfisk","ground","Poco Común",25],[619,"Mienfoo","fighting","Común",70],
@@ -817,7 +817,7 @@ const UNOVA_RAW = [
 [626,"Bouffalant","normal","Poco Común",25],[627,"Rufflet","normal","Común",70],[628,"Braviary","normal","Rara",8],
 [629,"Vullaby","dark","Común",70],[630,"Mandibuzz","dark","Rara",8],[631,"Heatmor","fire","Poco Común",25],
 [632,"Durant","bug","Poco Común",25],[633,"Deino","dark","Común",70],[634,"Zweilous","dark","Poco Común",25],
-[635,"Hydreigon","dark","Rara",8],[636,"Larvesta","bug","Común",70],[637,"Volcarona","bug","Rara",8],
+[635,"Hydreigon","dark","Épico",4],[636,"Larvesta","bug","Común",70],[637,"Volcarona","bug","Rara",8],
 [638,"Cobalion","steel","Legendario",2],[639,"Terrakion","rock","Legendario",2],[640,"Virizion","grass","Legendario",2],
 [641,"Tornadus","flying","Legendario",2],[642,"Thundurus","electric","Legendario",2],[643,"Reshiram","dragon","Legendario",2],
 [644,"Zekrom","dragon","Legendario",2],[645,"Landorus","ground","Legendario",2],[646,"Kyurem","dragon","Legendario",2],
@@ -830,7 +830,7 @@ const UNOVA_RAW = [
 const KALOS_RAW = [
 [650,"Chespin","grass","Común",70],[651,"Quilladin","grass","Poco Común",25],[652,"Chesnaught","grass","Rara",8],
 [653,"Fennekin","fire","Común",70],[654,"Braixen","fire","Poco Común",25],[655,"Delphox","fire","Rara",8],
-[656,"Froakie","water","Común",70],[657,"Frogadier","water","Poco Común",25],[658,"Greninja","water","Rara",8],
+[656,"Froakie","water","Común",70],[657,"Frogadier","water","Poco Común",25],[658,"Greninja","water","Épico",4],
 [659,"Bunnelby","normal","Común",70],[660,"Diggersby","normal","Rara",8],[661,"Fletchling","normal","Común",70],
 [662,"Fletchinder","fire","Poco Común",25],[663,"Talonflame","fire","Rara",8],[664,"Scatterbug","bug","Común",70],
 [665,"Spewpa","bug","Poco Común",25],[666,"Vivillon","bug","Rara",8],[667,"Litleo","fire","Común",70],
@@ -838,15 +838,15 @@ const KALOS_RAW = [
 [671,"Florges","fairy","Rara",8],[672,"Skiddo","grass","Común",70],[673,"Gogoat","grass","Rara",8],
 [674,"Pancham","fighting","Común",70],[675,"Pangoro","fighting","Rara",8],[676,"Furfrou","normal","Poco Común",25],
 [677,"Espurr","psychic","Común",70],[678,"Meowstic","psychic","Rara",8],[679,"Honedge","steel","Común",70],
-[680,"Doublade","steel","Poco Común",25],[681,"Aegislash","steel","Rara",8],[682,"Spritzee","fairy","Común",70],
+[680,"Doublade","steel","Poco Común",25],[681,"Aegislash","steel","Épico",4],[682,"Spritzee","fairy","Común",70],
 [683,"Aromatisse","fairy","Rara",8],[684,"Swirlix","fairy","Común",70],[685,"Slurpuff","fairy","Rara",8],
 [686,"Inkay","dark","Común",70],[687,"Malamar","dark","Rara",8],[688,"Binacle","rock","Común",70],
 [689,"Barbaracle","rock","Rara",8],[690,"Skrelp","poison","Común",70],[691,"Dragalge","poison","Rara",8],
 [692,"Clauncher","water","Común",70],[693,"Clawitzer","water","Rara",8],[694,"Helioptile","electric","Común",70],
 [695,"Heliolisk","electric","Rara",8],[696,"Tyrunt","rock","Común",70],[697,"Tyrantrum","rock","Rara",8],
-[698,"Amaura","rock","Común",70],[699,"Aurorus","rock","Rara",8],[700,"Sylveon","fairy","Rara",8],
+[698,"Amaura","rock","Común",70],[699,"Aurorus","rock","Rara",8],[700,"Sylveon","fairy","Épico",4],
 [701,"Hawlucha","fighting","Rara",8],[702,"Dedenne","electric","Poco Común",25],[703,"Carbink","rock","Rara",8],
-[704,"Goomy","dragon","Común",70],[705,"Sliggoo","dragon","Poco Común",25],[706,"Goodra","dragon","Rara",8],
+[704,"Goomy","dragon","Común",70],[705,"Sliggoo","dragon","Poco Común",25],[706,"Goodra","dragon","Épico",4],
 [707,"Klefki","steel","Poco Común",25],[708,"Phantump","ghost","Común",70],[709,"Trevenant","ghost","Rara",8],
 [710,"Pumpkaboo","ghost","Común",70],[711,"Gourgeist","ghost","Rara",8],[712,"Bergmite","ice","Común",70],
 [713,"Avalugg","ice","Rara",8],[714,"Noibat","flying","Común",70],[715,"Noivern","flying","Rara",8],
@@ -858,14 +858,14 @@ const KALOS_RAW = [
 }));
 
 const ALOLA_RAW = [
-[722,"Rowlet","grass","Común",70],[723,"Dartrix","grass","Poco Común",25],[724,"Decidueye","grass","Rara",8],
+[722,"Rowlet","grass","Común",70],[723,"Dartrix","grass","Poco Común",25],[724,"Decidueye","grass","Épico",4],
 [725,"Litten","fire","Común",70],[726,"Torracat","fire","Poco Común",25],[727,"Incineroar","fire","Rara",8],
 [728,"Popplio","water","Común",70],[729,"Brionne","water","Poco Común",25],[730,"Primarina","water","Rara",8],
 [731,"Pikipek","normal","Común",70],[732,"Trumbeak","normal","Poco Común",25],[733,"Toucannon","normal","Rara",8],
 [734,"Yungoos","normal","Común",70],[735,"Gumshoos","normal","Rara",8],[736,"Grubbin","bug","Común",70],
 [737,"Charjabug","bug","Poco Común",25],[738,"Vikavolt","bug","Rara",8],[739,"Crabrawler","fighting","Común",70],
 [740,"Crabominable","fighting","Rara",8],[741,"Oricorio","fire","Poco Común",25],[742,"Cutiefly","bug","Común",70],
-[743,"Ribombee","bug","Rara",8],[744,"Rockruff","rock","Común",70],[745,"Lycanroc","rock","Rara",8],
+[743,"Ribombee","bug","Rara",8],[744,"Rockruff","rock","Común",70],[745,"Lycanroc","rock","Épico",4],
 [746,"Wishiwashi","water","Poco Común",25],[747,"Mareanie","poison","Común",70],[748,"Toxapex","poison","Rara",8],
 [749,"Mudbray","ground","Común",70],[750,"Mudsdale","ground","Rara",8],[751,"Dewpider","water","Común",70],
 [752,"Araquanid","water","Rara",8],[753,"Fomantis","grass","Común",70],[754,"Lurantis","grass","Rara",8],
@@ -876,17 +876,17 @@ const ALOLA_RAW = [
 [767,"Wimpod","bug","Común",70],[768,"Golisopod","bug","Rara",8],[769,"Sandygast","ghost","Común",70],
 [770,"Palossand","ghost","Rara",8],[771,"Pyukumuku","water","Poco Común",25],[772,"Type: Null","normal","Legendario",2],
 [773,"Silvally","normal","Legendario",2],[774,"Minior","rock","Poco Común",25],[775,"Komala","normal","Poco Común",25],
-[776,"Turtonator","fire","Poco Común",25],[777,"Togedemaru","electric","Poco Común",25],[778,"Mimikyu","ghost","Poco Común",25],
+[776,"Turtonator","fire","Poco Común",25],[777,"Togedemaru","electric","Poco Común",25],[778,"Mimikyu","ghost","Épico",4],
 [779,"Bruxish","water","Poco Común",25],[780,"Drampa","normal","Poco Común",25],[781,"Dhelmise","ghost","Rara",8],
-[782,"Jangmo-o","dragon","Común",70],[783,"Hakamo-o","dragon","Poco Común",25],[784,"Kommo-o","dragon","Rara",8],
+[782,"Jangmo-o","dragon","Común",70],[783,"Hakamo-o","dragon","Poco Común",25],[784,"Kommo-o","dragon","Épico",4],
 [785,"Tapu Koko","electric","Legendario",2],[786,"Tapu Lele","psychic","Legendario",2],[787,"Tapu Bulu","grass","Legendario",2],
 [788,"Tapu Fini","water","Legendario",2],[789,"Cosmog","psychic","Legendario",2],[790,"Cosmoem","psychic","Legendario",2],
-[791,"Solgaleo","psychic","Legendario",2],[792,"Lunala","psychic","Legendario",2],[793,"Nihilego","rock","Rara",8],
-[794,"Buzzwole","bug","Rara",8],[795,"Pheromosa","bug","Rara",8],[796,"Xurkitree","electric","Rara",8],
-[797,"Celesteela","steel","Rara",8],[798,"Kartana","grass","Rara",8],[799,"Guzzlord","dark","Rara",8],
+[791,"Solgaleo","psychic","Legendario",2],[792,"Lunala","psychic","Legendario",2],[793,"Nihilego","rock","Épico",4],
+[794,"Buzzwole","bug","Épico",4],[795,"Pheromosa","bug","Épico",4],[796,"Xurkitree","electric","Épico",4],
+[797,"Celesteela","steel","Épico",4],[798,"Kartana","grass","Épico",4],[799,"Guzzlord","dark","Épico",4],
 [800,"Necrozma","psychic","Legendario",2],[801,"Magearna","steel","Legendario",2],[802,"Marshadow","fighting","Legendario",2],
-[803,"Poipole","poison","Común",70],[804,"Naganadel","poison","Rara",8],[805,"Stakataka","rock","Rara",8],
-[806,"Blacephalon","fire","Rara",8],[807,"Zeraora","electric","Legendario",2],[808,"Meltan","steel","Legendario",2],
+[803,"Poipole","poison","Épico",4],[804,"Naganadel","poison","Épico",4],[805,"Stakataka","rock","Épico",4],
+[806,"Blacephalon","fire","Épico",4],[807,"Zeraora","electric","Legendario",2],[808,"Meltan","steel","Legendario",2],
 [809,"Melmetal","steel","Legendario",2]
 ].map(r => ({
   id:r[0], name:r[1], type:r[2], rarity:r[3], weight:r[4], region:'alola',
@@ -898,7 +898,7 @@ const GALAR_RAW = [
 [813,"Scorbunny","fire","Común",70],[814,"Raboot","fire","Poco Común",25],[815,"Cinderace","fire","Rara",8],
 [816,"Sobble","water","Común",70],[817,"Drizzile","water","Poco Común",25],[818,"Inteleon","water","Rara",8],
 [819,"Skwovet","normal","Común",70],[820,"Greedent","normal","Rara",8],[821,"Rookidee","flying","Común",70],
-[822,"Corvisquire","flying","Poco Común",25],[823,"Corviknight","flying","Rara",8],[824,"Blipbug","bug","Común",70],
+[822,"Corvisquire","flying","Poco Común",25],[823,"Corviknight","flying","Épico",4],[824,"Blipbug","bug","Común",70],
 [825,"Dottler","bug","Poco Común",25],[826,"Orbeetle","bug","Rara",8],[827,"Nickit","dark","Común",70],
 [828,"Thievul","dark","Rara",8],[829,"Gossifleur","grass","Común",70],[830,"Eldegoss","grass","Rara",8],
 [831,"Wooloo","normal","Común",70],[832,"Dubwool","normal","Rara",8],[833,"Chewtle","water","Común",70],
@@ -907,7 +907,7 @@ const GALAR_RAW = [
 [840,"Applin","grass","Común",70],[841,"Flapple","grass","Rara",8],[842,"Appletun","grass","Rara",8],
 [843,"Silicobra","ground","Común",70],[844,"Sandaconda","ground","Rara",8],[845,"Cramorant","flying","Poco Común",25],
 [846,"Arrokuda","water","Común",70],[847,"Barraskewda","water","Rara",8],[848,"Toxel","electric","Común",70],
-[849,"Toxtricity","electric","Rara",8],[850,"Sizzlipede","fire","Común",70],[851,"Centiskorch","fire","Rara",8],
+[849,"Toxtricity","electric","Épico",4],[850,"Sizzlipede","fire","Común",70],[851,"Centiskorch","fire","Rara",8],
 [852,"Clobbopus","fighting","Común",70],[853,"Grapploct","fighting","Rara",8],[854,"Sinistea","ghost","Común",70],
 [855,"Polteageist","ghost","Rara",8],[856,"Hatenna","psychic","Común",70],[857,"Hattrem","psychic","Poco Común",25],
 [858,"Hatterene","psychic","Rara",8],[859,"Impidimp","dark","Común",70],[860,"Morgrem","dark","Poco Común",25],
@@ -919,7 +919,7 @@ const GALAR_RAW = [
 [876,"Indeedee","psychic","Poco Común",25],[877,"Morpeko","electric","Poco Común",25],[878,"Cufant","steel","Común",70],
 [879,"Copperajah","steel","Rara",8],[880,"Dracozolt","electric","Rara",8],[881,"Arctozolt","electric","Rara",8],
 [882,"Dracovish","water","Rara",8],[883,"Arctovish","water","Rara",8],[884,"Duraludon","steel","Común",70],
-[885,"Dreepy","dragon","Común",70],[886,"Drakloak","dragon","Poco Común",25],[887,"Dragapult","dragon","Rara",8],
+[885,"Dreepy","dragon","Común",70],[886,"Drakloak","dragon","Poco Común",25],[887,"Dragapult","dragon","Épico",4],
 [888,"Zacian","fairy","Legendario",2],[889,"Zamazenta","fighting","Legendario",2],[890,"Eternatus","poison","Legendario",2],
 [891,"Kubfu","fighting","Legendario",2],[892,"Urshifu","fighting","Legendario",2],[893,"Zarude","dark","Legendario",2],
 [894,"Regieleki","electric","Legendario",2],[895,"Regidrago","dragon","Legendario",2],[896,"Glastrier","ice","Legendario",2],
@@ -958,20 +958,20 @@ const PALDEA_RAW = [
 [975,"Cetitan","ice","Rara",8],[976,"Veluza","water","Poco Común",25],[977,"Dondozo","water","Rara",8],
 [978,"Tatsugiri","dragon","Poco Común",25],[979,"Annihilape","fighting","Rara",8],[980,"Clodsire","poison","Rara",8],
 [981,"Farigiraf","normal","Rara",8],[982,"Dudunsparce","normal","Rara",8],[983,"Kingambit","dark","Rara",8],
-[984,"Great Tusk","ground","Rara",8],[985,"Scream Tail","fairy","Rara",8],[986,"Brute Bonnet","grass","Rara",8],
-[987,"Flutter Mane","ghost","Rara",8],[988,"Slither Wing","bug","Rara",8],[989,"Sandy Shocks","electric","Rara",8],
-[990,"Iron Treads","ground","Rara",8],[991,"Iron Bundle","ice","Rara",8],[992,"Iron Hands","fighting","Rara",8],
-[993,"Iron Jugulis","dark","Rara",8],[994,"Iron Moth","fire","Rara",8],[995,"Iron Thorns","rock","Rara",8],
-[996,"Frigibax","dragon","Común",70],[997,"Arctibax","dragon","Poco Común",25],[998,"Baxcalibur","dragon","Rara",8],
+[984,"Great Tusk","ground","Épico",4],[985,"Scream Tail","fairy","Épico",4],[986,"Brute Bonnet","grass","Épico",4],
+[987,"Flutter Mane","ghost","Épico",4],[988,"Slither Wing","bug","Épico",4],[989,"Sandy Shocks","electric","Épico",4],
+[990,"Iron Treads","ground","Épico",4],[991,"Iron Bundle","ice","Épico",4],[992,"Iron Hands","fighting","Épico",4],
+[993,"Iron Jugulis","dark","Épico",4],[994,"Iron Moth","fire","Épico",4],[995,"Iron Thorns","rock","Épico",4],
+[996,"Frigibax","dragon","Común",70],[997,"Arctibax","dragon","Poco Común",25],[998,"Baxcalibur","dragon","Épico",4],
 [999,"Gimmighoul","ghost","Común",70],[1000,"Gholdengo","steel","Rara",8],[1001,"Wo-Chien","dark","Legendario",2],
 [1002,"Chien-Pao","dark","Legendario",2],[1003,"Ting-Lu","dark","Legendario",2],[1004,"Chi-Yu","dark","Legendario",2],
-[1005,"Roaring Moon","dragon","Rara",8],[1006,"Iron Valiant","fairy","Rara",8],[1007,"Koraidon","fighting","Legendario",2],
-[1008,"Miraidon","electric","Legendario",2],[1009,"Walking Wake","water","Rara",8],[1010,"Iron Leaves","grass","Rara",8],
+[1005,"Roaring Moon","dragon","Épico",4],[1006,"Iron Valiant","fairy","Épico",4],[1007,"Koraidon","fighting","Legendario",2],
+[1008,"Miraidon","electric","Legendario",2],[1009,"Walking Wake","water","Épico",4],[1010,"Iron Leaves","grass","Épico",4],
 [1011,"Dipplin","grass","Poco Común",25],[1012,"Poltchageist","grass","Común",70],[1013,"Sinistcha","grass","Rara",8],
 [1014,"Okidogi","poison","Legendario",2],[1015,"Munkidori","poison","Legendario",2],[1016,"Fezandipiti","poison","Legendario",2],
 [1017,"Ogerpon","grass","Legendario",2],[1018,"Archaludon","steel","Rara",8],[1019,"Hydrapple","grass","Rara",8],
-[1020,"Gouging Fire","fire","Rara",8],[1021,"Raging Bolt","electric","Rara",8],[1022,"Iron Boulder","rock","Rara",8],
-[1023,"Iron Crown","steel","Rara",8],[1024,"Terapagos","normal","Legendario",2],[1025,"Pecharunt","poison","Legendario",2]
+[1020,"Gouging Fire","fire","Épico",4],[1021,"Raging Bolt","electric","Épico",4],[1022,"Iron Boulder","rock","Épico",4],
+[1023,"Iron Crown","steel","Épico",4],[1024,"Terapagos","normal","Legendario",2],[1025,"Pecharunt","poison","Legendario",2]
 ].map(r => ({
   id:r[0], name:r[1], type:r[2], rarity:r[3], weight:r[4], region:'paldea',
   img:`https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${r[0]}.png`
@@ -1111,8 +1111,10 @@ function weightedPick(){
   return DATA[DATA.length-1];
 }
 
-const SPECIAL_IDS = new Set([25,131,133,143,130,6,149,132,196,197,248,373,376,350,94,150,151]);
-function isSpecial(p){ return p.rarity === 'Legendario' || SPECIAL_IDS.has(p.id); }
+/* La carta dorada sale por rareza. Antes había una lista suelta de ids
+   "especiales" (Pikachu, Charizard, Gengar...); ahora todos esos son Épicos,
+   así que la lista quedó de más y se borró: una sola fuente de verdad. */
+function isSpecial(p){ return p.rarity === 'Legendario' || p.rarity === 'Épico'; }
 
 function openPack(){
   if(coins < PACK_COST) return;
@@ -1148,7 +1150,9 @@ function playSpecialSequence(specials, index, onDone){
   void card.offsetWidth;
   card.style.animation = '';
 
-  document.getElementById('specialBanner').textContent = p.rarity === 'Legendario' ? '¡Figura legendaria!' : '¡Figura especial!';
+  document.getElementById('specialBanner').textContent =
+    p.rarity === 'Legendario' ? '¡Figura legendaria!' :
+    p.rarity === 'Épico'      ? '¡Figura épica!' : '¡Figura especial!';
   document.getElementById('specialImg').src = p.img;
   document.getElementById('specialName').textContent = p.name;
   document.getElementById('specialTag').textContent = `${pull.isNew ? '¡Nueva!' : 'Repetida'} · Tipo ${TYPE_LABEL[p.type]}`;
@@ -1920,7 +1924,10 @@ Object.keys(BOLAS).forEach(t => {
 const BOLAS_INICIALES = {roja:5, azul:0, ultra:0, maestra:0};
 const bolas = Object.assign({}, BOLAS_INICIALES);
 
-const CAPTURA_BASE = {'Común':70, 'Poco Común':50, 'Rara':25, 'Legendario':6};
+/* Un color por rareza, para que se lea de un vistazo qué salió. */
+const RAREZA_COLOR = {'Común':'#B9C6DA', 'Poco Común':'#6FD08C', 'Rara':'#5AA9F0',
+                      'Épico':'#C77DFF', 'Legendario':'#F0B400'};
+const CAPTURA_BASE = {'Común':70, 'Poco Común':50, 'Rara':25, 'Épico':12, 'Legendario':6};
 const ENC_TIROS = 3;
 
 function chanceCaptura(p, tipoBola){
@@ -3168,7 +3175,8 @@ function iniciarEncuentro(p){
   document.getElementById('encImg').src = p.img;
   document.getElementById('encName').textContent = p.name;
   document.getElementById('encInfo').innerHTML =
-    `<span style="color:${TYPE_COLORS[p.type]};font-weight:700;">${TYPE_LABEL[p.type]}</span> · ${p.rarity}`;
+    `<span style="color:${TYPE_COLORS[p.type]};font-weight:700;">${TYPE_LABEL[p.type]}</span>` +
+    ` · <span style="color:${RAREZA_COLOR[p.rarity] || '#CFE0FF'};font-weight:700;">${p.rarity}</span>`;
   document.getElementById('encFeedback').textContent = totalBolas() === 0
     ? 'No te quedan pokébolas. Comprá en el Centro Pokémon 🏥'
     : 'Elegí con qué pokébola tirar.';
