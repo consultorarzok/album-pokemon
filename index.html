@@ -2557,7 +2557,10 @@ function dibujarJugador(ctx, ox, oy){
    mundo: el ícono del CDN (poke-ball.png) sale mal coloreado a este tamaño
    -naranja y lila en vez de rojo y blanco- y a los 12x12 px del tile queda
    borroneado, "pegado" con el pasto de fondo. */
-const BOLA_ANCHOS = [4, 8, 10, 12, 12, 12, 12, 12, 12, 10, 8, 4];   // silueta circular, 12 filas
+/* Silueta circular más chica (9 filas, 8px de ancho máximo): las de 12
+   filas ocupaban casi todo el tile de 16px y se veían enormes tiradas en
+   el piso -un ítem no debería competir en tamaño con el propio personaje-. */
+const BOLA_ANCHOS = [3, 6, 8, 8, 8, 8, 8, 6, 3];
 const BOLA_PINTURA = {
   roja:    {arriba: '#F03028', banda: '#1C1C1C', abajo: '#FFFFFF'},
   azul:    {arriba: '#3D7DCA', banda: '#1C1C1C', abajo: '#FFFFFF'},
@@ -2567,14 +2570,14 @@ const BOLA_PINTURA = {
 function dibujarBola(ctx, tipo, ox, oy){
   ox = Math.round(ox); oy = Math.round(oy);
   const c = BOLA_PINTURA[tipo] || BOLA_PINTURA.roja;
-  const desde = oy + 2;
+  const desde = oy + 4;
   BOLA_ANCHOS.forEach((w, i) => {
     if(w <= 0) return;
-    const color = i < 5 ? c.arriba : i > 6 ? c.abajo : c.banda;
+    const color = i < 4 ? c.arriba : i > 5 ? c.abajo : c.banda;
     pinta(ctx, color, ox + Math.round((16 - w) / 2), desde + i, w, 1);
   });
-  pinta(ctx, '#151515', ox + 6, desde + 4, 4, 3);
-  pinta(ctx, '#FFFFFF', ox + 7, desde + 5, 2, 1);
+  pinta(ctx, '#151515', ox + 7, desde + 3, 3, 2);
+  pinta(ctx, '#FFFFFF', ox + 7, desde + 4, 1, 1);
 }
 
 function advTileEn(x, y){
