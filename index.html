@@ -1889,12 +1889,14 @@ const ADV_TIPOS = {
 /* Probabilidad por casillero caminado. Bajas a propósito: con .18 no se podía
    dar tres pasos sin que saltara un encuentro. */
 const ADV_PROB = { hierba:.07, agua:.06, volcan:.08, cueva:.07, hielo:.08,
-                   electrico:.08, psiquico:.08, cienaga:.08, legendario:.30 };
+                   electrico:.08, psiquico:.08, cienaga:.08, legendario:.12 };
 const DESCANSO_ENCUENTRO = 64;   // píxeles a caminar tras un encuentro antes de que salga otro
 /* El avistamiento ya no exige pisar el altar: alcanza con andar cerca. La
    cámara se aleja sola en advEscala() según haga falta para que jugador y
-   altar entren los dos en pantalla, así que este radio puede ser generoso. */
-const RADIO_AVISTAMIENTO = 10;   // casilleros de distancia (Chebyshev) al altar
+   altar entren los dos en pantalla. Radio chico a propósito (Zeta pidió que
+   salgan menos seguido): que sea de verdad raro, no algo que pasa en
+   cualquier paso por la cueva o cerca de cualquier altar del mundo. */
+const RADIO_AVISTAMIENTO = 6;   // casilleros de distancia (Chebyshev) al altar
 
 /* Los PNG de las bolas salen del mismo CDN que las figuritas (sprites de items
    de PokeAPI): son pixel-art, así que pegan con el mapa. */
@@ -3210,10 +3212,12 @@ function advPaso1(dt){
    Ya no hace falta pisar el altar: se llama con el más cercano dentro de
    RADIO_AVISTAMIENTO, así que (x,y) puede quedar lejos de donde está parado
    el jugador. */
-/* Racha de mala suerte: cada tiro fallado cerca de un altar sube la chance
-   del siguiente, así el avistamiento no depende de acertar justo un 30% de
-   una mientras cruzás el radio (con eso a veces sólo salía pisando el
-   altar, que es exactamente lo que no queríamos). Se resetea al acertar. */
+/* Racha de mala suerte: cada tiro fallado cerca de un altar sube un poco la
+   chance del siguiente, para que no dependa solo de acertar el 12% justo al
+   pisar el altar. Sube despacio a propósito (a diferencia del radio y la
+   base, esto NO se bajó): la idea es que siga siendo raro en general, pero
+   que si te quedás dando vueltas pegado al altar no sea eterno. Se resetea
+   al acertar. */
 let avistamientoPity = {};
 
 function tirarAltar(santuario, x, y){
@@ -3225,7 +3229,7 @@ function tirarAltar(santuario, x, y){
     return;
   }
   const fallos = avistamientoPity[santuario.n] || 0;
-  const prob = Math.min(.9, ADV_PROB.legendario + fallos * .15);
+  const prob = Math.min(.6, ADV_PROB.legendario + fallos * .08);
   if(Math.random() > prob){
     avistamientoPity[santuario.n] = fallos + 1;
     return;
