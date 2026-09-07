@@ -1679,7 +1679,9 @@ const ADV_TILE = {
   'k': {walk:true,  label:'Escombros',         pinta:'escombros', encuentro:'cueva'},
   'L': {walk:true,  label:'Altar escondido',   pinta:'altar',   encuentro:'legendario'},
   'S': {walk:false, label:'Pared de roca',     pinta:'pared'},
-  'E': {walk:true,  label:'Salida de la cueva',pinta:'salida',  entra:'overworld'}
+  'E': {walk:true,  label:'Salida de la cueva',pinta:'salida',  entra:'overworld'},
+  'N': {walk:true,  label:'Nieve',             pinta:'nieve',   encuentro:'hielo'},
+  'Z': {walk:false, label:'Montaña nevada',    pinta:'montananevada'}
 };
 
 const ADV_MAPS = {
@@ -1700,11 +1702,11 @@ const ADV_MAPS = {
       "#,,,,,,..,,,,,,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,..,,,,,,###\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",\"###^^^^^^^,,,,,,..,,,,,,,,,,a~~~~~~~~~~~#",
       "#,,,,,,..,,,,,,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,..,,,,,,,,###\"\"\"\"\"\"\"\"\"\"\"\"####,,^^^^^^^,,,,,,..,,,,,,,,,,a~~~~~~~~~~~#",
       "#,,,,,,..,,,,**b****\"\"\"\"\"\"\"\"\",,,,,,,,a~~~~~~~a,,,,,..,,b,,,,,########\"\"#\"#####b,,,^^^^^^^,,,b,,..\"\"\",,,,,,,a~~~~~~~~~~~#",
-      "#,,,,,,..,,,*********\"\"\"\"\"\"\"\"\"\"\",,,,,a~~~~~~~a,,,,,..,,,,,,,,,,,,#######,####,,,,,^^^^^^^,,,,\"\"..\"\"\"\"\"\"\",,,a~~~~~~~~~~~#",
-      "#,,,,,,..,,,*********\"\"\"\"\"\"\"\"\"\"\"\",,,,a~~~~~~~a,,,,,..,,,,,,,,,,,,,,,,#,,,,,,,,,,,,^^^^^^^,\",\"\"\"..\"\"\"\"\"\"\"\"\",a~~~~~~~~~~~#",
-      "#,,,,,,..,,**********\"\"\"\"\"\"\"\"\"\"\"\"\"\",,a~~~~~~~a,,,,,..,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^\"\"\"\"\"\"b.\"\"\"\"\"\"\"\"\"\"a~~~~~~~~~~~#",
-      "#,,,,,,..,,,\"*******\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",a~~~~~~~a,,,,,..,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\"a~~~~~~~~~~~#",
-      "#,,,,,,..,,,\"\"\"\"\"*\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",a~~~~~~~a,,,,,..,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\"a~~~~~~~~~~~#",
+      "#,,,,,,..,,,*********\"\"\"\"\"\"\"\"\"\"\",,,,,a~~~~~~~a,,,,,..NNNNNNN,,,,,#######,####,,,,,^^^^^^^,,,,\"\"..\"\"\"\"\"\"\",,,a~~~~~~~~~~~#",
+      "#,,,,,,..,,,*********\"\"\"\"\"\"\"\"\"\"\"\",,,,a~~~~~~~a,,,,,..NNNNNNN,,,,,,,,,#,,,,,,,,,,,,^^^^^^^,\",\"\"\"..\"\"\"\"\"\"\"\"\",a~~~~~~~~~~~#",
+      "#,,,,,,..,,**********\"\"\"\"\"\"\"\"\"\"\"\"\"\",,a~~~~~~~a,,,,,..NNNNNNN,,,,,,,,,,,,,,,,,,,,,,^^^^^^^\"\"\"\"\"\"b.\"\"\"\"\"\"\"\"\"\"a~~~~~~~~~~~#",
+      "#,,,,,,..,,,\"*******\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",a~~~~~~~a,,,,,..NNNNNNN,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\"a~~~~~~~~~~~#",
+      "#,,,,,,..,,,\"\"\"\"\"*\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",a~~~~~~~a,,,,,..NNNNNNN,,,,,,,,,,,,,,,,,,,,,,^^^^^^^\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\"a~~~~~~~~~~~#",
       "#,,,,,,..,,\",\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"a~~~~~~~a,,,,*..********,,,,,,,,,,,,,,,,,,,,,^^^^^^^\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\"a~~~~~~~~~~~#",
       "#,,,,,,..,,,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"a~~~~~~~a,,,,*..********,,,,,,,,,,,,,,,,,,,,,^^^^^^^\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\"a~~~~~~~~~~~#",
       "#,,,,,,.........................\"\"\"\"\"a~~~~~~~a,,,,*.....................,,,,,,,,,,^^^^^^^\"\"\"\"\"\".............~~~~~~~~~~~#",
@@ -1720,10 +1722,10 @@ const ADV_MAPS = {
       "#,,,,,,..............................aBBBBBBBa...................................................a~~~~~~~~,~~~~~~~~~~~~#",
       "#,,,,,,..............................aBBBBBBBa..................................................a~~~~~~~~~~~~~~~~~~~~~~#",
       "#,,,,,,,,,,,,,,,,,,,,,,,..,,,,,,,,,,ia~~~~~~~ai,,,,,aaL~~~~~~~~~~~~~~~~~~~a~a,,,i,^^^^^^^,i,,,,,a~~~~~~~~~~~~~~~~~~~~~~#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,..,,,,,,,,,,,a~~~~~~~a,,,,,,a~~,~~~~~~~~~~~~~~~~~~~aa,,,,,^^^^^^^,,,,,,,a~~~~~~~~~~~~~~~~~~~~~~#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,..,,,,,,,,,,,a~~~~~~~a,,,,,,a~~~~~~~~~~~~~~~~~~~~~~a,,,,,,^^^^^^^,,,,,,,a~~~~~~~~~~~~~~~~~~~~~~#",
-      "#,,,,,,,,,,#,,,,,,,,,,,,..aaaaaaaa,,,a~~~~~~~a,,,,,,a~~~~~~~~~~~~~~~~~~~~~~a,,,,,,^^^^^^^,,,,,,,a~~~~~~~~~~~~~~~~~~~~~~#",
-      "#,,,,#####,#L,,,,,,,,,,,..a~~~~~~aaaaa~~~~~~~a,,,,,,aa~~~~~~~~~~~~~~~~~~~~~a,,,,,,^^^^^^^,,,,,,.........CL^^~~~~~~~~~~~#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,..,,,,,,,,,,,a~~~~~~~a,,,,,,a~~,~~~~~~~~~~~~~~~~~~~aa,,,,,^^^^^^^NNNNNN,a~~~~~~~~~~~~~~~~~~~~~~#",
+      "#,,,,,,,,,,,,,,,,,,,,,,,..,,,,,,,,,,,a~~~~~~~a,,,,,,a~~~~~~~~~~~~~~~~~~~~~~a,,,,,,^^^^^^^NNNNNN,a~~~~~~~~~~~~~~~~~~~~~~#",
+      "#,,,,,,,,,,#,,,,,,,,,,,,..aaaaaaaa,,,a~~~~~~~a,,,,,,a~~~~~~~~~~~~~~~~~~~~~~a,,,,,,^^^^^^^NNNNNN,a~~~~~~~~~~~~~~~~~~~~~~#",
+      "#,,,,#####,#L,,,,,,,,,,,..a~~~~~~aaaaa~~~~~~~a,,,,,,aa~~~~~~~~~~~~~~~~~~~~~a,,,,,,^^^^^^^NNNNNN.........CL^^~~~~~~~~~~~#",
       "#,,,,#####\"####,,,,,,,,,..~~~~~~~~~~aa~~~~~~~a,,,,,,,aaa~~~~~~~~~~~~~~~~~a~a,,,,,,^^^^^^^,,,,,,..........^^^~~~~~~~~~~~#",
       "#,,,##\"#\"\"\"\"#\"##,,,,,,aa..~~~~~~~~~~~a~~~~~~~a,,,,,,,,a~~~~~~~~~~~~~~~~~~aaa,,,,,,^^^^^^^,,,,,,,a~~~^^^^^^^^~~~~~~~~~~~#",
       "#,,##\"\"\"\"\"\"\"\"\"###,,,,,a~..~~~~~~~~~~~a~~~~~~~a,,,,,,,,aa~~~~~~~~~~~~~~~aaa,,,,,,,,^^^^^^^,,,,,,,aa~~^^^^^^^^~~~~~~~~~~~#",
@@ -1731,21 +1733,21 @@ const ADV_MAPS = {
       "####\"\"\"\"\"\"\"\"\"\"\"###,,,,aa..~~~~~~~~~~~a~~~~~~~a\"\",\"\".........................,,,,,,^^^^^^^,,,,,,FFFFF^^^^^^^^~~~~~~~~~~~#",
       "###\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,,,,..~~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,,,,,,,..,,,,,,^^^^^^^,,,FFFFFFFL^^^^^^^^~~~~~~~~~~~#",
       "###\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,,,,..~~~~~~~~~aaa~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,,,,,..,,,,,,^^^^^^^,,,FFFFFFVFFFFFFFFF~~~~~~~~~~~#",
-      "###\"\"\"\"\"\"\"\",\"\"\"\"\"#b,,,,,..a~~~~~~~aa,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,,,,..,,,,,,^^^^^^^,,FFFFFFVVVVVFFFFFFF~~~~~~~~~~#",
-      "##\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"#,,,,,,..aaaaaaaaa,,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"b\"\"\",,,,,,,,,,,,..,,,,,,^^^^^^^FFFFFFFVVVVVVVVFFFFF~~~~~~~~~~#",
-      "##\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"##,,,,,..,,,,,,,,,,,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,^^^^C^^^^^^,^^^^^^^,,FFFFVVVVVVVVVFFFF~F~~~~~~~~~#",
-      "###\"\"\"\"\"\"\"\"\"\"\"\"\"###,,,,,..,,,,,,,,,,,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,^^^^^^^^^^^,^^^^^^^,FFFFFVVVVVVVVVFFFFF~~~~~~~~~~#",
-      "###\"\"\"\"\"\"\"\"\"\"\"\"\"##,,^^^^^^^^C^^^^^^^^a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,^^^^^^^^^^^,^^^^^^^FFFFFFVVVVVVVVVFFFFF~~~~~~~~~~#",
-      "#,##\"\"\"\"\"\"\"\"\"\"\"###,,^^^^^^^^^^^^^^^^^a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,^^^^^^^^^^^,^^^^^^^,,FFFFVVVVVVVVFFFFFF~~~~~~~~~~#",
-      "#,##\"\"\"\"\"\"\"\"\"\"\"###,,^^^^^^^^^^^^^^^^^a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,^^^^^^^^^^^,^^^^^^^,,FFFFFVVVVVVFFFFFFF~~~~~~~~~~#",
-      "#,###\"\"\"\"\"\"\"\"\"###,,,^^^^^^^^^^^^^^^^^a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,,^^^^^^^^^^^,^^^^^^^,,FFFFFFFFVFFFFFFFF~~~~~~~~~~~#",
-      "#,,,##\"\"\"\"\"\"####,,,,^^^^^^^^^^^^^,^^^L~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,,^^^^^^^^^^^,^^^^^^^,,,FFFFFFFFFFFFF,Fa~~~~~~~~~~~#",
-      "#,,,,##\"######,,,,,,^^^^^^^^^^^^^^^^^a~~~~~~~a,,,,\"\"\"\"\"\"\",\",,,,,,,,,,,^^^^^^^^^^^,^^^^^^^,,,,F,FFFFFFFFF,F,a~~~~~~~~~~~#",
-      "#,,,,,######,,,,,,,,^^^^^^^^^^^^^^^^^a~~~~~~~a,,,,,\",,,,,,,,,,,,,,,,,,^^^^^^^^^^^,^^^^^^^,,,,,,,,F,FF,,,,,,a~~~~~~~~~~~#",
-      "#,,,,,###,,#,,,,,,,,^^^^^^^^^^^^^^^^^a~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,a~~~~~~~~~~~#",
-      "#,,,,,,,,,,,,,,,,,,,^^^^^^^^^^^^^^^^^a~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,a~~~~~~~~~~~#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,aaaaaaaaaaaa#",
-      "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
+      "###\"\"\"\"\"\"\"\",\"\"\"\"\"#bNNNNN..a~~~~~~~aaNa~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,,,,..,,,,,,^^^^^^^,,FFFFFFVVVVVFFFFFFF~~~~~~~~~~#",
+      "##\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"#NNNNNN..aaaaaaaaaNNa~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"b\"\"\",,,,,,,,,,,,..,,,,,,^^^^^^^FFFFFFFVVVVVVVVFFFFF~~~~~~~~~~#",
+      "##\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"##NNNNN..NNNNNNNNNNNa~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,^^^^C^^^^^^,^^^^^^^,,FFFFVVVVVVVVVFFFF~F~~~~~~~~~#",
+      "###\"\"\"\"\"\"\"\"\"\"\"\"\"###NNNNN..NNNNNNNNNNNa~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,^^^^^^^^^^^,^^^^^^^,FFFFFVVVVVVVVVFFFFF~~~~~~~~~~#",
+      "###\"\"\"\"\"\"\"\"\"\"\"\"\"##NNZZZZZZZZCZZZZZZZZa~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,^^^^^^^^^^^,^^^^^^^FFFFFFVVVVVVVVVFFFFF~~~~~~~~~~#",
+      "#,##\"\"\"\"\"\"\"\"\"\"\"###NNZZZZZZZZZZZZZZZZZa~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,^^^^^^^^^^^,^^^^^^^,,FFFFVVVVVVVVFFFFFF~~~~~~~~~~#",
+      "#,##\"\"\"\"\"\"\"\"\"\"\"###NNZZZZZZZZZZZZZZZZZa~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,^^^^^^^^^^^,^^^^^^^,,FFFFFVVVVVVFFFFFFF~~~~~~~~~~#",
+      "#,###\"\"\"\"\"\"\"\"\"###,NNZZZZZZZZZZZZZZZZZa~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,,^^^^^^^^^^^,^^^^^^^,,FFFFFFFFVFFFFFFFF~~~~~~~~~~~#",
+      "#,,,##\"\"\"\"\"\"####,,NNZZZZZZZZZZZZZNZZZL~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,,^^^^^^^^^^^,^^^^^^^,,,FFFFFFFFFFFFF,Fa~~~~~~~~~~~#",
+      "#,,,,##\"######,,,,NNZZZZZZZZZZZZZZZZZa~~~~~~~a,,,,\"\"\"\"\"\"\",\",,,,,,,,,,,^^^^^^^^^^^,^^^^^^^,,,,F,FFFFFFFFF,F,a~~~~~~~~~~~#",
+      "#,,,,,######,,,,,,NNZZZZZZZZZZZZZZZZZa~~~~~~~a,,,,,\",,,,,,,,,,,,,,,,,,^^^^^^^^^^^,^^^^^^^,,,,,,,,F,FF,,,,,,a~~~~~~~~~~~#",
+      "#,,,,,###,,#,,,,,,NNZZZZZZZZZZZZZZZZZa~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,a~~~~~~~~~~~#",
+      "#,,,,,,,,,,,,,,,,,NNZZZZZZZZZZZZZZZZZa~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,a~~~~~~~~~~~#",
+      "#,,,,,,,,,,,,,,,,,NNNNNNNNNNNNNNNNNNNa~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,aaaaaaaaaaaa#",
+      "#,,,,,,,,,,,,,,,,,NNNNNNNNNNNNNNNNNNNa~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
       "########################################################################################################################"
     ],
     /* Las franjas del río y de la cordillera van primero: advZonaDe() se queda
@@ -1819,13 +1821,14 @@ const ADV_MAPS = {
    PROB_LEGENDARIA_SUELTA), para que sigan siendo difíciles de encontrar. */
 const ADV_TIPOS = {
   hierba: ['grass','bug','normal','poison','fairy'],
-  agua:   ['water','ice'],
+  agua:   ['water'],
   volcan: ['fire','rock','ground','dragon'],
-  cueva:  ['rock','ground','steel','dark','ghost','fighting']
+  cueva:  ['rock','ground','steel','dark','ghost','fighting'],
+  hielo:  ['ice']
 };
 /* Probabilidad por casillero caminado. Bajas a propósito: con .18 no se podía
    dar tres pasos sin que saltara un encuentro. */
-const ADV_PROB = { hierba:.07, agua:.06, volcan:.08, cueva:.07, legendario:.30 };
+const ADV_PROB = { hierba:.07, agua:.06, volcan:.08, cueva:.07, hielo:.08, legendario:.30 };
 const DESCANSO_ENCUENTRO = 64;   // píxeles a caminar tras un encuentro antes de que salga otro
 
 /* Los PNG de las bolas salen del mismo CDN que las figuritas (sprites de items
@@ -1938,6 +1941,11 @@ function spriteLegendario(p){
   entry = {canvas: null};
   LEG_SPRITE_CACHE[p.name] = entry;
   const img = new Image();
+  /* jsdelivr manda Access-Control-Allow-Origin:*, así que pedir la imagen
+     como anónima no la tapa (sigue cargando igual) y deja el canvas SIN
+     "tainted": hace falta para poder leer los píxeles y agregar el
+     contorno oscuro de abajo. */
+  img.crossOrigin = 'anonymous';
   img.onload = () => {
     try{
       /* Paso 1: reducir con suavizado a 32 (conserva mejor la silueta que
@@ -1956,7 +1964,9 @@ function spriteLegendario(p){
       const fctx = final.getContext('2d');
       fctx.imageSmoothingEnabled = false;
       fctx.drawImage(inter, 0, 0, 18, 18);
-      entry.canvas = final;
+      /* Contorno oscuro: sin esto se ve como una miniatura borrosa flotando
+         en el pasto; con el borde lee como un sprite de verdad. */
+      entry.canvas = agregarBordeCanvas(final, '#14100A');
     }catch(e){ /* si falla, se sigue mostrando el destello de reserva */ }
   };
   img.src = p.img;
@@ -1976,10 +1986,10 @@ function dibujarLegendario(ctx, p, ox, oy){
   ctx.fillStyle = 'rgba(0,0,0,.35)';
   ctx.fillRect(ox + 3, oy + 14, 10, 2);
   const spr = spriteLegendario(p);
-  /* El sprite (18px) es más grande que el tile (16px) a propósito: un
-     legendario tiene que sentirse más imponente. Se ancla por los pies,
-     alineado con la sombra. */
-  if(spr) ctx.drawImage(spr, ox - 1, oy - 4);
+  /* El sprite (18px + 2px de contorno = 20px) es más grande que el tile
+     (16px) a propósito: un legendario tiene que sentirse más imponente. Se
+     ancla por los pies, alineado con la sombra. */
+  if(spr) ctx.drawImage(spr, ox - 2, oy - 6);
   else pinta(ctx, '#FFD63A', ox + 6, oy + 5, 4, 4);   // mientras carga el sprite
 }
 
@@ -2049,6 +2059,26 @@ function silueta(ctx, ox, oy, anchos, color, desdeY){
 function ruidoSuave(x, y, n){
   return (ruido(Math.floor(x / 3), Math.floor(y / 3), n) * 2 + ruido(x, y, n + 5)) / 3;
 }
+
+/* La Cueva Secreta es un único mapa/layout (ya probado con BFS), pero se
+   pinta distinto según por qué entrada se bajó -advRegion no cambia dentro
+   de la cueva, queda fijo en el de la entrada usada-, para que cada una
+   tenga la identidad del legendario que guarda (santuariosPorRegion):
+   Kanto=Mewtwo (laboratorio psíquico), Johto=Celebi (santuario del bosque,
+   tomado por el musgo), Hoenn=Regirock/Regice/Registeel/Jirachi/Deoxys
+   (ruinas antiguas). */
+const TEMA_CUEVA = {
+  kanto: {piso:'#3C3B49', pisoClaro:'#4A4957', pisoOscuro:'#333240',
+          pared:'#23222E', paredClaro:'#34333F', paredOscuro:'#15141C',
+          escombro:'#7A6BB8', escombroClaro:'#9C8FD6', escombroOscuro:'#2A2340'},
+  johto: {piso:'#2E3A28', pisoClaro:'#3B4E33', pisoOscuro:'#242E1F',
+          pared:'#212D1C', paredClaro:'#35492A', paredOscuro:'#131A10',
+          escombro:'#4F7A3A', escombroClaro:'#72A852', escombroOscuro:'#1E2917'},
+  hoenn: {piso:'#4A4030', pisoClaro:'#5C4F3B', pisoOscuro:'#372E20',
+          pared:'#332A1C', paredClaro:'#544526', paredOscuro:'#1D170F',
+          escombro:'#8A6B3E', escombroClaro:'#B08F57', escombroOscuro:'#2B2216'}
+};
+function temaCueva(){ return TEMA_CUEVA[advRegion] || TEMA_CUEVA.kanto; }
 
 const PINTORES = {
   pasto(ctx, ox, oy, x, y){
@@ -2183,11 +2213,51 @@ const PINTORES = {
     if(!roca(x - 1, y)){ pinta(ctx, '#6E6C64', ox, oy, 1, 16); }
     if(!roca(x + 1, y)){ pinta(ctx, '#6E6C64', ox + 15, oy, 1, 16); }
   },
+  /* Pico nevado de Articuno: mismo armado que montana() (macizo continuo,
+     borde sólo del lado sin roca) pero en paleta de hielo. */
+  montananevada(ctx, ox, oy, x, y){
+    const roca = (cx, cy) => charEn(cx, cy) === 'Z';
+    const v = ruidoSuave(x, y, 61);
+    pinta(ctx, v > .6 ? '#E8EEF4' : v < .35 ? '#C7D3DE' : '#D6E0E8', ox, oy, 16, 16);
+    for(let i = 0; i < 6; i++){
+      const rx = ox + Math.floor(ruido(x, y, i + 8) * 14);
+      const ry = oy + 3 + Math.floor(ruido(x, y, i + 70) * 10);
+      pinta(ctx, i % 2 ? '#AEBECB' : '#F5F9FC', rx, ry, 3, 1);
+    }
+    if(ruido(x, y, 62) > .5 && roca(x, y - 1) && roca(x, y + 1)){
+      const cx0 = ox + 2 + Math.floor(ruido(x, y, 63) * 6);
+      for(let i = 0; i < 7; i++){
+        pinta(ctx, '#FFFFFF', cx0 + i, oy + 9 - Math.min(i, 6 - i) * 2, Math.max(1, 3 - i % 2), 1);
+        pinta(ctx, '#8FA6B8', cx0 + i, oy + 10 - Math.min(i, 6 - i) * 2, 2, 2);
+      }
+    }
+    if(!roca(x, y - 1)){ pinta(ctx, '#FFFFFF', ox, oy, 16, 3); pinta(ctx, '#EDF3F7', ox, oy + 3, 16, 1); }
+    if(!roca(x, y + 1)){ pinta(ctx, '#8FA6B8', ox, oy + 12, 16, 3); pinta(ctx, '#5E7386', ox, oy + 15, 16, 1); }
+    if(!roca(x - 1, y)){ pinta(ctx, '#8FA6B8', ox, oy, 1, 16); }
+    if(!roca(x + 1, y)){ pinta(ctx, '#8FA6B8', ox + 15, oy, 1, 16); }
+  },
+  nieve(ctx, ox, oy, x, y){
+    const v = ruidoSuave(x, y, 1);
+    pinta(ctx, v > .62 ? '#EAF3F8' : v < .34 ? '#D3E3EC' : '#E0EDF4', ox, oy, 16, 16);
+    for(let i = 0; i < 7; i++){
+      const rx = ox + Math.floor(ruido(x, y, i) * 15);
+      const ry = oy + Math.floor(ruido(x, y, i + 40) * 15);
+      pinta(ctx, i % 2 ? '#C3D6E2' : '#FFFFFF', rx, ry, 2, 1);
+    }
+    if(ruido(x, y, 33) > .86){                  // huella o piedra asomando
+      const mx = ox + 4 + Math.floor(ruido(x, y, 34) * 8);
+      const my = oy + 5 + Math.floor(ruido(x, y, 35) * 7);
+      pinta(ctx, '#AEC3D1', mx, my, 3, 1);
+      pinta(ctx, '#FFFFFF', mx + 1, my - 1, 1, 1);
+    }
+    if(ruido(x, y, 47) > .93) pinta(ctx, '#B8D6E8', ox + 6, oy + 9, 2, 2);   // cristal de hielo
+  },
   pared(ctx, ox, oy){
-    pinta(ctx, '#23222E', ox, oy, 16, 16);
-    pinta(ctx, '#34333F', ox + 1, oy + 1, 6, 5);
-    pinta(ctx, '#34333F', ox + 9, oy + 8, 6, 5);
-    pinta(ctx, '#15141C', ox, oy + 14, 16, 2);
+    const t = temaCueva();
+    pinta(ctx, t.pared, ox, oy, 16, 16);
+    pinta(ctx, t.paredClaro, ox + 1, oy + 1, 6, 5);
+    pinta(ctx, t.paredClaro, ox + 9, oy + 8, 6, 5);
+    pinta(ctx, t.paredOscuro, ox, oy + 14, 16, 2);
   },
   volcan(ctx, ox, oy, x, y){
     const roca = (cx, cy) => ['V', '^'].includes(charEn(cx, cy));
@@ -2246,21 +2316,23 @@ const PINTORES = {
     pinta(ctx, '#000000', ox + 5, oy + 8, 6, 8);
   },
   pisoCueva(ctx, ox, oy, x, y){
-    pinta(ctx, '#3C3B49', ox, oy, 16, 16);
+    const t = temaCueva();
+    pinta(ctx, t.piso, ox, oy, 16, 16);
     for(let i = 0; i < 5; i++){
       const rx = ox + Math.floor(ruido(x, y, i + 2) * 15);
       const ry = oy + Math.floor(ruido(x, y, i + 60) * 15);
-      pinta(ctx, i % 2 ? '#333240' : '#4A4957', rx, ry, 2, 1);
+      pinta(ctx, i % 2 ? t.pisoOscuro : t.pisoClaro, rx, ry, 2, 1);
     }
   },
   escombros(ctx, ox, oy, x, y){
     PINTORES.pisoCueva(ctx, ox, oy, x, y);
+    const t = temaCueva();
     for(let i = 0; i < 3; i++){
       const rx = ox + 1 + Math.floor(ruido(x, y, i + 13) * 10);
       const ry = oy + 3 + Math.floor(ruido(x, y, i + 44) * 9);
-      pinta(ctx, '#6E6C78', rx, ry, 4, 3);
-      pinta(ctx, '#8C8A96', rx, ry, 3, 1);
-      pinta(ctx, '#26252F', rx, ry + 3, 4, 1);
+      pinta(ctx, t.escombro, rx, ry, 4, 3);
+      pinta(ctx, t.escombroClaro, rx, ry, 3, 1);
+      pinta(ctx, t.escombroOscuro, rx, ry + 3, 4, 1);
     }
   },
   altar(ctx, ox, oy){
@@ -2353,8 +2425,43 @@ const PINTORES = {
   }
 };
 
+/* Contorno oscuro genérico: los sprites de Pokémon (entrenador y overworld)
+   siempre llevan un borde de 1px separándolos del fondo -si no, un sprite
+   chico se funde con el pasto-. Se agrega por post-proceso leyendo el alpha
+   del canvas ya dibujado, así no hay que tocar el diseño pixel por pixel.
+   Requiere que el canvas NO esté "tainted": las imágenes cross-origin deben
+   cargarse con crossOrigin='anonymous' (jsdelivr manda Access-Control-Allow-
+   Origin: *, así que funciona). */
+function agregarBordeCanvas(origen, colorBorde){
+  const w = origen.width, h = origen.height;
+  const octx0 = origen.getContext('2d');
+  let data;
+  try{ data = octx0.getImageData(0, 0, w, h).data; }
+  catch(e){ return origen; }   // canvas tainted (CORS): se muestra sin contorno
+  const out = document.createElement('canvas');
+  out.width = w + 2; out.height = h + 2;
+  const octx = out.getContext('2d');
+  const opaco = (x, y) => {
+    if(x < 0 || y < 0 || x >= w || y >= h) return false;
+    return data[(y * w + x) * 4 + 3] > 10;
+  };
+  for(let y = 0; y < h; y++){
+    for(let x = 0; x < w; x++){
+      if(opaco(x, y)) continue;
+      if(opaco(x - 1, y) || opaco(x + 1, y) || opaco(x, y - 1) || opaco(x, y + 1)){
+        pinta(octx, colorBorde, x + 1, y + 1);
+      }
+    }
+  }
+  octx.drawImage(origen, 1, 1);
+  return out;
+}
+
 /* Sprite del entrenador, 16x16 a mano: gorra y campera roja, jean azul y
-   mochila amarilla, como Red en los juegos originales de Kanto. */
+   mochila amarilla, como Red en los juegos originales de Kanto. Con
+   contorno oscuro y sombreado de dos tonos (más oscuro en el borde derecho
+   de cada forma) para que se vea como un sprite de verdad y no un dibujo
+   plano. */
 const COLOR_JUGADOR = {
   H:'#3A2412',   // pelo, asoma bajo la gorra
   S:'#F5C9A0',   // piel
@@ -2365,6 +2472,10 @@ const COLOR_JUGADOR = {
   P:'#33518F',   // jean
   Y:'#F2B705',   // mochila
   Z:'#EDEDED'    // zapatillas
+};
+const COLOR_JUGADOR_SOMBRA = {
+  H:'#241608', S:'#D9AD82', G:'#B8232C', R:'#8E1D1D',
+  J:'#121419', P:'#233A66', Y:'#B8890A', Z:'#C7C7C7'
 };
 const SPRITE_JUGADOR = {
   abajo: [
@@ -2387,24 +2498,45 @@ const SPRITE_JUGADOR = {
   ]
 };
 
+/* Sólo hay un puñado de combinaciones visuales (dirección x espejo x cuadro
+   de paso), así que el sprite con sombreado + contorno se arma una sola vez
+   por combinación y se cachea -aplicar el contorno pixel por pixel en CADA
+   cuadro sería tirar trabajo a la basura-. */
+const JUGADOR_SPRITE_CACHE = {};
+function spriteJugadorCacheado(dir, espejo, paso){
+  const clave = dir + '|' + espejo + '|' + paso;
+  if(JUGADOR_SPRITE_CACHE[clave]) return JUGADOR_SPRITE_CACHE[clave];
+  const sprite = SPRITE_JUGADOR[dir] || SPRITE_JUGADOR.lado;
+  const cv = document.createElement('canvas');
+  cv.width = 16; cv.height = 16;
+  const cctx = cv.getContext('2d');
+  sprite.forEach((fila, fy) => {
+    [...fila].forEach((ch, fx) => {
+      const base = COLOR_JUGADOR[ch];
+      if(!base) return;
+      let dx = 0;
+      if(paso && fy >= 14) dx = (paso === 1 ? 1 : -1) * (fx < 8 ? 1 : -1);
+      const px0 = espejo ? 15 - fx - dx : fx + dx;
+      /* Sombra de dos tonos: se oscurece el borde derecho de cada forma
+         (donde el próximo carácter de la fila ya no es el mismo), como luz
+         viniendo de arriba a la izquierda. */
+      const esBordeDerecho = fx === sprite[fy].length - 1 || sprite[fy][fx + 1] !== ch;
+      const color = (esBordeDerecho && COLOR_JUGADOR_SOMBRA[ch]) || base;
+      pinta(cctx, color, px0, fy);
+    });
+  });
+  const sprConBorde = agregarBordeCanvas(cv, '#1A1310');
+  JUGADOR_SPRITE_CACHE[clave] = sprConBorde;
+  return sprConBorde;
+}
+
 function dibujarJugador(ctx, ox, oy){
-  const sprite = SPRITE_JUGADOR[advDir] || SPRITE_JUGADOR.lado;
-  const espejo = advDir === 'izq';
   ox = Math.round(ox); oy = Math.round(oy);
   ctx.fillStyle = 'rgba(0,0,0,.28)';
   ctx.fillRect(ox + 4, oy + 14, 8, 2);
-  sprite.forEach((fila, fy) => {
-    [...fila].forEach((ch, fx) => {
-      const color = COLOR_JUGADOR[ch];
-      if(!color) return;
-      /* Caminata: en el cuadro 1 las piernas se corren un píxel para cada
-         lado, en el 2 al revés. Alcanza para que se vea el paso. */
-      let dx = 0;
-      if(advPaso && fy >= 14) dx = (advPaso === 1 ? 1 : -1) * (fx < 8 ? 1 : -1);
-      const px0 = espejo ? ox + 15 - fx - dx : ox + fx + dx;
-      pinta(ctx, color, px0, oy + fy);
-    });
-  });
+  const espejo = advDir === 'izq';
+  const spr = spriteJugadorCacheado(advDir, espejo, advPaso);
+  ctx.drawImage(spr, ox - 1, oy - 1);
 }
 
 /* Las pokébolas tiradas en el piso se dibujan a mano, igual que el resto del
@@ -2502,7 +2634,11 @@ function advZonaDe(x, y){
 const advFondos = {};
 
 function advFondo(mapaId){
-  if(advFondos[mapaId]) return advFondos[mapaId];
+  /* La cueva se pinta distinto según la región de la entrada (temaCueva),
+     así que su fondo pre-dibujado no puede cachearse sólo por mapaId: si no,
+     la primera región que entra deja su paleta pegada para siempre. */
+  const clave = mapaId === 'cueva' ? mapaId + ':' + advRegion : mapaId;
+  if(advFondos[clave]) return advFondos[clave];
   const mapa = ADV_MAPS[mapaId];
   const cv = document.createElement('canvas');
   cv.width  = mapa.cols * ADV_PX;
@@ -2518,7 +2654,7 @@ function advFondo(mapaId){
     });
   });
   advMapa = antes;
-  advFondos[mapaId] = cv;
+  advFondos[clave] = cv;
   return cv;
 }
 
