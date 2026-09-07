@@ -2075,7 +2075,10 @@ function spriteLegendario(p){
 }
 
 let legendarioVisible = null;              // {p, mapa, x, y, hasta}
-const LEGENDARIO_REVEAL_MS = 900;
+/* Ya no es un vistazo de un instante: el legendario se queda esperando en el
+   altar y el jugador tiene que caminar hasta ahí para pelear. Este es el
+   tiempo que aguanta antes de irse si no llegás. */
+const LEGENDARIO_REVEAL_MS = 15000;
 
 function mostrarLegendarioEnMapa(p, x, y){
   spriteLegendario(p);                     // dispara la carga si hace falta
@@ -2991,7 +2994,9 @@ function advRender(){
   if(legendarioVisible && legendarioVisible.mapa === advMapa && Date.now() < legendarioVisible.hasta){
     dibujarLegendario(ctx, legendarioVisible.p, legendarioVisible.x * ADV_PX - camX, legendarioVisible.y * ADV_PX - camY);
   } else if(legendarioVisible && Date.now() >= legendarioVisible.hasta){
+    const p = legendarioVisible.p;
     legendarioVisible = null;
+    advMensaje(`💨 <b>${p.name}</b> se fue antes de que llegaras.`);
   }
 
   dibujarJugador(ctx, advPx - camX, advPy - camY);
@@ -3097,8 +3102,8 @@ function advOcupado(){
   return document.getElementById('encOverlay').classList.contains('show')
       || document.getElementById('shopOverlay').classList.contains('show')
       || document.getElementById('overlay').classList.contains('show')
-      || document.getElementById('specialOverlay').classList.contains('show')
-      || !!(legendarioVisible && Date.now() < legendarioVisible.hasta);   // se queda quieto mirando el avistamiento
+      || document.getElementById('specialOverlay').classList.contains('show');
+  // el avistamiento YA NO frena al jugador: hay que caminar hasta el altar
 }
 
 /* ---------- Motor de movimiento ----------
@@ -3172,7 +3177,17 @@ function advPaso1(dt){
   const t = advTileEn(cx, cy);
   if(!t) return;
   if(cambioCasillero) advPisar(t, cx, cy);
+
+  // llegaste al altar donde está esperando el legendario avistado: a pelear.
+  const avist = avistamientoActivo();
+  if(avist && cx === avist.x && cy === avist.y){
+    legendarioVisible = null;
+    iniciarEncuentro(avist.p);
+    return;
+  }
+
   if(advDescanso > 0){ advDescanso -= anduvo; return; }   // recién salió uno: dejalo caminar
+  if(avist) return;   // ya hay uno esperando: no tirar otro altar ni cruzarlo con un encuentro salvaje
   if(advCamino >= 16){
     const cerca = altarMasCercano(cx, cy);
     if(cerca && cerca.dist <= RADIO_AVISTAMIENTO){
@@ -3220,9 +3235,11 @@ function tirarAltar(santuario, x, y){
   if(!p) return;
   anotarLegendario(p, santuario);
   advDescanso = DESCANSO_ENCUENTRO;
-  advMensaje(`✨ <b>${santuario.n}</b> se ilumina…`);
+  advMensaje(`✨ <b>${santuario.n}</b> se ilumina… ¡acercate al altar!`);
   mostrarLegendarioEnMapa(p, x, y);
-  setTimeout(() => iniciarEncuentro(p), LEGENDARIO_REVEAL_MS);
+  /* Ya no arranca la pelea solo con avistarlo: hay que caminar hasta el
+     altar (ver el chequeo de llegada en advPaso1/advMover). Si no llega a
+     tiempo, advRender() lo hace desaparecer solo al vencer legendarioVisible.hasta. */
 }
 
 function advPisar(t, x, y){
@@ -3276,7 +3293,16 @@ function advMover(dx, dy){
   advCamino = 16;
   advRender();
   advPisar(t, nx, ny);
+
+  const avist = avistamientoActivo();
+  if(avist && nx === avist.x && ny === avist.y){
+    legendarioVisible = null;
+    iniciarEncuentro(avist.p);
+    return;
+  }
+
   if(advDescanso > 0){ advDescanso -= ADV_PX; return; }
+  if(avist) return;
   const cerca = altarMasCercano(nx, ny);
   if(cerca && cerca.dist <= RADIO_AVISTAMIENTO){ tirarAltar(cerca.santuario, cerca.x, cerca.y); return; }
   if(t.encuentro && Math.random() <= (ADV_PROB[t.encuentro] || .15)){
