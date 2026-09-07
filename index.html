@@ -3195,6 +3195,12 @@ function advPaso1(dt){
    Ya no hace falta pisar el altar: se llama con el más cercano dentro de
    RADIO_AVISTAMIENTO, así que (x,y) puede quedar lejos de donde está parado
    el jugador. */
+/* Racha de mala suerte: cada tiro fallado cerca de un altar sube la chance
+   del siguiente, así el avistamiento no depende de acertar justo un 30% de
+   una mientras cruzás el radio (con eso a veces sólo salía pisando el
+   altar, que es exactamente lo que no queríamos). Se resetea al acertar. */
+let avistamientoPity = {};
+
 function tirarAltar(santuario, x, y){
   if(!santuario) return;
   if(legendariosAgotadosHoy(santuario)){
@@ -3203,7 +3209,13 @@ function tirarAltar(santuario, x, y){
     advDescanso = DESCANSO_ENCUENTRO * 4;
     return;
   }
-  if(Math.random() > ADV_PROB.legendario) return;
+  const fallos = avistamientoPity[santuario.n] || 0;
+  const prob = Math.min(.9, ADV_PROB.legendario + fallos * .15);
+  if(Math.random() > prob){
+    avistamientoPity[santuario.n] = fallos + 1;
+    return;
+  }
+  avistamientoPity[santuario.n] = 0;
   const p = legendarioDelAltar(santuario);
   if(!p) return;
   anotarLegendario(p, santuario);
