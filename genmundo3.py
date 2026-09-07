@@ -69,24 +69,25 @@ def centro_pokemon(x, y):
 mancha(24, 17, 15, 9, '"', 1)                      # pradera alta
 mancha(43, 30, 7, 6, 'e', 21)                      # Central Eléctrica (canon de Kanto)
 mancha(28, 45, 10, 6, '~', 4)                      # lago
-mancha(11, 47, 11, 12, '#', 2)                     # Bosque Verde
-mancha(11, 47, 7, 8, '"', 3)
+mancha(11, 41, 11, 12, '#', 2)                     # Bosque Verde
+mancha(11, 41, 7, 8, '"', 3)
 mancha(39, 60, 8, 6, 'm', 22)                      # ciénaga
 mancha(45, 50, 6, 5, 'u', 30)                      # ruinas de la Torre (psíquico)
-mancha(16, 32, 6, 4, 'F', 31)                      # cráter tibio (fuego)
-R(8, 66, 36, 78, 'Z')                              # sierra nevada
-mancha(24, 72, 13, 5, 'N', 23)                     # campo de nieve
+mancha(45, 72, 7, 5, 'F', 31)                      # volcán del sudeste (fuego)
+mancha(45, 72, 3, 2, 'V', 35)
+R(3, 66, 30, 78, 'Z')                              # sierra nevada (sudoeste)
+mancha(13, 72, 11, 5, 'N', 23)                     # campo de nieve
 mancha(15, 12, 5, 3, '*', 5)
 R(3, 3, 16, 10, '.')                               # Pueblo Paleta
 centro_pokemon(6, 7)
 camino([(9, 10), (9, 42), (58, 42)])               # ruta principal al puente
 camino([(9, 20), (36, 20)])
 camino([(9, 30), (43, 30)])                        # ramal a la central
-camino([(24, 42), (24, 70)])                       # bajada a la sierra
-camino([(11, 42), (11, 47)])                       # entrada al bosque
+camino([(14, 42), (14, 70)])                       # bajada a la sierra
+camino([(11, 36), (11, 41)])                       # entrada al bosque
 camino([(39, 42), (39, 60)])                       # bajada a la ciénaga
 camino([(39, 50), (45, 50)])                       # ramal a las ruinas
-camino([(16, 30), (16, 32)])                       # ramal al cráter
+camino([(39, 60), (45, 60), (45, 70)])             # ramal al volcán
 
 # ============================ JOHTO (x 59..104) ============================
 mancha(76, 11, 13, 7, '#', 6)                      # bosque de cerezos
@@ -97,7 +98,8 @@ mancha(67, 63, 12, 8, '"', 9)                      # pastizal
 mancha(99, 53, 6, 5, 'e', 25)                      # campo eléctrico
 mancha(87, 71, 9, 5, 'm', 26)                      # ciénaga
 mancha(90, 52, 6, 4, 'N', 32)                      # nevada de la sierra (hielo)
-mancha(80, 31, 5, 4, 'F', 33)                      # Torre Quemada (fuego)
+mancha(80, 30, 7, 5, 'F', 33)                      # Torre Quemada (fuego)
+mancha(80, 30, 3, 2, 'V', 36)
 R(93, 60, 103, 70, '^')                            # sierra del sudeste
 R(62, 3, 74, 10, '.')                              # Villa Cerezo
 centro_pokemon(65, 7)
@@ -111,7 +113,7 @@ camino([(80, 22), (80, 31)])                       # ramal a la Torre Quemada
 
 # ============================ HOENN (x 112..158) ============================
 mancha(127, 21, 12, 8, '"', 10)                    # selva
-mancha(139, 13, 6, 5, 'u', 27)                     # ruinas de la costa
+mancha(116, 16, 7, 5, 'u', 27)                     # ruinas del noroeste
 R(148, 5, 157, 78, '~')                            # mar
 mancha(141, 47, 9, 13, '~', 11)                    # bahía
 mancha(153, 27, 3, 2, ',', 12)                     # isla
@@ -128,7 +130,7 @@ camino([(120, 21), (140, 21)])
 camino([(120, 35), (135, 35)])                     # ramal al campo eléctrico
 camino([(120, 46), (126, 46)])
 camino([(125, 42), (125, 64)])                     # bajada al volcán
-camino([(140, 13), (140, 21)])
+camino([(120, 16), (116, 16)])                     # ramal a las ruinas
 camino([(133, 66), (139, 66), (139, 70)])          # ramal a la cumbre helada
 
 # ============================ FRONTERAS ============================
@@ -148,21 +150,26 @@ g[PASO_Y - 1][CORD[1] + 2] = 'T'; g[PASO_Y + 2][CORD[1] + 2] = 'i'
 CENTROS = [(6, 7), (65, 7), (117, 7)]              # la puerta 'P' de cada Centro
 CUEVAS  = [(16, 67), (97, 61), (134, 51)]
 
-# Dos altares por región, cada uno en el bioma que le corresponde a sus
-# legendarios y LEJOS del otro (se valida más abajo).
-ALTARES = [
-    ((28, 74), 'Cima Nevada',        ['Articuno', 'Zapdos', 'Moltres']),
-    ((11, 44), 'Claro del Bosque',   ['Mew']),
-    ((92, 16), 'Ruinas de la Torre', ['Raikou', 'Entei', 'Ho-Oh']),
-    ((66, 55), 'Claro del Lago',     ['Lugia', 'Suicune']),
-    ((125, 62), 'Falda del Volcán',  ['Groudon', 'Latios']),
-    ((144, 24), 'Mirador del Mar',   ['Kyogre', 'Latias', 'Rayquaza']),
+# Cada altar va en el bioma de SUS legendarios (Moltres en el volcán, Zapdos en
+# el campo eléctrico, Articuno en la nieve...). Las coordenadas NO se eligen a
+# mano: colocar_altares() las busca respetando bioma, distancia mínima y que
+# haya tierra alrededor para la losa.
+PEDIDOS = [
+    # región, bioma, nombre, legendarios, zona preferida (centro temático)
+    ('kanto', 'N',  'Cima Nevada',        ['Articuno'],                        (14, 73)),
+    ('kanto', 'e',  'Central Eléctrica',  ['Zapdos'],                          (43, 30)),
+    ('kanto', 'F',  'Cráter Ardiente',    ['Moltres'],                         (45, 72)),
+    ('kanto', '"',  'Claro del Bosque',   ['Mew'],                             (11, 41)),
+    ('johto', 'F',  'Torre Quemada',      ['Entei', 'Ho-Oh'],                  (80, 30)),
+    ('johto', 'e',  'Llanura del Trueno', ['Raikou'],                          (99, 53)),
+    ('johto', '"',  'Claro del Lago',     ['Lugia', 'Suicune'],                (67, 60)),
+    ('hoenn', 'F',  'Falda del Volcán',   ['Groudon'],                         (125, 66)),
+    ('hoenn', 'u',  'Ruinas del Cielo',   ['Latios', 'Latias', 'Rayquaza'],    (116, 16)),
+    ('hoenn', ',"', 'Mirador del Mar',    ['Kyogre'],                          (146, 28)),
 ]
 
 for (x, y) in CUEVAS:
     g[y][x] = 'C'
-for (x, y), _, _ in ALTARES:
-    g[y][x] = 'L'
 g[5][13] = 'T'; g[8][11] = 'i'
 
 # ============================ PLAYA Y BORDES ============================
@@ -229,14 +236,79 @@ def mudar(puntos, ch, libres=',*"aF.emuN'):
     return movidos
 
 
-bolas_pos = [(x, y) for y in range(H) for x in range(W) if g[y][x] == 'b']
-for orig, nuevo in mudar(ALTARES, 'L') + mudar(CUEVAS, 'C') + mudar(bolas_pos, 'b'):
-    print('movido', orig, '->', nuevo)
-vis = bfs()
-
-
 def region(x):
     return 'kanto' if x < RIO[0] else 'johto' if x < CORD[0] else 'hoenn'
+
+
+# ---- ubicación de los altares (bioma + distancia + tierra alrededor) ----
+def secos(x, y, radio):
+    """Cuántos casilleros SIN agua hay en el cuadrado de ese radio."""
+    n = 0
+    for dy in range(-radio, radio + 1):
+        for dx in range(-radio, radio + 1):
+            cx, cy = x + dx, y + dy
+            if 0 <= cx < W and 0 <= cy < H and g[cy][cx] != '~':
+                n += 1
+    return n
+
+
+def colocar_altares(pedidos):
+    """Busca para cada altar un casillero de SU bioma que además esté
+    alcanzable, tenga tierra alrededor para la losa y quede lejos de los
+    altares ya puestos. Entre los que sirven, elige el que queda MÁS lejos
+    de los otros: así se reparten solos por el mapa."""
+    puestos = []
+    # De más escaso a más abundante: si primero se sirve el bioma grande, se
+    # queda con la zona y deja al chico sin ningún lugar a DIST_MIN (le pasó
+    # al Cráter Ardiente, que es la única mancha de ceniza de Kanto).
+    def candidatos(reg, ch):
+        return sum(1 for (x, y) in vis if region(x) == reg and g[y][x] in ch)
+    pedidos = sorted(pedidos, key=lambda p: candidatos(p[0], p[1]))
+    def mismoBioma(x, y, ch):
+        return sum(1 for dy in range(-2, 3) for dx in range(-2, 3)
+                   if 0 <= x + dx < W and 0 <= y + dy < H and g[y + dy][x + dx] in ch)
+
+    for reg, ch, nombre, pokes, pref in pedidos:
+        mejor, mejorPuntaje = None, None
+        # La zona temática es requisito, no preferencia: si no, el altar de Mew
+        # se iba a la pradera del norte porque ahí el pasto es más parejo que
+        # adentro del bosque. Se relaja sólo si de verdad no entra.
+        for radio in (14, 25, 9999):
+            for (x, y) in vis:
+                if region(x) != reg or g[y][x] not in ch:
+                    continue
+                if not (4 <= x < W - 4 and 4 <= y < H - 4):   # que la losa no se salga del mapa
+                    continue
+                if secos(x, y, 1) < 9:             # la losa necesita 3x3 de tierra
+                    continue
+                if math.hypot(x - pref[0], y - pref[1]) > radio:
+                    continue
+                d = min([math.hypot(x - px, y - py) for (px, py), _, _ in puestos] or [9999])
+                if d < DIST_MIN:
+                    continue
+                puntaje = (mismoBioma(x, y, ch), -round(math.hypot(x - pref[0], y - pref[1])))
+                if mejorPuntaje is None or puntaje > mejorPuntaje:
+                    mejor, mejorPuntaje = (x, y), puntaje
+            if mejor:
+                break
+        if mejor is None:
+            problemas.append('sin lugar para el altar ' + nombre + ' (bioma ' + ch + ' en ' + reg + ')')
+            continue
+        g[mejor[1]][mejor[0]] = 'L'
+        puestos.append((mejor, nombre, pokes))
+        print('  altar %-20s %-6s %-10s bioma alrededor %2d/25, a %d de la zona pedida'
+              % (nombre, reg, str(mejor), mejorPuntaje[0], -mejorPuntaje[1]))
+    return puestos
+
+
+print('ubicando altares:')
+ALTARES = colocar_altares(PEDIDOS)
+vis = bfs()
+
+bolas_pos = [(x, y) for y in range(H) for x in range(W) if g[y][x] == 'b']
+for orig, nuevo in mudar(CUEVAS, 'C') + mudar(bolas_pos, 'b'):
+    print('movido', orig, '->', nuevo)
+vis = bfs()
 
 
 print(f'{W}x{H} = {W*H} casilleros · alcanzables a pie: {len(vis)}')
@@ -265,11 +337,9 @@ print(f'    mínima: {mind:.0f}')
 
 # 3. tierra alrededor de cada altar (la losa mide ~3 casilleros)
 for (x, y), n, _ in ALTARES:
-    agua = [(x + dx, y + dy) for dy in range(-2, 3) for dx in range(-2, 3)
-            if 0 <= x + dx < W and 0 <= y + dy < H and g[y + dy][x + dx] == '~']
-    if agua:
-        problemas.append(f'altar {n} con agua en el 5x5: {len(agua)} casilleros')
-        print(f'    ✗ {n}: {len(agua)} casilleros de agua alrededor')
+    if secos(x, y, 1) < 9:
+        problemas.append(f'altar {n} sin 3x3 de tierra para la losa')
+        print(f'    ✗ {n}: la losa no entra')
 
 # 4. biomas por región
 BIOMAS = {'hierba': '"', 'orilla': 'a', 'nieve': 'N', 'electrico': 'e',

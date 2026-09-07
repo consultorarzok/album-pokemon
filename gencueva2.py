@@ -16,8 +16,8 @@ rect(9,5,10,8,'k')
 rect(8,3,11,4,'o')            # conexion arriba
 rect(4,12,15,12,'S')
 rect(8,12,11,12,'o')          # camarita del altar
-g[12][9] = 'L'
-g[12][10] = 'L'
+g[12][9] = 'L'                # UN solo altar: con dos pegados se dibujaban
+                              # dos losas una al lado de la otra
 g[0][9] = 'E'                 # salida arriba
 g[1][9] = 'o'
 g[6][2] = 'b'; g[10][17] = 'b'; g[11][6] = 'b'

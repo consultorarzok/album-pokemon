@@ -383,7 +383,21 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
 
   console.log('\n— Legendarios: cada altar el suyo, uno por día —');
   const altares = await page.evaluate(() => Object.entries(ADV_MAPS.overworld.santuarios).map(([k, s]) => ({k, n:s.n, pokes:s.pokes})));
-  check('6 altares repartidos por el mundo', altares.length === 6);
+  check(`${altares.length} altares repartidos por el mundo`, altares.length >= 6);
+  /* Zeta fue explícito: ningún par de altares pegados. El generador lo valida
+     al armar el mapa; acá se vuelve a chequear sobre lo que quedó publicado. */
+  const distAltares = await page.evaluate(() => {
+    const p = Object.keys(ADV_MAPS.overworld.santuarios).map(k => k.split(',').map(Number));
+    let min = Infinity, par = null;
+    for(let i = 0; i < p.length; i++) for(let j = i + 1; j < p.length; j++){
+      const d = Math.hypot(p[i][0] - p[j][0], p[i][1] - p[j][1]);
+      if(d < min){ min = d; par = [p[i], p[j]]; }
+    }
+    return {min: Math.round(min), par};
+  });
+  check(`ningún altar pegado a otro (el más cerca, a ${distAltares.min})`, distAltares.min >= 25);
+  check('un solo altar en la cueva', await page.evaluate(() =>
+    ADV_MAPS.cueva.rows.join('').split('').filter(c => c === 'L').length === 1));
   check('cada altar tiene sus propios legendarios', new Set(altares.flatMap(a => a.pokes)).size === altares.flatMap(a => a.pokes).length);
   check('Mewtwo ya no comparte altar con Mew', await page.evaluate(() =>
     ADV_MAPS.cueva.santuariosPorRegion.kanto.pokes.join() === 'Mewtwo' &&
