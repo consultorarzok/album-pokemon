@@ -2347,27 +2347,37 @@ const PINTORES = {
   }
 };
 
-/* Sprite del entrenador, 16x16 a mano: pelo oscuro, camisa blanca y hakama
-   rojo, como la miko de los cenitales japoneses. */
-const COLOR_JUGADOR = {H:'#241F33', S:'#F5C9A0', E:'#241F33', W:'#FBFBF3', R:'#D6332E', B:'#3B2A22'};
+/* Sprite del entrenador, 16x16 a mano: gorra y campera roja, jean azul y
+   mochila amarilla, como Red en los juegos originales de Kanto. */
+const COLOR_JUGADOR = {
+  H:'#3A2412',   // pelo, asoma bajo la gorra
+  S:'#F5C9A0',   // piel
+  E:'#241F33',   // ojos
+  G:'#E3323C',   // gorra
+  R:'#C62828',   // campera/chaleco
+  J:'#20232B',   // detalle oscuro de la campera (cierre, mangas)
+  P:'#33518F',   // jean
+  Y:'#F2B705',   // mochila
+  Z:'#EDEDED'    // zapatillas
+};
 const SPRITE_JUGADOR = {
   abajo: [
-    '................','.....HHHHHH.....','....HHHHHHHH....','....HHHHHHHH....',
+    '................','.....GGGGGG.....','....GGGGGGGG....','....HHGGGGHH....',
     '....HSSSSSSH....','....HSESSESH....','....HSSSSSSH....','.....SSSSSS.....',
-    '....WWWWWWWW....','...WWWWWWWWWW...','...SWWWWWWWWS...','...RRRRRRRRRR...',
-    '...RRRRRRRRRR...','....RRRRRRRR....','....BB....BB....','................'
+    '....RRRRRRRR....','...RRJJJJJJRR...','...SJJJJJJJJS...','...PPPPPPPPPP...',
+    '...PPPPPPPPPP...','....PPPPPPPP....','....ZZ....ZZ....','................'
   ],
   arriba: [
-    '................','.....HHHHHH.....','....HHHHHHHH....','....HHHHHHHH....',
-    '....HHHHHHHH....','....HHHHHHHH....','....HHHHHHHH....','.....HHHHHH.....',
-    '....WWWWWWWW....','...WWWWWWWWWW...','...SWWWWWWWWS...','...RRRRRRRRRR...',
-    '...RRRRRRRRRR...','....RRRRRRRR....','....BB....BB....','................'
+    '................','.....GGGGGG.....','....GGGGGGGG....','....GGGGGGGG....',
+    '....GGGGGGGG....','....HHGGGGHH....','....HHHHHHHH....','.....HHHHHH.....',
+    '....RRRRRRRR....','...RRYYYYYYRR...','...RYYYYYYYYR...','...PPPPPPPPPP...',
+    '...PPPPPPPPPP...','....PPPPPPPP....','....ZZ....ZZ....','................'
   ],
   lado: [
-    '................','.....HHHHHH.....','....HHHHHHHH....','....HHHHHHHHH...',
-    '....HHSSSSSH....','....HHSSESS.....','....HHSSSSS.....','.....HSSSSS.....',
-    '.....WWWWWW.....','....WWWWWWWW....','....WWWWWWWS....','....RRRRRRRR....',
-    '....RRRRRRRR....','.....RRRRRR.....','.....BBBB.......','................'
+    '................','.....GGGGGG.....','....GGGGGGGG....','....GGGGGGGGG...',
+    '....GGSSSSSH....','....GGSSESS.....','....GGSSSSS.....','.....HSSSSS.....',
+    '.....RRRRRR.....','....RRRRRRRR....','....RRRRRRRS....','....PPPPPPPP....',
+    '....PPPPPPPP....','.....PPPPPP.....','.....ZZZZ.......','................'
   ]
 };
 
@@ -2391,14 +2401,28 @@ function dibujarJugador(ctx, ox, oy){
   });
 }
 
+/* Las pokébolas tiradas en el piso se dibujan a mano, igual que el resto del
+   mundo: el ícono del CDN (poke-ball.png) sale mal coloreado a este tamaño
+   -naranja y lila en vez de rojo y blanco- y a los 12x12 px del tile queda
+   borroneado, "pegado" con el pasto de fondo. */
+const BOLA_ANCHOS = [4, 8, 10, 12, 12, 12, 12, 12, 12, 10, 8, 4];   // silueta circular, 12 filas
+const BOLA_PINTURA = {
+  roja:    {arriba: '#F03028', banda: '#1C1C1C', abajo: '#FFFFFF'},
+  azul:    {arriba: '#3D7DCA', banda: '#1C1C1C', abajo: '#FFFFFF'},
+  ultra:   {arriba: '#2B2B2B', banda: '#FFD63A', abajo: '#FFFFFF'},
+  maestra: {arriba: '#9A3FE0', banda: '#1C1C1C', abajo: '#FFFFFF'}
+};
 function dibujarBola(ctx, tipo, ox, oy){
-  const im = BOLA_IMG[tipo];
-  if(im && im.complete && im.naturalWidth){
-    ctx.drawImage(im, Math.round(ox) + 2, Math.round(oy) + 2, 12, 12);
-  } else {                                   // por si el CDN todavía no cargó
-    pinta(ctx, '#FFFFFF', ox + 5, oy + 5, 6, 6);
-    pinta(ctx, '#EE1515', ox + 5, oy + 5, 6, 3);
-  }
+  ox = Math.round(ox); oy = Math.round(oy);
+  const c = BOLA_PINTURA[tipo] || BOLA_PINTURA.roja;
+  const desde = oy + 2;
+  BOLA_ANCHOS.forEach((w, i) => {
+    if(w <= 0) return;
+    const color = i < 5 ? c.arriba : i > 6 ? c.abajo : c.banda;
+    pinta(ctx, color, ox + Math.round((16 - w) / 2), desde + i, w, 1);
+  });
+  pinta(ctx, '#151515', ox + 6, desde + 4, 4, 3);
+  pinta(ctx, '#FFFFFF', ox + 7, desde + 5, 2, 1);
 }
 
 function advTileEn(x, y){
