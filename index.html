@@ -146,8 +146,15 @@
   .rank-score{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;color:var(--poke-blue);flex:0 0 auto;}
   .rank-medal{flex:0 0 auto;width:20px;height:20px;}
   .rank-empty{font-size:11px;color:var(--ink-dim);padding:10px 2px;line-height:1.6;}
-  .rank-done{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);font-size:11px;color:var(--ink-dim);line-height:1.7;}
-  .rank-done b{color:var(--ink);font-family:'Baloo 2',sans-serif;font-size:13px;}
+  .rank-done{margin-top:16px;padding-top:16px;border-top:1px dashed var(--border);}
+  .rank-done-empty{font-size:11px;color:var(--ink-dim);line-height:1.7;text-align:center;}
+  .hof-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:21px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);text-shadow:0 0 14px rgba(240,180,0,.6);text-align:center;margin-bottom:2px;}
+  .hof-sub{font-size:11px;color:var(--ink-dim);text-align:center;margin-bottom:12px;}
+  .hof-row{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#FFF6D9,#FFFBEE);border:1px solid var(--gold);border-radius:10px;padding:10px 14px;margin-bottom:8px;box-shadow:0 0 12px rgba(240,180,0,.25);}
+  .hof-row:last-child{margin-bottom:0;}
+  .hof-crown{width:22px;height:22px;flex:0 0 auto;}
+  .hof-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;color:#5B4300;}
+  .hof-date{font-size:10px;color:var(--ink-dim);font-family:'Space Mono',monospace;flex:0 0 auto;}
   .rank-status{font-size:10px;color:var(--ink-dim);}
   .rank-status.err{color:var(--red);}
 
@@ -3905,12 +3912,17 @@ function renderRank(){
 
   const comp = ultimoTop.completaron || [];
   if(comp.length > 0){
-    const nombres = comp.map(c => c.jugador).join(', ');
-    done.innerHTML = '<b>👑 Completaron el álbum:</b><br>';
-    done.appendChild(document.createTextNode(nombres));
+    done.innerHTML = '<div class="hof-title">🏆 Salón de la Fama</div>' +
+      '<div class="hof-sub">(Completaron el álbum)</div>' +
+      comp.map(c => {
+        const fecha = (c.dia || '').split('-').reverse().join('/');
+        return '<div class="hof-row"><img class="hof-crown" src="images/crown-oro.svg" alt="">' +
+          '<div class="hof-name"></div><div class="hof-date">' + fecha + '</div></div>';
+      }).join('');
+    done.querySelectorAll('.hof-name').forEach((el, i) => { el.textContent = comp[i].jugador; });
   } else {
-    done.innerHTML = '<b>Nadie completó el álbum todavía.</b><br>' +
-      'El primero que junte las ' + DATA.length + ' figuritas queda en esta lista para siempre.';
+    done.innerHTML = '<div class="rank-done-empty"><b style="color:var(--ink);font-family:\'Baloo 2\',sans-serif;">Nadie completó el álbum todavía.</b><br>' +
+      'El primero que junte las ' + DATA.length + ' figuritas queda en esta lista para siempre.</div>';
   }
 }
 
