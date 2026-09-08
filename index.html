@@ -3653,7 +3653,8 @@ const REGALOS = [
     bolas: {roja: 25, azul: 50, ultra: 20, maestra: 10}, aventura: true },
   { id: 'matias-bolas-kanto-20260908', para: 'matias', monedas: 0,
     bolas: {roja: 50, azul: 50, ultra: 50, maestra: 5}, aventura: true },
-  { id: 'matias-pikachu-20260908', para: 'matias', monedas: 0, especies: [25] }
+  { id: 'matias-pikachu-20260908', para: 'matias', monedas: 0, especies: [25] },
+  { id: 'matias-faltante2-20260908', para: 'matias', monedas: 0, faltantes: 1 }
 ];
 
 /* Misma normalización que usa el registro de nombres en el servidor:
@@ -3682,6 +3683,19 @@ function regalarLegendaria(){
   if(isNew) state[p.id].got = true;
   else state[p.id].dup++;
   /* Mismo formato que usa openPack(), así entra directo en la carta dorada. */
+  return {p, isNew};
+}
+
+/* Regala una figurita al azar de las que le faltan al álbum (cualquier
+   rareza/región), igual mecánica que regalarLegendaria() pero sin filtrar
+   por rareza. Si ya lo tiene todo, entra como repetida. */
+function regalarFaltante(){
+  const faltan = DATA.filter(p => !state[p.id].got);
+  const lista  = faltan.length ? faltan : DATA;
+  const p = lista[Math.floor(Math.random() * lista.length)];
+  const isNew = !state[p.id].got;
+  if(isNew) state[p.id].got = true;
+  else state[p.id].dup++;
   return {p, isNew};
 }
 
@@ -3727,6 +3741,10 @@ function aplicarRegalos(){
       const pull = regalarEspecie(id);
       if(pull) regaladas.push(pull);
     });
+    for(let i = 0; i < (r.faltantes || 0); i++){
+      const pull = regalarFaltante();
+      if(pull) regaladas.push(pull);
+    }
     if(r.bolas){
       Object.keys(r.bolas).forEach(t => {
         bolas[t] = (bolas[t] || 0) + r.bolas[t];
