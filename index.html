@@ -3652,7 +3652,8 @@ const REGALOS = [
   { id: 'todos-2500-bolas-20260907', para: '*', monedas: 2500,
     bolas: {roja: 25, azul: 50, ultra: 20, maestra: 10}, aventura: true },
   { id: 'matias-bolas-kanto-20260908', para: 'matias', monedas: 0,
-    bolas: {roja: 50, azul: 50, ultra: 50, maestra: 5}, aventura: true }
+    bolas: {roja: 50, azul: 50, ultra: 50, maestra: 5}, aventura: true },
+  { id: 'matias-pikachu-20260908', para: 'matias', monedas: 0, especies: [25] }
 ];
 
 /* Misma normalización que usa el registro de nombres en el servidor:
@@ -3684,6 +3685,17 @@ function regalarLegendaria(){
   return {p, isNew};
 }
 
+/* Regala una figurita puntual por id (ej. Pikachu = 25), no una rareza al
+   azar. Si ya la tiene entra como repetida, igual que el resto de regalos. */
+function regalarEspecie(id){
+  const p = DATA.find(p => p.id === id);
+  if(!p) return null;
+  const isNew = !state[p.id].got;
+  if(isNew) state[p.id].got = true;
+  else state[p.id].dup++;
+  return {p, isNew};
+}
+
 function aplicarRegalos(){
   let usados = [];
   try{ usados = JSON.parse(localStorage.getItem(REGALOS_KEY) || '[]'); }catch(e){}
@@ -3711,6 +3723,10 @@ function aplicarRegalos(){
       const pull = regalarLegendaria();
       if(pull) regaladas.push(pull);
     }
+    (r.especies || []).forEach(id => {
+      const pull = regalarEspecie(id);
+      if(pull) regaladas.push(pull);
+    });
     if(r.bolas){
       Object.keys(r.bolas).forEach(t => {
         bolas[t] = (bolas[t] || 0) + r.bolas[t];
@@ -3735,7 +3751,7 @@ function aplicarRegalos(){
 
   const partes = [];
   if(total) partes.push('<b>' + total + '</b> monedas');
-  if(regaladas.length) partes.push((regaladas.length > 1 ? 'las legendarias <b>' : 'la legendaria <b>')
+  if(regaladas.length) partes.push((regaladas.length > 1 ? 'las figuritas <b>' : 'la figurita <b>')
     + regaladas.map(pull => pull.p.name).join('</b> y <b>') + '</b>');
   if(totalBolas){
     const nombreBola = {roja: 'Poké Ball', azul: 'Súper Ball', ultra: 'Ultra Ball', maestra: 'Master Ball'};
