@@ -2099,17 +2099,31 @@ function dibujarLegendario(ctx, p, ox, oy){
   else pinta(ctx, '#FFD63A', ox + 6, oy + 5, 4, 4);   // mientras carga el sprite
 }
 
+/* Regalo puntual: a Matías le suben las chances de que salgan en la Aventura
+   los Kanto que todavía le faltan, para que termine de completar esa región
+   jugando (en vez de regalárselos directo). El progreso vive en el
+   localStorage de su propio dispositivo, así que esto se decide en tiempo
+   real contra su `state`, no contra uno guardado acá. */
+const BOOST_FALTANTES = { jugador: 'matias', region: 'kanto', factor: 6 };
+
+function conBoostFaltantes(lista){
+  if(claveNombre(jugador) !== BOOST_FALTANTES.jugador) return lista;
+  return lista.map(p => (p.region === BOOST_FALTANTES.region && !state[p.id].got)
+    ? Object.assign({}, p, {weight: p.weight * BOOST_FALTANTES.factor})
+    : p);
+}
+
 function poolBioma(bioma, region){
   const reg = region || advRegion;
   const dePar = ADV_DATA.filter(p => p.region === reg);
   const base = dePar.length ? dePar : ADV_DATA;
   if(bioma === 'legendario'){
     const leg = base.filter(p => p.rarity === 'Legendario');
-    return leg.length ? leg : ADV_DATA.filter(p => p.rarity === 'Legendario');
+    return conBoostFaltantes(leg.length ? leg : ADV_DATA.filter(p => p.rarity === 'Legendario'));
   }
   const tipos = ADV_TIPOS[bioma] || [];
   const pool = base.filter(p => p.rarity !== 'Legendario' && tipos.includes(p.type));
-  return pool.length ? pool : base.filter(p => p.rarity !== 'Legendario');
+  return conBoostFaltantes(pool.length ? pool : base.filter(p => p.rarity !== 'Legendario'));
 }
 
 let advAbierto = false;
@@ -3636,7 +3650,9 @@ const REGALOS = [
     excluir: ['zeta centeno'] },
   { id: 'mostaza-4000-20260907', para: ['mostaza', 'el mostaza'], monedas: 4000 },
   { id: 'todos-2500-bolas-20260907', para: '*', monedas: 2500,
-    bolas: {roja: 25, azul: 50, ultra: 20, maestra: 10}, aventura: true }
+    bolas: {roja: 25, azul: 50, ultra: 20, maestra: 10}, aventura: true },
+  { id: 'matias-bolas-kanto-20260908', para: 'matias', monedas: 0,
+    bolas: {roja: 50, azul: 50, ultra: 50, maestra: 5}, aventura: true }
 ];
 
 /* Misma normalización que usa el registro de nombres en el servidor:
