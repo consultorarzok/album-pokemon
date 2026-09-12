@@ -2181,10 +2181,33 @@ function silueta(ctx, ox, oy, anchos, color, desdeY){
   });
 }
 
-/* Ruido suave: promedia las esquinas del casillero para que los parches de
-   pasto sean manchas grandes y no confeti. */
-function ruidoSuave(x, y, n){
-  return (ruido(Math.floor(x / 3), Math.floor(y / 3), n) * 2 + ruido(x, y, n + 5)) / 3;
+function suaviza(t){ return t * t * (3 - 2 * t); }
+
+/* Ruido de VALOR interpolado entre las 4 esquinas del casillero (x,y),
+   (x+1,y), (x,y+1), (x+1,y+1). Al compartir esquinas con los casilleros
+   vecinos, la mancha de textura sigue de uno a otro SIN costura -es lo que
+   reemplaza a la vieja ruidoSuave(), que promediaba un bloque de 3x3
+   casilleros entero y dejaba parches rectangulares con bordes rectos
+   (se notaba como un tablero de ajedrez gigante en el pasto/la montaña). */
+function ruidoValor(px, py, n){
+  const x0 = Math.floor(px), y0 = Math.floor(py);
+  const fx = suaviza(px - x0), fy = suaviza(py - y0);
+  const v00 = ruido(x0, y0, n),     v10 = ruido(x0 + 1, y0, n);
+  const v01 = ruido(x0, y0 + 1, n), v11 = ruido(x0 + 1, y0 + 1, n);
+  return (v00 + (v10 - v00) * fx) * (1 - fy) + (v01 + (v11 - v01) * fx) * fy;
+}
+
+/* Rellena el casillero (16x16) en bloques de 4x4px, tomando el tono de
+   ruidoValor() en el centro de cada bloque. El resultado son manchas
+   orgánicas de tamaño variable que atraviesan casilleros -el mismo look que
+   antes daba ruidoSuave(), pero sin el corte duro cada 3 casilleros. */
+function textura3(ctx, ox, oy, x, y, n, oscuro, medio, claro){
+  for(let by = 0; by < 16; by += 4){
+    for(let bx = 0; bx < 16; bx += 4){
+      const v = ruidoValor(x + (bx + 2) / 16, y + (by + 2) / 16, n);
+      pinta(ctx, v > .58 ? claro : v < .40 ? oscuro : medio, ox + bx, oy + by, 4, 4);
+    }
+  }
 }
 
 /* La Cueva Secreta es un único mapa/layout (ya probado con BFS), pero se
@@ -2209,8 +2232,7 @@ function temaCueva(){ return TEMA_CUEVA[advRegion] || TEMA_CUEVA.kanto; }
 
 const PINTORES = {
   pasto(ctx, ox, oy, x, y){
-    const v = ruidoSuave(x, y, 1);
-    pinta(ctx, v > .62 ? '#57A93A' : v < .34 ? '#469229' : '#4E9E33', ox, oy, 16, 16);
+    textura3(ctx, ox, oy, x, y, 1, '#469229', '#4E9E33', '#57A93A');
     for(let i = 0; i < 7; i++){
       const rx = ox + Math.floor(ruido(x, y, i) * 15);
       const ry = oy + Math.floor(ruido(x, y, i + 40) * 15);
@@ -2284,7 +2306,12 @@ const PINTORES = {
   },
   agua(ctx, ox, oy, x, y){
     pinta(ctx, '#2C68C8', ox, oy, 16, 16);
-    pinta(ctx, '#2455A6', ox, oy + 9, 16, 4);
+    /* La franja más oscura variaba SIEMPRE a la misma altura (oy+9): en un
+       lago grande se veía como una raya horizontal perfecta cruzando todos
+       los casilleros en línea. Ahora su altura y grosor salen del ruido. */
+    const by = 6 + Math.floor(ruido(x, y, 6) * 6);
+    const bh = 3 + Math.floor(ruido(x, y, 7) * 3);
+    pinta(ctx, '#2455A6', ox, oy + by, 16, bh);
     for(let i = 0; i < 3; i++){
       const rx = ox + Math.floor(ruido(x, y, i + 3) * 10);
       const ry = oy + 2 + Math.floor(ruido(x, y, i + 17) * 11);
@@ -2303,14 +2330,21 @@ const PINTORES = {
     const hoja   = cerezo ? '#D9578A' : '#2F7C2C';
     const claro  = cerezo ? '#F7A8C2' : '#4EAC42';
     const oscuro = cerezo ? '#A63E68' : '#1D5A1C';
+    /* Jitter propio de CADA árbol (según su casillero): sin esto, todos los
+       árboles del mismo tipo eran el mismo dibujo pixel por pixel, y un
+       bosque entero se leía como una fila de "paletas" repetidas. */
+    const jitter = i => Math.floor(ruido(x, y, 110 + i) * 3) - 1;   // -1, 0 o 1
     pinta(ctx, 'rgba(0,0,0,.22)', ox + 3, oy + 13, 10, 2);
-    pinta(ctx, '#6B4A2A', ox + 7, oy + 11, 3, 4);
-    pinta(ctx, '#4E3520', ox + 9, oy + 11, 1, 4);
-    const forma = [6, 10, 12, 14, 14, 14, 12, 10, 6];
+    const tx = 7 + jitter(20);
+    pinta(ctx, '#6B4A2A', ox + tx, oy + 11, 3, 4);
+    pinta(ctx, '#4E3520', ox + tx + 2, oy + 11, 1, 4);
+    const base = [6, 10, 12, 14, 14, 14, 12, 10, 6];
+    const forma = base.map((w, i) => Math.max(4, Math.min(15, w + jitter(i))));
     silueta(ctx, ox, oy, forma.map(w => w + 2), oscuro, 1);   // contorno
     silueta(ctx, ox, oy, forma, hoja, 1);
-    pinta(ctx, claro, ox + 5, oy + 3, 4, 2);
-    pinta(ctx, claro, ox + 4, oy + 5, 2, 2);
+    const hx = 4 + jitter(21), hy = 3 + jitter(22);
+    pinta(ctx, claro, ox + hx, oy + hy, 4, 2);
+    pinta(ctx, claro, ox + hx - 1, oy + hy + 2, 2, 2);
     pinta(ctx, oscuro, ox + 6, oy + 8, 5, 2);
     if(cerezo){ pinta(ctx, '#FFFFFF', ox + 9, oy + 4, 2, 2); pinta(ctx, '#FFFFFF', ox + 6, oy + 7, 1, 1); }
   },
@@ -2319,20 +2353,27 @@ const PINTORES = {
      veía como una fila de lápidas sueltas. */
   montana(ctx, ox, oy, x, y){
     const roca = (cx, cy) => ['^', 'V', 'C'].includes(charEn(cx, cy));
-    const v = ruidoSuave(x, y, 61);
-    pinta(ctx, v > .6 ? '#96948A' : v < .35 ? '#828077' : '#8E8C82', ox, oy, 16, 16);
+    textura3(ctx, ox, oy, x, y, 61, '#828077', '#8E8C82', '#96948A');
     for(let i = 0; i < 6; i++){
       const rx = ox + Math.floor(ruido(x, y, i + 8) * 14);
       const ry = oy + 3 + Math.floor(ruido(x, y, i + 70) * 10);
       pinta(ctx, i % 2 ? '#7C7A72' : '#A9A79B', rx, ry, 3, 1);
     }
     /* Crestas adentro del macizo: una cordillera de 7 casilleros de ancho sin
-       esto quedaba como una plancha gris. */
-    if(ruido(x, y, 62) > .5 && roca(x, y - 1) && roca(x, y + 1)){
-      const cx0 = ox + 2 + Math.floor(ruido(x, y, 63) * 6);
-      for(let i = 0; i < 7; i++){
-        pinta(ctx, '#B9B7AA', cx0 + i, oy + 9 - Math.min(i, 6 - i) * 2, Math.max(1, 3 - i % 2), 1);
-        pinta(ctx, '#6B6960', cx0 + i, oy + 10 - Math.min(i, 6 - i) * 2, 2, 2);
+       esto quedaba como una plancha gris. El perfil de cada cresta (largo,
+       alto y dónde cae el pico) sale del ruido -antes era SIEMPRE el mismo
+       chevrón simétrico, y una sierra entera se leía como el mismo sello
+       estampado una y otra vez. */
+    if(ruido(x, y, 62) > .55 && roca(x, y - 1) && roca(x, y + 1)){
+      const largo = 5 + Math.floor(ruido(x, y, 66) * 4);          // 5..8
+      const cx0 = ox + 1 + Math.floor(ruido(x, y, 63) * (15 - largo));
+      const altoMax = 2 + Math.floor(ruido(x, y, 65) * 3);        // 2..4
+      const pico = Math.floor(ruido(x, y, 67) * largo);
+      const baseY = oy + 8 + Math.floor(ruido(x, y, 68) * 3);
+      for(let i = 0; i < largo; i++){
+        const h = Math.max(0, altoMax - Math.abs(i - pico));
+        pinta(ctx, '#B9B7AA', cx0 + i, baseY - h, Math.max(1, 3 - (i % 2)), 1);
+        if(h > 0) pinta(ctx, '#6B6960', cx0 + i, baseY - h + 1, 2, Math.min(2, h));
       }
     }
     if(!roca(x, y - 1)){ pinta(ctx, '#C3C1B4', ox, oy, 16, 2); pinta(ctx, '#A9A79B', ox, oy + 2, 16, 1); }
@@ -2344,18 +2385,23 @@ const PINTORES = {
      borde sólo del lado sin roca) pero en paleta de hielo. */
   montananevada(ctx, ox, oy, x, y){
     const roca = (cx, cy) => charEn(cx, cy) === 'Z';
-    const v = ruidoSuave(x, y, 61);
-    pinta(ctx, v > .6 ? '#E8EEF4' : v < .35 ? '#C7D3DE' : '#D6E0E8', ox, oy, 16, 16);
+    textura3(ctx, ox, oy, x, y, 61, '#C7D3DE', '#D6E0E8', '#E8EEF4');
     for(let i = 0; i < 6; i++){
       const rx = ox + Math.floor(ruido(x, y, i + 8) * 14);
       const ry = oy + 3 + Math.floor(ruido(x, y, i + 70) * 10);
       pinta(ctx, i % 2 ? '#AEBECB' : '#F5F9FC', rx, ry, 3, 1);
     }
-    if(ruido(x, y, 62) > .5 && roca(x, y - 1) && roca(x, y + 1)){
-      const cx0 = ox + 2 + Math.floor(ruido(x, y, 63) * 6);
-      for(let i = 0; i < 7; i++){
-        pinta(ctx, '#FFFFFF', cx0 + i, oy + 9 - Math.min(i, 6 - i) * 2, Math.max(1, 3 - i % 2), 1);
-        pinta(ctx, '#8FA6B8', cx0 + i, oy + 10 - Math.min(i, 6 - i) * 2, 2, 2);
+    /* Mismo perfil de cresta variable que montana(), en paleta de hielo. */
+    if(ruido(x, y, 62) > .55 && roca(x, y - 1) && roca(x, y + 1)){
+      const largo = 5 + Math.floor(ruido(x, y, 66) * 4);
+      const cx0 = ox + 1 + Math.floor(ruido(x, y, 63) * (15 - largo));
+      const altoMax = 2 + Math.floor(ruido(x, y, 65) * 3);
+      const pico = Math.floor(ruido(x, y, 67) * largo);
+      const baseY = oy + 8 + Math.floor(ruido(x, y, 68) * 3);
+      for(let i = 0; i < largo; i++){
+        const h = Math.max(0, altoMax - Math.abs(i - pico));
+        pinta(ctx, '#FFFFFF', cx0 + i, baseY - h, Math.max(1, 3 - (i % 2)), 1);
+        if(h > 0) pinta(ctx, '#8FA6B8', cx0 + i, baseY - h + 1, 2, Math.min(2, h));
       }
     }
     if(!roca(x, y - 1)){ pinta(ctx, '#FFFFFF', ox, oy, 16, 3); pinta(ctx, '#EDF3F7', ox, oy + 3, 16, 1); }
@@ -2365,8 +2411,7 @@ const PINTORES = {
   },
   /* Pastizal reseco de la Central: amarillo apagado con chispas sueltas. */
   campoElectrico(ctx, ox, oy, x, y){
-    const v = ruidoSuave(x, y, 41);
-    pinta(ctx, v > .62 ? '#C9B44E' : v < .34 ? '#A8933A' : '#B9A344', ox, oy, 16, 16);
+    textura3(ctx, ox, oy, x, y, 41, '#A8933A', '#B9A344', '#C9B44E');
     for(let i = 0; i < 6; i++){
       const rx = ox + Math.floor(ruido(x, y, i + 3) * 15);
       const ry = oy + Math.floor(ruido(x, y, i + 50) * 15);
@@ -2379,11 +2424,16 @@ const PINTORES = {
       pinta(ctx, '#FFE04D', cx + 1, cy + 2, 2, 2);
       pinta(ctx, '#FFF07A', cx, cy + 4, 2, 2);
     }
+    if(ruido(x, y, 47) > .88){                  // grieta seca con una chispa adentro
+      const gx = ox + 2 + Math.floor(ruido(x, y, 48) * 10);
+      const gy = oy + 6 + Math.floor(ruido(x, y, 49) * 6);
+      pinta(ctx, '#6B5B1E', gx, gy, 4, 1);
+      pinta(ctx, '#FFE04D', gx + 1, gy, 1, 1);
+    }
   },
-  /* Ruinas: losas viejas con juntas y alguna runa tallada. */
+  /* Ruinas: losas viejas con juntas, alguna grieta y una runa tallada. */
   ruinas(ctx, ox, oy, x, y){
-    const v = ruidoSuave(x, y, 43);
-    pinta(ctx, v > .6 ? '#A2977F' : v < .35 ? '#8A8070' : '#968B77', ox, oy, 16, 16);
+    textura3(ctx, ox, oy, x, y, 43, '#8A8070', '#968B77', '#A2977F');
     pinta(ctx, '#7A7263', ox, oy, 16, 1);
     pinta(ctx, '#7A7263', ox, oy, 1, 16);
     for(let i = 0; i < 4; i++){
@@ -2391,18 +2441,38 @@ const PINTORES = {
       const ry = oy + 2 + Math.floor(ruido(x, y, i + 55) * 11);
       pinta(ctx, i % 2 ? '#B3A98F' : '#7F7768', rx, ry, 3, 1);
     }
-    if(ruido(x, y, 48) > .74){                  // runa
+    if(ruido(x, y, 78) > .62){                  // grieta serpenteante, como la lava del volcán
+      let gx = ox + 3 + Math.floor(ruido(x, y, 79) * 10);
+      let gy = oy + 2 + Math.floor(ruido(x, y, 80) * 3);
+      const largo = 4 + Math.floor(ruido(x, y, 81) * 6);
+      for(let i = 0; i < largo; i++){
+        pinta(ctx, '#6B6255', gx, gy + i, 1, 1);
+        if(ruido(x, y, 82 + i) > .55) gx += ruido(x, y, 83 + i) > .5 ? 1 : -1;
+      }
+    }
+    /* 3 runas distintas en vez de una sola repetida: si no, toda la ruina se
+       lee como el mismo sello tallado infinitas veces. */
+    if(ruido(x, y, 48) > .78){
       const cx = ox + 5 + Math.floor(ruido(x, y, 49) * 5);
-      const cy = oy + 5 + Math.floor(ruido(x, y, 51) * 5);
-      pinta(ctx, '#5E5749', cx, cy, 5, 1);
-      pinta(ctx, '#5E5749', cx + 2, cy + 1, 1, 4);
-      pinta(ctx, '#8FA6C8', cx + 2, cy + 2, 1, 1);
+      const cy = oy + 5 + Math.floor(ruido(x, y, 51) * 4);
+      const variante = Math.floor(ruido(x, y, 50) * 3);
+      if(variante === 0){
+        pinta(ctx, '#5E5749', cx, cy, 5, 1);
+        pinta(ctx, '#5E5749', cx + 2, cy + 1, 1, 4);
+      } else if(variante === 1){
+        pinta(ctx, '#5E5749', cx + 1, cy, 1, 5);
+        pinta(ctx, '#5E5749', cx, cy + 2, 3, 1);
+      } else {
+        pinta(ctx, '#5E5749', cx + 1, cy, 1, 1);
+        pinta(ctx, '#5E5749', cx, cy + 1, 3, 1);
+        pinta(ctx, '#5E5749', cx + 1, cy + 2, 1, 1);
+      }
+      pinta(ctx, '#8FA6C8', cx + 1, cy + 1, 1, 1);
     }
   },
   /* Ciénaga: barro verdoso con burbujas y juncos. */
   cienaga(ctx, ox, oy, x, y){
-    const v = ruidoSuave(x, y, 45);
-    pinta(ctx, v > .62 ? '#4E5F3A' : v < .34 ? '#3A4A2C' : '#455633', ox, oy, 16, 16);
+    textura3(ctx, ox, oy, x, y, 45, '#3A4A2C', '#455633', '#4E5F3A');
     for(let i = 0; i < 5; i++){
       const rx = ox + Math.floor(ruido(x, y, i + 15) * 14);
       const ry = oy + Math.floor(ruido(x, y, i + 65) * 14);
@@ -2418,6 +2488,12 @@ const PINTORES = {
       const jx = ox + 2 + Math.floor(ruido(x, y, 57) * 11);
       pinta(ctx, '#6F8A46', jx, oy + 6, 1, 7);
       pinta(ctx, '#8AA75C', jx + 2, oy + 8, 1, 5);
+    }
+    if(ruido(x, y, 58) > .9){                   // hoja de nenúfar, suelta
+      const lx = ox + 3 + Math.floor(ruido(x, y, 59) * 9);
+      const ly = oy + 3 + Math.floor(ruido(x, y, 60) * 9);
+      pinta(ctx, '#4C6E38', lx, ly, 4, 3);
+      pinta(ctx, '#6F8A46', lx + 1, ly, 2, 1);
     }
   },
   /* El casillero con un objeto tirado (pokébola o moneda) se pinta con el
@@ -2436,8 +2512,7 @@ const PINTORES = {
     (PINTORES[cual] || porDefecto)(ctx, ox, oy, x, y);
   },
   nieve(ctx, ox, oy, x, y){
-    const v = ruidoSuave(x, y, 1);
-    pinta(ctx, v > .62 ? '#EAF3F8' : v < .34 ? '#D3E3EC' : '#E0EDF4', ox, oy, 16, 16);
+    textura3(ctx, ox, oy, x, y, 1, '#D3E3EC', '#E0EDF4', '#EAF3F8');
     for(let i = 0; i < 7; i++){
       const rx = ox + Math.floor(ruido(x, y, i) * 15);
       const ry = oy + Math.floor(ruido(x, y, i + 40) * 15);
@@ -2451,17 +2526,25 @@ const PINTORES = {
     }
     if(ruido(x, y, 47) > .93) pinta(ctx, '#B8D6E8', ox + 6, oy + 9, 2, 2);   // cristal de hielo
   },
-  pared(ctx, ox, oy){
+  pared(ctx, ox, oy, x, y){
     const t = temaCueva();
-    pinta(ctx, t.pared, ox, oy, 16, 16);
-    pinta(ctx, t.paredClaro, ox + 1, oy + 1, 6, 5);
-    pinta(ctx, t.paredClaro, ox + 9, oy + 8, 6, 5);
+    textura3(ctx, ox, oy, x, y, 97, t.paredOscuro, t.pared, t.paredClaro);
+    /* Facetas de roca más claras en posición VARIABLE: antes salían siempre
+       en la misma esquina de cada casillero, y una pared entera se leía como
+       un enrejado de ladrillos idénticos. */
+    const fx = 1 + Math.floor(ruido(x, y, 98) * 8);
+    const fy = 1 + Math.floor(ruido(x, y, 99) * 6);
+    pinta(ctx, t.paredClaro, ox + fx, oy + fy, 5, 4);
+    if(ruido(x, y, 100) > .5){
+      const gx = 1 + Math.floor(ruido(x, y, 101) * 9);
+      const gy = 8 + Math.floor(ruido(x, y, 102) * 5);
+      pinta(ctx, t.paredClaro, ox + gx, oy + gy, 4, 3);
+    }
     pinta(ctx, t.paredOscuro, ox, oy + 14, 16, 2);
   },
   volcan(ctx, ox, oy, x, y){
     const roca = (cx, cy) => ['V', '^'].includes(charEn(cx, cy));
-    const v = ruidoSuave(x, y, 17);
-    pinta(ctx, v > .6 ? '#54301F' : '#452719', ox, oy, 16, 16);
+    textura3(ctx, ox, oy, x, y, 17, '#452719', '#4C3620', '#54301F');
     for(let i = 0; i < 6; i++){                 // piedra quemada
       const rx = ox + Math.floor(ruido(x, y, i + 12) * 13);
       const ry = oy + 1 + Math.floor(ruido(x, y, i + 80) * 13);
@@ -2488,8 +2571,7 @@ const PINTORES = {
     if(!roca(x + 1, y)) pinta(ctx, '#331B12', ox + 15, oy, 1, 16);
   },
   ceniza(ctx, ox, oy, x, y){
-    const v = ruidoSuave(x, y, 23);
-    pinta(ctx, v > .62 ? '#7C4526' : v < .35 ? '#63361D' : '#6F3E21', ox, oy, 16, 16);
+    textura3(ctx, ox, oy, x, y, 23, '#63361D', '#6F3E21', '#7C4526');
     for(let i = 0; i < 4; i++){                 // ceniza volada
       const rx = ox + Math.floor(ruido(x, y, i + 5) * 13);
       const ry = oy + Math.floor(ruido(x, y, i + 30) * 14);
@@ -2516,22 +2598,30 @@ const PINTORES = {
   },
   pisoCueva(ctx, ox, oy, x, y){
     const t = temaCueva();
-    pinta(ctx, t.piso, ox, oy, 16, 16);
+    textura3(ctx, ox, oy, x, y, 103, t.pisoOscuro, t.piso, t.pisoClaro);
     for(let i = 0; i < 5; i++){
       const rx = ox + Math.floor(ruido(x, y, i + 2) * 15);
       const ry = oy + Math.floor(ruido(x, y, i + 60) * 15);
       pinta(ctx, i % 2 ? t.pisoOscuro : t.pisoClaro, rx, ry, 2, 1);
     }
   },
+  /* Piedras sueltas con silueta redondeada (angosta arriba/abajo, ancha al
+     medio) y sombra de contacto -antes eran rectángulos lisos con una franja
+     clara y otra oscura fijas, que a este tamaño se leían como triangulitos
+     flotando en vez de rocas apoyadas en el piso. */
   escombros(ctx, ox, oy, x, y){
     PINTORES.pisoCueva(ctx, ox, oy, x, y);
     const t = temaCueva();
-    for(let i = 0; i < 3; i++){
+    const n = 2 + Math.floor(ruido(x, y, 96) * 2);
+    for(let i = 0; i < n; i++){
       const rx = ox + 1 + Math.floor(ruido(x, y, i + 13) * 10);
-      const ry = oy + 3 + Math.floor(ruido(x, y, i + 44) * 9);
-      pinta(ctx, t.escombro, rx, ry, 4, 3);
-      pinta(ctx, t.escombroClaro, rx, ry, 3, 1);
-      pinta(ctx, t.escombroOscuro, rx, ry + 3, 4, 1);
+      const ry = oy + 2 + Math.floor(ruido(x, y, i + 44) * 10);
+      const w = 3 + Math.floor(ruido(x, y, i + 66) * 3);
+      pinta(ctx, 'rgba(0,0,0,.25)', rx, ry + w, w + 1, 1);
+      pinta(ctx, t.escombroOscuro, rx + 1, ry, w - 1, 1);
+      pinta(ctx, t.escombro, rx, ry + 1, w + 1, Math.max(1, w - 2));
+      pinta(ctx, t.escombroClaro, rx, ry + 1, Math.ceil((w + 1) / 2), 1);
+      pinta(ctx, t.escombroOscuro, rx + 1, ry + w - 1, w - 1, 1);
     }
   },
   /* Relleno de base del tile del altar: la plataforma de verdad (mucho más
@@ -2547,11 +2637,11 @@ const PINTORES = {
     pinta(ctx, '#EBDCB4', ox + 6, oy, 4, 6);
   },
   arena(ctx, ox, oy, x, y){
-    pinta(ctx, '#E8D9A8', ox, oy, 16, 16);
-    for(let i = 0; i < 6; i++){
-      const rx = ox + Math.floor(ruido(x, y, i + 21) * 15);
-      const ry = oy + Math.floor(ruido(x, y, i + 63) * 15);
-      pinta(ctx, i % 2 ? '#D3C08A' : '#F5EAC4', rx, ry, 2, 1);
+    textura3(ctx, ox, oy, x, y, 21, '#D3C08A', '#E8D9A8', '#F5EAC4');
+    for(let i = 0; i < 4; i++){
+      const rx = ox + Math.floor(ruido(x, y, i + 63) * 15);
+      const ry = oy + Math.floor(ruido(x, y, i + 72) * 15);
+      pinta(ctx, i % 2 ? '#B39B63' : '#FFF6DE', rx, ry, 2, 1);
     }
   },
   puente(ctx, ox, oy, x, y){
