@@ -33,14 +33,14 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
       region: advRegion, x: advX, y: advY
     };
   });
-  check(`mundo gigante de ${mundo.cols}x${mundo.filas} = ${mundo.cols * mundo.filas} casilleros`, mundo.cols === 160 && mundo.filas === 84);
+  check(`mundo gigante de ${mundo.cols}x${mundo.filas} = ${mundo.cols * mundo.filas} casilleros`, mundo.cols === 322 && mundo.filas === 84);
   check('el juego ocupa toda la pantalla', mundo.anchoOk);
-  check('fondo pre-dibujado 2560x1344 px', mundo.fondo === '2560x1344');
-  check('hay un Centro Pokémon por región', mundo.centros === 3);
-  check('hay una cueva por región', mundo.cuevas === 3);
+  check('fondo pre-dibujado 5152x1344 px', mundo.fondo === '5152x1344');
+  check('hay un Centro Pokémon por región', mundo.centros === 6);
+  check('hay una cueva por región', mundo.cuevas === 6);
   check('arranca en Kanto', mundo.region === 'kanto');
 
-  console.log('\n— Las 3 regiones —');
+  console.log('\n— Las 6 regiones —');
   const regs = await page.evaluate(() => ({
     /* Se muestrea el centro de cada franja a partir de FRONTERAS, así el test
        no se rompe cada vez que cambia el ancho del mapa. */
@@ -52,15 +52,21 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
     kanto: [...new Set(poolBioma('hierba', 'kanto').map(p => p.region))],
     johto: [...new Set(poolBioma('agua', 'johto').map(p => p.region))],
     hoenn: [...new Set(poolBioma('volcan', 'hoenn').map(p => p.region))],
+    sinnoh: [...new Set(poolBioma('psiquico', 'sinnoh').map(p => p.region))],
+    unova: [...new Set(poolBioma('electrico', 'unova').map(p => p.region))],
+    kalos: [...new Set(poolBioma('hierba', 'kalos').map(p => p.region))],
     legKanto: poolBioma('legendario', 'kanto').map(p => p.name).slice(0, 3),
     zonas: ADV_MAPS.overworld.zonas.length
   }));
-  check('el mapa se divide en kanto/johto/hoenn', regs.limites.join(',') === 'kanto,johto,hoenn');
+  check('el mapa se divide en las 6 regiones en orden', regs.limites.join(',') === 'kanto,johto,hoenn,sinnoh,unova,kalos');
   check('en Kanto sólo salen Pokémon de Kanto', regs.kanto.join() === 'kanto');
   check('en Johto sólo salen Pokémon de Johto', regs.johto.join() === 'johto');
   check('en Hoenn sólo salen Pokémon de Hoenn', regs.hoenn.join() === 'hoenn');
+  check('en Sinnoh sólo salen Pokémon de Sinnoh', regs.sinnoh.join() === 'sinnoh');
+  check('en Teselia sólo salen Pokémon de Teselia', regs.unova.join() === 'unova');
+  check('en Kalos sólo salen Pokémon de Kalos', regs.kalos.join() === 'kalos');
   check('los legendarios también son de la región (' + regs.legKanto.join(', ') + ')', regs.legKanto.length > 0);
-  check('hay zonas con nombre (' + regs.zonas + ')', regs.zonas >= 10);
+  check('hay zonas con nombre (' + regs.zonas + ')', regs.zonas >= 30);
 
   console.log('\n— Movimiento fluido —');
   const antes = await page.evaluate(() => ({px: advPx, py: advPy}));
@@ -299,7 +305,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
     };
     const alcanza = lista => lista.filter(p => vistos.has(clave(p.x, p.y))).length;
     const porRegion = {};
-    ['kanto','johto','hoenn'].forEach(r => {
+    ADV_REGIONES.forEach(r => {
       porRegion[r] = {hierba:0, orilla:0};
       vistos.forEach(k => {
         const [x, y] = k.split(',').map(Number);
@@ -316,8 +322,8 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
       porRegion, total: vistos.size
     };
   });
-  check('se llega a los 3 Centros (' + alcance.centros + ')', alcance.centros === '3/3');
-  check('se llega a las 3 cuevas (' + alcance.cuevas + ')', alcance.cuevas === '3/3');
+  check('se llega a los 6 Centros (' + alcance.centros + ')', alcance.centros === '6/6');
+  check('se llega a las 6 cuevas (' + alcance.cuevas + ')', alcance.cuevas === '6/6');
   const [bolasOk, bolasTot] = alcance.bolas.split('/');
   check('se llega a todas las pokébolas del piso (' + alcance.bolas + ')', bolasOk === bolasTot && +bolasTot > 0);
   const monedas = await page.evaluate(() => {
@@ -354,7 +360,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   check('levantar una moneda suma', objetosUnaVez.subio);
   check('los objetos del piso son de una sola vez (sobreviven a recargar)',
     objetosUnaVez.tomadosTrasRecargar === objetosUnaVez.tomadosAntes && objetosUnaVez.tomadosAntes > 0);
-  ['kanto','johto','hoenn'].forEach(r => {
+  ['kanto','johto','hoenn','sinnoh','unova','kalos'].forEach(r => {
     const z = alcance.porRegion[r];
     check(`en ${r} hay hierba (${z.hierba}) y orilla (${z.orilla}) accesibles`, z.hierba > 20 && z.orilla > 5);
   });
@@ -392,7 +398,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   });
   check('caminando se llega a Johto y a Hoenn', cruce.johtoNormal && cruce.hoennNormal);
   check('sin el puente Johto es inalcanzable: el río separa de verdad', !cruce.johtoSinPuente);
-  check('el paso tiene arcos y carteles (' + cruce.toriis + ' torii, ' + cruce.carteles + ' carteles)', cruce.toriis >= 4 && cruce.carteles >= 5);
+  check('el paso tiene arcos y carteles (' + cruce.toriis + ' torii, ' + cruce.carteles + ' carteles)', cruce.toriis >= 10 && cruce.carteles >= 11);
 
   const cartel = await page.evaluate(async (pasoY) => {
     /* Los encuentros se apagan un momento: si salta uno al cruzar, su mensaje
@@ -417,7 +423,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
 
   console.log('\n— Legendarios: cada altar el suyo, uno por día —');
   const altares = await page.evaluate(() => Object.entries(ADV_MAPS.overworld.santuarios).map(([k, s]) => ({k, n:s.n, pokes:s.pokes})));
-  check(`${altares.length} altares repartidos por el mundo`, altares.length >= 6);
+  check(`${altares.length} altares repartidos por el mundo`, altares.length >= 20);
   /* Zeta fue explícito: ningún par de altares pegados. El generador lo valida
      al armar el mapa; acá se vuelve a chequear sobre lo que quedó publicado. */
   const distAltares = await page.evaluate(() => {
@@ -429,7 +435,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
     }
     return {min: Math.round(min), par};
   });
-  check(`ningún altar pegado a otro (el más cerca, a ${distAltares.min})`, distAltares.min >= 25);
+  check(`ningún altar pegado a otro (el más cerca, a ${distAltares.min})`, distAltares.min >= 22);
   check('un solo altar en la cueva', await page.evaluate(() =>
     ADV_MAPS.cueva.rows.join('').split('').filter(c => c === 'L').length === 1));
   check('cada altar tiene sus propios legendarios', new Set(altares.flatMap(a => a.pokes)).size === altares.flatMap(a => a.pokes).length);
@@ -445,7 +451,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
     let salio = null;
     const original = mostrarLegendarioEnMapa;
     window.mostrarLegendarioEnMapa = p => { salio = p.name; };
-    const sacar = () => { salio = null; tirarAltar(x, y); return salio; };
+    const sacar = () => { salio = null; tirarAltar(alt, x, y); return salio; };
     const primero = sacar();
     /* El altar tiene varios legendarios: se vacía sacándolos a todos, y recién
        ahí tiene que quedarse en silencio. */
@@ -467,7 +473,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
     let salio = null;
     const original = mostrarLegendarioEnMapa;
     window.mostrarLegendarioEnMapa = p => { salio = p.name; };
-    tirarAltar(x, y);
+    tirarAltar(alt, x, y);
     window.mostrarLegendarioEnMapa = original;
     return salio;
   }, altares[3]);

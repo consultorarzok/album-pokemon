@@ -16,13 +16,17 @@ import json
 import math
 from collections import deque
 
-W, H = 160, 84
-DIST_MIN = 30                     # separación mínima entre altares
+W, H = 322, 84
+DIST_MIN = 22                      # separación mínima entre altares (bajó de 30: con 6 regiones y 24 altares no entraba)
 g = [[',' for _ in range(W)] for _ in range(H)]
 
-# fronteras (columnas): Kanto | río | Johto | cordillera | Hoenn
+# fronteras (columnas): Kanto | río | Johto | cordillera | Hoenn | estrecho |
+#                       Sinnoh | desfiladero2 | Teselia | río3 | Kalos
 RIO    = (51, 57)
 CORD   = (105, 111)
+RIO2   = (159, 165)                # Hoenn -> Sinnoh (el mar de Hoenn sigue como estrecho)
+CORD2  = (213, 219)                # Sinnoh -> Teselia
+RIO3   = (267, 273)                # Teselia -> Kalos
 PASO_Y = 42                       # única fila por la que se cruza cada frontera
 
 
@@ -132,28 +136,101 @@ camino([(120, 46), (126, 46)])
 camino([(125, 42), (125, 64)])                     # bajada al volcán
 camino([(120, 16), (116, 16)])                     # ramal a las ruinas
 camino([(133, 66), (139, 66), (139, 70)])          # ramal a la cumbre helada
+camino([(120, 42), (158, 42)])                     # muelle: cruza la bahía hasta el estrecho con Sinnoh
+
+# ============================ SINNOH (x 166..212) ============================
+mancha(189, 20, 13, 8, '"', 50)                    # estepa alta
+mancha(178, 45, 6, 5, 'u', 51)                     # Ruinas Solaceon (psíquico)
+mancha(172, 35, 9, 7, '~', 52)                     # Lago Verity
+mancha(170, 55, 11, 10, '#', 53)                   # Bosque Eterna
+mancha(170, 55, 7, 7, '"', 54)
+mancha(200, 30, 7, 6, 'e', 55)                     # ruta de la usina
+mancha(195, 62, 9, 6, 'm', 56)                     # Gran Pantano (canon de Sinnoh)
+mancha(205, 72, 7, 5, 'F', 57)                     # Monte Corona (Heatran)
+mancha(205, 72, 3, 2, 'V', 58)
+R(180, 66, 205, 78, 'Z')                           # cordillera nevada del sur
+mancha(184, 73, 10, 5, 'N', 59)
+R(178, 3, 190, 10, '.')                            # Ciudad Cristal
+centro_pokemon(182, 7)
+camino([(184, 10), (184, 42), (159, 42)])          # ruta principal al estrecho con Hoenn
+camino([(184, 42), (213, 42)])                     # ruta al desfiladero con Teselia
+camino([(184, 22), (178, 22), (178, 45)])          # ramal a las ruinas
+camino([(184, 35), (172, 35)])                     # ramal al lago
+camino([(184, 55), (177, 55)])                     # entrada al bosque
+camino([(184, 62), (195, 62)])                     # ramal al pantano
+camino([(200, 42), (200, 30)])                     # ramal a la usina
+camino([(184, 66), (205, 66), (205, 71)])          # ramal al Monte Corona
+
+# ============================ TESELIA (x 220..266) ============================
+mancha(243, 20, 13, 8, '"', 60)                    # ruta de pastizales
+mancha(228, 40, 9, 7, 'u', 61)                     # Castillo Reliquia (psíquico)
+mancha(230, 55, 9, 6, '~', 62)                     # Lago Guerrero (Keldeo)
+mancha(255, 30, 7, 6, 'e', 63)                      # Llanura de las Tormentas
+mancha(250, 60, 9, 6, 'm', 64)                     # Puente Maravilla / pantano
+mancha(258, 70, 7, 5, 'F', 65)                     # Torre Dragospiral (dragón)
+mancha(258, 70, 3, 2, 'V', 66)
+R(222, 66, 244, 78, 'Z')                           # Caos Gigante (hielo)
+mancha(228, 73, 9, 5, 'N', 67)
+R(232, 3, 244, 10, '.')                            # Ciudad Arcilla
+centro_pokemon(236, 7)
+camino([(238, 10), (238, 42), (213, 42)])          # ruta principal al desfiladero con Sinnoh
+camino([(238, 42), (267, 42)])                     # ruta al puente con Kalos
+camino([(238, 22), (228, 22), (228, 40)])          # ramal al Castillo Reliquia
+camino([(238, 30), (255, 30)])                     # ramal a la Llanura de las Tormentas
+camino([(238, 55), (230, 55)])                     # ramal al lago
+camino([(238, 60), (250, 60)])                     # ramal al pantano
+camino([(238, 66), (258, 66), (258, 69)])          # ramal a la Torre Dragospiral
+camino([(238, 66), (228, 66), (228, 72)])          # bajada al Caos Gigante (atraviesa la montaña nevada)
+
+# ============================ KALOS (x 274..320) ============================
+mancha(283, 16, 13, 9, '#', 70)                    # Bosque de la Vida (Xerneas)
+mancha(283, 16, 11, 7, '"', 71)
+mancha(283, 42, 7, 6, 'u', 72)                     # Reino Espectral (Hoopa)
+mancha(300, 50, 8, 6, '~', 73)                     # lago
+mancha(295, 62, 6, 5, 'e', 74)                     # central eléctrica
+mancha(313, 40, 6, 5, 'm', 75)                     # ciénaga
+mancha(305, 68, 8, 5, 'F', 76)                     # Tierra Ígnea (Zygarde/Diancie/Volcanion)
+mancha(305, 68, 4, 3, 'V', 77)
+mancha(310, 25, 8, 5, 'N', 78)                     # cumbre nevada
+R(302, 20, 316, 32, 'Z')
+R(286, 3, 298, 10, '.')                            # Ciudad Luminalia
+centro_pokemon(290, 7)
+camino([(292, 10), (292, 42), (267, 42)])          # ruta principal al puente con Teselia
+camino([(292, 22), (287, 22)])                     # ramal al Bosque de la Vida
+camino([(292, 30), (292, 42)])
+camino([(292, 42), (283, 42)])                     # ramal al Reino Espectral
+camino([(292, 50), (300, 50)])                     # ramal al lago
+camino([(292, 62), (295, 62)])                     # ramal a la central
+camino([(292, 68), (305, 68)])                     # ramal a la Tierra Ígnea
+camino([(295, 30), (310, 30), (310, 26)])          # ramal a la cumbre nevada
 
 # ============================ FRONTERAS ============================
-R(RIO[0], 1, RIO[1], H - 2, '~')
-R(RIO[0] - 1, 1, RIO[0] - 1, H - 2, 'a')
-R(RIO[1] + 1, 1, RIO[1] + 1, H - 2, 'a')
-R(RIO[0], PASO_Y, RIO[1], PASO_Y + 1, 'B')         # el puente
-R(CORD[0], 1, CORD[1], H - 2, '^')
-R(CORD[0], PASO_Y, CORD[1], PASO_Y + 1, '.')       # el desfiladero
+# Alternan puente/desfiladero: río, cordillera, estrecho, desfiladero2, río3.
+RIOS  = [RIO, RIO2, RIO3]
+CORDS = [CORD, CORD2]
+for rio in RIOS:
+    R(rio[0], 1, rio[1], H - 2, '~')
+    R(rio[0] - 1, 1, rio[0] - 1, H - 2, 'a')
+    R(rio[1] + 1, 1, rio[1] + 1, H - 2, 'a')
+    R(rio[0], PASO_Y, rio[1], PASO_Y + 1, 'B')          # el puente
+for cord in CORDS:
+    R(cord[0], 1, cord[1], H - 2, '^')
+    R(cord[0], PASO_Y, cord[1], PASO_Y + 1, '.')        # el desfiladero
 
-g[PASO_Y - 1][RIO[0] - 2] = 'T'; g[PASO_Y + 2][RIO[0] - 2] = 'i'
-g[PASO_Y - 1][RIO[1] + 2] = 'T'; g[PASO_Y + 2][RIO[1] + 2] = 'i'
-g[PASO_Y - 1][CORD[0] - 2] = 'T'; g[PASO_Y + 2][CORD[0] - 2] = 'i'
-g[PASO_Y - 1][CORD[1] + 2] = 'T'; g[PASO_Y + 2][CORD[1] + 2] = 'i'
+for cruce in RIOS + CORDS:
+    g[PASO_Y - 1][cruce[0] - 2] = 'T'; g[PASO_Y + 2][cruce[0] - 2] = 'i'
+    g[PASO_Y - 1][cruce[1] + 2] = 'T'; g[PASO_Y + 2][cruce[1] + 2] = 'i'
 
 # ============================ CUEVAS Y ALTARES ============================
-CENTROS = [(6, 7), (65, 7), (117, 7)]              # la puerta 'P' de cada Centro
-CUEVAS  = [(16, 67), (97, 61), (134, 51)]
+CENTROS = [(6, 7), (65, 7), (117, 7), (182, 7), (236, 7), (290, 7)]     # la puerta 'P' de cada Centro
+CUEVAS  = [(16, 67), (97, 61), (134, 51), (183, 68), (225, 68), (305, 22)]
 
 # Cada altar va en el bioma de SUS legendarios (Moltres en el volcán, Zapdos en
 # el campo eléctrico, Articuno en la nieve...). Las coordenadas NO se eligen a
 # mano: colocar_altares() las busca respetando bioma, distancia mínima y que
-# haya tierra alrededor para la losa.
+# haya tierra alrededor para la losa. Los legendarios "de cueva" (tipo dark o
+# fighting: no tienen bioma propio a cielo abierto) van directo en
+# ADV_MAPS.cueva.santuariosPorRegion en index.html, no acá.
 PEDIDOS = [
     # región, bioma, nombre, legendarios, zona preferida (centro temático)
     ('kanto', 'N',  'Cima Nevada',        ['Articuno'],                        (14, 73)),
@@ -166,6 +243,20 @@ PEDIDOS = [
     ('hoenn', 'F',  'Falda del Volcán',   ['Groudon'],                         (125, 66)),
     ('hoenn', 'u',  'Ruinas del Cielo',   ['Latios', 'Latias', 'Rayquaza'],    (116, 16)),
     ('hoenn', ',"', 'Mirador del Mar',    ['Kyogre'],                          (146, 28)),
+    ('sinnoh', 'u', 'Ruinas Solaceon',    ['Uxie', 'Mesprit', 'Azelf'],        (178, 45)),
+    ('sinnoh', 'F', 'Monte Corona',       ['Heatran'],                        (205, 72)),
+    ('sinnoh', 'N', 'Cueva de la Luna',   ['Cresselia'],                      (184, 73)),
+    ('sinnoh', ',"a', 'Lago Verity',      ['Manaphy'],                        (172, 35)),
+    ('sinnoh', '"', 'Bosque Eterna',      ['Shaymin'],                        (170, 55)),
+    ('unova', 'u',  'Castillo Reliquia',  ['Victini'],                        (228, 40)),
+    ('unova', ',"a', 'Cascada del Guerrero', ['Keldeo'],                      (230, 55)),
+    ('unova', 'e',  'Llanura de las Tormentas', ['Tornadus', 'Thundurus', 'Landorus'], (255, 30)),
+    ('unova', 'F',  'Torre Dragospiral', ['Reshiram', 'Zekrom', 'Kyurem'],    (258, 70)),
+    ('unova', 'N',  'Cueva Sellada',      ['Cobalion', 'Terrakion', 'Virizion'], (228, 73)),
+    ('unova', '"',  'Escenario Melódico', ['Meloetta'],                       (243, 20)),
+    ('kalos', '"',  'Bosque de la Vida',  ['Xerneas'],                        (280, 20)),
+    ('kalos', 'u',  'Reino Espectral',    ['Hoopa'],                          (283, 42)),
+    ('kalos', 'F',  'Tierra Ígnea',       ['Zygarde', 'Diancie', 'Volcanion'], (305, 68)),
 ]
 
 for (x, y) in CUEVAS:
@@ -187,11 +278,17 @@ g[4][4] = '@'
 
 BOLAS = [(20, 14), (34, 24), (13, 40), (45, 34), (26, 62), (40, 12),
          (70, 14), (84, 26), (63, 46), (95, 50), (74, 66), (100, 30),
-         (124, 16), (131, 28), (119, 50), (143, 24), (127, 58), (137, 40)]
-# monedas sueltas por el piso, repartidas por las tres regiones
+         (124, 16), (131, 28), (119, 50), (143, 24), (127, 58), (137, 40),
+         (172, 20), (189, 30), (178, 50), (200, 35), (184, 60), (205, 68),
+         (243, 15), (228, 35), (255, 25), (238, 50), (250, 65), (232, 68),
+         (287, 15), (295, 30), (283, 48), (305, 55), (310, 28), (313, 42)]
+# monedas sueltas por el piso, repartidas por las seis regiones
 MONEDAS = [(16, 8), (28, 20), (12, 30), (36, 44), (21, 55), (46, 34), (33, 68), (8, 46),
            (66, 8), (80, 18), (72, 34), (90, 44), (62, 58), (97, 28), (78, 74), (101, 66),
-           (122, 10), (130, 22), (117, 38), (140, 30), (126, 52), (144, 62), (134, 76), (114, 60)]
+           (122, 10), (130, 22), (117, 38), (140, 30), (126, 52), (144, 62), (134, 76), (114, 60),
+           (178, 10), (189, 25), (172, 40),
+           (236, 10), (243, 25), (228, 45),
+           (290, 10), (287, 25), (295, 45)]
 for (x, y) in BOLAS:
     if g[y][x] in ',*"a.emuNF':
         g[y][x] = 'b'
@@ -243,8 +340,17 @@ def mudar(puntos, ch, libres=',*"aF.emuN'):
     return movidos
 
 
+REGIONES = ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos']
+# columna a partir de la cual empieza cada frontera (la región de la izquierda
+# termina ahí); la última región no tiene techo.
+CORTES = [RIO[0], CORD[0], RIO2[0], CORD2[0], RIO3[0], W]
+
+
 def region(x):
-    return 'kanto' if x < RIO[0] else 'johto' if x < CORD[0] else 'hoenn'
+    for corte, nombre in zip(CORTES, REGIONES):
+        if x < corte:
+            return nombre
+    return REGIONES[-1]
 
 
 # ---- ubicación de los altares (bioma + distancia + tierra alrededor) ----
@@ -353,24 +459,24 @@ for (x, y), n, _ in ALTARES:
 # 4. biomas por región
 BIOMAS = {'hierba': '"', 'orilla': 'a', 'nieve': 'N', 'electrico': 'e',
           'psiquico': 'u', 'cienaga': 'm', 'ceniza': 'F'}
-print('  bioma      ' + ''.join(f'{r:>9}' for r in ('kanto', 'johto', 'hoenn')))
+print('  bioma      ' + ''.join(f'{r:>9}' for r in REGIONES))
 for nombre, ch in BIOMAS.items():
     fila = []
-    for r in ('kanto', 'johto', 'hoenn'):
+    for r in REGIONES:
         n = sum(1 for (x, y) in vis if region(x) == r and g[y][x] == ch)
         fila.append(n)
         if n == 0:
             problemas.append(f'bioma {nombre} sin casilleros accesibles en {r}')
     print(f'  {nombre:10}' + ''.join(f'{n:>9}' for n in fila))
 
-# 5. cruce único
-puente = {(x, y) for y in (PASO_Y, PASO_Y + 1) for x in range(RIO[0], RIO[1] + 1)}
-paso = {(x, y) for y in (PASO_Y, PASO_Y + 1) for x in range(CORD[0], CORD[1] + 1)}
-if any(region(x) == 'johto' for (x, y) in bfs(bloquear=puente)):
-    problemas.append('se llega a Johto sin el puente')
-if any(region(x) == 'hoenn' for (x, y) in bfs(bloquear=paso)):
-    problemas.append('se llega a Hoenn sin el desfiladero')
-print('  cruce único: puente y desfiladero OK' if not problemas else '')
+# 5. cruce único: bloqueando CADA cruce, todo lo que queda del otro lado tiene
+# que dejar de ser alcanzable.
+CRUCES = [(RIO, 'johto'), (CORD, 'hoenn'), (RIO2, 'sinnoh'), (CORD2, 'unova'), (RIO3, 'kalos')]
+for cruce, del_otro_lado in CRUCES:
+    bloqueo = {(x, y) for y in (PASO_Y, PASO_Y + 1) for x in range(cruce[0], cruce[1] + 1)}
+    if any(region(x) == del_otro_lado for (x, y) in bfs(bloquear=bloqueo)):
+        problemas.append(f'se llega a {del_otro_lado} sin cruzar en {cruce}')
+print('  cruce único: OK en los 5 cruces' if not any('se llega a' in p for p in problemas) else '')
 
 print('\nPROBLEMAS:', '\n  - '.join([''] + problemas) if problemas else 'ninguno')
 
@@ -380,6 +486,9 @@ open('mundo3.txt', 'w').write('\n'.join(''.join(r) for r in g))
 zonas = [
     {'n': 'Puente del Río',         'x0': RIO[0] - 2, 'y0': 1, 'x1': RIO[1] + 2, 'y1': H - 2},
     {'n': 'Paso de la Cordillera',  'x0': CORD[0] - 2, 'y0': 1, 'x1': CORD[1] + 2, 'y1': H - 2},
+    {'n': 'Estrecho de Hoenn',      'x0': RIO2[0] - 2, 'y0': 1, 'x1': RIO2[1] + 2, 'y1': H - 2},
+    {'n': 'Desfiladero de Sinnoh',  'x0': CORD2[0] - 2, 'y0': 1, 'x1': CORD2[1] + 2, 'y1': H - 2},
+    {'n': 'Puente de Teselia',      'x0': RIO3[0] - 2, 'y0': 1, 'x1': RIO3[1] + 2, 'y1': H - 2},
     {'n': 'Kanto · Pueblo Paleta',  'x0': 1, 'y0': 1, 'x1': 50, 'y1': 12},
     {'n': 'Kanto · Pradera',        'x0': 1, 'y0': 13, 'x1': 50, 'y1': 26},
     {'n': 'Kanto · Central Eléctrica', 'x0': 36, 'y0': 27, 'x1': 50, 'y1': 40},
@@ -398,6 +507,24 @@ zonas = [
     {'n': 'Hoenn · Ciénaga',        'x0': 112, 'y0': 31, 'x1': 129, 'y1': 55},
     {'n': 'Hoenn · Cerro',          'x0': 130, 'y0': 31, 'x1': 145, 'y1': 60},
     {'n': 'Hoenn · Volcán',         'x0': 112, 'y0': 56, 'x1': 145, 'y1': H - 2},
+    {'n': 'Sinnoh · Ciudad Cristal', 'x0': 166, 'y0': 1, 'x1': 212, 'y1': 12},
+    {'n': 'Sinnoh · Estepa',        'x0': 166, 'y0': 13, 'x1': 212, 'y1': 26},
+    {'n': 'Sinnoh · Bosque Eterna', 'x0': 166, 'y0': 27, 'x1': 183, 'y1': 58},
+    {'n': 'Sinnoh · Ruinas Solaceon', 'x0': 184, 'y0': 27, 'x1': 212, 'y1': 40},
+    {'n': 'Sinnoh · Gran Pantano',  'x0': 184, 'y0': 41, 'x1': 212, 'y1': 65},
+    {'n': 'Sinnoh · Monte Corona',  'x0': 166, 'y0': 66, 'x1': 212, 'y1': H - 2},
+    {'n': 'Teselia · Ciudad Arcilla', 'x0': 220, 'y0': 1, 'x1': 266, 'y1': 12},
+    {'n': 'Teselia · Pastizales',   'x0': 220, 'y0': 13, 'x1': 266, 'y1': 26},
+    {'n': 'Teselia · Castillo Reliquia', 'x0': 220, 'y0': 27, 'x1': 237, 'y1': 58},
+    {'n': 'Teselia · Llanura de las Tormentas', 'x0': 238, 'y0': 27, 'x1': 266, 'y1': 40},
+    {'n': 'Teselia · Puente Maravilla', 'x0': 238, 'y0': 41, 'x1': 266, 'y1': 65},
+    {'n': 'Teselia · Caos Gigante', 'x0': 220, 'y0': 66, 'x1': 266, 'y1': H - 2},
+    {'n': 'Kalos · Ciudad Luminalia', 'x0': 274, 'y0': 1, 'x1': 320, 'y1': 12},
+    {'n': 'Kalos · Bosque de la Vida', 'x0': 274, 'y0': 13, 'x1': 320, 'y1': 26},
+    {'n': 'Kalos · Reino Espectral', 'x0': 274, 'y0': 27, 'x1': 291, 'y1': 58},
+    {'n': 'Kalos · Central Eléctrica', 'x0': 292, 'y0': 27, 'x1': 320, 'y1': 45},
+    {'n': 'Kalos · Ciénaga',        'x0': 292, 'y0': 46, 'x1': 320, 'y1': 58},
+    {'n': 'Kalos · Tierra Ígnea',   'x0': 274, 'y0': 59, 'x1': 320, 'y1': H - 2},
 ]
 
 carteles = {
@@ -406,6 +533,12 @@ carteles = {
     f'{RIO[1]+2},{PASO_Y+2}': 'Bienvenido a JOHTO. Kanto queda al oeste, cruzando el puente.',
     f'{CORD[0]-2},{PASO_Y+2}': 'El desfiladero lleva a HOENN. Es el único paso por la cordillera.',
     f'{CORD[1]+2},{PASO_Y+2}': 'Bienvenido a HOENN. Johto queda al oeste, cruzando el paso.',
+    f'{RIO2[0]-2},{PASO_Y+2}': 'El estrecho cruza a SINNOH. Es el único paso: el mar no se cruza a nado.',
+    f'{RIO2[1]+2},{PASO_Y+2}': 'Bienvenido a SINNOH. Hoenn queda al oeste, cruzando el estrecho.',
+    f'{CORD2[0]-2},{PASO_Y+2}': 'El desfiladero lleva a TESELIA. Es el único paso por la cordillera.',
+    f'{CORD2[1]+2},{PASO_Y+2}': 'Bienvenido a TESELIA. Sinnoh queda al oeste, cruzando el paso.',
+    f'{RIO3[0]-2},{PASO_Y+2}': 'El puente cruza a KALOS. Es el único paso: el río no se cruza a nado.',
+    f'{RIO3[1]+2},{PASO_Y+2}': 'Bienvenido a KALOS. Teselia queda al oeste, cruzando el puente.',
 }
 
 santuarios = {f'{x},{y}': {'n': n, 'pokes': pokes} for (x, y), n, pokes in ALTARES}
@@ -415,8 +548,17 @@ json.dump({
     'rio': RIO, 'cord': CORD, 'pasoY': PASO_Y,
     'fronteras': [{'hasta': (RIO[0] + RIO[1]) // 2, 'region': 'kanto'},
                   {'hasta': (CORD[0] + CORD[1]) // 2, 'region': 'johto'},
-                  {'hasta': 9999, 'region': 'hoenn'}],
+                  {'hasta': (RIO2[0] + RIO2[1]) // 2, 'region': 'hoenn'},
+                  {'hasta': (CORD2[0] + CORD2[1]) // 2, 'region': 'sinnoh'},
+                  {'hasta': (RIO3[0] + RIO3[1]) // 2, 'region': 'unova'},
+                  {'hasta': 9999, 'region': 'kalos'}],
     'zonas': zonas, 'carteles': carteles, 'santuarios': santuarios,
     'centros': CENTROS, 'cuevas': CUEVAS,
+    # Inicial de cada región para el minimapa: una letra que no se repita,
+    # centrada en la mitad de SU franja (no de todo el mapa).
+    'letras': list(zip(['K', 'J', 'H', 'S', 'T', 'X'],
+                       [(1 + RIO[0] - 1) // 2, (RIO[1] + 1 + CORD[0] - 1) // 2,
+                        (CORD[1] + 1 + RIO2[0] - 1) // 2, (RIO2[1] + 1 + CORD2[0] - 1) // 2,
+                        (CORD2[1] + 1 + RIO3[0] - 1) // 2, (RIO3[1] + 1 + W - 1) // 2])),
 }, open('mundo3.json', 'w'), ensure_ascii=False, indent=1)
 print('escrito mundo3.txt y mundo3.json')

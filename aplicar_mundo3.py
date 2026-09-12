@@ -68,12 +68,10 @@ fr = ', '.join("{{hasta:{}, region:'{}'}}".format(f['hasta'], f['region']) for f
 html, n = re.subn(r'const FRONTERAS = \[[^\]]*\];', 'const FRONTERAS = [' + fr + '];', html, count=1)
 assert n == 1, 'no se pudo reemplazar FRONTERAS'
 
-# ---------------- letras del minimapa (K/J/H centradas en cada región) ----------------
-k = meta['rio'][0] // 2
-j = (meta['rio'][1] + meta['cord'][0]) // 2
-h = (meta['cord'][1] + meta['cols']) // 2
-html, n = re.subn(r"\[\['K', \d+\], \['J', \d+\], \['H', \d+\]\]",
-                  "[['K', {}], ['J', {}], ['H', {}]]".format(k, j, h), html, count=1)
+# ---------------- letras del minimapa (una por región, generado por genmundo3.py) ----------------
+letras = ', '.join("['{}', {}]".format(l, x) for l, x in meta['letras'])
+html, n = re.subn(r"\[\[.*?\]\]\.forEach\(\(\[letra, col\]\)",
+                  '[' + letras + '].forEach(([letra, col])', html, count=1)
 assert n == 1, 'no se pudieron reemplazar las letras del minimapa'
 
 io.open(RUTA, 'w', encoding='utf-8').write(html)
