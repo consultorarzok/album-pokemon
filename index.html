@@ -2884,7 +2884,16 @@ function agregarBordeCanvas(origen, colorBorde){
   for(let y = 0; y < h; y++){
     for(let x = 0; x < w; x++){
       if(opaco(x, y)) continue;
-      if(opaco(x - 1, y) || opaco(x + 1, y) || opaco(x, y - 1) || opaco(x, y + 1)){
+      /* Un borde de verdad tiene 1 o 2 vecinos opacos (un canto o una
+         esquina). En un hueco angosto -las piernas separadas al caminar,
+         por ejemplo- el pixel transparente queda rodeado por 3 o 4 lados:
+         si a ESE también se le pinta el borde, el hueco entero (2-4px)
+         termina pintado del color del borde y las dos piernas se ven
+         fundidas en una sola mancha negra. Con 3+ vecinos opacos se deja
+         el hueco transparente en vez de taparlo. */
+      const vecinosOpacos = (opaco(x - 1, y) ? 1 : 0) + (opaco(x + 1, y) ? 1 : 0) +
+                             (opaco(x, y - 1) ? 1 : 0) + (opaco(x, y + 1) ? 1 : 0);
+      if(vecinosOpacos === 1 || vecinosOpacos === 2){
         pinta(octx, colorBorde, x + 1, y + 1);
       }
     }
@@ -2913,13 +2922,26 @@ function spriteJugadorCacheado(dir, paso){
   if(JUGADOR_SPRITE_CACHE[clave]) return JUGADOR_SPRITE_CACHE[clave];
   if(!RED_SHEET.complete || !RED_SHEET.naturalWidth) return null;   // todavía cargando
   const fila = RED_FILA[dir] ?? 0;
+  /* Reducir de 48x72 a 14x21 de UN salto con suavizado mezclaba de golpe
+     brazos y piernas que en la hoja original están separados, y el
+     resultado eran manchas grises/negras confusas -sobre todo en los
+     cuadros de caminar (izq/der), que es justo donde se ven las piernas
+     cruzadas-. Mismo arreglo que ya se usó para los legendarios y los
+     íconos de pokébola: paso intermedio CON suavizado (conserva la
+     silueta general) y recién ahí el final SIN suavizado (nitidez
+     pixel-art, sin la mezcla de la reducción grande). */
+  const inter = document.createElement('canvas');
+  inter.width = RED_FRAME_W / 2; inter.height = RED_FRAME_H / 2;
+  const ictx = inter.getContext('2d');
+  ictx.imageSmoothingEnabled = true;
+  ictx.drawImage(RED_SHEET,
+    paso * RED_FRAME_W, fila * RED_FRAME_H, RED_FRAME_W, RED_FRAME_H,
+    0, 0, inter.width, inter.height);
   const cv = document.createElement('canvas');
   cv.width = RED_FINAL_W; cv.height = RED_FINAL_H;
   const cctx = cv.getContext('2d');
-  cctx.imageSmoothingEnabled = true;   // reducir CON suavizado: la clave de por qué las pokébolas del HUD se ven bien
-  cctx.drawImage(RED_SHEET,
-    paso * RED_FRAME_W, fila * RED_FRAME_H, RED_FRAME_W, RED_FRAME_H,
-    0, 0, RED_FINAL_W, RED_FINAL_H);
+  cctx.imageSmoothingEnabled = false;
+  cctx.drawImage(inter, 0, 0, RED_FINAL_W, RED_FINAL_H);
   const sprConBorde = agregarBordeCanvas(cv, '#1A1310');
   JUGADOR_SPRITE_CACHE[clave] = sprConBorde;
   return sprConBorde;
