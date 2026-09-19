@@ -255,12 +255,20 @@
   .shop-row .txt{flex:1;font-size:10.5px;color:var(--ink-dim);line-height:1.5;}
   .shop-row .txt b{display:block;font-family:'Baloo 2',sans-serif;font-size:13px;color:var(--ink);}
 
-  .firma{margin-top:38px;padding-top:6px;text-align:center;}
+  .firma{margin-top:38px;padding:6px 0 26px;text-align:center;}
   .firma-linea{height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-bottom:14px;}
   .firma strong{display:block;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;color:var(--ink);letter-spacing:.3px;}
   .firma span{display:block;margin-top:4px;font-size:11px;color:var(--ink-dim);}
   .firma a{color:var(--ink-dim);text-decoration:none;border-bottom:1px solid var(--gold-dim);}
   .firma a:hover{color:var(--ink);border-bottom-color:var(--gold);}
+  .firma a.firma-logo,.firma a.firma-logo:hover{display:inline-block;margin-top:8px;border-bottom:none;}
+  .firma-logo img{display:block;width:250px;height:auto;}
+  .firma-colab{margin-top:20px;}
+  .firma-pacha{display:block;margin:8px auto 0;width:auto;height:72px;}
+  @media(max-width:480px){
+    .firma-logo img{width:210px;}
+    .firma-pacha{height:62px;}
+  }
 </style>
 </head>
 <body>
@@ -327,8 +335,13 @@
 
   <footer class="firma">
     <div class="firma-linea"></div>
-    <strong>Desarrollado por Consultora RZ &amp; Asociados</strong>
+    <strong>Desarrollado por</strong>
+    <a class="firma-logo" href="https://consultorarz.com" target="_blank" rel="noopener">
+      <img src="images/logo-rz.png" alt="Consultora RZ &amp; Asociados" width="720" height="141">
+    </a>
     <span><a href="https://consultorarz.com" target="_blank" rel="noopener">consultorarz.com</a></span>
+    <strong class="firma-colab">En colaboración con</strong>
+    <img class="firma-pacha" src="images/logo-pachamanga.png" alt="Asociación Pachamanga" width="288" height="440">
   </footer>
 
 </div>
