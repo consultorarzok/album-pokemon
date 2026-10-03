@@ -4081,7 +4081,10 @@ const REGALOS = [
   { id: 'matias-pikachu-20260908', para: 'matias', monedas: 0, especies: [25] },
   { id: 'matias-faltante2-20260908', para: 'matias', monedas: 0, faltantes: 1 },
   { id: 'matias-monedas-20260908', para: 'matias', monedas: 1000 },
-  { id: 'zeta-5000-20260908', para: 'zeta centeno', monedas: 5000 }
+  { id: 'zeta-5000-20260908', para: 'zeta centeno', monedas: 5000 },
+  { id: 'evento-bienvenida-aniversario-pachamanga-2026-10', para: '*', monedas: 1500,
+    legendarias: 1, bolas: {roja: 20, azul: 15, ultra: 8, maestra: 1},
+    soloDuranteEvento: 'aniversario-pachamanga-2026-10' }
 ];
 
 /* Misma normalización que usa el registro de nombres en el servidor:
@@ -4164,6 +4167,7 @@ function aplicarRegalos(){
 
   let total = 0;
   let esAventura = false;
+  let esEvento = null;
   const regaladas = [];
   const bolasGanadas = {};
   REGALOS.forEach(r => {
@@ -4174,6 +4178,15 @@ function aplicarRegalos(){
     if(!destinos.includes('*') && !destinos.includes(clave)) return;
     if(r.excluir && r.excluir.indexOf(clave) !== -1) return;
     if(usados.indexOf(r.id) !== -1) return;
+    /* Regalo de bienvenida a UN evento puntual: si ese evento no está
+       activo ahora, no se entrega NI se marca usado — así queda esperando
+       a que el jugador entre durante la ventana correcta, en vez de
+       perderse para siempre por haber entrado antes o después. */
+    if(r.soloDuranteEvento){
+      const ev = eventoActivo();
+      if(!ev || ev.slug !== r.soloDuranteEvento) return;
+      esEvento = ev;
+    }
     coins += (r.monedas || 0);
     for(let i = 0; i < (r.legendarias || 0); i++){
       const pull = regalarLegendaria();
@@ -4222,7 +4235,10 @@ function aplicarRegalos(){
   const cartelAventura = esAventura
     ? '<br><br>🗺️ <b>¡Regalo por el nuevo modo Aventura!</b> Salí a recorrer el mundo y usalas para atrapar Pokémon.'
     : '';
-  const aviso = () => avisoRegalo('Te regalaron ' + partes.join(' y ') + '.' + cartelAventura + ' ¡A jugar!');
+  const cartelEvento = esEvento
+    ? '<br><br><b>¡Bienvenido al ' + esEvento.nombre + '!</b> Durante el evento sólo cuentan figuritas de Kanto y Johto.'
+    : '';
+  const aviso = () => avisoRegalo('Te regalaron ' + partes.join(' y ') + '.' + cartelAventura + cartelEvento + ' ¡A jugar!');
 
   /* La legendaria regalada se muestra con la misma carta dorada del sobre,
      una por una; recién después aparece el cartel del regalo. */
