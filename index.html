@@ -1067,6 +1067,11 @@ const PALDEA_RAW = [
 const DATA = KANTO_DATA.concat(JOHTO_RAW).concat(HOENN_RAW).concat(SINNOH_RAW)
   .concat(UNOVA_RAW).concat(KALOS_RAW).concat(ALOLA_RAW).concat(GALAR_RAW).concat(PALDEA_RAW);
 
+/* Para el modo evento "sólo Kanto+Johto" (ver EVENTOS/eventoVistaActiva()
+   más abajo): quién pertenece a esas dos regiones, precalculado una sola
+   vez porque DATA no cambia en runtime. */
+const IDS_KANTO_JOHTO = new Set(DATA.filter(p => p.region === 'kanto' || p.region === 'johto').map(p => p.id));
+
 const STORAGE_KEY = 'album-kanto-progreso';
 
 let coins = 300;
@@ -1129,7 +1134,7 @@ function resetProgress(){
 }
 
 function renderRegionFilters(){
-  const regions = ['all', ...new Set(DATA.map(p=>p.region))];
+  const regions = eventoVistaActiva() ? ['all', 'kanto', 'johto'] : ['all', ...new Set(DATA.map(p=>p.region))];
   const box = document.getElementById('regionFilters');
   box.innerHTML = '';
   regions.forEach(r=>{
@@ -1158,17 +1163,28 @@ function renderFilters(){
   });
 }
 
+/* Durante un evento con soloRegion12, la Pokédex muestra una VISTA
+   temporal: sólo Kanto+Johto, y "conseguida" significa conseguida DESPUÉS
+   de que el dispositivo empezó a ver el evento (eventoBaseIds), no el
+   historial real completo. state[] nunca se toca acá — es sólo lectura
+   distinta para pintar la grilla; al terminar el evento vuelve a leerse
+   tal cual. */
 function renderGrid(){
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
-  DATA.filter(p => (currentFilter==='all' || p.type===currentFilter) && (currentRegion==='all' || p.region===currentRegion)).forEach(p=>{
+  const ev = eventoVistaActiva();
+  const baseIds = ev ? eventoBaseIds(ev) : null;
+  let lista = ev ? DATA.filter(p => IDS_KANTO_JOHTO.has(p.id)) : DATA;
+  lista = lista.filter(p => (currentFilter==='all' || p.type===currentFilter) && (currentRegion==='all' || p.region===currentRegion));
+  lista.forEach(p=>{
     const s = state[p.id];
+    const gotVista = ev ? (s.got && !baseIds.has(p.id)) : s.got;
     const slot = document.createElement('div');
-    slot.className = 'slot' + (s.got ? ' got' : '');
+    slot.className = 'slot' + (gotVista ? ' got' : '');
     const numTag = `<div class="num">#${String(p.id).padStart(3,'0')}</div>`;
     const dupTag = s.dup>0 ? `<div class="dup">x${s.dup+1}</div>` : '';
     const bar = `<div class="typebar" style="background:${TYPE_COLORS[p.type]}"></div>`;
-    if(s.got){
+    if(gotVista){
       slot.innerHTML = numTag + dupTag + `<img src="${p.img}" alt="${p.name}" loading="lazy"><div class="name">${p.name}</div>` + bar;
     } else {
       slot.innerHTML = numTag + `<div class="ball-icon"></div>` + bar;
@@ -1178,12 +1194,22 @@ function renderGrid(){
 }
 
 function updateProgress(){
-  const got = Object.values(state).filter(s=>s.got).length;
-  const pct = Math.round((got/DATA.length)*100);
-  document.getElementById('progressText').textContent = `${got} / ${DATA.length} figuritas`;
+  const ev = eventoVistaActiva();
+  let got, total;
+  if(ev){
+    const baseIds = eventoBaseIds(ev);
+    const listaEvento = DATA.filter(p => IDS_KANTO_JOHTO.has(p.id));
+    got = listaEvento.filter(p => state[p.id].got && !baseIds.has(p.id)).length;
+    total = listaEvento.length;
+  } else {
+    got = Object.values(state).filter(s=>s.got).length;
+    total = DATA.length;
+  }
+  const pct = Math.round((got/total)*100);
+  document.getElementById('progressText').textContent = `${got} / ${total} figuritas`;
   document.getElementById('progressPct').textContent = `${pct}%`;
   document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('pokedexLaunchProgress').textContent = `${got} / ${DATA.length} figuritas · ${pct}%`;
+  document.getElementById('pokedexLaunchProgress').textContent = `${got} / ${total} figuritas · ${pct}%`;
   updateBarras();
 }
 
@@ -1194,14 +1220,23 @@ function updateCoins(){
   updateBarras();
 }
 
+/* Durante un evento con soloRegion12, el sobre sólo puede dar Kanto/Johto
+   (ver eventoVistaActiva() más abajo) — fuera de un evento así, es DATA
+   completo como siempre. */
+function poolSobre(){
+  const ev = eventoVistaActiva();
+  return ev ? DATA.filter(p => IDS_KANTO_JOHTO.has(p.id)) : DATA;
+}
+
 function weightedPick(){
-  const total = DATA.reduce((a,p)=>a+p.weight,0);
+  const pool = poolSobre();
+  const total = pool.reduce((a,p)=>a+p.weight,0);
   let r = Math.random()*total;
-  for(const p of DATA){
+  for(const p of pool){
     if(r < p.weight) return p;
     r -= p.weight;
   }
-  return DATA[DATA.length-1];
+  return pool[pool.length-1];
 }
 
 /* La carta dorada sale por rareza. Antes había una lista suelta de ids
@@ -2065,7 +2100,8 @@ const EVENTOS = [
     nombre: 'Evento Aniversario Pachamanga',
     inicio: '2026-10-04T15:00:00-03:00',
     fin:    '2026-10-04T21:00:00-03:00',
-    cooldownLegendarioMin: 15
+    cooldownLegendarioMin: 15,
+    soloRegion12: true
   }
 ];
 
@@ -2076,6 +2112,14 @@ function eventoActivo(){
     const fin = new Date(e.fin).getTime();
     return ahora >= ini && ahora < fin;
   }) || null;
+}
+
+/* Evento activo que además restringe el pool a Kanto+Johto (sobres,
+   Aventura y la vista de la Pokédex). Un evento futuro puede no tener
+   soloRegion12 y entonces no entra por acá — sigue dando las 9 regiones. */
+function eventoVistaActiva(){
+  const ev = eventoActivo();
+  return (ev && ev.soloRegion12) ? ev : null;
 }
 
 /* Cooldown de legendarios: normalmente "una vez por día calendario" (ver
@@ -2186,14 +2230,21 @@ function legendarioYaSalioHoy(nombre){
   return !!legendariosDia.obtenidos[nombre];
 }
 
+/* "Agotado" ahora es simplemente "legendarioDelAltar no tiene candidato",
+   sea porque ya salieron todos (cooldown) o porque ninguno de los legendarios
+   de ESTE santuario cae en Kanto/Johto durante un evento soloRegion12 (ej.
+   Ruinas Antiguas en Hoenn: Regirock/Regice/Registeel/Jirachi/Deoxys). Una
+   sola fuente de verdad en vez de duplicar el filtro en dos funciones. */
 function legendariosAgotadosHoy(santuario){
-  return santuario.pokes.every(n => legendarioYaSalioHoy(n));
+  return legendarioDelAltar(santuario) === null;
 }
 
 function legendarioDelAltar(santuario){
+  const ev = eventoVistaActiva();
   const posibles = santuario.pokes
     .map(n => ADV_DATA.find(p => p.name === n))
-    .filter(p => p && !legendarioYaSalioHoy(p.name));
+    .filter(p => p && !legendarioYaSalioHoy(p.name))
+    .filter(p => !ev || IDS_KANTO_JOHTO.has(p.id));
   if(!posibles.length) return null;
   return posibles[Math.floor(Math.random() * posibles.length)];
 }
@@ -2287,13 +2338,21 @@ function conBoostFaltantes(lista){
     : p);
 }
 
+/* Durante un evento con soloRegion12, el universo entero de la Aventura se
+   acota a Kanto+Johto ANTES de mirar en qué región del mapa está parado el
+   jugador: caminar por Hoenn sigue andando igual (no se toca el mapa), pero
+   lo que puede salir ahí es Kanto/Johto igual que en cualquier otro lado.
+   Todos los fallbacks de abajo parten de basePool, así que la restricción
+   nunca se escapa aunque algún bioma puntual quede sin tipos propios. */
 function poolBioma(bioma, region){
+  const ev = eventoVistaActiva();
+  const basePool = ev ? ADV_DATA.filter(p => IDS_KANTO_JOHTO.has(p.id)) : ADV_DATA;
   const reg = region || advRegion;
-  const dePar = ADV_DATA.filter(p => p.region === reg);
-  const base = dePar.length ? dePar : ADV_DATA;
+  const dePar = ev ? basePool : basePool.filter(p => p.region === reg);
+  const base = dePar.length ? dePar : basePool;
   if(bioma === 'legendario'){
     const leg = base.filter(p => p.rarity === 'Legendario');
-    return conBoostFaltantes(leg.length ? leg : ADV_DATA.filter(p => p.rarity === 'Legendario'));
+    return conBoostFaltantes(leg.length ? leg : basePool.filter(p => p.rarity === 'Legendario'));
   }
   const tipos = ADV_TIPOS[bioma] || [];
   const pool = base.filter(p => p.rarity !== 'Legendario' && tipos.includes(p.type));
@@ -3534,8 +3593,17 @@ let avistamientoPity = {};
 function tirarAltar(santuario, x, y){
   if(!santuario) return;
   if(legendariosAgotadosHoy(santuario)){
+    const evLeg = eventoVistaActiva();
+    const ningunoDeKJ = evLeg && !santuario.pokes.some(n => {
+      const p = ADV_DATA.find(d => d.name === n);
+      return p && IDS_KANTO_JOHTO.has(p.id);
+    });
+    if(ningunoDeKJ){
+      advMensaje('✨ El altar está en silencio. Durante el evento sólo aparecen legendarios de Kanto y Johto.');
+      advDescanso = DESCANSO_ENCUENTRO * 4;
+      return;
+    }
     const salidos = santuario.pokes.filter(n => legendarioYaSalioHoy(n));
-    const evLeg = eventoActivo();
     const cierre = (evLeg && evLeg.cooldownLegendarioMin)
       ? `Volvé a probar en ${evLeg.cooldownLegendarioMin} minutos.`
       : 'Volvé mañana.';
@@ -4160,6 +4228,24 @@ function eventoBase(ev){
   return base[ev.slug];
 }
 
+/* Mismo criterio que eventoBase() pero por figurita puntual, no por conteo:
+   el id de cada Pokémon que el dispositivo YA tenía la primera vez que vio
+   el evento activo. Lo usan renderGrid()/updateProgress() para que la
+   Pokédex "arranque de 0" durante el evento sin tocar state[] para nada —
+   se fija en el mismo momento que eventoBase() (desde sincronizarEvento()),
+   así ambas quedan cortadas en el mismo instante. */
+const EVENTO_BASE_IDS_KEY = 'album-kanto-evento-base-ids';
+
+function eventoBaseIds(ev){
+  let base = {};
+  try{ base = JSON.parse(localStorage.getItem(EVENTO_BASE_IDS_KEY) || '{}'); }catch(e){ base = {}; }
+  if(!Array.isArray(base[ev.slug])){
+    base[ev.slug] = DATA.filter(p => state[p.id].got).map(p => p.id);
+    try{ localStorage.setItem(EVENTO_BASE_IDS_KEY, JSON.stringify(base)); }catch(e){}
+  }
+  return new Set(base[ev.slug]);
+}
+
 function figuritasEvento(ev){
   return Math.max(0, figuritasObtenidas() - eventoBase(ev));
 }
@@ -4189,16 +4275,30 @@ function cargarTopEvento(ev){
    solo cuando termina la ventana sin necesitar recargar la página. */
 let eventoYaIniciado = null;   // slug del evento cuyo top ya se pidió, para no repetir el fetch cada minuto
 
+/* true cuando la última vez que se corrió esto la Pokédex estaba mostrando
+   la vista acotada a Kanto+Johto — para re-renderizar grid/filtros/progreso
+   SÓLO al cruzar esa frontera (arranca o termina el evento), no en cada
+   poll de 60s. */
+let vistaEventoPrevia = false;
+
 function sincronizarEvento(){
   const ev = eventoActivo();
   const banner = document.getElementById('eventoBanner');
   const tab = document.getElementById('tabEvento');
+  const vistaActual = !!(ev && ev.soloRegion12);
 
   if(!ev){
     banner.hidden = true;
     tab.hidden = true;
     if(rankTab === 'evento') activarRankTab('hoy');
     eventoYaIniciado = null;
+    if(vistaEventoPrevia){
+      vistaEventoPrevia = false;
+      currentRegion = 'all';
+      renderRegionFilters();
+      renderGrid();
+      updateProgress();
+    }
     return;
   }
 
@@ -4214,6 +4314,14 @@ function sincronizarEvento(){
     eventoYaIniciado = ev.slug;
     cargarTopEvento(ev);
     if(jugador) enviarPuntajeEvento();
+  }
+
+  if(vistaActual !== vistaEventoPrevia){
+    vistaEventoPrevia = vistaActual;
+    currentRegion = 'all';
+    renderRegionFilters();
+    renderGrid();
+    updateProgress();
   }
 }
 
