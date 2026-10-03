@@ -2065,6 +2065,17 @@ const ADV_TIPOS = {
 const ADV_PROB = { hierba:.07, agua:.06, volcan:.08, cueva:.07, hielo:.08,
                    electrico:.08, psiquico:.08, cienaga:.08, legendario:.12 };
 const DESCANSO_ENCUENTRO = 64;   // píxeles a caminar tras un encuentro antes de que salga otro
+
+/* Probabilidad real de encuentro para un bioma: durante un evento con
+   boostEncuentrosFactor se multiplica, salvo 'legendario' — ese ya tiene su
+   propio boost (cooldown de 15 min en vez de 1 por día), así que subirle
+   también la probabilidad de encuentro sería duplicar el empujón. */
+function probEncuentro(bioma){
+  const base = ADV_PROB[bioma] || .15;
+  const ev = eventoActivo();
+  if(ev && ev.boostEncuentrosFactor && bioma !== 'legendario') return Math.min(.9, base * ev.boostEncuentrosFactor);
+  return base;
+}
 /* El avistamiento ya no exige pisar el altar: alcanza con andar cerca. La
    cámara se aleja sola en advEscala() según haga falta para que jugador y
    altar entren los dos en pantalla. Radio chico a propósito (Zeta pidió que
@@ -2107,7 +2118,9 @@ const EVENTOS = [
     fin:    '2026-10-03T23:00:00-03:00',
     cooldownLegendarioMin: 15,
     cooldownCompraMaestraMin: 5,
-    soloRegion12: true
+    soloRegion12: true,
+    boostEncuentrosFactor: 1.7,
+    boostPokebolasPiso: true
   }
 ];
 
@@ -3155,10 +3168,16 @@ function dibujarJugador(ctx, ox, oy){
    resto del mapa): es un objeto tirado en el mundo, no una tómbola, así que
    tiene que ser el mismo cada vez que volvés. */
 const BOLA_PISO_RAREZA = [['roja', 66], ['azul', 24], ['ultra', 9], ['maestra', 1]];
+/* Durante un evento con boostPokebolasPiso: no se puede cambiar CUÁNTOS
+   casilleros tienen un ítem tirado (eso es geometría fija del mapa
+   generado), pero sí la rareza de lo que sale en esas mismas posiciones. */
+const BOLA_PISO_RAREZA_EVENTO = [['roja', 35], ['azul', 35], ['ultra', 22], ['maestra', 8]];
 function bolaDelPiso(x, y){
-  const total = BOLA_PISO_RAREZA.reduce((a, [, peso]) => a + peso, 0);
+  const ev = eventoActivo();
+  const tabla = (ev && ev.boostPokebolasPiso) ? BOLA_PISO_RAREZA_EVENTO : BOLA_PISO_RAREZA;
+  const total = tabla.reduce((a, [, peso]) => a + peso, 0);
   let tiro = ruido(x, y, 77) * total;
-  for(const [tipo, peso] of BOLA_PISO_RAREZA){
+  for(const [tipo, peso] of tabla){
     tiro -= peso;
     if(tiro < 0) return tipo;
   }
@@ -3283,8 +3302,13 @@ const advFondos = {};
 function advFondo(mapaId){
   /* La cueva se pinta distinto según la región de la entrada (temaCueva),
      así que su fondo pre-dibujado no puede cachearse sólo por mapaId: si no,
-     la primera región que entra deja su paleta pegada para siempre. */
-  const clave = mapaId === 'cueva' ? mapaId + ':' + advRegion : mapaId;
+     la primera región que entra deja su paleta pegada para siempre. Mismo
+     motivo para el estado del evento: bolaDelPiso() depende de él, así que
+     si no entra en la clave, arrancar/terminar el evento deja pegada la
+     rareza vieja de pokébolas hasta recargar la página. */
+  const ev = eventoActivo();
+  const boostBolas = (ev && ev.boostPokebolasPiso) ? 'evB' : 'evN';
+  const clave = (mapaId === 'cueva' ? mapaId + ':' + advRegion : mapaId) + ':' + boostBolas;
   if(advFondos[clave]) return advFondos[clave];
   const mapa = ADV_MAPS[mapaId];
   const cv = document.createElement('canvas');
@@ -3587,7 +3611,7 @@ function advPaso1(dt){
     }
     if(t.encuentro){
       advCamino = 0;
-      if(Math.random() <= (ADV_PROB[t.encuentro] || .15)){
+      if(Math.random() <= probEncuentro(t.encuentro)){
         advDescanso = DESCANSO_ENCUENTRO;
         iniciarEncuentro(elegirPesado(poolBioma(t.encuentro)));
       }
@@ -3710,7 +3734,7 @@ function advMover(dx, dy){
   if(avist) return;
   const cerca = altarMasCercano(nx, ny);
   if(cerca && cerca.dist <= RADIO_AVISTAMIENTO){ tirarAltar(cerca.santuario, cerca.x, cerca.y); return; }
-  if(t.encuentro && Math.random() <= (ADV_PROB[t.encuentro] || .15)){
+  if(t.encuentro && Math.random() <= probEncuentro(t.encuentro)){
     advDescanso = DESCANSO_ENCUENTRO;
     iniciarEncuentro(elegirPesado(poolBioma(t.encuentro)));
   }
