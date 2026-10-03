@@ -1323,6 +1323,11 @@ function repetidasTotales(){
 }
 
 function faltantes(){
+  const ev = eventoVistaActiva();
+  if(ev){
+    const soloKJ = DATA.filter(p => IDS_KANTO_JOHTO.has(p.id) && !state[p.id].got);
+    if(soloKJ.length) return soloKJ;
+  }
   return DATA.filter(p => !state[p.id].got);
 }
 
@@ -4051,7 +4056,16 @@ function avisoRegalo(txt){
 /* Regala una legendaria: primero de las que le faltan al álbum; si ya las
    tiene todas, entra como repetida (sirve para el canje). */
 function regalarLegendaria(){
-  const legendarias = DATA.filter(p => p.rarity === 'Legendario');
+  let legendarias = DATA.filter(p => p.rarity === 'Legendario');
+  /* Durante un evento soloRegion12 esto también respeta Kanto/Johto, salvo
+     que el jugador ya tenga las de esas dos regiones y no quede ninguna
+     para elegir — ahí se prioriza NO perder el regalo (ver aplicarRegalos:
+     el regalo se marca usado pase lo que pase) por sobre la restricción. */
+  const ev = eventoVistaActiva();
+  if(ev){
+    const soloKJ = legendarias.filter(p => IDS_KANTO_JOHTO.has(p.id));
+    if(soloKJ.length) legendarias = soloKJ;
+  }
   if(!legendarias.length) return null;
   const faltan = legendarias.filter(p => !state[p.id].got);
   const lista  = faltan.length ? faltan : legendarias;
@@ -4067,8 +4081,14 @@ function regalarLegendaria(){
    rareza/región), igual mecánica que regalarLegendaria() pero sin filtrar
    por rareza. Si ya lo tiene todo, entra como repetida. */
 function regalarFaltante(){
-  const faltan = DATA.filter(p => !state[p.id].got);
-  const lista  = faltan.length ? faltan : DATA;
+  let universo = DATA;
+  const ev = eventoVistaActiva();
+  if(ev){
+    const soloKJ = DATA.filter(p => IDS_KANTO_JOHTO.has(p.id));
+    if(soloKJ.length) universo = soloKJ;
+  }
+  const faltan = universo.filter(p => !state[p.id].got);
+  const lista  = faltan.length ? faltan : universo;
   const p = lista[Math.floor(Math.random() * lista.length)];
   const isNew = !state[p.id].got;
   if(isNew) state[p.id].got = true;
