@@ -20,6 +20,8 @@
     --border:#DADEEA;
     --red:#EE1515;
     --poke-blue:#2A75BB;
+    --evento:#7C3AED;
+    --evento-dim:#4C1D95;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Space Mono',monospace;}
@@ -29,9 +31,9 @@
   header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-bottom:0;padding:14px 4px;}
   .accent-bar{height:5px;background:linear-gradient(90deg,#3DDC97,#8CE99A,#3DDC97);border-radius:3px;margin-bottom:18px;}
 
-  .evento-banner{background:linear-gradient(135deg,var(--poke-blue),#1E5A94);border:1px solid var(--poke-blue);border-radius:12px;padding:12px 16px;margin-bottom:18px;text-align:center;}
+  .evento-banner{background:linear-gradient(135deg,var(--evento),var(--evento-dim));border:1px solid var(--evento);border-radius:12px;padding:12px 16px;margin-bottom:18px;text-align:center;}
   .evento-banner-nombre{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:16px;color:#fff;letter-spacing:.3px;}
-  .evento-banner-sub{font-size:11px;color:#D8E8FA;margin-top:2px;}
+  .evento-banner-sub{font-size:11px;color:#E6D9FB;margin-top:2px;}
   h1{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:28px;letter-spacing:.5px;margin:0;color:var(--ink);}
   h1 span{color:var(--gold);text-shadow:-1px 0 var(--poke-blue),1px 0 var(--poke-blue),0 -1px var(--poke-blue),0 1px var(--poke-blue);}
 
@@ -114,6 +116,7 @@
   .special-card img{width:75%;height:auto;filter:drop-shadow(0 8px 18px rgba(0,0,0,.6));margin-bottom:10px;}
   .special-card .sname{font-family:'Baloo 2',sans-serif;font-size:26px;color:#fff;font-weight:700;}
   .special-card .stag{font-family:'Space Mono',monospace;font-size:12px;color:var(--ink-dim);margin-top:4px;}
+  .codigo-chip{margin-top:16px;background:rgba(255,255,255,.08);border:1px dashed var(--gold);border-radius:10px;padding:10px 20px;font-family:'Space Mono',monospace;font-size:22px;letter-spacing:4px;color:var(--gold);font-weight:700;}
   .special-continue{position:relative;margin-top:26px;background:var(--gold);color:#2b2205;border:none;border-radius:10px;padding:12px 26px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
   .special-continue:active{transform:scale(.97);}
 
@@ -136,6 +139,7 @@
   .rank-tabs{display:flex;gap:6px;}
   .rank-tab{font-family:'Space Mono',monospace;font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--ink-dim);cursor:pointer;}
   .rank-tab.active{background:var(--poke-blue);border-color:transparent;color:#fff;font-weight:700;}
+  #tabEvento.active{background:var(--evento);}
   /* Contador de entrenadores: va al lado de las pestañas pero NO es una pestaña,
      no se puede clickear; sale del campo 'jugadores' que manda /pokemon-top. */
   .rank-count{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;padding:5px 12px;border-radius:20px;border:1px dashed var(--border);background:var(--bg);color:var(--ink-dim);}
@@ -484,6 +488,21 @@
     <div class="stag" id="specialTag"></div>
   </div>
   <button class="special-continue" id="specialContinueBtn">Continuar</button>
+</div>
+
+<div class="special-overlay" id="codigoCardOverlay">
+  <div class="special-rays"></div>
+  <div class="special-banner">Código generado</div>
+  <div class="special-card" id="codigoCardWrap">
+    <img id="codigoCardImg" src="" alt="">
+    <div class="sname" id="codigoCardName"></div>
+    <div class="stag">Compartiselo a otro entrenador</div>
+    <div class="codigo-chip" id="codigoCardTexto"></div>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <button class="special-continue" id="codigoCardCopiarBtn">Copiar código</button>
+    <button class="special-continue" id="codigoCardCerrarBtn" style="background:transparent;border:1px solid #fff4;color:#fff;">Listo</button>
+  </div>
 </div>
 
 <div class="overlay" id="battleOverlay">
@@ -3877,6 +3896,8 @@ document.getElementById('shopCloseBtn').onclick = () => document.getElementById(
 document.getElementById('intercambioBtn').onclick = abrirIntercambio;
 document.getElementById('intercambioCloseBtn').onclick = () => document.getElementById('intercambioOverlay').classList.remove('show');
 document.getElementById('canjeCodigoBtn').onclick = canjearCodigoInput;
+document.getElementById('codigoCardCerrarBtn').onclick = () => document.getElementById('codigoCardOverlay').classList.remove('show');
+document.getElementById('codigoCardCopiarBtn').onclick = () => copiarTexto(document.getElementById('codigoCardTexto').textContent, document.getElementById('codigoCardCopiarBtn'));
 document.getElementById('canjeCodigoInput').addEventListener('keydown', e => { if(e.key === 'Enter') canjearCodigoInput(); });
 
 document.getElementById('closeBtn').onclick = () => document.getElementById('overlay').classList.remove('show');
@@ -4431,12 +4452,32 @@ function generarCodigo(pokemonId, btn){
     guardarCodigoGenerado(res.codigo, pokemonId);
     renderIntercambioDup();   // reconstruye la lista entera; este btn queda descartado
     renderMisCodigos();
+    mostrarCartaCodigo(pokemonId, res.codigo);
   })
   .catch(() => {
     btn.disabled = false;
     btn.textContent = 'Sin conexión, probá de nuevo';
     setTimeout(() => { btn.textContent = 'Generar código'; }, 2500);
   });
+}
+
+/* Misma carta giratoria que usa playSpecialSequence() para legendarias/épicas
+   (reusa las clases .special-overlay/.special-card), pero con el código en
+   vez del cartel "¡Nueva!"/"Repetida" — acá lo importante no es si es nueva,
+   es que el código se vea grande y fácil de copiar. */
+function mostrarCartaCodigo(pokemonId, codigo){
+  const p = DATA.find(d => d.id === pokemonId);
+  if(!p) return;
+  const card = document.getElementById('codigoCardWrap');
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = '';
+
+  document.getElementById('codigoCardImg').src = p.img;
+  document.getElementById('codigoCardName').textContent = p.name;
+  document.getElementById('codigoCardTexto').textContent = codigo;
+  card.style.background = `linear-gradient(160deg, ${TYPE_COLORS[p.type]}33, #12172B)`;
+  document.getElementById('codigoCardOverlay').classList.add('show');
 }
 
 function canjearCodigoInput(){
