@@ -2106,6 +2106,7 @@ const EVENTOS = [
     inicio: '2026-10-03T19:45:00-03:00',
     fin:    '2026-10-03T23:00:00-03:00',
     cooldownLegendarioMin: 15,
+    cooldownCompraMaestraMin: 5,
     soloRegion12: true
   }
 ];
@@ -2140,8 +2141,20 @@ function claveCooldownLegendario(){
   return diaDeHoy();
 }
 
+/* Mismo patrón que claveCooldownLegendario(), pero para el tope de compra
+   de la Master Ball: normalmente 1 por día, durante un evento con
+   cooldownCompraMaestraMin pasa a 1 cada tantos minutos. */
+function claveCooldownCompra(){
+  const ev = eventoActivo();
+  if(ev && ev.cooldownCompraMaestraMin){
+    const bloqueMs = ev.cooldownCompraMaestraMin * 60000;
+    return 'evento:' + ev.slug + ':' + Math.floor(Date.now() / bloqueMs);
+  }
+  return diaDeHoy();
+}
+
 function compradasHoy(tipo){
-  const hoy = diaDeHoy();
+  const hoy = claveCooldownCompra();
   return (comprasDia[hoy] || {})[tipo] || 0;
 }
 function puedeComprar(tipo){
@@ -3819,18 +3832,22 @@ function renderTienda(){
   const lista = document.getElementById('shopList');
   lista.innerHTML = '';
   advSyncHud();
+  const evTienda = eventoActivo();
+  const textoCooldown = (evTienda && evTienda.cooldownCompraMaestraMin)
+    ? `cada ${evTienda.cooldownCompraMaestraMin} min durante el evento`
+    : 'por día';
   Object.keys(BOLAS).forEach(tipo => {
     const b = BOLAS[tipo];
     const fila = document.createElement('div');
     fila.className = 'shop-row';
     fila.innerHTML = `<img class="bola-ico" src="${b.img}" alt="">
-      <span class="txt"><b>${b.nombre}${b.cantidad > 1 ? ` x${b.cantidad}` : ''}</b>${b.desc}<br>Tenés ${bolas[tipo]}${b.porDia ? ' · ' + (compradasHoy(tipo) >= b.porDia ? '<b>ya compraste la de hoy</b>' : 'te queda la de hoy') : ''}</span>`;
+      <span class="txt"><b>${b.nombre}${b.cantidad > 1 ? ` x${b.cantidad}` : ''}</b>${b.desc}<br>Tenés ${bolas[tipo]}${b.porDia ? ' · ' + (compradasHoy(tipo) >= b.porDia ? '<b>ya compraste la de ' + textoCooldown + '</b>' : 'te queda la de ' + textoCooldown) : ''}</span>`;
     const btn = document.createElement('button');
     btn.className = 'open-btn';
     btn.style.padding = '9px 14px';
     const agotadaHoy = b.porDia && compradasHoy(tipo) >= b.porDia;
-    btn.textContent = agotadaHoy ? 'hoy no' : `${b.precio} 🪙`;
-    btn.title = agotadaHoy ? 'Sólo se vende una por día: volvé mañana' : '';
+    btn.textContent = agotadaHoy ? 'no' : `${b.precio} 🪙`;
+    btn.title = agotadaHoy ? 'Sólo se vende una ' + textoCooldown : '';
     btn.disabled = !puedeComprar(tipo);
     btn.onclick = () => comprarBola(tipo);
     fila.appendChild(btn);
@@ -3844,16 +3861,20 @@ function comprarBola(tipo){
   coins -= b.precio;
   bolas[tipo] += b.cantidad;
   if(b.porDia){
-    const hoy = diaDeHoy();
-    comprasDia = {[hoy]: Object.assign({}, comprasDia[hoy])};   // sólo se guarda el día de hoy
+    const hoy = claveCooldownCompra();
+    comprasDia = {[hoy]: Object.assign({}, comprasDia[hoy])};   // sólo se guarda la clave actual
     comprasDia[hoy][tipo] = (comprasDia[hoy][tipo] || 0) + 1;
   }
   updateCoins();
   saveProgress();
   renderTienda();
+  const evComp = eventoActivo();
+  const proxima = (evComp && evComp.cooldownCompraMaestraMin)
+    ? `en ${evComp.cooldownCompraMaestraMin} min`
+    : 'mañana';
   document.getElementById('shopFeedback').innerHTML =
     `Compraste ${b.cantidad > 1 ? b.cantidad + ' ' : ''}<b>${b.nombre}</b>` +
-    (b.porDia ? ' · la próxima, mañana' : '');
+    (b.porDia ? ' · la próxima, ' + proxima : '');
 }
 
 /* ---------- Abrir / cerrar la aventura ---------- */
