@@ -4270,13 +4270,44 @@ function figuritasEvento(ev){
   return Math.max(0, figuritasObtenidas() - eventoBase(ev));
 }
 
+/* Marca de tiempo de cuándo este dispositivo empezó a contar para el
+   evento — mismo momento que eventoBase()/eventoBaseIds() (se fijan
+   juntas desde sincronizarEvento()). Sirve para medir cuánto tardó en
+   completar Kanto+Johto, para el Salón de la Fama del evento. */
+const EVENTO_INICIO_KEY = 'album-kanto-evento-inicio';
+
+function eventoInicioMs(ev){
+  let base = {};
+  try{ base = JSON.parse(localStorage.getItem(EVENTO_INICIO_KEY) || '{}'); }catch(e){ base = {}; }
+  if(typeof base[ev.slug] !== 'number'){
+    base[ev.slug] = Date.now();
+    try{ localStorage.setItem(EVENTO_INICIO_KEY, JSON.stringify(base)); }catch(e){}
+  }
+  return base[ev.slug];
+}
+
 function enviarPuntajeEvento(){
   const ev = eventoActivo();
   if(!ev || !jugador) return;
+  const vista = eventoVistaActiva();
+  let completo = false, duracionMs = 0;
+  if(vista){
+    /* Se fija (o se lee, si ya existía) en CADA llamada, no sólo cuando ya
+       completó — si no, "inicio" y "fin" quedarían en el mismo instante y
+       la duración siempre daría ~0. */
+    const inicio = eventoInicioMs(vista);
+    const baseIds = eventoBaseIds(vista);
+    const listaEvento = DATA.filter(p => IDS_KANTO_JOHTO.has(p.id));
+    const gotEvento = listaEvento.filter(p => state[p.id].got && !baseIds.has(p.id)).length;
+    if(gotEvento === listaEvento.length){
+      completo = true;
+      duracionMs = Date.now() - inicio;
+    }
+  }
   fetch(API_BASE + '/pokemon-evento-score', {
     method: 'POST',
     headers: {'Content-Type': 'text/plain;charset=UTF-8'},
-    body: JSON.stringify({ jugador: jugador, evento: ev.slug, figuritas: figuritasEvento(ev) })
+    body: JSON.stringify({ jugador: jugador, evento: ev.slug, figuritas: figuritasEvento(ev), completo: completo, duracionMs: duracionMs })
   }).then(() => cargarTopEvento(ev)).catch(() => {});
 }
 
@@ -4382,7 +4413,7 @@ function renderRank(){
 
   if(rankTab === 'evento'){
     renderRankEvento(lista, cont);
-    renderSalonDeLaFama(done);   // el Salón de la Fama es el de siempre, no cambia durante el evento
+    renderSalonDeLaFamaEvento(done);
     return;
   }
 
@@ -4441,6 +4472,34 @@ function renderSalonDeLaFama(done){
   } else {
     done.innerHTML = '<div class="rank-done-empty"><b style="color:var(--ink);font-family:\'Baloo 2\',sans-serif;">Nadie completó el álbum todavía.</b><br>' +
       'El primero que junte las ' + DATA.length + ' figuritas queda en esta lista para siempre.</div>';
+  }
+}
+
+function formatearDuracion(ms){
+  const totalMin = Math.max(0, Math.round(ms / 60000));
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return h > 0 ? `${h}h ${m}min` : `${m} min`;
+}
+
+/* Salón de la fama PROPIO del evento: quién completó las 251 de Kanto+Johto
+   DURANTE la ventana, ordenado por cuánto tardó (no por orden de llegada —
+   lo arma así el servidor en Armar Top Evento). Vive aparte del Salón de la
+   Fama normal: completar el evento no completa el álbum real de 1025, y
+   viceversa. */
+function renderSalonDeLaFamaEvento(done){
+  const comp = (ultimoTopEvento && ultimoTopEvento.completaron) || [];
+  if(comp.length > 0){
+    done.innerHTML = '<div class="hof-title">🏆 Salón de la Fama del evento</div>' +
+      '<div class="hof-sub">(Completaron Kanto+Johto durante el evento)</div>' +
+      comp.map(c => {
+        return '<div class="hof-row"><img class="hof-crown" src="images/crown-oro.svg" alt="">' +
+          '<div class="hof-name"></div><div class="hof-date">' + formatearDuracion(c.duracionMs) + '</div></div>';
+      }).join('');
+    done.querySelectorAll('.hof-name').forEach((el, i) => { el.textContent = comp[i].jugador; });
+  } else {
+    done.innerHTML = '<div class="rank-done-empty"><b style="color:var(--ink);font-family:\'Baloo 2\',sans-serif;">Nadie completó Kanto+Johto todavía.</b><br>' +
+      'El más rápido en juntar las 251 figuritas queda acá.</div>';
   }
 }
 
