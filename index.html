@@ -28,6 +28,10 @@
 
   header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-bottom:0;padding:14px 4px;}
   .accent-bar{height:5px;background:linear-gradient(90deg,#3DDC97,#8CE99A,#3DDC97);border-radius:3px;margin-bottom:18px;}
+
+  .evento-banner{background:linear-gradient(135deg,var(--poke-blue),#1E5A94);border:1px solid var(--poke-blue);border-radius:12px;padding:12px 16px;margin-bottom:18px;text-align:center;}
+  .evento-banner-nombre{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:16px;color:#fff;letter-spacing:.3px;}
+  .evento-banner-sub{font-size:11px;color:#D8E8FA;margin-top:2px;}
   h1{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:28px;letter-spacing:.5px;margin:0;color:var(--ink);}
   h1 span{color:var(--gold);text-shadow:-1px 0 var(--poke-blue),1px 0 var(--poke-blue),0 -1px var(--poke-blue),0 1px var(--poke-blue);}
 
@@ -274,7 +278,7 @@
 <div class="wrap">
 
   <header>
-    <h1 class="marca">Álbum <span>Pokémon</span></h1>
+    <h1 class="marca">Álbum</h1>
     <div style="display:flex;gap:10px;align-items:center;">
       <div class="coin-box"><div class="ball"></div><div class="amount" id="coinAmount">0</div></div>
       <button class="earn-btn" id="earnBtn">Responder y ganar</button>
@@ -286,6 +290,11 @@
   </div>
 
   <div class="accent-bar"></div>
+
+  <div class="evento-banner" id="eventoBanner" hidden>
+    <div class="evento-banner-nombre" id="eventoBannerNombre"></div>
+    <div class="evento-banner-sub" id="eventoBannerSub"></div>
+  </div>
 
   <div class="pokedex-launch">
     <img class="pokedex-launch-icon" src="images/pokedex-icon.png" alt="">
@@ -327,6 +336,7 @@
       <div style="display:flex;align-items:center;gap:10px;">
         <span class="rank-status" id="rankStatus"></span>
         <div class="rank-tabs">
+          <div class="rank-tab" id="tabEvento" hidden>Evento</div>
           <div class="rank-tab active" id="tabHoy">Hoy</div>
           <div class="rank-tab" id="tabHist">Histórico</div>
         </div>
@@ -2024,6 +2034,44 @@ function diaDeHoy(){
 }
 let comprasDia = {};                 // {'2026-09-06': {maestra:1}}
 
+/* =================== MODO EVENTO =================== */
+/* Sistema genérico para eventos presenciales cortos: cada entrada de EVENTOS
+   define nombre + ventana [inicio,fin] (con huso horario explícito, así no
+   depende de en qué zona esté el dispositivo) + un slug que separa su
+   ranking del de cualquier otro evento futuro. Para el próximo evento
+   alcanza con agregar una entrada nueva acá — nada más de esto cambia. */
+const EVENTOS = [
+  {
+    slug: 'aniversario-pachamanga-2026-10',
+    nombre: 'Evento Aniversario Pachamanga',
+    inicio: '2026-10-04T15:00:00-03:00',
+    fin:    '2026-10-04T21:00:00-03:00',
+    cooldownLegendarioMin: 15
+  }
+];
+
+function eventoActivo(){
+  const ahora = Date.now();
+  return EVENTOS.find(e => {
+    const ini = new Date(e.inicio).getTime();
+    const fin = new Date(e.fin).getTime();
+    return ahora >= ini && ahora < fin;
+  }) || null;
+}
+
+/* Cooldown de legendarios: normalmente "una vez por día calendario" (ver
+   diaDeHoy() arriba); durante un evento con cooldownLegendarioMin, en vez
+   de por día se resetea cada tantos minutos. Devuelve un string opaco que
+   sólo se usa para comparar igualdad, nunca se parsea como fecha. */
+function claveCooldownLegendario(){
+  const ev = eventoActivo();
+  if(ev && ev.cooldownLegendarioMin){
+    const bloqueMs = ev.cooldownLegendarioMin * 60000;
+    return 'evento:' + ev.slug + ':' + Math.floor(Date.now() / bloqueMs);
+  }
+  return diaDeHoy();
+}
+
 function compradasHoy(tipo){
   const hoy = diaDeHoy();
   return (comprasDia[hoy] || {})[tipo] || 0;
@@ -2115,7 +2163,7 @@ function altarMasCercano(cx, cy){
 }
 
 function legendarioYaSalioHoy(nombre){
-  if(!legendariosDia.dia || legendariosDia.dia !== diaDeHoy()) return false;
+  if(!legendariosDia.dia || legendariosDia.dia !== claveCooldownLegendario()) return false;
   return !!legendariosDia.obtenidos[nombre];
 }
 
@@ -2132,7 +2180,8 @@ function legendarioDelAltar(santuario){
 }
 
 function anotarLegendario(p, santuario){
-  if(!legendariosDia.dia || legendariosDia.dia !== diaDeHoy()) legendariosDia = {dia: diaDeHoy(), obtenidos: {}};
+  const clave = claveCooldownLegendario();
+  if(!legendariosDia.dia || legendariosDia.dia !== clave) legendariosDia = {dia: clave, obtenidos: {}};
   legendariosDia.obtenidos[p.name] = santuario.n;
   saveProgress();
 }
@@ -3467,7 +3516,11 @@ function tirarAltar(santuario, x, y){
   if(!santuario) return;
   if(legendariosAgotadosHoy(santuario)){
     const salidos = santuario.pokes.filter(n => legendarioYaSalioHoy(n));
-    advMensaje(`✨ El altar está en silencio. Hoy ya aparecieron <b>${salidos.join('</b>, <b>')}</b> acá. Volvé mañana.`);
+    const evLeg = eventoActivo();
+    const cierre = (evLeg && evLeg.cooldownLegendarioMin)
+      ? `Volvé a probar en ${evLeg.cooldownLegendarioMin} minutos.`
+      : 'Volvé mañana.';
+    advMensaje(`✨ El altar está en silencio. Ya aparecieron <b>${salidos.join('</b>, <b>')}</b> acá. ${cierre}`);
     advDescanso = DESCANSO_ENCUENTRO * 4;
     return;
   }
@@ -4061,6 +4114,86 @@ function enviarPuntaje(){
     if(!r.ok) throw new Error('HTTP ' + r.status);
     return cargarTop();
   }).catch(() => setStatus('sin conexión con el ranking', true));
+
+  enviarPuntajeEvento();
+}
+
+/* =================== RANKING DE EVENTO =================== */
+/* "Todos arrancan de 0" sin tocar el ranking de siempre: en vez de borrar
+   pokemon_ranking, cada dispositivo guarda cuántas figuritas tenía la
+   PRIMERA vez que vio el evento activo (su "base"), y lo que manda al
+   ranking de evento es sólo la diferencia desde ahí. El ranking histórico
+   de toda la vida queda intacto. Quien ya completó el álbum (ver
+   [[project_pokemon_album]], Salón de la Fama) no tiene mucho margen para
+   sumar figuritas nuevas durante el evento, así que naturalmente no
+   encabeza este ranking sin necesidad de excluirlo a mano. */
+const EVENTO_BASE_KEY = 'album-kanto-evento-base';
+
+function eventoBase(ev){
+  let base = {};
+  try{ base = JSON.parse(localStorage.getItem(EVENTO_BASE_KEY) || '{}'); }catch(e){ base = {}; }
+  if(typeof base[ev.slug] !== 'number'){
+    base[ev.slug] = figuritasObtenidas();
+    try{ localStorage.setItem(EVENTO_BASE_KEY, JSON.stringify(base)); }catch(e){}
+  }
+  return base[ev.slug];
+}
+
+function figuritasEvento(ev){
+  return Math.max(0, figuritasObtenidas() - eventoBase(ev));
+}
+
+function enviarPuntajeEvento(){
+  const ev = eventoActivo();
+  if(!ev || !jugador) return;
+  fetch(API_BASE + '/pokemon-evento-score', {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=UTF-8'},
+    body: JSON.stringify({ jugador: jugador, evento: ev.slug, figuritas: figuritasEvento(ev) })
+  }).then(() => cargarTopEvento(ev)).catch(() => {});
+}
+
+let ultimoTopEvento = null;
+
+function cargarTopEvento(ev){
+  return fetch(API_BASE + '/pokemon-evento-top?evento=' + encodeURIComponent(ev.slug), {cache: 'no-store'})
+    .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => { ultimoTopEvento = data; if(rankTab === 'evento') renderRank(); })
+    .catch(() => {});
+}
+
+/* Muestra/oculta el banner y la pestaña "Evento" según si hay uno activo
+   ahora mismo, y arranca el ranking de evento la primera vez que lo ve.
+   Se llama al cargar y después cada un minuto, así el banner desaparece
+   solo cuando termina la ventana sin necesitar recargar la página. */
+let eventoYaIniciado = null;   // slug del evento cuyo top ya se pidió, para no repetir el fetch cada minuto
+
+function sincronizarEvento(){
+  const ev = eventoActivo();
+  const banner = document.getElementById('eventoBanner');
+  const tab = document.getElementById('tabEvento');
+
+  if(!ev){
+    banner.hidden = true;
+    tab.hidden = true;
+    if(rankTab === 'evento') activarRankTab('hoy');
+    eventoYaIniciado = null;
+    return;
+  }
+
+  const fin = new Date(ev.fin);
+  const hora = fin.toLocaleTimeString('es-AR', {timeZone: ZONA_HORARIA, hour: '2-digit', minute: '2-digit', hour12: false});
+  document.getElementById('eventoBannerNombre').textContent = ev.nombre;
+  document.getElementById('eventoBannerSub').textContent =
+    'Ranking propio del evento · los legendarios reaparecen cada ' + ev.cooldownLegendarioMin + ' min · termina a las ' + hora;
+  banner.hidden = false;
+  tab.hidden = false;
+
+  if(eventoYaIniciado !== ev.slug){
+    eventoYaIniciado = ev.slug;
+    cargarTopEvento(ev);
+    if(jugador) enviarPuntajeEvento();
+  }
 }
 
 function cargarTop(){
@@ -4086,7 +4219,7 @@ function cargarTop(){
 function iconoPuesto(puesto){
   if(puesto > 3) return '';
   const nivel = puesto === 1 ? 'oro' : puesto === 2 ? 'plata' : 'bronce';
-  if(rankTab === 'hoy'){
+  if(rankTab === 'hoy' || rankTab === 'evento'){
     return '<img class="rank-medal" src="images/medal-' + nivel + '.svg" alt="Medalla de ' + nivel + '">';
   }
   return '<img class="rank-medal" src="images/crown-' + nivel + '.svg" alt="Corona de ' + nivel + '">';
@@ -4097,6 +4230,12 @@ function renderRank(){
   const done  = document.getElementById('rankDone');
   const cont  = document.getElementById('rankCount');
   lista.innerHTML = '';
+
+  if(rankTab === 'evento'){
+    renderRankEvento(lista, cont);
+    renderSalonDeLaFama(done);   // el Salón de la Fama es el de siempre, no cambia durante el evento
+    return;
+  }
 
   if(!ultimoTop){
     lista.innerHTML = '<div class="rank-empty">No se pudo cargar el ranking. Revisá la conexión y volvé a entrar.</div>';
@@ -4136,7 +4275,11 @@ function renderRank(){
     });
   }
 
-  const comp = ultimoTop.completaron || [];
+  renderSalonDeLaFama(done);
+}
+
+function renderSalonDeLaFama(done){
+  const comp = (ultimoTop && ultimoTop.completaron) || [];
   if(comp.length > 0){
     done.innerHTML = '<div class="hof-title">🏆 Salón de la Fama</div>' +
       '<div class="hof-sub">(Completaron el álbum)</div>' +
@@ -4150,6 +4293,36 @@ function renderRank(){
     done.innerHTML = '<div class="rank-done-empty"><b style="color:var(--ink);font-family:\'Baloo 2\',sans-serif;">Nadie completó el álbum todavía.</b><br>' +
       'El primero que junte las ' + DATA.length + ' figuritas queda en esta lista para siempre.</div>';
   }
+}
+
+function renderRankEvento(lista, cont){
+  if(!ultimoTopEvento){
+    lista.innerHTML = '<div class="rank-empty">Cargando el ranking del evento...</div>';
+    cont.hidden = true;
+    return;
+  }
+  const filas = ultimoTopEvento.top || [];
+  if(Number.isFinite(ultimoTopEvento.jugadores)){
+    document.getElementById('rankCountNum').textContent = ultimoTopEvento.jugadores;
+    cont.hidden = false;
+  } else {
+    cont.hidden = true;
+  }
+  if(filas.length === 0){
+    lista.innerHTML = '<div class="rank-empty">Todavía nadie sumó figuritas en el evento. ¡Arrancá vos!</div>';
+    return;
+  }
+  filas.forEach(f => {
+    const row = document.createElement('div');
+    row.className = 'rank-row' + (f.jugador === jugador ? ' me' : '');
+    row.innerHTML =
+      '<div class="rank-pos">' + f.puesto + '</div>' +
+      '<div class="rank-name"></div>' +
+      iconoPuesto(f.puesto) +
+      '<div class="rank-score">' + f.figuritas + ' <span style="font-size:10px;color:var(--ink-dim);font-family:\'Space Mono\',monospace;">nuevas</span></div>';
+    row.querySelector('.rank-name').textContent = f.jugador;
+    lista.appendChild(row);
+  });
 }
 
 /* =================== INTERCAMBIO ENTRE JUGADORES =================== */
@@ -4409,18 +4582,19 @@ document.getElementById('nameSaveBtn').onclick = guardarNombre;
 document.getElementById('nameInput').addEventListener('keydown', e => {
   if(e.key === 'Enter') guardarNombre();
 });
-document.getElementById('tabHoy').onclick = () => {
-  rankTab = 'hoy';
-  document.getElementById('tabHoy').classList.add('active');
-  document.getElementById('tabHist').classList.remove('active');
+function activarRankTab(valor){
+  rankTab = valor;
+  ['tabEvento', 'tabHoy', 'tabHist'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.toggle('active', (id === 'tabEvento' && valor === 'evento')
+      || (id === 'tabHoy' && valor === 'hoy')
+      || (id === 'tabHist' && valor === 'historico'));
+  });
   renderRank();
-};
-document.getElementById('tabHist').onclick = () => {
-  rankTab = 'historico';
-  document.getElementById('tabHist').classList.add('active');
-  document.getElementById('tabHoy').classList.remove('active');
-  renderRank();
-};
+}
+document.getElementById('tabEvento').onclick = () => activarRankTab('evento');
+document.getElementById('tabHoy').onclick = () => activarRankTab('hoy');
+document.getElementById('tabHist').onclick = () => activarRankTab('historico');
 
 try{ jugador = localStorage.getItem(NAME_KEY) || ''; }catch(e){ jugador = ''; }
 
@@ -4434,6 +4608,8 @@ try{
 document.getElementById('playerName').textContent = jugador || '-';
 aplicarRegalos();
 cargarTop();
+sincronizarEvento();
+setInterval(sincronizarEvento, 60000);
 
 if(nombreDelLink && nombreDelLink !== jugador){
   fijarNombreDesdeLink(nombreDelLink);
