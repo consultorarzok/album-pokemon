@@ -307,6 +307,11 @@
   </div>
 
   <div class="pack-bar">
+    <div class="info">Intercambio · regalá una repetida con un código, o canjeá uno que te pasaron</div>
+    <button class="open-btn" id="intercambioBtn">Intercambiar</button>
+  </div>
+
+  <div class="pack-bar">
     <div class="info">Batalla de tipos · apostá monedas y <b>ganá el doble</b></div>
     <button class="open-btn" id="battleBtn">Pelear</button>
   </div>
@@ -379,6 +384,39 @@
     <div id="shopList" style="max-width:370px;width:100%;margin:0 auto;"></div>
     <div id="shopFeedback" style="font-family:'Baloo 2',sans-serif;font-size:12px;min-height:20px;margin:6px 0 12px;"></div>
     <button class="close-btn" id="shopCloseBtn">Cerrar</button>
+  </div>
+</div>
+
+<div class="overlay" id="intercambioOverlay" style="z-index:45;">
+  <div class="reveal-panel" style="max-width:430px;margin:0 auto;">
+    <h2>🔁 Intercambio</h2>
+    <div style="font-size:11px;color:var(--ink-dim);margin-bottom:14px;">
+      Generá un código desde una figurita repetida y compartiselo a otro entrenador,
+      o pegá acá el código que te pasaron a vos. Siempre te queda 1 en el álbum: el
+      código sólo sale de las copias de más.
+    </div>
+
+    <div style="text-align:left;margin-bottom:18px;">
+      <div style="font-family:'Baloo 2',sans-serif;font-size:13px;color:var(--ink);margin-bottom:6px;">¿Tenés un código?</div>
+      <div style="display:flex;gap:8px;">
+        <input id="canjeCodigoInput" maxlength="8" placeholder="Ej: K3F9QZ" autocomplete="off"
+          style="flex:1;min-width:0;padding:10px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--ink);font-family:'Space Mono',monospace;font-size:13px;text-transform:uppercase;">
+        <button class="open-btn" id="canjeCodigoBtn" style="padding:10px 16px;">Canjear</button>
+      </div>
+      <div id="canjeCodigoFeedback" style="font-size:11px;min-height:16px;margin-top:6px;"></div>
+    </div>
+
+    <div style="text-align:left;">
+      <div style="font-family:'Baloo 2',sans-serif;font-size:13px;color:var(--ink);margin-bottom:6px;">Tus repetidas</div>
+      <div id="intercambioList"></div>
+    </div>
+
+    <div style="text-align:left;margin-top:14px;" id="intercambioMisCodigosWrap" hidden>
+      <div style="font-family:'Baloo 2',sans-serif;font-size:13px;color:var(--ink);margin-bottom:6px;">Códigos que generaste</div>
+      <div id="misCodigosList"></div>
+    </div>
+
+    <button class="close-btn" id="intercambioCloseBtn" style="margin-top:16px;">Cerrar</button>
   </div>
 </div>
 
@@ -3783,6 +3821,10 @@ document.getElementById('advBtn').onclick = abrirAventura;
 document.getElementById('advCloseBtn').onclick = cerrarAventura;
 document.getElementById('encCloseBtn').onclick = cerrarEncuentro;
 document.getElementById('shopCloseBtn').onclick = () => document.getElementById('shopOverlay').classList.remove('show');
+document.getElementById('intercambioBtn').onclick = abrirIntercambio;
+document.getElementById('intercambioCloseBtn').onclick = () => document.getElementById('intercambioOverlay').classList.remove('show');
+document.getElementById('canjeCodigoBtn').onclick = canjearCodigoInput;
+document.getElementById('canjeCodigoInput').addEventListener('keydown', e => { if(e.key === 'Enter') canjearCodigoInput(); });
 
 document.getElementById('closeBtn').onclick = () => document.getElementById('overlay').classList.remove('show');
 document.getElementById('pokedexBtn').onclick = () => document.getElementById('pokedexOverlay').classList.add('show');
@@ -4108,6 +4150,181 @@ function renderRank(){
     done.innerHTML = '<div class="rank-done-empty"><b style="color:var(--ink);font-family:\'Baloo 2\',sans-serif;">Nadie completó el álbum todavía.</b><br>' +
       'El primero que junte las ' + DATA.length + ' figuritas queda en esta lista para siempre.</div>';
   }
+}
+
+/* =================== INTERCAMBIO ENTRE JUGADORES =================== */
+/* Generás un código a partir de una figurita que tengas repetida (siempre
+   te queda 1 en el álbum, el código sale de las copias de más). El dup
+   local recién se resta cuando el servidor confirma el alta del código:
+   a diferencia del nombre, acá no tiene sentido dejar jugar "offline" -
+   si no hay conexión el código no existe en ningún lado, así que no sirve
+   de nada regalar algo que nadie puede canjear.
+   El canje lo resuelve el servidor con un update atómico filtrado por
+   {codigo, usado:false}: si dos entrenadores canjean el mismo código a la
+   vez, sólo uno de los dos matchea esa fila. */
+const CODIGOS_KEY = 'album-kanto-codigos-generados';
+
+function misCodigos(){
+  try{ return JSON.parse(localStorage.getItem(CODIGOS_KEY) || '[]'); }catch(e){ return []; }
+}
+function guardarCodigoGenerado(codigo, pokemonId){
+  const lista = misCodigos();
+  lista.unshift({codigo, pokemonId, creado: Date.now()});
+  try{ localStorage.setItem(CODIGOS_KEY, JSON.stringify(lista)); }catch(e){}
+}
+
+function copiarTexto(txt, btn){
+  const textoOriginal = btn.textContent;
+  const hecho = () => { btn.textContent = '¡Copiado!'; setTimeout(() => { btn.textContent = textoOriginal; }, 1500); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(hecho).catch(() => {});
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); hecho(); }catch(e){}
+    document.body.removeChild(ta);
+  }
+}
+
+function renderIntercambioDup(){
+  const cont = document.getElementById('intercambioList');
+  cont.innerHTML = '';
+  const conDup = DATA.filter(p => state[p.id].dup > 0);
+  if(!conDup.length){
+    cont.innerHTML = '<div style="font-size:11px;color:var(--ink-dim);">Todavía no tenés ninguna repetida.</div>';
+    return;
+  }
+  conDup.forEach(p => {
+    const fila = document.createElement('div');
+    fila.className = 'shop-row';
+    fila.innerHTML = `<img src="${p.img}" alt="" style="width:34px;height:34px;object-fit:contain;flex:0 0 auto;">
+      <span class="txt"><b>${p.name}</b>Te quedan ${state[p.id].dup} de más</span>`;
+    const btn = document.createElement('button');
+    btn.className = 'open-btn';
+    btn.style.padding = '9px 14px';
+    btn.textContent = 'Generar código';
+    btn.onclick = () => generarCodigo(p.id, btn);
+    fila.appendChild(btn);
+    cont.appendChild(fila);
+  });
+}
+
+function renderMisCodigos(){
+  const wrap = document.getElementById('intercambioMisCodigosWrap');
+  const cont = document.getElementById('misCodigosList');
+  const lista = misCodigos();
+  wrap.hidden = lista.length === 0;
+  cont.innerHTML = '';
+  lista.forEach(item => {
+    const p = DATA.find(d => d.id === item.pokemonId);
+    const fila = document.createElement('div');
+    fila.className = 'shop-row';
+    fila.innerHTML = `<span class="txt"><b style="font-family:'Space Mono',monospace;letter-spacing:2px;font-size:14px;">${item.codigo}</b>${p ? p.name : '?'} · queda disponible hasta que alguien lo use</span>`;
+    const btn = document.createElement('button');
+    btn.className = 'open-btn';
+    btn.style.padding = '9px 14px';
+    btn.textContent = 'Copiar';
+    btn.onclick = () => copiarTexto(item.codigo, btn);
+    fila.appendChild(btn);
+    cont.appendChild(fila);
+  });
+}
+
+function abrirIntercambio(){
+  document.getElementById('canjeCodigoInput').value = '';
+  document.getElementById('canjeCodigoFeedback').textContent = '';
+  renderIntercambioDup();
+  renderMisCodigos();
+  document.getElementById('intercambioOverlay').classList.add('show');
+}
+
+function generarCodigo(pokemonId, btn){
+  if(!jugador || state[pokemonId].dup < 1) return;
+  btn.disabled = true;
+  btn.textContent = 'Generando...';
+  fetch(API_BASE + '/pokemon-generar-codigo', {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=UTF-8'},
+    body: JSON.stringify({jugador, dispositivo, pokemonId})
+  })
+  .then(r => r.json())
+  .then(res => {
+    if(!res || res.ok === false || !res.codigo) throw new Error('sin código');
+    state[pokemonId].dup -= 1;
+    renderGrid();
+    updateProgress();
+    saveProgress();
+    enviarPuntaje();
+    guardarCodigoGenerado(res.codigo, pokemonId);
+    renderIntercambioDup();   // reconstruye la lista entera; este btn queda descartado
+    renderMisCodigos();
+  })
+  .catch(() => {
+    btn.disabled = false;
+    btn.textContent = 'Sin conexión, probá de nuevo';
+    setTimeout(() => { btn.textContent = 'Generar código'; }, 2500);
+  });
+}
+
+function canjearCodigoInput(){
+  const inp = document.getElementById('canjeCodigoInput');
+  const btn = document.getElementById('canjeCodigoBtn');
+  const fb  = document.getElementById('canjeCodigoFeedback');
+  const codigo = inp.value.trim().toUpperCase();
+  if(!codigo){ fb.style.color = 'var(--red)'; fb.textContent = 'Escribí un código.'; return; }
+  if(!jugador) return;
+
+  const textoBtn = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Canjeando...';
+  fb.textContent = '';
+
+  fetch(API_BASE + '/pokemon-canjear-codigo', {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=UTF-8'},
+    body: JSON.stringify({jugador, dispositivo, codigo})
+  })
+  .then(r => r.json())
+  .then(res => {
+    if(!res || res.ok === false){
+      const motivo = res && res.motivo;
+      fb.style.color = 'var(--red)';
+      fb.textContent = motivo === 'propio' ? 'Ese código lo generaste vos: no te lo podés canjear a vos mismo.'
+        : motivo === 'usado' ? 'Ese código ya lo usó otro entrenador.'
+        : motivo === 'no_existe' ? 'Ese código no existe. Revisalo bien.'
+        : 'No se pudo canjear. Revisá el código.';
+      btn.disabled = false;
+      btn.textContent = textoBtn;
+      return;
+    }
+    const p = DATA.find(d => d.id === res.pokemonId);
+    if(!p){
+      fb.style.color = 'var(--red)';
+      fb.textContent = 'Código canjeado pero la figurita no se reconoce.';
+      btn.disabled = false;
+      btn.textContent = textoBtn;
+      return;
+    }
+    const isNew = !state[p.id].got;
+    if(isNew) state[p.id].got = true; else state[p.id].dup += 1;
+    renderGrid();
+    updateProgress();
+    saveProgress();
+    enviarPuntaje();
+    inp.value = '';
+    btn.disabled = false;
+    btn.textContent = textoBtn;
+    document.getElementById('intercambioOverlay').classList.remove('show');
+    const pull = [{p, isNew}];
+    if(isSpecial(p)) playSpecialSequence(pull, 0, () => showReveal(pull, 'Canjeaste un código'));
+    else showReveal(pull, 'Canjeaste un código');
+  })
+  .catch(() => {
+    fb.style.color = 'var(--red)';
+    fb.textContent = 'Sin conexión. Probá de nuevo en un rato.';
+    btn.disabled = false;
+    btn.textContent = textoBtn;
+  });
 }
 
 // Solo se llama al entrar por primera vez: una vez elegido, el nombre es definitivo.
