@@ -3471,6 +3471,9 @@ function abrirAventura(){
   advRender();
   advSyncHud();
   advMensaje('Caminá hasta la <b>hierba alta</b> o el <b>lago</b> para que salgan Pokémon');
+  // la ayuda de los mandos se retira sola: después tapa el mapa
+  const ayuda = document.querySelector('.adv-ayuda');
+  if(ayuda){ ayuda.classList.remove('oculta'); clearTimeout(abrirAventura._t); abrirAventura._t = setTimeout(() => ayuda.classList.add('oculta'), 9000); }
   advUltimo = performance.now();
   if(!advRaf) advRaf = requestAnimationFrame(advCiclo);
   // pantalla completa de verdad donde el navegador lo permita
@@ -4510,7 +4513,10 @@ document.querySelectorAll('.rank-tab').forEach(t => t.addEventListener('keydown'
         setTimeout(() => {
           if(p.contains(document.activeElement)) return;
           const f = enfocables(p);
-          if(f.length) f[0].focus();
+          // preventScroll: si no, el navegador corre el panel hasta el primer
+          // botón y en el celular acostado se pierden el título y la imagen.
+          if(f.length) f[0].focus({preventScroll:true});
+          p.querySelectorAll('.reveal-panel, .pokedex-body').forEach(x => { x.scrollTop = 0; });
         }, 60);
       } else if(!abierto && estaba){
         const antes = memoria.get(p);
@@ -4535,6 +4541,11 @@ document.querySelectorAll('.rank-tab').forEach(t => t.addEventListener('keydown'
 })();
 // Escape cierra el panel abierto (sólo los que ya tienen botón Cerrar)
 document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && advAbierto){
+    const encima = document.querySelector('.overlay.show, .special-overlay.show');
+    if(!encima) cerrarAventura();
+    return;
+  }
   if(e.key !== 'Escape' || advAbierto) return;
   const cierres = ['intercambioCloseBtn','shopCloseBtn','pokedexCloseBtn','closeBtn','quizCloseBtn','battleCloseBtn'];
   for(const id of cierres){

@@ -229,7 +229,7 @@
   .adv-map{position:absolute;inset:0;width:100%;height:100%;display:block;background:#0B1020;image-rendering:pixelated;image-rendering:crisp-edges;}
   .adv-map.flash{animation:advFlash .5s ease;}
   @keyframes advFlash{0%{filter:brightness(3.4);}55%{filter:brightness(1.6);}100%{filter:brightness(1);}}
-  .adv-back{position:absolute;top:10px;left:10px;z-index:3;background:rgba(16,20,38,.78);color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:10px;padding:9px 15px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+  .adv-back{position:absolute;top:10px;left:10px;z-index:3;min-height:44px;background:rgba(16,20,38,.78);color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:10px;padding:9px 15px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
   .adv-back:active{transform:scale(.97);}
   .adv-hud{position:absolute;top:10px;right:10px;z-index:3;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:62vw;}
   .adv-hud .pill{display:flex;align-items:center;gap:5px;background:rgba(16,20,38,.78);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:4px 10px;color:#fff;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;}
@@ -246,6 +246,8 @@
   /* Minimapa: el mundo entero con las 3 regiones y dónde estás parado. */
   .adv-mini{position:absolute;top:52px;right:10px;z-index:3;width:186px;height:49px;border:2px solid rgba(255,255,255,.35);border-radius:8px;background:rgba(16,20,38,.72);image-rendering:pixelated;}
   .adv-mini[hidden]{display:none;}
+  .adv-ayuda{transition:opacity .8s ease;}
+  .adv-ayuda.oculta{opacity:0;}
   .adv-ayuda{position:absolute;right:12px;bottom:12px;z-index:3;color:rgba(255,255,255,.85);text-shadow:0 1px 3px rgba(0,0,0,.8);font-family:'Space Mono',monospace;font-size:11px;line-height:1.7;text-align:right;pointer-events:none;}
   /* En el celular las 4 pastillas del HUD no entraban en una línea y la última
      se caía encima del mapa. */
@@ -305,6 +307,40 @@
     .adv-map.flash{animation:none;}
     .progress-fill,.timer-bar{transition:none;}
     .bat-carta.elegible:hover{transform:none;}
+  }
+
+  /* ---------- Celular acostado (poca altura) ----------
+     Los paneles y la carta tienen que entrar en ~360 px de alto. */
+  @media (max-height:520px){
+    .overlay > .reveal-panel{padding:14px 18px 16px;}
+    .reveal-panel h2{font-size:18px;margin:0 0 8px;}
+    #encImg,#quizImg{width:84px !important;margin:0 auto 4px !important;}
+    #encInfo,#encName{margin-bottom:6px !important;}
+    #encFeedback,#shopFeedback,#battleFeedback{margin-bottom:6px !important;min-height:0 !important;}
+    .enc-tiros{margin-bottom:6px;}
+    .special-banner{font-size:13px;margin-bottom:8px;}
+    .special-card{width:auto;min-width:260px;height:min(58vh,260px);padding:12px;text-align:center;}
+    .special-card .stag{text-align:center;}
+    .special-card img{width:auto;height:52%;}
+    .special-card .sname{font-size:20px;}
+    .special-continue{margin-top:12px;padding:10px 22px;}
+    .codigo-chip{margin-top:8px;font-size:18px;padding:6px 14px;}
+    /* Huir y Cerrar quedan pegados abajo: siempre a mano sin scrollear. */
+    #shopCloseBtn{position:sticky;bottom:0;background:var(--panel-2);box-shadow:0 0 0 8px var(--panel-2);margin-top:4px;}
+  }
+  /* Encuentro con el celular acostado: imagen e info a la izquierda, pokébolas
+     a la derecha, así entra todo sin scrollear. */
+  @media (max-height:520px) and (min-width:560px){
+    #encOverlay .reveal-panel{max-width:720px !important;display:grid;grid-template-columns:170px minmax(0,1fr);column-gap:16px;align-content:center;justify-items:center;}
+    #encTitle{grid-column:1 / -1;grid-row:1;margin:0 0 6px;}
+    #encImg{grid-column:1;grid-row:2;}
+    #encName{grid-column:1;grid-row:3;}
+    #encInfo{grid-column:1;grid-row:4;}
+    #encTiros{grid-column:1;grid-row:5;}
+    .bola-btn{padding:7px 3px;}
+    #encBolas{grid-column:2;grid-row:2 / span 3;align-self:center;margin:0 !important;grid-template-columns:repeat(4,minmax(0,1fr)) !important;width:100%;max-width:none !important;gap:6px !important;}
+    #encFeedback{grid-column:2;grid-row:5;align-self:center;text-align:center;}
+    #encCloseBtn{grid-column:1 / -1;grid-row:6;margin-top:6px;}
   }
 
   /* ---------- Tablet y pantallas anchas ---------- */
