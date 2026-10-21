@@ -67,7 +67,8 @@ function statsDe(p){
             estrella (persigue), lodo, burbujas, tornado, hueso (vuelve como bumerán),
             semillas, suelo (onda que viaja por el piso), monedas
      largo: rayo, lluvia (muchos golpes sobre la zona), zona (estallido sobre la zona),
-            trueno (rayo del cielo), propia (onda alrededor de uno mismo) */
+            trueno (rayo del cielo), propia (onda alrededor de uno mismo),
+            embestida (cruza la arena por la línea marcada y termina a las piñas: los de Lucha) */
 const ATQ = {
   'Placaje':['normal','golpe'], 'Arañazo':['normal','garra'], 'Golpe Cuerpo':['normal','cuerpo'], 'Cabezazo':['normal','golpe'],
   'Mordisco':['dark','mordisco'], 'Hiper Colmillo':['normal','mordisco'], 'Ataque Rápido':['normal','golpe'], 'Cuchillada':['normal','garra'],
@@ -75,7 +76,7 @@ const ATQ = {
   'Corte':['normal','garra'], 'Agarre':['normal','garra'], 'Tenaza':['normal','garra'], 'Constricción':['normal','latigo'], 'Cornada':['normal','golpe'],
   'Látigo Cepa':['grass','latigo'], 'Puño Fuego':['fire','golpe'], 'Puño Trueno':['electric','golpe'], 'Colmillo Ígneo':['fire','mordisco'],
   'Garra Dragón':['dragon','garra'], 'Picotazo':['flying','picotazo'], 'Pico Taladro':['flying','picotazo'], 'Ataque Ala':['flying','golpe'],
-  'Doble Patada':['fighting','patada'], 'Patada Salto Alta':['fighting','patada'], 'Golpe Kárate':['fighting','golpe'], 'Sumisión':['fighting','cuerpo'],
+  'Doble Patada':['fighting','patada'], 'Patada Salto Alta':['fighting','embestida'], 'A Bocajarro':['fighting','embestida'], 'Roca Arrancada':['fighting','piedra'], 'Golpe Kárate':['fighting','golpe'], 'Sumisión':['fighting','cuerpo'],
   'Puño Dinámico':['fighting','golpe'], 'Patada Baja':['fighting','patada'], 'Picotazo Veneno':['poison','aguijon'], 'Doble Ataque':['bug','aguijon'],
   'Chupavidas':['bug','mordisco'], 'Tijera X':['bug','garra'], 'Lengüetazo':['ghost','latigo'], 'Martillazo':['water','garra'],
   'Desenrollar':['rock','cuerpo'], 'Hueso Palo':['ground','golpe'], 'Cabezazo Zen':['psychic','golpe'],
@@ -117,10 +118,10 @@ const SETS = `1 Látigo Cepa|Drenadoras|Rayo Solar;2 Látigo Cepa|Hoja Afilada|R
 43 Placaje|Polvo Veneno|Danza Pétalo;44 Placaje|Ácido|Danza Pétalo;45 Placaje|Polvo Veneno|Rayo Solar;46 Arañazo|Espora|Rayo Solar;
 47 Cuchillada|Espora|Rayo Solar;48 Placaje|Polvo Veneno|Psíquico;49 Chupavidas|Polvo Veneno|Psíquico;50 Arañazo|Ataque Arena|Terremoto;
 51 Cuchillada|Ataque Arena|Fisura;52 Arañazo|Día de Pago|Hiperrayo;53 Cuchillada|Día de Pago|Hiperrayo;54 Arañazo|Confusión|Hidrobomba;
-55 Arañazo|Confusión|Hidrobomba;56 Golpe Kárate|Onda Vacío|Sísmico;57 Golpe Kárate|Onda Vacío|Sísmico;58 Mordisco|Ascuas|Lanzallamas;
+55 Arañazo|Confusión|Hidrobomba;56 Golpe Kárate|Roca Arrancada|A Bocajarro;57 Golpe Kárate|Roca Arrancada|A Bocajarro;58 Mordisco|Ascuas|Lanzallamas;
 59 Colmillo Ígneo|Ascuas|Llamarada;60 Placaje|Burbuja|Hidrobomba;61 Destructor|Burbuja|Hidrobomba;62 Sumisión|Rayo Burbuja|Hidrobomba;
-63 Placaje|Confusión|Psíquico;64 Cabezazo Zen|Psicorrayo|Psíquico;65 Cabezazo Zen|Psicorrayo|Psíquico;66 Golpe Kárate|Onda Vacío|Sísmico;
-67 Patada Baja|Onda Vacío|Sísmico;68 Puño Dinámico|Onda Vacío|Sísmico;69 Látigo Cepa|Ácido|Rayo Solar;70 Látigo Cepa|Hoja Afilada|Rayo Solar;
+63 Placaje|Confusión|Psíquico;64 Cabezazo Zen|Psicorrayo|Psíquico;65 Cabezazo Zen|Psicorrayo|Psíquico;66 Golpe Kárate|Roca Arrancada|A Bocajarro;
+67 Patada Baja|Roca Arrancada|A Bocajarro;68 Puño Dinámico|Roca Arrancada|A Bocajarro;69 Látigo Cepa|Ácido|Rayo Solar;70 Látigo Cepa|Hoja Afilada|Rayo Solar;
 71 Látigo Cepa|Hoja Afilada|Rayo Solar;72 Atadura|Ácido|Hidrobomba;73 Constricción|Ácido|Hidrobomba;74 Placaje|Lanzarrocas|Autodestrucción;
 75 Desenrollar|Lanzarrocas|Terremoto;76 Desenrollar|Lanzarrocas|Explosión;77 Placaje|Ascuas|Giro Fuego;78 Ataque Rápido|Ascuas|Llamarada;
 79 Cabezazo|Pistola Agua|Psíquico;80 Cabezazo|Pistola Agua|Psíquico;81 Placaje|Impactrueno|Rayo;82 Placaje|Onda Trueno|Rayo;
@@ -130,7 +131,7 @@ const SETS = `1 Látigo Cepa|Drenadoras|Rayo Solar;2 Látigo Cepa|Hoja Afilada|R
 95 Atadura|Lanzarrocas|Avalancha;96 Destructor|Confusión|Come Sueños;97 Destructor|Psicorrayo|Psíquico;98 Agarre|Burbuja|Hidrobomba;
 99 Martillazo|Burbuja|Hidrobomba;100 Placaje|Chispa|Autodestrucción;101 Placaje|Rapidez|Explosión;102 Placaje|Drenadoras|Psíquico;
 103 Cabezazo Zen|Bomba Huevo|Rayo Solar;104 Hueso Palo|Huesomerang|Terremoto;105 Hueso Palo|Huesomerang|Terremoto;
-106 Patada Salto Alta|Onda Vacío|Sísmico;107 Megapuño|Onda Vacío|Sísmico;108 Lengüetazo|Supersónico|Hiperrayo;
+106 Doble Patada|Roca Arrancada|Patada Salto Alta;107 Megapuño|Roca Arrancada|A Bocajarro;108 Lengüetazo|Supersónico|Hiperrayo;
 109 Placaje|Residuos|Autodestrucción;110 Placaje|Residuos|Explosión;111 Cornada|Lanzarrocas|Terremoto;112 Cornada|Lanzarrocas|Fisura;
 113 Destructor|Bomba Huevo|Hiperrayo;114 Látigo Cepa|Drenadoras|Rayo Solar;115 Megapuño|Pisotón|Hiperrayo;116 Placaje|Burbuja|Hidrobomba;
 117 Placaje|Rayo Burbuja|Hidrobomba;118 Cornada|Pistola Agua|Surf;119 Cornada|Pistola Agua|Surf;120 Placaje|Rapidez|Hidrobomba;
@@ -152,6 +153,9 @@ function movDe(p, alc){
   return {n, tipo:d[0], fx:d[1], forma:d[2] || FORMA_FX[d[1]] || 'bola'};
 }
 const nombreAtaque = (p, alc) => movDe(p, alc).n;
+/* Ataques medios que se ven distinto a lo que da su efecto genérico. */
+const FORMA_MOV = {'Ascuas':'llama', 'Furia Dragón':'llama', 'Pulso Dragón':'llama', 'Canto':'nota', 'Beso Amoroso':'corazon',
+  'Rayo Aurora':'arcoiris', 'Psicorrayo':'arcoiris', 'Bola Voltio':'voltio', 'Bomba Huevo':'huevo', 'Onda Vacío':'medialuna'};
 
 const PART = {
   normal:  {c:['#A8A77A', '#ffffff'], g:0},
@@ -413,33 +417,80 @@ function alCambiarTamano(){
 }
 
 /* ---------------- efectos pixel ---------------- */
+/* Partículas con forma: llama, gota, chispa, hoja, cristal, burbuja, humo, nota, corazón,
+   pluma, estrella, roca (o un cuadradito si no se pide forma). */
 function particula(x, y, col, tam, dx, dy, dur, o){
   if(!FX) return;
   o = o || {};
-  const d = mk('ar-p', {left:x + 'px', top:y + 'px', width:tam + 'px', height:tam + 'px', background:col, opacity:0}, o.capa);
-  const g = o.g || 0, rot = o.rot || 0;
-  const T = (px, py, r) => `translate(-50%,-50%) translate(${px}px,${py}px) rotate(${r}deg)`;
-  const a = d.animate([
-    {transform:T(0, 0, 0), opacity:o.op || 1},
-    {transform:T(dx * .6, dy * .6 + g * .3, rot), opacity:o.op || 1, offset:.6},
-    {transform:T(dx, dy + g, rot * 2), opacity:0}
-  ], {duration:dur, delay:o.delay || 0, easing:'steps(7,end)', fill:'forwards'});
+  const f = o.forma, texto = f === 'nota' || f === 'corazon';
+  const d = mk('ar-p' + (f ? ' p-' + f : ''), {left:x + 'px', top:y + 'px', width:tam + 'px', height:(f === 'chispa' ? Math.max(2, tam * .28) : tam) + 'px',
+    background:texto || f === 'burbuja' ? 'none' : col, color:col, fontSize:(tam * 1.5) + 'px', opacity:0}, o.capa);
+  if(texto) d.textContent = f === 'nota' ? (Math.random() < .5 ? '♪' : '♫') : '♥';
+  const g = o.g || 0, rot = o.rot || 0, s0 = o.s0 || 1, s1 = o.s1 == null ? 1 : o.s1, r0 = o.rot0 || 0;
+  const T = (px, py, r, s) => `translate(-50%,-50%) translate(${px}px,${py}px) rotate(${r}deg) scale(${s})`;
+  const kf = [
+    {transform:T(0, 0, r0, s0), opacity:o.op || 1},
+    {transform:T(dx * .6, dy * .6 + g * .3, r0 + rot, (s0 + s1) / 2), opacity:o.op || 1, offset:.6},
+    {transform:T(dx, dy + g, r0 + rot * 2, s1), opacity:0}
+  ];
+  if(o.colores){ kf[0].backgroundColor = o.colores[0]; kf[1].backgroundColor = o.colores[1]; kf[2].backgroundColor = o.colores[2]; }
+  const a = d.animate(kf, {duration:dur, delay:o.delay || 0, easing:o.suave ? 'ease-out' : 'steps(7,end)', fill:'forwards'});
   const quitar = () => d.remove();
   a.finished.then(quitar, quitar);
 }
 
+/* Cómo estalla cada elemento: formas, colores, gravedad (+ cae, − sube) y movimiento. */
+const ELEM = {
+  fire:    {f:['llama'], c:['#FFF3B0', '#F7D02C', '#EE8130'], g:-1.5, seq:['#FFF6C8', '#F08A2C', '#7a2410']},
+  water:   {f:['gota', 'gota', 'burbuja'], c:['#6390F0', '#BCD2FF', '#ffffff'], g:1.7},
+  electric:{f:['chispa'], c:['#F7D02C', '#ffffff', '#FFF59A'], g:0, m:'zap'},
+  grass:   {f:['hoja'], c:['#7AC74C', '#3F8A2A', '#B5E07A'], g:.7, gira:true},
+  ice:     {f:['cristal', 'cristal', null], c:['#96D9D6', '#ffffff', '#D8F6FF'], g:.4},
+  fighting:{f:['estrella', null], c:['#ffffff', '#F7D02C', '#ff8a5c'], g:0},
+  poison:  {f:['burbuja', 'humo'], c:['#A33EA1', '#D68AD4', '#6b2a6a'], g:-.8},
+  ground:  {f:['roca', 'humo'], c:['#E2BF65', '#8A6D2A', '#c9b98a'], g:1.3},
+  flying:  {f:['pluma', null], c:['#ffffff', '#DCD3FF'], g:.25, m:'viento', gira:true},
+  psychic: {f:['burbuja', 'estrella'], c:['#F95587', '#FFD0DF', '#C77DFF'], g:0, m:'anillo'},
+  bug:     {f:[null, 'hoja'], c:['#A6B91A', '#DFE88A'], g:.5},
+  rock:    {f:['roca'], c:['#B6A136', '#6D5F1F', '#8a7a3a'], g:1.9},
+  ghost:   {f:['humo'], c:['#735797', '#2B1F45', '#C9B5F0'], g:-1},
+  dragon:  {f:['llama'], c:['#B49CFF', '#6F35FC', '#ffffff'], g:-.9, seq:['#ffffff', '#9b6bff', '#2c1470']},
+  fairy:   {f:['estrella', 'corazon', 'estrella'], c:['#FFB3D9', '#ffffff', '#FFE27A'], g:-.6},
+  dark:    {f:['humo'], c:['#3a2c24', '#705746', '#120c08'], g:-.5},
+  steel:   {f:['chispa', null], c:['#E0E0F0', '#ffffff'], g:.6},
+  normal:  {f:['estrella', null], c:['#ffffff', '#E8E4D0'], g:.2}
+};
+const elemDe = t => ELEM[t] || ELEM.normal;
+
+/* Una partícula suelta del elemento (para estelas y auras). */
+function chispa(x, y, tipo, k, dx, dy, dur, extra){
+  const st = elemDe(tipo), U = u(), f = elige(st.f), tam = Math.max(2, azar(.9, 1.8) * U * (k || 1));
+  const o = Object.assign({forma:f, g:(st.g || 0) * U * 4 * (k || 1)}, extra);
+  if(f === 'llama'){ Object.assign(o, {s0:.6, s1:1.8, colores:st.seq, suave:true}); }
+  else if(f === 'humo'){ Object.assign(o, {s0:.6, s1:2.4, op:.7, suave:true}); dur *= 1.5; }
+  else if(f === 'burbuja'){ Object.assign(o, {suave:true}); }
+  else if(f === 'chispa'){ o.rot0 = Math.atan2(dy, dx) * 180 / Math.PI; }
+  else if(f === 'hoja' || f === 'pluma' || f === 'roca' || f === 'estrella' || f === 'cristal'){ o.rot = azar(-180, 180); }
+  particula(x, y, elige(st.c), f === 'chispa' ? tam * 2.4 : tam, dx, dy, dur, o);
+}
+
 function estallido(x, y, tipo, n, k){
-  const st = partDe(tipo), U = u();
+  const st = elemDe(tipo), U = u();
   n = REDUCE ? Math.ceil(n / 3) : n; k = k || 1;
   for(let i = 0; i < n; i++){
     const ang = Math.random() * Math.PI * 2, dist = azar(3, 9) * U * k;
     let dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist;
-    if(st.m === 'viento'){ dy *= .2; dx *= 1.7; }
+    if(st.m === 'viento'){ dy *= .25; dx *= 1.7; }
     if(st.m === 'anillo'){ dx = Math.cos(ang) * 8 * U * k; dy = Math.sin(ang) * 8 * U * k; }
     if(st.m === 'zap'){ dx = Math.round(dx / U) * U; dy = Math.round(dy / U) * U; }
-    particula(x, y, elige(st.c), Math.max(2, azar(.8, 1.7) * U * k), dx, dy, azar(380, 640),
-      {g:(st.g || 0) * U * 5 * k, rot:azar(-120, 120)});
+    chispa(x, y, tipo, k, dx, dy, azar(380, 640));
   }
+}
+
+/* Estela que deja un proyectil o un golpe en movimiento. */
+function rastro(x, y, tipo, k){
+  const U = u();
+  chispa(x + azar(-1, 1) * U, y + azar(-1, 1) * U, tipo, (k || 1) * .8, azar(-1.5, 1.5) * U, azar(-1.5, 1.5) * U, 340);
 }
 
 function polvo(x, y, n, k){
@@ -696,7 +747,7 @@ function dibujar(e, dt){
   e.refl.style.opacity = e.giroEl.style.opacity === '0' ? 0 : '';
   const somb = 1 - Math.min(.5, (hop - dy) / (e.h || 1) * 1.6);
   e.sombra.style.transform = `translate(-50%,-50%) scale(${somb})`;
-  if(dt > 0 && (e.rodando || (e.accion && e.accion.tipo === 'corto' && e.accion.t > .08 && e.accion.t < .3))){
+  if(dt > 0 && (e.rodando || (e.accion && ((e.accion.tipo === 'corto' && e.accion.t > .08 && e.accion.t < .3) || (e.accion.dash && !e.accion.dash.pego && e.accion.dash.t < .3))))){
     e.fantT -= dt;
     if(e.fantT <= 0){ e.fantT = .035; fantasma(e, TYPE_COLORS[e.mon.p.type]); }
   }
@@ -884,17 +935,25 @@ function latigazo(x, y, col, dir){
     [{transform:`translate(-50%,-50%) rotate(${-70 * dir}deg)`, opacity:1}, {transform:`translate(-50%,-50%) rotate(${40 * dir}deg)`, opacity:1, offset:.6},
      {transform:`translate(-50%,-50%) rotate(${50 * dir}deg)`, opacity:0}], 300);
 }
-function fxCorto(fx, x, y, col, dir){
-  const U = u();
-  if(fx === 'garra'){ tajos(x, y, col, dir); return; }
-  if(fx === 'mordisco'){ mordida(x, y, col); return; }
-  if(fx === 'picotazo' || fx === 'aguijon'){
+function fxCorto(mov, att, def, x, y, dir){
+  const U = u(), fx = mov.fx, col = mov.n === 'Lengüetazo' ? '#ff7fa8' : TYPE_COLORS[mov.tipo];
+  if(fx === 'garra') tajos(x, y, col, dir);
+  else if(fx === 'mordisco') mordida(x, y, col);
+  else if(fx === 'picotazo' || fx === 'aguijon'){
     for(let i = 0; i < 3; i++) setTimeout(() => FX && pinchazo(x + azar(-2, 2) * U, y + azar(-2, 2) * U, fx === 'aguijon' ? '#d58cf0' : '#fff', dir), i * 60);
-    return;
   }
-  if(fx === 'latigo'){ latigazo(x, y, col, dir); return; }
-  impacto(x, y, col, fx === 'cuerpo' ? 1.6 : (fx === 'patada' ? 1.25 : 1));      // golpe, patada, cuerpo
-  if(fx === 'cuerpo'){ aro(x, y + 4 * U, col, 9 * U); polvo(x, y + 4 * U, 6, 1.3); }
+  else if(fx === 'latigo') latigazo(x, y, col, dir);
+  else {
+    impacto(x, y, col, fx === 'cuerpo' ? 1.6 : (fx === 'patada' ? 1.25 : 1));      // golpe, patada, cuerpo
+    if(fx === 'cuerpo'){ aro(x, y + 4 * U, col, 9 * U); polvo(x, y + 4 * U, 6, 1.3); }
+  }
+  /* lo propio del elemento encima del golpe: llamas, salpicadura, chispas, hojas... */
+  if(mov.tipo !== 'normal') estallido(x, y, mov.tipo, 14, 1.1);
+  if(mov.tipo === 'water') aro(pie(def).x, pie(def).y, '#BCD2FF', 7 * U);
+  if(mov.n === 'Chupavidas'){
+    const a = cen(att);
+    for(let i = 0; i < 10; i++) particula(x, y, '#ff4d6d', Math.max(2, U * 1.2), a.x - x + azar(-2, 2) * U, a.y - y + azar(-2, 2) * U, 520, {delay:i * 35, suave:true});
+  }
 }
 
 /* ---- ataques de medio alcance ---- */
@@ -904,9 +963,12 @@ function proyectil(e, o){
   if(o.ang){ const ca = Math.cos(o.ang), sa = Math.sin(o.ang); d = {x:d.x * ca - d.y * sa, y:d.x * sa + d.y * ca}; }
   const tam = Math.max(6, o.tam * U), col = TYPE_COLORS[o.tipo];
   const alto = o.forma === 'aguja' || o.forma === 'chispa' ? tam * .35 : (o.forma === 'suelo' ? tam * G.pz * .55 : tam);
-  const el = mk('ar-orbe f-' + o.forma, {width:tam + 'px', height:alto + 'px', left:'0px', top:'0px'}, o.suelo ? PISO : FX);
-  el.style.setProperty('--c', col);
-  const sx = c.x + d.x * (o.suelo ? e.w * .2 : e.w * .3), sy = c.y + d.y * (o.suelo ? 0 : e.h * .2);
+  const alto2 = o.forma === 'gota' && o.orient ? tam * .55 : alto;
+  const el = mk('ar-orbe f-' + o.forma, {width:tam + 'px', height:alto2 + 'px', left:'0px', top:'0px', fontSize:(tam * 1.2) + 'px'}, o.suelo ? PISO : FX);
+  if(o.forma === 'nota') el.textContent = Math.random() < .5 ? '♪' : '♫';
+  if(o.forma === 'corazon') el.textContent = '♥';
+  el.style.setProperty('--c', o.forma === 'roca' ? TYPE_COLORS.rock : col);
+  const sx = c.x + d.x * (o.suelo ? e.w * .2 : e.w * .3), sy = o.arriba ? c.y - e.h * .55 : c.y + d.y * (o.suelo ? 0 : e.h * .2);
   AR.proys.push({lado:e.lado, x:sx, y:sy, vx:d.x * o.vel * U, vy:d.y * o.vel * U, v:o.vel * U, tipo:o.tipo, forma:o.forma, el,
     vida:o.vida || 1.5, vida0:o.vida || 1.5, rad:tam * .5 * (o.radK || 1), rot:0, giro:o.giro || 0, arco:o.arco || 0,
     crecer:o.crecer || 0, wobble:o.wobble || 0, homing:o.homing || 0, boom:o.boom ? {vuelta:false} : null, suelo:!!o.suelo,
@@ -914,7 +976,7 @@ function proyectil(e, o){
 }
 
 function disparoMedio(e){
-  const mov = movDe(e.mon.p, 'medio'), grupo = {pego:false}, base = {tipo:mov.tipo, grupo, forma:mov.forma};
+  const mov = movDe(e.mon.p, 'medio'), grupo = {pego:false}, base = {tipo:mov.tipo, grupo, forma:FORMA_MOV[mov.n] || mov.forma};
   const rafaga = (n, cada, o) => {
     for(let i = 0; i < n; i++){
       const f = () => { if(AR && e.mon && e.mon.vivo) proyectil(e, Object.assign({}, base, typeof o === 'function' ? o(i) : o)); };
@@ -922,12 +984,12 @@ function disparoMedio(e){
     }
   };
   switch(mov.fx){
-    case 'chorro':   rafaga(7, .035, () => ({tam:1.7, vel:115, ang:azar(-.05, .05), vida:1.1})); break;
-    case 'onda':     rafaga(3, .09, {tam:3, vel:70, crecer:1.4, vida:1.3, radK:1.2, estela:false}); break;
+    case 'chorro':   rafaga(12, .022, () => ({tam:2.6, vel:120, ang:azar(-.03, .03), vida:1.1, orient:true})); break;
+    case 'onda':     rafaga(base.forma === 'nota' || base.forma === 'corazon' ? 4 : 3, .09, i => ({tam:3, vel:70, crecer:base.forma === 'nota' || base.forma === 'corazon' ? .3 : 1.4, vida:1.3, radK:1.2, estela:false, ang:base.forma === 'anillo' || base.forma === 'arcoiris' ? 0 : azar(-.18, .18), wobble:base.forma === 'nota' ? 2 : 0})); break;
     case 'hojas':    rafaga(3, 0, i => ({tam:2.6, vel:95, ang:(i - 1) * .22, giro:720})); break;
     case 'semillas': rafaga(3, .05, i => ({tam:1.7, vel:85, ang:(i - 1) * .15, arco:3})); break;
     case 'agujas':   rafaga(4, .06, () => ({tam:3.6, vel:135, ang:azar(-.08, .08), orient:true, vida:1})); break;
-    case 'piedra':   rafaga(1, 0, {tam:3.8, vel:78, arco:10, giro:300}); break;
+    case 'piedra':   rafaga(1, 0, mov.n === 'Roca Arrancada' ? {tam:4.6, vel:80, arco:8, giro:240, arriba:true} : {tam:3.8, vel:78, arco:10, giro:300}); break;
     case 'rayito':   rafaga(1, 0, {tam:4.5, vel:210, orient:true, vida:.8}); break;
     case 'polvo':    rafaga(1, 0, {tam:7, vel:42, crecer:.8, vida:2, radK:1.1, fade:true, estela:false}); break;
     case 'estrella': rafaga(3, .08, i => ({tam:2.6, vel:85, ang:(i - 1) * .35, giro:500, homing:3.2, vida:1.8})); break;
@@ -941,6 +1003,7 @@ function disparoMedio(e){
   }
   const O = otro(e), c = cen(e), d = unit(c, cen(O)), U = u();
   if(mov.fx === 'suelo'){ aro(pie(e).x, pie(e).y, '#c9b98a', 8 * U); polvo(pie(e).x, pie(e).y, 6, 1.2); sacudir(.6); }
+  else if(mov.n === 'Roca Arrancada'){ polvo(pie(e).x, pie(e).y, 8, 1.3); estallido(pie(e).x, pie(e).y, 'rock', 8, .9); marca(pie(e).x, pie(e).y, 4 * U, '#6D5F1F'); }
   else destello(c.x + d.x * e.w * .3, c.y + d.y * e.h * .2, .45);
   e.kx -= d.x * 22 * U; e.ky -= d.y * 22 * U;        // retroceso del disparo
   sfx('disparo');
@@ -950,67 +1013,197 @@ function disparoMedio(e){
 function prepararLargo(e){
   const A = e.accion, mov = A.mov, O = otro(e), col = TYPE_COLORS[mov.tipo];
   e.wrap.classList.add('ar-carga'); e.rot.style.setProperty('--tc', col);
-  if(mov.fx === 'rayo'){ A.tele = [mk('ar-mira', {background:col})]; return; }
+  if(mov.fx === 'rayo' || mov.fx === 'embestida'){ A.tele = [mk('ar-mira', {background:col})]; return; }
   const propia = mov.fx === 'propia';
   const c = pie(propia ? e : O), r = (propia ? 15 : (mov.fx === 'zona' ? 8.5 : 9)) * u();
   A.zona = {x:c.x, y:c.y, r, propia};
   A.tele = [mk('ar-zona', {left:c.x + 'px', top:c.y + 'px', width:r * 2 + 'px', height:r * 2 * G.pz + 'px', borderColor:col}, PISO)];
 }
 
-function relampago(x, y){
+function relampagoEntre(x0, y0, x1, y1, grosor, col){
   if(!FX) return;
   const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg');
   svg.setAttribute('class', 'ar-trueno'); svg.setAttribute('width', G.W); svg.setAttribute('height', G.H);
-  const pts = []; let px = x + azar(-8, 8) * u(), py = -10;
-  const pasos = 9;
-  for(let i = 0; i <= pasos; i++){ pts.push(px.toFixed(1) + ',' + py.toFixed(1)); py += (y + 10) / pasos; px = x + (i < pasos - 1 ? azar(-4, 4) * u() : 0); }
-  pts[pts.length - 1] = x + ',' + y;
+  const largo = Math.hypot(x1 - x0, y1 - y0), pasos = Math.max(5, Math.round(largo / (5 * u())));
+  const nx = -(y1 - y0) / (largo || 1), ny = (x1 - x0) / (largo || 1);
+  const pts = [];
+  for(let i = 0; i <= pasos; i++){
+    const f = i / pasos, j = (i === 0 || i === pasos) ? 0 : azar(-2.6, 2.6) * u();
+    pts.push((x0 + (x1 - x0) * f + nx * j).toFixed(1) + ',' + (y0 + (y1 - y0) * f + ny * j).toFixed(1));
+  }
   const pl = document.createElementNS(ns, 'polyline');
-  pl.setAttribute('points', pts.join(' ')); pl.setAttribute('fill', 'none'); pl.setAttribute('stroke', '#fff7b0');
-  pl.setAttribute('stroke-width', Math.max(3, u() * 1.2)); pl.setAttribute('stroke-linejoin', 'bevel');
+  pl.setAttribute('points', pts.join(' ')); pl.setAttribute('fill', 'none'); pl.setAttribute('stroke', col || '#fff7b0');
+  pl.setAttribute('stroke-width', Math.max(2, grosor || u() * 1.2)); pl.setAttribute('stroke-linejoin', 'bevel');
   svg.appendChild(pl); FX.appendChild(svg);
-  const a = svg.animate([{opacity:1}, {opacity:.2}, {opacity:1}, {opacity:.4}, {opacity:0}], {duration:360, easing:'steps(5,end)', fill:'forwards'});
+  const a = svg.animate([{opacity:1}, {opacity:.25}, {opacity:1}, {opacity:.5}, {opacity:0}], {duration:340, easing:'steps(5,end)', fill:'forwards'});
   const q = () => svg.remove(); a.finished.then(q, q);
 }
+function relampago(x, y){ relampagoEntre(x + azar(-8, 8) * u(), -10, x, y); }
 function flashPantalla(col){
   fxSimple('ar-flash-pant', {background:col || '#fff'}, [{opacity:.55}, {opacity:0}], 220);
 }
+
+function haz(c, ang, largo, alto, fondo, sombra, dur, cls){
+  const h = mk('ar-rayo' + (cls ? ' ' + cls : ''), {left:c.x + 'px', top:c.y + 'px', width:largo + 'px', height:Math.max(4, alto) + 'px', background:fondo, boxShadow:sombra || 'none'});
+  const R = `translate(0,-50%) rotate(${ang}deg)`;
+  const an = h.animate([{transform:`${R} scaleX(0)`, opacity:1}, {transform:`${R} scaleX(1)`, opacity:1, offset:.2},
+    {transform:`${R} scaleX(1) scaleY(.6)`, opacity:1, offset:.65}, {transform:`${R} scaleX(1) scaleY(.35)`, opacity:0}],
+    {duration:dur || 420, easing:'steps(6,end)', fill:'forwards'});
+  const q = () => h.remove(); an.finished.then(q, q);
+}
+
+/* El ataque largo en línea recta, con la forma de su elemento. */
+function rayoTipo(e, mov, c, d){
+  const t = mov.tipo, col = TYPE_COLORS[t], U = u(), O = otro(e), oc = cen(O);
+  const L = Math.hypot(G.W, G.H) * 1.1, ang = Math.atan2(d.y, d.x) * 180 / Math.PI;
+  const hasta = Math.min(L, dist(c, oc) + radio(O) * 1.5 + 6 * U);
+  const lado = {x:-d.y, y:d.x};
+  if(t === 'fire'){                                         // Lanzallamas: chorro de llamas que se abre
+    haz(c, ang, hasta, 3 * U, `linear-gradient(to bottom, transparent, ${col}55 40%, #ffe9a066 50%, ${col}55 60%, transparent)`, 'none', 460);
+    for(let i = 0; i < (REDUCE ? 12 : 46); i++){
+      const f = azar(.55, 1), ab = azar(-1, 1) * 2.4 * U * f;
+      particula(c.x, c.y, '#F7D02C', Math.max(3, U * 1.6), d.x * hasta * f + lado.x * ab, d.y * hasta * f + lado.y * ab - U * 2 * f, 380,
+        {forma:'llama', s0:.5, s1:2.6, colores:elemDe('fire').seq, suave:true, delay:i * 9});
+    }
+    return;
+  }
+  if(t === 'water'){                                        // Hidrobomba: chorro de agua con espuma
+    haz(c, ang, hasta, 5.2 * U, '', `0 0 ${U * 1.5}px #9cc0ff`, 480, 'ar-agua');
+    for(let i = 0; i < (REDUCE ? 10 : 34); i++){
+      const f = Math.random();
+      chispa(c.x + d.x * hasta * f, c.y + d.y * hasta * f, 'water', 1, lado.x * azar(-3, 3) * U, lado.y * azar(-3, 3) * U - 2 * U, 420, {delay:i * 12});
+    }
+    return;
+  }
+  if(t === 'electric'){                                     // Rayo: descargas en zigzag
+    const fin = {x:c.x + d.x * hasta, y:c.y + d.y * hasta};
+    relampagoEntre(c.x, c.y, fin.x, fin.y, 1.4 * U);
+    setTimeout(() => FX && relampagoEntre(c.x, c.y, fin.x, fin.y, .8 * U, '#ffffff'), 90);
+    setTimeout(() => FX && relampagoEntre(c.x, c.y, fin.x, fin.y, 1.1 * U), 190);
+    for(let i = 0; i < 12; i++){ const f = Math.random(); chispa(c.x + d.x * hasta * f, c.y + d.y * hasta * f, 'electric', 1, azar(-3, 3) * U, azar(-3, 3) * U, 300, {delay:i * 20}); }
+    return;
+  }
+  if(t === 'ice'){                                          // Rayo Hielo: haz fino y cristales que se forman en el camino
+    haz(c, ang, hasta, 2.4 * U, 'linear-gradient(to bottom, transparent, #96D9D6 25%, #ffffff 50%, #96D9D6 75%, transparent)', `0 0 ${U * 1.5}px #c8f4ff`, 520);
+    for(let i = 0; i < (REDUCE ? 6 : 16); i++){
+      const f = (i + 1) / 17;
+      particula(c.x + d.x * hasta * f, c.y + d.y * hasta * f, elige(['#ffffff', '#D8F6FF', '#96D9D6']), Math.max(4, U * 2.2), azar(-1, 1) * U, azar(-1, 1) * U, 620,
+        {forma:'cristal', s0:.2, s1:1.3, rot0:azar(0, 90), delay:i * 18, suave:true});
+    }
+    return;
+  }
+  if(t === 'grass'){                                        // Rayo Solar: un haz enorme de luz
+    haz(c, ang, L, 7.5 * U, 'linear-gradient(to bottom, transparent, #B5E07A88 15%, #fff7c2 35%, #ffffff 50%, #fff7c2 65%, #B5E07A88 85%, transparent)', `0 0 ${U * 4}px #fff3a0`, 560);
+    flashPantalla('#fffbe0');
+    for(let i = 0; i < 10; i++){ const f = Math.random(); chispa(c.x + d.x * hasta * f, c.y + d.y * hasta * f, 'grass', 1, azar(-3, 3) * U, azar(-3, 3) * U, 500, {delay:i * 25}); }
+    return;
+  }
+  if(t === 'bug'){                                          // Zumbido: ondas de sonido en fila
+    for(let i = 0; i < 7; i++){
+      particula(c.x, c.y, '#DFE88A', Math.max(6, U * 3), d.x * hasta, d.y * hasta, 380, {forma:'burbuja', s0:.6, s1:2.2, delay:i * 45, suave:true});
+    }
+    return;
+  }
+  if(t === 'fairy'){                                        // Fuerza Lunar: una luna que cruza la arena
+    const luna = mk('ar-orbe f-luna', {width:7 * U + 'px', height:7 * U + 'px', left:c.x + 'px', top:c.y + 'px'});
+    const an = luna.animate([{transform:'translate(-50%,-50%) scale(.3)'}, {transform:`translate(-50%,-50%) translate(${d.x * hasta}px,${d.y * hasta}px) scale(1)`}],
+      {duration:260, easing:'ease-in', fill:'forwards'});
+    an.finished.then(() => { luna.remove(); estallido(oc.x, oc.y, 'fairy', 20, 1.4); }, () => luna.remove());
+    for(let i = 0; i < 10; i++){ const f = i / 10; chispa(c.x + d.x * hasta * f, c.y + d.y * hasta * f, 'fairy', 1, 0, -2 * U, 500, {delay:i * 24}); }
+    return;
+  }
+  if(t === 'flying'){                                       // Ataque Aéreo: estela de viento y plumas
+    haz(c, ang, hasta, 3 * U, 'linear-gradient(to bottom, transparent, #ffffffaa 40%, #ffffff 50%, #ffffffaa 60%, transparent)', `0 0 ${U * 2}px #fff`, 380);
+    for(let i = 0; i < 12; i++){ const f = Math.random(); chispa(c.x + d.x * hasta * f, c.y + d.y * hasta * f, 'flying', 1.2, azar(-3, 3) * U, azar(-3, 3) * U, 600, {delay:i * 15}); }
+    return;
+  }
+  /* Hiperrayo (y lo demás): el rayo grueso de siempre */
+  haz(c, ang, L, 4 * U, `linear-gradient(to bottom, transparent 0, ${col} 22%, #fff 50%, ${col} 78%, transparent 100%)`, `0 0 ${U * 2}px ${col}`, 420);
+  for(let i = 0; i < (REDUCE ? 4 : 14); i++){
+    const f = Math.random();
+    particula(c.x + d.x * L * .5 * f, c.y + d.y * L * .5 * f, elige(elemDe(t).c), Math.max(2, azar(.9, 1.7) * U), azar(-2, 2) * U, azar(-3, 3) * U, 360, {delay:i * 20});
+  }
+}
+
+/* Estallido sobre una zona (o alrededor de uno mismo), con la forma de su elemento. */
 function estallidoZona(z, mov){
-  const tipo = mov.tipo, col = TYPE_COLORS[tipo], U = u();
-  aro(z.x, z.y, col, z.r * 1.1); setTimeout(() => PISO && aro(z.x, z.y, '#ffffff', z.r * .8), 90);
-  if(!z.propia){
+  const tipo = mov.tipo, col = TYPE_COLORS[tipo], U = u(), n = mov.n;
+  const explota = /Explosión|Autodestrucción/.test(n);
+  aro(z.x, z.y, col, z.r * 1.1);
+  if(explota){
+    estallido(z.x, z.y - 3 * U, 'fire', 50, 2.4); destello(z.x, z.y - 3 * U, 1.4); flashPantalla('#ffd9a0');
+    setTimeout(() => PISO && aro(z.x, z.y, '#ffd28a', z.r * 1.4), 120);
+  } else if(tipo === 'fire' && n === 'Giro Fuego'){        // aro de llamas que gira alrededor
+    for(let i = 0; i < 26; i++){
+      const a = i / 26 * Math.PI * 2;
+      particula(z.x + Math.cos(a) * z.r * .85, z.y + Math.sin(a) * z.r * .85 * G.pz, '#F7D02C', Math.max(4, U * 2.2), -Math.sin(a) * 4 * U, -azar(5, 9) * U, 620,
+        {forma:'llama', s0:.6, s1:2.4, colores:elemDe('fire').seq, suave:true, delay:(i % 6) * 40});
+    }
+  } else if(tipo === 'fire'){                               // Llamarada: estrella de fuego de cinco puntas
+    [-90, -18, 54, 126, 198].forEach((g, k) => {
+      const a = g * Math.PI / 180;
+      for(let i = 0; i < 9; i++){
+        const f = (i + 1) / 9;
+        particula(z.x, z.y - 4 * U, '#F7D02C', Math.max(4, U * 2), Math.cos(a) * z.r * 1.3 * f, Math.sin(a) * z.r * 1.3 * f, 520,
+          {forma:'llama', s0:.6, s1:2.6 - f, colores:elemDe('fire').seq, suave:true, delay:i * 18 + k * 8});
+      }
+    });
+  } else if(tipo === 'psychic'){                            // ondas psíquicas que laten sobre el rival
+    for(let i = 0; i < 4; i++) setTimeout(() => PISO && aro(z.x, z.y, i % 2 ? '#C77DFF' : '#F95587', z.r * (.7 + i * .2)), i * 90);
+    for(let i = 0; i < 16; i++) chispa(z.x + azar(-z.r, z.r) * .6, z.y - azar(2, 12) * U, 'psychic', 1.2, 0, -3 * U, 600, {delay:i * 25});
+  } else if(tipo === 'ghost'){                              // humo violeta que sube y dos ojos
+    for(let i = 0; i < 22; i++) chispa(z.x + azar(-z.r, z.r) * .7, z.y, 'ghost', 1.8, azar(-1, 1) * U, -azar(6, 14) * U, 900, {delay:i * 20});
+    [-1, 1].forEach(s => particula(z.x + s * 2.2 * U, z.y - 12 * U, '#f05bff', Math.max(3, U * 1.4), 0, 0, 700, {op:1}));
+  } else if(tipo === 'poison'){                             // charco tóxico que burbujea
+    marca(z.x, z.y, z.r * 1.1, '#A33EA1');
+    for(let i = 0; i < 20; i++) particula(z.x + azar(-z.r, z.r) * .8, z.y + azar(-z.r, z.r) * G.pz * .6, '#D68AD4', Math.max(4, U * azar(1.4, 2.6)), 0, -azar(4, 10) * U, 800,
+      {forma:'burbuja', suave:true, delay:i * 30});
+  } else if(tipo === 'flying'){                             // Vendaval: un tornado sobre el rival
+    fxSimple('ar-torbellino', {left:z.x + 'px', top:z.y + 'px', width:z.r * 1.4 + 'px', height:34 * U + 'px'},
+      [{transform:'translate(-50%,-100%) scaleY(0)', opacity:.9}, {transform:'translate(-50%,-100%) scaleY(1)', opacity:.9, offset:.25},
+       {transform:'translate(-50%,-100%) scaleY(1) scaleX(.7)', opacity:.8, offset:.8}, {transform:'translate(-50%,-100%) scaleY(1.1) scaleX(.3)', opacity:0}], 800);
+    for(let i = 0; i < 16; i++) chispa(z.x, z.y - azar(0, 20) * U, 'flying', 1.2, Math.cos(i) * 8 * U, -azar(2, 8) * U, 700, {delay:i * 30});
+  } else if(tipo === 'fighting'){                           // Sísmico: lo levanta y lo estampa contra el piso
+    impacto(z.x, z.y - 4 * U, '#ff8a5c', 2.2); polvo(z.x, z.y, 12, 1.6);
+    estallido(z.x, z.y - 3 * U, 'rock', 12, 1.2);
+  } else if(tipo === 'ground'){                             // Terremoto/Fisura: grietas que salen de uno
+    for(let i = 0; i < 7; i++){
+      const a = i / 7 * Math.PI * 2 + azar(-.2, .2);
+      fxSimple('ar-grieta', {left:z.x + 'px', top:z.y + 'px', width:z.r * azar(.9, 1.3) + 'px', height:Math.max(3, U * 1.1) + 'px'},
+        [{transform:`translate(0,-50%) rotate(${a * 180 / Math.PI}deg) scaleY(${G.pz}) scaleX(0)`, opacity:1},
+         {transform:`translate(0,-50%) rotate(${a * 180 / Math.PI}deg) scaleY(${G.pz}) scaleX(1)`, opacity:1, offset:.3},
+         {transform:`translate(0,-50%) rotate(${a * 180 / Math.PI}deg) scaleY(${G.pz}) scaleX(1)`, opacity:0}], 1400, PISO);
+    }
+    setTimeout(() => PISO && aro(z.x, z.y, '#c9b98a', z.r * 1.4), 150);
+    polvo(z.x, z.y, 14, 1.6); estallido(z.x, z.y, 'ground', 16, 1.6);
+  } else if(tipo === 'water'){                              // Surf: una ola que sale para todos lados
+    aro(z.x, z.y, '#6390F0', z.r * 1.3); setTimeout(() => PISO && aro(z.x, z.y, '#ffffff', z.r * 1.35), 80);
+    for(let i = 0; i < 30; i++){
+      const a = i / 30 * Math.PI * 2;
+      chispa(z.x + Math.cos(a) * z.r, z.y + Math.sin(a) * z.r * G.pz, 'water', 1.3, Math.cos(a) * 3 * U, -azar(3, 7) * U, 600, {delay:120});
+    }
+  } else {
     fxSimple('ar-pilar', {left:z.x + 'px', top:z.y + 'px', width:z.r * 1.3 + 'px', height:30 * U + 'px',
       background:`linear-gradient(to top, ${col}, ${col}88 40%, transparent)`},
       [{transform:'translate(-50%,-100%) scaleY(0)', opacity:1}, {transform:'translate(-50%,-100%) scaleY(1)', opacity:.9, offset:.35},
        {transform:'translate(-50%,-100%) scaleY(1.1) scaleX(.4)', opacity:0}], 520);
-  } else {
-    setTimeout(() => PISO && aro(z.x, z.y, col, z.r * 1.4), 180);
-    polvo(z.x, z.y, 10, 1.5);
   }
-  const explota = /Explosión|Autodestrucción/.test(mov.n);
-  estallido(z.x, z.y - 3 * U, explota ? 'fire' : tipo, explota ? 40 : 26, explota ? 2 : 1.5);
-  destello(z.x, z.y - 3 * U, explota ? 3 : 1.8);
-  if(explota) flashPantalla('#fff3d0');
+  if(!explota) estallido(z.x, z.y - 3 * U, tipo, 16, 1.4);
+  if(tipo !== 'fire' && !z.propia) destello(z.x, z.y - 3 * U, .8);
   marca(z.x, z.y, z.r * .9, col);
   sacudir(explota ? 2.2 : 1.6, true);
 }
 
 function dispararLargo(e){
   const A = e.accion, mov = A.mov, O = otro(e), tipo = mov.tipo, col = TYPE_COLORS[tipo], U = u(), st = partDe(tipo);
+  if(mov.fx === 'embestida'){
+    A.dash = {dir:A.dirLock || unit(cen(e), cen(O)), t:0, pego:false};
+    polvo(pie(e).x, pie(e).y, 6, 1.4); sfx('garra');
+    return;
+  }
   if(mov.fx === 'rayo'){
     const c = cen(e), d = A.dirLock || unit(c, cen(O));
-    const L = Math.hypot(G.W, G.H) * 1.1;
-    const haz = mk('ar-rayo', {left:c.x + 'px', top:c.y + 'px', width:L + 'px', height:Math.max(8, 4 * U) + 'px',
-      background:`linear-gradient(to bottom, transparent 0, ${col} 22%, #fff 50%, ${col} 78%, transparent 100%)`, boxShadow:`0 0 ${U * 2}px ${col}`});
-    const ang = Math.atan2(d.y, d.x) * 180 / Math.PI, R = `translate(0,-50%) rotate(${ang}deg)`;
-    const an = haz.animate([{transform:`${R} scaleX(0)`, opacity:1}, {transform:`${R} scaleX(1)`, opacity:1, offset:.2},
-      {transform:`${R} scaleX(1) scaleY(.55)`, opacity:1, offset:.6}, {transform:`${R} scaleX(1) scaleY(.4)`, opacity:0}],
-      {duration:420, easing:'steps(6,end)', fill:'forwards'});
-    const q = () => haz.remove(); an.finished.then(q, q);
-    for(let i = 0; i < (REDUCE ? 4 : 14); i++){
-      const f = Math.random();
-      particula(c.x + d.x * L * .5 * f, c.y + d.y * L * .5 * f, elige(st.c), Math.max(2, azar(.9, 1.7) * U), azar(-2, 2) * U, azar(-3, 3) * U, 360, {delay:i * 20});
-    }
+    rayoTipo(e, mov, c, d);
     destello(c.x + d.x * e.w * .3, c.y + d.y * e.h * .3, .9);
     e.kx -= d.x * 40 * U; e.ky -= d.y * 40 * U;
     sacudir(1.2);
@@ -1029,12 +1222,12 @@ function dispararLargo(e){
       const tx = z.x + azar(-z.r, z.r) * .85, ty = z.y + azar(-z.r, z.r) * G.pz * .85;
       const tam = Math.max(8, (mov.forma === 'roca' ? 3.4 : 2.4) * U);
       const o = mk('ar-orbe f-' + mov.forma, {width:tam + 'px', height:tam + 'px', left:tx + 'px', top:'0px', opacity:0});
-      o.style.setProperty('--c', elige(st.c));
+      o.style.setProperty('--c', mov.n === 'Danza Pétalo' ? elige(['#FFB3D9', '#FF7FBF', '#ffffff']) : elige(elemDe(tipo).c));
       const a = o.animate([
         {transform:'translate(-50%,-50%) translateY(0) rotate(0)', opacity:1},
         {transform:`translate(-50%,-50%) translateY(${ty}px) rotate(200deg)`, opacity:1}
       ], {duration:320, delay:i * 50, easing:'steps(7,start)', fill:'forwards'});
-      a.finished.then(() => { o.remove(); estallido(tx, ty, tipo, 4, .65); polvo(tx, ty, 1); }, () => o.remove());
+      a.finished.then(() => { o.remove(); estallido(tx, ty, tipo, 4, .65); if(tipo === 'rock') polvo(tx, ty, 2); }, () => o.remove());
     }
     sfx('lluvia');
     AR.zonas.push({e:e.lado, zona:z, t:0, imp:.32 + n * .05, mov, lluvia:true});
@@ -1071,7 +1264,12 @@ function avanzarAccion(e, dt){
       empujar(e, -d.x * 14 * U * dt, -d.y * 14 * U * dt);
       e.pose = {sx:1.14, sy:.84, rot:-10};                 // se agacha y toma impulso
     } else if(A.t < .28){
-      if(!A.salio){ A.salio = true; if(fx === 'garra' || fx === 'picotazo' || fx === 'aguijon') sfx('garra'); polvo(pie(e).x, pie(e).y, 3, 1.1); }
+      if(!A.salio){
+        A.salio = true; if(fx === 'garra' || fx === 'picotazo' || fx === 'aguijon') sfx('garra'); polvo(pie(e).x, pie(e).y, 3, 1.1);
+        if(A.mov.tipo !== 'normal'){ e.rot.style.setProperty('--tc', TYPE_COLORS[A.mov.tipo]); e.wrap.classList.add('ar-carga'); A.aura = true; }
+        if(A.mov.n === 'Desenrollar') clase(e, 'ar-rodar', 330);
+      }
+      if(A.mov.tipo !== 'normal' && Math.random() < dt * 40){ const c0 = cen(e), d0 = unit(c0, cen(O)); rastro(c0.x + d0.x * e.w * .35, c0.y + d0.y * e.h * .2, A.mov.tipo); }
       const d = unit(pie(e), pie(O));
       const cerca = dist(cen(e), cen(O)) <= radio(e) + radio(O) * .9;
       if(!cerca) empujar(e, d.x * 100 * U * vel * dt, d.y * 100 * U * vel * dt);
@@ -1082,18 +1280,23 @@ function avanzarAccion(e, dt){
       if(!A.hecho && A.t > (fx === 'cuerpo' ? .2 : .1) && dist(cen(e), cen(O)) <= radio(e) + radio(O) + 5 * U){
         A.hecho = true;
         const c = cen(O);
-        if(golpear(e, O, 'corto')) fxCorto(fx, c.x, c.y, TYPE_COLORS[A.mov.tipo], Math.sign(c.x - cen(e).x) || 1);
+        if(golpear(e, O, 'corto')) fxCorto(A.mov, e, O, c.x, c.y, Math.sign(c.x - cen(e).x) || 1);
       }
     } else {
       const k = (A.t - .28) / .18;
       e.pose = fx === 'cuerpo' ? {sx:1 + .25 * (1 - k), sy:1 - .2 * (1 - k)} : {sx:1 + .1 * (1 - k), sy:1 - .06 * (1 - k)};
       if(fx === 'cuerpo' && !A.cayo){ A.cayo = true; aro(pie(e).x, pie(e).y, '#c9b98a', 7 * U); polvo(pie(e).x, pie(e).y, 5, 1.2); }
+      if(A.aura){ A.aura = false; e.wrap.classList.remove('ar-carga'); }
       if(A.t >= .46){ e.accion = null; e.pose = null; }
     }
     return;
   }
   if(A.tipo === 'medio'){
-    if(fx === 'suelo'){                                     // levanta la pata y pisa fuerte
+    if(A.mov.n === 'Roca Arrancada'){                       // se agacha, la arranca y la levanta
+      if(A.t < .14) e.pose = {sx:1.16, sy:.8, rot:-8};
+      else if(A.t < .28) e.pose = {sx:.9, sy:1.15, dy:-e.h * .08, rot:10};
+      else e.pose = null;
+    } else if(fx === 'suelo'){                              // levanta la pata y pisa fuerte
       if(A.t < .14) e.pose = {sy:1.08, sx:.95, dy:-e.h * .18 * (A.t / .14), rot:-6};
       else if(A.t < .26) e.pose = {sx:1.2, sy:.82};
       else e.pose = null;
@@ -1112,7 +1315,7 @@ function avanzarAccion(e, dt){
       e.pose = {sx:1 + Math.sin(A.t * 50) * .04 * prog, sy:1 - .08 * prog, dy:-e.h * .08 * prog, dx:azar(-1, 1) * e.w * .03 * prog};
       /* la mira sigue al rival hasta poco antes de disparar */
       const c = cen(e), t = cen(O), tele = A.tele && A.tele[0];
-      if(fx === 'rayo'){
+      if(fx === 'rayo' || fx === 'embestida'){
         if(A.t < .42) A.dirLock = unit(c, t);
         const d = A.dirLock || unit(c, t), ang = Math.atan2(d.y, d.x) * 180 / Math.PI;
         if(tele){
@@ -1135,6 +1338,20 @@ function avanzarAccion(e, dt){
       dispararLargo(e);
       if(A.tele) A.tele.forEach(x => x.remove());
       A.tele = null;
+    } else if(A.dash && A.dash.t < .3 && !A.dash.pego){
+      /* la carrera: va derecho por la línea marcada; si alcanza al rival, ráfaga de golpes */
+      const D = A.dash; D.t += dt;
+      empujar(e, D.dir.x * 230 * U * dt, D.dir.y * 230 * U * dt);
+      e.pose = fx === 'embestida' && A.mov.n === 'Patada Salto Alta' ? {sx:1.1, sy:.9, rot:30, dy:-e.h * .25} : {sx:1.28, sy:.84, rot:18, dx:e.w * .1};
+      if(Math.random() < dt * 50) rastro(pie(e).x, pie(e).y - e.h * .3, 'fighting', 1);
+      if(dist(cen(e), cen(O)) <= radio(e) + radio(O) + 4 * U){
+        D.pego = true;
+        const c = cen(O), dirx = Math.sign(c.x - cen(e).x) || 1;
+        if(golpear(e, O, 'largo')){
+          for(let i = 0; i < 4; i++) setTimeout(() => { if(!FX) return; impacto(c.x + azar(-3, 3) * U, c.y + azar(-3, 3) * U, '#ff8a5c', 1 + i * .25); if(i) sfx('golpe'); }, i * 70);
+          estallido(c.x, c.y, 'fighting', 18, 1.4);
+        }
+      }
     } else {
       const k = Math.min(1, (A.t - .62) / .3);
       e.pose = {sx:.86 + .14 * k, sy:1.14 - .14 * k, dx:-e.w * .1 * (1 - k)};
@@ -1183,8 +1400,7 @@ function avanzarProyectiles(dt){
     if(p.fade) p.el.style.opacity = Math.min(1, p.vida * 1.5);
     if(p.tr <= 0){
       if(p.suelo){ p.tr = .07; polvo(xx, yy, 2, 1.1); }
-      else if(p.estela){ const st = partDe(p.tipo); p.tr = .04;
-        particula(xx, yy, elige(st.c), Math.max(2, azar(.7, 1.4) * U), azar(-1.5, 1.5) * U, azar(-1.5, 1.5) * U, 360, {g:(st.g || 0) * U * 2}); }
+      else if(p.estela){ p.tr = .04; rastro(xx, yy, p.tipo, .8); }
     }
     if(dest.mon && dest.mon.vivo){
       const c = p.suelo ? pie(dest) : cen(dest);
