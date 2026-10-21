@@ -135,7 +135,9 @@ const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 3
     check('se cambió de Pokémon', cambio);
     if(SHOTS) await p.screenshot({path:`${SHOTS}/fin-${w}.png`});
     const coins = await p.evaluate(() => Number(document.getElementById('coinAmount').textContent));
-    check('cobró monedas por el resultado (+' + (coins - antes) + ')', coins - antes === 40 || coins - antes === 10);
+    check('cobró monedas por el resultado (+' + (coins - antes) + ')', coins - antes >= 15 && coins - antes <= 80 + 6 * 35 + 60);
+    check('muestra el desglose del premio', await p.isVisible('.ar-premio .tot'));
+    check('suma la pelea al registro de Maestro', await p.evaluate(() => maestro.peleas >= 1 && (maestro.ganadas === 0 || maestro.pts >= 10)));
     await tocar('#arCerrar2');
     check('Cerrar vuelve al álbum', !(await p.isVisible('#arenaOverlay')));
     await p.setViewportSize({width:w, height:h});

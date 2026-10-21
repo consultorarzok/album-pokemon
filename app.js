@@ -541,7 +541,7 @@ DATA.forEach(p => state[p.id] = {got:false, dup:0});
 
 function saveProgress(){
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({coins, state, bolas, comprasDia, legendariosDia,
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({coins, state, bolas, comprasDia, legendariosDia, maestro,
       tomados: [...advTomados]}));
   }catch(e){
     console.warn('No se pudo guardar el progreso', e);
@@ -564,6 +564,7 @@ function loadProgress(){
         if(typeof data.bolas[k] === 'number') bolas[k] = data.bolas[k];
       });
     }
+    if(data.maestro) Object.keys(maestro).forEach(k => { if(typeof data.maestro[k] === 'number') maestro[k] = data.maestro[k]; });
     if(data.comprasDia && typeof data.comprasDia === 'object') comprasDia = data.comprasDia;
     if(data.legendariosDia && data.legendariosDia.dia) legendariosDia = data.legendariosDia;
     /* Los objetos del piso son de UNA sola vez. Sin esto, recargar la página
@@ -581,6 +582,7 @@ function resetProgress(){
   coins = 300;
   DATA.forEach(p => state[p.id] = {got:false, dup:0});
   Object.assign(bolas, BOLAS_INICIALES);
+  Object.assign(maestro, {pts:0, ganadas:0, peleas:0});
   comprasDia = {};
   legendariosDia = {dia: null, obtenidos: {}};
   advTomados.clear();
@@ -1600,6 +1602,9 @@ Object.keys(BOLAS).forEach(t => {
 });
 const BOLAS_INICIALES = {roja:5, azul:0, ultra:0, maestra:0};
 const bolas = Object.assign({}, BOLAS_INICIALES);
+/* Puntos de Maestro Pokémon: sólo se suman peleando en la arena. Base del
+   futuro ranking de Maestros (todavía no se manda al servidor). */
+const maestro = {pts:0, ganadas:0, peleas:0};
 
 /* Un color por rareza, para que se lea de un vistazo qué salió. */
 const RAREZA_COLOR = {'Común':'#B9C6DA', 'Poco Común':'#6FD08C', 'Rara':'#5AA9F0',

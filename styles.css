@@ -528,6 +528,12 @@
   .ar-eq-caja,.ar-conf-caja,.ar-fin-caja{background:#0e1430;border:2px solid #4a5590;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;text-align:center;width:min(100%,520px);max-height:100%;overflow:auto;font-family:'Baloo 2',sans-serif;}
   .ar-conf-caja{max-width:340px;}
   .ar-fin-caja{max-width:380px;border-width:3px;} .ar-fin-caja > b{font-size:30px;}
+  .ar-premio{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;font-size:15px;}
+  .ar-premio li{display:flex;justify-content:space-between;gap:12px;padding:2px 4px;}
+  .ar-premio li b{color:#FFD84A;white-space:nowrap;}
+  .ar-premio li.tot{border-top:1px solid #34407a;margin-top:4px;padding-top:6px;font-weight:700;font-size:17px;}
+  .ar-premio-bolas{color:#9fe2ff;font-weight:600;}
+  .ar-premio-maestro{color:#c9b8ff;font-size:14px;} .ar-premio-maestro b{color:#fff;}
   .ar-conf-caja > div,.ar-fin-caja > div{display:flex;gap:8px;}
   .ar-eq-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
   .ar-carta{border-left-width:6px;} .ar-carta img{image-rendering:pixelated;}
@@ -559,5 +565,8 @@
     .ar-joy{width:min(130px,36dvh);}
     .ar-pick{padding:8px 12px 6px;} .ar-pick h2{font-size:18px;} .ar-pick p{display:none;}
     .ar-fin-caja > b{font-size:22px;}
+    .ar-fin-caja{padding:10px 14px;gap:5px;} .ar-fin-caja > span:first-of-type{display:none;}
+    .ar-premio{font-size:13px;gap:0;} .ar-premio li{padding:0 4px;} .ar-premio li.tot{font-size:15px;margin-top:2px;padding-top:3px;}
+    .ar-premio-bolas{font-size:13px;} .ar-premio-maestro{font-size:12px;}
   }
   @media (prefers-reduced-motion:reduce){ .ar-cono,.ar-motas i,.ar-aviso.pop{animation:none;} .ar-flip{transition:none;} }

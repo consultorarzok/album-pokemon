@@ -38,7 +38,9 @@ const ESQ = {coste:12, cd:1.3, dur:.30};
 const EN_MAX = 100, EN_REGEN = 14, EN_PREMIO_ESQUIVE = 18;
 const CAMBIO_CD = 3, INVUL_ENTRADA = 1;
 const EQUIPO_MAX = 6, EQUIPO_MIN = PELEA_MIN;
-const PREMIO_GANAR = 40, PREMIO_PERDER = 10;
+/* Premio según cómo fue la pelea: base + cada rival que tumbaste + los tuyos que quedaron
+   en pie + el tiempo peleado (con tope, para que no convenga estirarla). */
+const PREMIO = {ganar:80, perder:15, porKO:20, porVivo:15, segPorMoneda:3, topeTiempo:60};
 /* Tamaño de los sprites respecto del píxel del fondo: más chicos que 1:1 para
    que la arena se vea grande y quede en escala con el público y los entrenadores. */
 const ESCALA_POKE = {yo:.66, riv:.6};
@@ -1665,6 +1667,7 @@ function bucle(ts){
     avanzarZonas(h);
     AR.pend = AR.pend.filter(p => { p.t -= h; if(p.t <= 0){ p.fn(); return false; } return true; });
     if(!AR || tok !== TOK) return;
+    if(AR.fase === 'lucha') AR.tLucha += h;
     if(AR.congela > 0) break;
   }
   dibujar(E.yo, dt); dibujar(E.riv, dt);
@@ -1787,7 +1790,7 @@ async function luchar(mios){
     yo:  {mons:mios.map(crearMon), idx:0, act:null},
     riv: {mons:rival.map(crearMon), idx:0, act:null},
     estilo:ESTILOS[estilo], proys:[], zonas:[], pend:[], hold:new Set(), keys:new Set(), joy:{x:0, y:0},
-    fase:'intro', pausa:false, pausaAntes:false, cambioCd:0, cambioRiv:3, ult:0, congela:0,
+    fase:'intro', tLucha:0, pausa:false, pausaAntes:false, cambioCd:0, cambioRiv:3, ult:0, congela:0,
     combo:{lado:null, n:0, t:0},
     rivalNombre:'Entrenador ' + elige(NOMBRES_RIVAL)
   };
@@ -1829,8 +1832,12 @@ async function luchar(mios){
 
 function terminar(gane){
   AR.fase = 'fin'; AR.hold.clear();
-  const prem = gane ? PREMIO_GANAR : PREMIO_PERDER;
-  coins += prem; updateCoins(); saveProgress();
+  const pr = calcularPremio(gane);
+  coins += pr.monedas;
+  for(const t in pr.bolas) if(typeof bolas !== 'undefined' && t in bolas) bolas[t] += pr.bolas[t];
+  maestro.peleas++; if(gane) maestro.ganadas++;
+  maestro.pts += pr.pts;
+  updateCoins(); saveProgress();
   sfx(gane ? 'gana' : 'pierde');
   if(gane) festejo(true);
   decir(gane ? '¡Ganaste la batalla!' : 'Te quedaste sin Pokémon...');
@@ -1838,12 +1845,37 @@ function terminar(gane){
   f.hidden = false;
   f.innerHTML = `<div class="ar-fin-caja" style="border-color:${col}">
     <b style="color:${col}">${gane ? '¡Ganaste!' : 'Perdiste'}</b>
-    <span>${gane ? `Le ganaste a ${AR.rivalNombre}.` : `${AR.rivalNombre} fue más fuerte esta vez.`} +${prem} monedas.</span>
+    <span>${gane ? `Le ganaste a ${AR.rivalNombre}.` : `${AR.rivalNombre} fue más fuerte esta vez.`}</span>
+    <ul class="ar-premio">${pr.lineas.map(([t, v]) => `<li><span>${t}</span><b>+${v} 🪙</b></li>`).join('')}
+      <li class="tot"><span>Total</span><b>+${pr.monedas} 🪙</b></li></ul>
+    ${pr.bolasTxt ? `<span class="ar-premio-bolas">${pr.bolasTxt}</span>` : ''}
+    <span class="ar-premio-maestro">${pr.pts ? `+${pr.pts} puntos de Maestro · ` : ''}Maestro Pokémon: <b>${maestro.pts}</b> pts · ${maestro.ganadas} ganada${maestro.ganadas === 1 ? '' : 's'} de ${maestro.peleas}</span>
     <div><button class="ar-b ar-med" id="arCerrar2"><b>Cerrar</b></button>
     <button class="ar-b ar-med" id="arOtra"><b>Revancha</b></button></div></div>`;
   $('arCerrar2').onclick = cerrarArena;
   $('arOtra').onclick = () => abrirArena();
-  $('arOtra').focus();
+  $('arOtra').focus({preventScroll:true});
+}
+
+function calcularPremio(gane){
+  const kos = AR.riv.mons.filter(m => !m.vivo).length, vivos = AR.yo.mons.filter(m => m.vivo).length;
+  const tiempo = Math.min(PREMIO.topeTiempo, Math.floor(AR.tLucha / PREMIO.segPorMoneda));
+  const lineas = [[gane ? 'Victoria' : 'Por pelear', gane ? PREMIO.ganar : PREMIO.perder]];
+  if(kos) lineas.push([`${kos} rival${kos > 1 ? 'es' : ''} derrotado${kos > 1 ? 's' : ''}`, kos * PREMIO.porKO]);
+  if(gane && vivos) lineas.push([`${vivos} de los tuyos en pie`, vivos * PREMIO.porVivo]);
+  if(tiempo) lineas.push([`${Math.round(AR.tLucha)} s de pelea`, tiempo]);
+  /* pokébolas: ganar da rojas; equipo completo suma una Súper y ganar sin perder a nadie, una Ultra */
+  const b = {};
+  if(gane){
+    b.roja = 3;
+    if(AR.yo.mons.length >= EQUIPO_MAX) b.azul = 1;
+    if(vivos === AR.yo.mons.length) b.ultra = 1;
+  }else if(kos) b.roja = 1;
+  const nombres = {roja:'Poké Ball', azul:'Súper Ball', ultra:'Ultra Ball'};
+  const bolasTxt = Object.keys(b).map(t => `+${b[t]} ${nombres[t]}`).join(' · ');
+  /* Puntos de Maestro: sólo ganando; suman los rivales tumbados y no perder a ninguno */
+  const pts = gane ? 10 + kos * 2 + (vivos === AR.yo.mons.length ? 5 : 0) : 0;
+  return {monedas:lineas.reduce((a, l) => a + l[1], 0), lineas, bolas:b, bolasTxt, pts};
 }
 
 function armarRival(mios){
