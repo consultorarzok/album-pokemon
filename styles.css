@@ -149,6 +149,7 @@
   .rank-head h2{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:17px;margin:0;color:var(--ink);}
   .rank-tabs{display:flex;gap:6px;}
   .rank-tab{font-family:'Space Mono',monospace;font-size:12px;padding:10px 14px;min-height:40px;display:inline-flex;align-items:center;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--ink-dim);cursor:pointer;}
+  .rank-tab[hidden]{display:none;}
   .rank-tab.active{background:var(--poke-blue);border-color:transparent;color:#fff;font-weight:700;}
   #tabEvento.active{background:var(--evento);}
   /* Contador de entrenadores: va al lado de las pestañas pero NO es una pestaña,
@@ -534,6 +535,7 @@
   .ar-premio li.tot{border-top:1px solid #34407a;margin-top:4px;padding-top:6px;font-weight:700;font-size:17px;}
   .ar-premio-bolas{color:#9fe2ff;font-weight:600;}
   .ar-premio-maestro{color:#c9b8ff;font-size:14px;} .ar-premio-maestro b{color:#fff;}
+  .ar-rango-sube{background:#2a2160;border:1px solid #FFD84A;border-radius:10px;padding:6px 8px;color:#FFD84A;font-size:14px;}
   .ar-conf-caja > div,.ar-fin-caja > div{display:flex;gap:8px;}
   .ar-eq-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
   .ar-carta{border-left-width:6px;} .ar-carta img{image-rendering:pixelated;}
@@ -570,3 +572,10 @@
     .ar-premio-bolas{font-size:13px;} .ar-premio-maestro{font-size:12px;}
   }
   @media (prefers-reduced-motion:reduce){ .ar-cono,.ar-motas i,.ar-aviso.pop{animation:none;} .ar-flip{transition:none;} }
+
+/* Ranking de Maestros */
+.rank-rango{display:block;font-size:10px;color:var(--ink-dim);font-family:'Space Mono',monospace;}
+.hof-row.rango{align-items:center;opacity:.75;}
+.hof-row.rango.ok{opacity:1;}
+.hof-row.rango small{color:var(--ink-dim);font-size:11px;}
+.rango-pts{flex:0 0 auto;min-width:44px;font-family:'Space Mono',monospace;font-size:12px;color:var(--poke-blue);font-weight:700;}

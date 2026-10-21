@@ -582,7 +582,7 @@ function resetProgress(){
   coins = 300;
   DATA.forEach(p => state[p.id] = {got:false, dup:0});
   Object.assign(bolas, BOLAS_INICIALES);
-  Object.assign(maestro, {pts:0, ganadas:0, peleas:0});
+  Object.assign(maestro, {pts:0, ganadas:0, peleas:0, nivel:0});
   comprasDia = {};
   legendariosDia = {dia: null, obtenidos: {}};
   advTomados.clear();
@@ -1602,9 +1602,46 @@ Object.keys(BOLAS).forEach(t => {
 });
 const BOLAS_INICIALES = {roja:5, azul:0, ultra:0, maestra:0};
 const bolas = Object.assign({}, BOLAS_INICIALES);
-/* Puntos de Maestro Pokémon: sólo se suman peleando en la arena. Base del
-   futuro ranking de Maestros (todavía no se manda al servidor). */
-const maestro = {pts:0, ganadas:0, peleas:0};
+/* Puntos de Maestro Pokémon: sólo se suman ganando en la arena y van al
+   ranking de Maestros. 'nivel' = último rango cuyo premio ya se cobró. */
+const maestro = {pts:0, ganadas:0, peleas:0, nivel:0};
+const RANGOS_MAESTRO = [
+  {pts:0,    nombre:'Entrenador Novato'},
+  {pts:30,   nombre:'Entrenador',        premio:{bolas:{azul:3}}},
+  {pts:100,  nombre:'Líder de Gimnasio', premio:{monedas:300, bolas:{ultra:2}}},
+  {pts:250,  nombre:'Alto Mando',        premio:{monedas:500, bolas:{maestra:1}}},
+  {pts:500,  nombre:'Campeón',           premio:{legendarias:1, bolas:{maestra:1}}},
+  {pts:1000, nombre:'Maestro Pokémon',   premio:{monedas:1000, legendarias:1, bolas:{maestra:2}}}
+];
+const NOMBRE_BOLA = {roja:'Poké Ball', azul:'Súper Ball', ultra:'Ultra Ball', maestra:'Master Ball'};
+function rangoMaestro(pts){
+  let n = 0;
+  RANGOS_MAESTRO.forEach((x, i) => { if(pts >= x.pts) n = i; });
+  return n;
+}
+function textoPremioRango(pr){
+  const partes = [];
+  if(pr.monedas) partes.push(pr.monedas + ' monedas');
+  if(pr.legendarias) partes.push(pr.legendarias + ' legendaria' + (pr.legendarias > 1 ? 's' : ''));
+  Object.keys(pr.bolas || {}).forEach(t => partes.push(pr.bolas[t] + ' ' + NOMBRE_BOLA[t]));
+  return partes.join(' + ');
+}
+/* Paga los premios de los rangos alcanzados que todavía no se cobraron.
+   Devuelve qué subió, para mostrarlo al final de la pelea. */
+function cobrarRangosMaestro(){
+  const subidas = [], hasta = rangoMaestro(maestro.pts);
+  for(let i = maestro.nivel + 1; i <= hasta; i++){
+    const pr = RANGOS_MAESTRO[i].premio || {};
+    coins += pr.monedas || 0;
+    Object.keys(pr.bolas || {}).forEach(t => { bolas[t] = (bolas[t] || 0) + pr.bolas[t]; });
+    const leg = [];
+    for(let k = 0; k < (pr.legendarias || 0); k++){ const pull = regalarLegendaria(); if(pull) leg.push(pull.p.name); }
+    if(leg.length){ renderGrid(); updateProgress(); }
+    subidas.push({nombre:RANGOS_MAESTRO[i].nombre, premio:textoPremioRango(pr) + (leg.length ? ' (' + leg.join(', ') + ')' : '')});
+    maestro.nivel = i;
+  }
+  return subidas;
+}
 
 /* Un color por rareza, para que se lea de un vistazo qué salió. */
 const RAREZA_COLOR = {'Común':'#B9C6DA', 'Poco Común':'#6FD08C', 'Rara':'#5AA9F0',
@@ -3831,6 +3868,67 @@ function enviarPuntaje(){
   enviarPuntajeEvento();
 }
 
+/* =================== RANKING DE MAESTROS =================== */
+/* Se manda después de cada pelea de la arena (el acumulado, no la pelea
+   suelta): el servidor se queda con la fila de más puntos de cada uno. */
+let ultimoTopMaestro = null, topMaestroFallo = false;
+function enviarMaestro(){
+  if(!jugador || !maestro.peleas) return Promise.resolve();
+  return fetch(API_BASE + '/pokemon-maestro-score', {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=UTF-8'},
+    body: JSON.stringify({jugador: jugador, pts: maestro.pts, ganadas: maestro.ganadas, peleas: maestro.peleas})
+  }).then(r => {
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return cargarTopMaestro();
+  }).catch(() => {});
+}
+function cargarTopMaestro(){
+  return fetch(API_BASE + '/pokemon-maestro-top', {cache: 'no-store'})
+    .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => { ultimoTopMaestro = data; topMaestroFallo = false; if(rankTab === 'maestro') renderRank(); })
+    .catch(() => { topMaestroFallo = true; if(rankTab === 'maestro') renderRank(); });
+}
+
+function renderRankMaestro(lista, cont, done){
+  if(!ultimoTopMaestro){
+    lista.innerHTML = topMaestroFallo
+      ? '<div class="rank-empty">No se pudo cargar el ranking de Maestros.<br><button type="button" class="close-btn" id="rankReintentarMa" style="margin-top:10px;padding:10px 18px;">Reintentar</button></div>'
+      : '<div class="rank-empty">Cargando el ranking de Maestros…</div>';
+    const b = document.getElementById('rankReintentarMa');
+    if(b) b.onclick = () => cargarTopMaestro();
+    cont.hidden = true;
+  } else {
+    const filas = ultimoTopMaestro.top || [];
+    document.getElementById('rankCountNum').textContent = ultimoTopMaestro.jugadores || 0;
+    cont.hidden = false;
+    if(!filas.length){
+      lista.innerHTML = '<div class="rank-empty">Todavía nadie ganó en la Arena. ¡Ganá una batalla y sé el primer Maestro!</div>';
+    }
+    filas.forEach(f => {
+      const row = document.createElement('div');
+      row.className = 'rank-row' + (f.jugador === jugador ? ' me' : '');
+      row.innerHTML =
+        '<div class="rank-pos">' + f.puesto + '</div>' +
+        '<div class="rank-name"><span></span><small class="rank-rango"></small></div>' +
+        iconoPuesto(f.puesto) +
+        '<div class="rank-score">' + f.pts + ' <span style="font-size:10px;color:var(--ink-dim);font-family:\'Space Mono\',monospace;">pts · ' + f.ganadas + ' ganadas</span></div>';
+      row.querySelector('.rank-name span').textContent = f.jugador;
+      row.querySelector('.rank-rango').textContent = RANGOS_MAESTRO[rangoMaestro(f.pts)].nombre;
+      lista.appendChild(row);
+    });
+  }
+  /* abajo: en qué rango estás y qué premio destraba cada uno */
+  const mio = rangoMaestro(maestro.pts), sig = RANGOS_MAESTRO[mio + 1];
+  done.innerHTML = '<div class="hof-title">⚔️ Rangos de Maestro</div>' +
+    '<div class="hof-sub">Sumás puntos ganando en la Arena (más si tumbás a todos y no perdés a ninguno).<br>' +
+    'Vos: <b>' + RANGOS_MAESTRO[mio].nombre + '</b> · ' + maestro.pts + ' pts' +
+    (sig ? ' · te faltan ' + (sig.pts - maestro.pts) + ' para ' + sig.nombre : ' · ¡llegaste al máximo!') + '</div>' +
+    RANGOS_MAESTRO.slice(1).map((x, i) => '<div class="hof-row rango' + (i + 1 <= maestro.nivel ? ' ok' : '') + '">' +
+      '<span class="rango-pts">' + x.pts + '</span><div class="hof-name"><b>' + x.nombre + '</b><br><small>' + textoPremioRango(x.premio) + '</small></div>' +
+      '<div class="hof-date">' + (i + 1 <= maestro.nivel ? '✅' : '🔒') + '</div></div>').join('');
+}
+
 /* =================== RANKING DE EVENTO =================== */
 /* "Todos arrancan de 0" sin tocar el ranking de siempre: en vez de borrar
    pokemon_ranking, cada dispositivo guarda cuántas figuritas tenía la
@@ -4017,6 +4115,11 @@ function renderRank(){
   const done  = document.getElementById('rankDone');
   const cont  = document.getElementById('rankCount');
   lista.innerHTML = '';
+
+  if(rankTab === 'maestro'){
+    renderRankMaestro(lista, cont, done);
+    return;
+  }
 
   if(rankTab === 'evento'){
     renderRankEvento(lista, cont);
@@ -4444,16 +4547,19 @@ document.getElementById('nameInput').addEventListener('keydown', e => {
 });
 function activarRankTab(valor){
   rankTab = valor;
-  ['tabEvento', 'tabHoy', 'tabHist'].forEach(id => {
+  ['tabEvento', 'tabHoy', 'tabHist', 'tabMaestro'].forEach(id => {
     const el = document.getElementById(id);
     const on = (id === 'tabEvento' && valor === 'evento')
+      || (id === 'tabMaestro' && valor === 'maestro')
       || (id === 'tabHoy' && valor === 'hoy')
       || (id === 'tabHist' && valor === 'historico');
     el.classList.toggle('active', on);
     el.setAttribute('aria-selected', on ? 'true' : 'false');
   });
+  if(valor === 'maestro') cargarTopMaestro();
   renderRank();
 }
+document.getElementById('tabMaestro').onclick = () => activarRankTab('maestro');
 document.getElementById('tabEvento').onclick = () => activarRankTab('evento');
 document.getElementById('tabHoy').onclick = () => activarRankTab('hoy');
 document.getElementById('tabHist').onclick = () => activarRankTab('historico');
@@ -4543,6 +4649,7 @@ try{
 document.getElementById('playerName').textContent = jugador || '-';
 aplicarRegalos();
 cargarTop();
+enviarMaestro();   // por si la última pelea no llegó a mandarse
 sincronizarEvento();
 setInterval(sincronizarEvento, 60000);
 

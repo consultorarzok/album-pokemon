@@ -1837,7 +1837,9 @@ function terminar(gane){
   for(const t in pr.bolas) if(typeof bolas !== 'undefined' && t in bolas) bolas[t] += pr.bolas[t];
   maestro.peleas++; if(gane) maestro.ganadas++;
   maestro.pts += pr.pts;
+  const subidas = cobrarRangosMaestro();
   updateCoins(); saveProgress();
+  enviarMaestro();
   sfx(gane ? 'gana' : 'pierde');
   if(gane) festejo(true);
   decir(gane ? '¡Ganaste la batalla!' : 'Te quedaste sin Pokémon...');
@@ -1849,7 +1851,8 @@ function terminar(gane){
     <ul class="ar-premio">${pr.lineas.map(([t, v]) => `<li><span>${t}</span><b>+${v} 🪙</b></li>`).join('')}
       <li class="tot"><span>Total</span><b>+${pr.monedas} 🪙</b></li></ul>
     ${pr.bolasTxt ? `<span class="ar-premio-bolas">${pr.bolasTxt}</span>` : ''}
-    <span class="ar-premio-maestro">${pr.pts ? `+${pr.pts} puntos de Maestro · ` : ''}Maestro Pokémon: <b>${maestro.pts}</b> pts · ${maestro.ganadas} ganada${maestro.ganadas === 1 ? '' : 's'} de ${maestro.peleas}</span>
+    <span class="ar-premio-maestro">${pr.pts ? `+${pr.pts} puntos de Maestro · ` : ''}${RANGOS_MAESTRO[rangoMaestro(maestro.pts)].nombre}: <b>${maestro.pts}</b> pts · ${maestro.ganadas} ganada${maestro.ganadas === 1 ? '' : 's'} de ${maestro.peleas}</span>
+    ${subidas.map(u => `<span class="ar-rango-sube">🏅 ¡Subiste a <b>${u.nombre}</b>! Premio: ${u.premio}</span>`).join('')}
     <div><button class="ar-b ar-med" id="arCerrar2"><b>Cerrar</b></button>
     <button class="ar-b ar-med" id="arOtra"><b>Revancha</b></button></div></div>`;
   $('arCerrar2').onclick = cerrarArena;
