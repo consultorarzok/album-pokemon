@@ -55,6 +55,7 @@
 
   .filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
   .chip{font-family:'Space Mono',monospace;font-size:12px;padding:10px 12px;min-height:40px;border-radius:20px;border:1px solid var(--border);background:var(--panel);color:var(--ink-dim);cursor:pointer;}
+  .chip{appearance:none;-webkit-appearance:none;}
   .chip.active{color:#14172a;font-weight:700;border-color:transparent;}
 
   /* Tarjeta que abre la Pokédex: la grilla de figuritas vive adentro del
@@ -84,10 +85,10 @@
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;}
   .slot{position:relative;aspect-ratio:1/1.15;border-radius:9px;background:var(--slot-empty);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:4px;}
   .slot.got{background:var(--panel);}
-  .slot .num{position:absolute;top:3px;left:5px;font-size:9px;color:var(--ink-dim);}
-  .slot .dup{position:absolute;top:3px;right:5px;font-size:9px;background:var(--gold);color:#2b2205;padding:1px 4px;border-radius:6px;font-weight:700;}
+  .slot .num{position:absolute;top:3px;left:5px;font-size:10px;color:var(--ink-dim);}
+  .slot .dup{position:absolute;top:3px;right:5px;font-size:10px;background:var(--gold);color:#2b2205;padding:1px 4px;border-radius:6px;font-weight:700;}
   .slot img{width:60%;height:auto;image-rendering:auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));}
-  .slot .name{font-size:8.5px;text-align:center;margin-top:2px;color:var(--ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .slot .name{font-size:10px;text-align:center;margin-top:2px;color:var(--ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .slot .ball-icon{width:26px;height:26px;border-radius:50%;background:conic-gradient(#C7CCDC 0 50%, #E3E6F0 50% 100%);border:2px solid #B7BED0;opacity:.9;}
   .slot .typebar{position:absolute;bottom:0;left:0;right:0;height:4px;}
 
@@ -323,7 +324,6 @@
   @media (min-width:720px) and (max-width:1024px){
     .pokedex-body{padding:20px 28px 36px;}
     .grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;}
-    .slot .name{font-size:9.5px;}
   }
   @media (min-width:1025px){
     .grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px;}
@@ -435,7 +435,7 @@
 <div class="overlay" id="encOverlay" role="dialog" aria-modal="true" style="z-index:45;">
   <div class="reveal-panel" style="max-width:430px;margin:0 auto;">
     <h2 id="encTitle">¡Pokémon salvaje!</h2>
-    <img id="encImg" src="" alt="" style="width:150px;height:auto;margin:0 auto 10px;display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.25));">
+    <img id="encImg" alt="" style="width:150px;height:auto;margin:0 auto 10px;display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.25));">
     <div id="encName" style="font-family:'Baloo 2',sans-serif;font-size:17px;margin-bottom:5px;"></div>
     <div id="encInfo" style="font-size:11px;color:var(--ink-dim);margin-bottom:12px;"></div>
     <div class="enc-tiros" id="encTiros"></div>
@@ -516,7 +516,7 @@
       <div class="filters" id="regionFilters"></div>
       <div class="filters" id="filters"></div>
 
-      <div class="grid" id="grid"></div>
+      <div class="grid" id="grid" role="list" aria-label="Figuritas"></div>
 
       <div style="text-align:right;margin-top:16px;">
         <button id="resetBtn" style="background:transparent;border:1px solid var(--border);color:var(--ink-dim);border-radius:8px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;">Reiniciar álbum</button>
@@ -537,7 +537,7 @@
   <div class="special-rays"></div>
   <div class="special-banner" id="specialBanner">¡Figura legendaria!</div>
   <div class="special-card" id="specialCardWrap">
-    <img id="specialImg" src="" alt="">
+    <img id="specialImg" alt="">
     <div class="sname" id="specialName"></div>
     <div class="stag" id="specialTag"></div>
   </div>
@@ -548,7 +548,7 @@
   <div class="special-rays"></div>
   <div class="special-banner">Código generado</div>
   <div class="special-card" id="codigoCardWrap">
-    <img id="codigoCardImg" src="" alt="">
+    <img id="codigoCardImg" alt="">
     <div class="sname" id="codigoCardName"></div>
     <div class="stag">Compartiselo a otro entrenador</div>
     <div class="codigo-chip" id="codigoCardTexto"></div>
@@ -579,7 +579,7 @@
 <div class="overlay" id="quizOverlay" role="dialog" aria-modal="true">
   <div class="reveal-panel" style="max-width:420px;">
     <h2 id="quizTitle">¿De qué tipo es...?</h2>
-    <img id="quizImg" src="" alt="" style="width:150px;height:auto;margin:0 auto 14px;display:block;">
+    <img id="quizImg" alt="" style="width:150px;height:auto;margin:0 auto 14px;display:block;">
     <div id="quizName" style="font-family:'Baloo 2',sans-serif;font-size:16px;margin-bottom:14px;"></div>
     <div class="timer" id="quizTimer" hidden>
       <div class="timer-num"></div>
@@ -1187,16 +1187,64 @@ function resetProgress(){
   updateCoins();
 }
 
+/* Contraste: devuelve un color de texto que se lea (>=4.5:1) sobre `fondo`,
+   oscureciendo el color pedido hacia la tinta del juego. Los colores de tipo y
+   de rareza se pensaron para fondo oscuro y sobre el panel claro no se leían. */
+function _lum(hex){
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+    .map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); })
+    .reduce((a, v, i) => a + v * [.2126, .7152, .0722][i], 0);
+}
+function _contraste(a, b){
+  const [x, y] = [_lum(a), _lum(b)].sort((m, n) => n - m);
+  return (x + .05) / (y + .05);
+}
+function colorLegible(hex, fondo){
+  fondo = fondo || '#EAECF5';
+  const tinta = [0x1B, 0x21, 0x40], base = parseInt(hex.slice(1), 16);
+  const c = [(base >> 16) & 255, (base >> 8) & 255, base & 255];
+  for(let t = 0; t <= 1.001; t += .05){
+    const m = c.map((v, i) => Math.round(v + (tinta[i] - v) * t));
+    const h = '#' + m.map(v => v.toString(16).padStart(2, '0')).join('');
+    if(_contraste(h, fondo) >= 4.5) return h;
+  }
+  return '#1B2140';
+}
+/* Texto (blanco o tinta) que mejor se lee sobre un fondo de color. */
+function textoSobre(hex){
+  return _contraste('#FFFFFF', hex) >= _contraste('#14172A', hex) ? '#FFFFFF' : '#14172A';
+}
+
+/* Los filtros de la Pokédex son botones de verdad (teclado y lector de
+   pantalla). Al repintarlos el foco se perdería: se marca cuál tenía el foco
+   y se lo devuelve al chip nuevo con el mismo valor. */
+function chipFiltro(grupo, valor, texto, activo, onClick){
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = 'chip' + (activo ? ' active' : '');
+  chip.textContent = texto;
+  chip.dataset.valor = valor;
+  chip.setAttribute('aria-pressed', activo ? 'true' : 'false');
+  chip.onclick = () => {
+    const teniaFoco = document.activeElement === chip;
+    onClick();
+    if(teniaFoco){
+      const nuevo = document.querySelector('#' + grupo + ' .chip[data-valor="' + valor + '"]');
+      if(nuevo) nuevo.focus();
+    }
+  };
+  return chip;
+}
+
 function renderRegionFilters(){
   const regions = eventoVistaActiva() ? ['all', 'kanto', 'johto'] : ['all', ...new Set(DATA.map(p=>p.region))];
   const box = document.getElementById('regionFilters');
   box.innerHTML = '';
   regions.forEach(r=>{
-    const chip = document.createElement('div');
-    chip.className = 'chip' + (r===currentRegion?' active':'');
-    chip.textContent = r==='all' ? 'Todas las regiones' : REGION_LABEL[r];
+    const chip = chipFiltro('regionFilters', r, r==='all' ? 'Todas las regiones' : REGION_LABEL[r], r===currentRegion,
+      () => { currentRegion = r; renderRegionFilters(); renderGrid(); });
     if(r===currentRegion){ chip.style.background = '#2A75BB'; chip.style.color='#fff'; }
-    chip.onclick = () => { currentRegion = r; renderRegionFilters(); renderGrid(); };
     box.appendChild(chip);
   });
 }
@@ -1206,13 +1254,13 @@ function renderFilters(){
   const box = document.getElementById('filters');
   box.innerHTML = '';
   types.forEach(t=>{
-    const chip = document.createElement('div');
-    chip.className = 'chip' + (t===currentFilter?' active':'');
-    chip.textContent = t==='all' ? 'Todos los tipos' : TYPE_LABEL[t];
+    const chip = chipFiltro('filters', t, t==='all' ? 'Todos los tipos' : TYPE_LABEL[t], t===currentFilter,
+      () => { currentFilter = t; renderFilters(); renderGrid(); });
     if(t===currentFilter){
-      chip.style.background = t==='all' ? '#F4C744' : TYPE_COLORS[t];
+      const fondo = t==='all' ? '#F4C744' : TYPE_COLORS[t];
+      chip.style.background = fondo;
+      chip.style.color = textoSobre(fondo);
     }
-    chip.onclick = () => { currentFilter = t; renderFilters(); renderGrid(); };
     box.appendChild(chip);
   });
 }
@@ -1235,11 +1283,16 @@ function renderGrid(){
     const gotVista = ev ? (s.got && !baseIds.has(p.id)) : s.got;
     const slot = document.createElement('div');
     slot.className = 'slot' + (gotVista ? ' got' : '');
+    slot.setAttribute('role', 'listitem');
+    const numero = '#' + String(p.id).padStart(3,'0');
+    slot.setAttribute('aria-label', gotVista
+      ? numero + ' ' + p.name + (s.dup > 0 ? ', repetida, tenés ' + (s.dup + 1) : '')
+      : numero + ', todavía no la tenés');
     const numTag = `<div class="num">#${String(p.id).padStart(3,'0')}</div>`;
     const dupTag = s.dup>0 ? `<div class="dup">x${s.dup+1}</div>` : '';
     const bar = `<div class="typebar" style="background:${TYPE_COLORS[p.type]}"></div>`;
     if(gotVista){
-      slot.innerHTML = numTag + dupTag + `<img src="${p.img}" alt="${p.name}" loading="lazy"><div class="name">${p.name}</div>` + bar;
+      slot.innerHTML = numTag + dupTag + `<img src="${p.img}" alt="" loading="lazy"><div class="name">${p.name}</div>` + bar;
     } else {
       slot.innerHTML = numTag + `<div class="ball-icon"></div>` + bar;
     }
@@ -3803,8 +3856,8 @@ function iniciarEncuentro(p){
   document.getElementById('encImg').src = p.img;
   document.getElementById('encName').textContent = p.name;
   document.getElementById('encInfo').innerHTML =
-    `<span style="color:${TYPE_COLORS[p.type]};font-weight:700;">${TYPE_LABEL[p.type]}</span>` +
-    ` · <span style="color:${RAREZA_COLOR[p.rarity] || '#CFE0FF'};font-weight:700;">${p.rarity}</span>`;
+    `<span style="color:${colorLegible(TYPE_COLORS[p.type])};font-weight:700;">${TYPE_LABEL[p.type]}</span>` +
+    ` · <span style="color:${colorLegible(RAREZA_COLOR[p.rarity] || '#CFE0FF')};font-weight:700;">${p.rarity}</span>`;
   document.getElementById('encFeedback').textContent = totalBolas() === 0
     ? 'No te quedan pokébolas. Comprá en el Centro Pokémon 🏥'
     : 'Elegí con qué pokébola tirar.';
@@ -4491,7 +4544,9 @@ function sincronizarEvento(){
   }
 }
 
+let topFallo = false;   // el último intento de traer el ranking falló
 function cargarTop(){
+  topFallo = false;
   setStatus('actualizando...');
   return fetch(API_BASE + '/pokemon-top', {cache: 'no-store'})
     .then(r => {
@@ -4504,6 +4559,7 @@ function cargarTop(){
       renderRank();
     })
     .catch(() => {
+      topFallo = true;
       setStatus('sin conexión con el ranking', true);
       if(!ultimoTop) renderRank();
     });
@@ -4533,7 +4589,13 @@ function renderRank(){
   }
 
   if(!ultimoTop){
-    lista.innerHTML = '<div class="rank-empty">No se pudo cargar el ranking. Revisá la conexión y volvé a entrar.</div>';
+    if(topFallo){
+      lista.innerHTML = '<div class="rank-empty">No se pudo cargar el ranking. Revisá la conexión y probá de nuevo.<br>' +
+        '<button type="button" class="close-btn" id="rankReintentar" style="margin-top:10px;padding:10px 18px;">Reintentar</button></div>';
+      document.getElementById('rankReintentar').onclick = () => cargarTop();
+    } else {
+      lista.innerHTML = '<div class="rank-empty">Cargando el ranking…</div>';
+    }
     done.innerHTML = '';
     cont.hidden = true;
     return;
@@ -4941,8 +5003,60 @@ document.getElementById('tabEvento').onclick = () => activarRankTab('evento');
 document.getElementById('tabHoy').onclick = () => activarRankTab('hoy');
 document.getElementById('tabHist').onclick = () => activarRankTab('historico');
 document.querySelectorAll('.rank-tab').forEach(t => t.addEventListener('keydown', e => {
-  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); t.click(); }
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); t.click(); return; }
+  if(e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
+    const tabs = [...document.querySelectorAll('.rank-tab')].filter(x => !x.hidden);
+    const sig = tabs[(tabs.indexOf(t) + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+    e.preventDefault(); sig.focus(); sig.click();
+  }
 }));
+
+/* ---------- Foco de los paneles ----------
+   Al abrir un panel el foco entra en él, Tab no se escapa a la página de
+   atrás (queda inerte) y al cerrar vuelve al botón que lo abrió. */
+(function(){
+  const paneles = [...document.querySelectorAll('.overlay, .special-overlay, .name-overlay')];
+  const principal = document.getElementById('main');
+  const abiertos = () => paneles.filter(p => p.classList.contains('show'));
+  const enfocables = p => [...p.querySelectorAll('button, input, [tabindex="0"]')]
+    .filter(el => !el.disabled && !el.hidden && el.offsetParent !== null);
+  const memoria = new Map();
+
+  const obs = new MutationObserver(muts => {
+    // primero el estado de la página de atrás: un elemento inerte no recibe foco
+    if(principal){ if(abiertos().length) principal.setAttribute('inert', ''); else principal.removeAttribute('inert'); }
+    muts.forEach(m => {
+      const p = m.target;
+      const abierto = p.classList.contains('show');
+      const estaba = memoria.has(p);
+      if(abierto && !estaba){
+        memoria.set(p, document.activeElement);
+        setTimeout(() => {
+          if(p.contains(document.activeElement)) return;
+          const f = enfocables(p);
+          if(f.length) f[0].focus();
+        }, 60);
+      } else if(!abierto && estaba){
+        const antes = memoria.get(p);
+        memoria.delete(p);
+        if(antes && document.contains(antes) && !abiertos().length && antes.focus) antes.focus();
+      }
+    });
+  });
+  paneles.forEach(p => obs.observe(p, {attributes:true, attributeFilter:['class']}));
+
+  document.addEventListener('keydown', e => {
+    if(e.key !== 'Tab') return;
+    const arriba = abiertos().sort((a, b) =>
+      (parseInt(getComputedStyle(b).zIndex) || 0) - (parseInt(getComputedStyle(a).zIndex) || 0))[0];
+    if(!arriba) return;
+    const f = enfocables(arriba);
+    if(!f.length) return;
+    const primero = f[0], ultimo = f[f.length - 1];
+    if(e.shiftKey && (document.activeElement === primero || !arriba.contains(document.activeElement))){ e.preventDefault(); ultimo.focus(); }
+    else if(!e.shiftKey && document.activeElement === ultimo){ e.preventDefault(); primero.focus(); }
+  });
+})();
 // Escape cierra el panel abierto (sólo los que ya tienen botón Cerrar)
 document.addEventListener('keydown', e => {
   if(e.key !== 'Escape' || advAbierto) return;
@@ -4976,6 +5090,7 @@ if(nombreDelLink && nombreDelLink !== jugador){
 } else {
   pedirNombre();
 }
+window.addEventListener('online', () => { if(topFallo) cargarTop(); });
 </script>
 </body>
 </html>

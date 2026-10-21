@@ -465,7 +465,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   check(`en ${altares[0].n} salió ${salida.primero} (de ${salida.esperados.join('/')})`, salida.esperados.includes(salida.primero));
   check('quedan anotados los que ya salieron hoy', salida.anotados.length === salida.esperados.length);
   check('agotado el altar, no sale ninguno más hoy', salida.agotado === null);
-  check('el altar avisa cuáles salieron hoy', /ya aparecieron/.test(salida.aviso));
+  check('el altar avisa cuáles salieron hoy', /ya aparecieron/i.test(salida.aviso));
   const otroAltar = await page.evaluate((alt) => {
     Math.random = () => 0.01;
     const [x, y] = alt.k.split(',').map(Number);
