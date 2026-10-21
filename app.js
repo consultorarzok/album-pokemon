@@ -930,7 +930,7 @@ function canjearRepetidas(){
   }
 }
 
-/* ====================== BATALLA DE TIPOS ====================== */
+/* ====================== TIPOS Y FUERZA (los usa la arena, arena.js) ====================== */
 /* Tabla de efectividad oficial (6ª generación en adelante).
    Sólo se listan las excepciones: lo que no figura vale x1. */
 const TYPE_CHART = {
@@ -1007,8 +1007,6 @@ const BST = [
   540,590,590,590,590,450,600
 ];
 
-function poderDe(p){ return BST[p.id - 1] || 300; }
-
 /* La ventaja de tipo NO es x2 acá. En el juego real el x2 se aplica al daño de
    un golpe, pero ganar un combate entero también depende de la vida y la
    defensa, que crecen con la fuerza del Pokémon. Con x2 pelado, un Magikarp
@@ -1025,17 +1023,11 @@ function factorTipo(mult){
   return 1;
 }
 
-function puntajeBatalla(a, b){
-  return poderDe(a) * factorTipo(efectividad(a.type, b.type));
-}
-
 /* =================== RELOJ DE LOS JUEGOS ===================
    Sin límite de tiempo cualquiera puede sacarle una captura a la pregunta,
    pasársela a una IA y volver con la respuesta. Con el reloj corriendo hay
-   que contestar de memoria. Si se vence: 0 monedas en el quiz y se pierde
-   la apuesta en la batalla. */
+   que contestar de memoria. Si se vence: 0 monedas en el quiz. */
 const QUIZ_SEGUNDOS    = 8;
-const BATALLA_SEGUNDOS = 8;
 
 let relojId   = null;
 let relojWrap = null;
@@ -1078,19 +1070,6 @@ function arrancarReloj(id, segundos, alVencer){
   relojId = setInterval(pintar, 100);
 }
 
-const APUESTAS = [10, 25, 50];
-let batallaRival = null;
-let batallaApuesta = 0;
-
-function cartaBatalla(p){
-  return `<div class="bat-carta" style="border-color:${TYPE_COLORS[p.type]}">
-    <img src="${p.img}" alt="${p.name}">
-    <div class="bat-nombre">${p.name}</div>
-    <div class="bat-tipo" style="background:${TYPE_COLORS[p.type]}22;border:1px solid ${TYPE_COLORS[p.type]}">${TYPE_LABEL[p.type]}</div>
-    <div class="bat-fuerza">Fuerza ${poderDe(p)}</div>
-  </div>`;
-}
-
 function avisoBatalla(txt){
   ocultarReloj();
   document.getElementById('battleTitle').textContent = 'Batalla de tipos';
@@ -1099,130 +1078,9 @@ function avisoBatalla(txt){
   document.getElementById('battleOverlay').classList.add('show');
 }
 
-function abrirBatalla(){
-  const mios = DATA.filter(p => state[p.id].got);
-  if(mios.length < 3){
-    avisoBatalla('Necesitás al menos 3 figuritas para pelear. Abrí un sobre primero.');
-    return;
-  }
-  if(coins < APUESTAS[0]){
-    avisoBatalla('Te hacen falta al menos ' + APUESTAS[0] + ' monedas para apostar. Ganá respondiendo preguntas.');
-    return;
-  }
-
-  ocultarReloj();  /* elegir apuesta no se cronometra: todavía no se ve el equipo */
-  batallaRival = DATA[Math.floor(Math.random()*DATA.length)];
-  batallaApuesta = 0;
-  document.getElementById('battleFeedback').textContent = '';
-  document.getElementById('battleTitle').textContent = 'Te desafía...';
-
-  const stage = document.getElementById('battleStage');
-  stage.innerHTML = '<div class="bat-fila">' + cartaBatalla(batallaRival) + '</div>' +
-    '<div class="bat-sub">¿Cuánto apostás?</div>' +
-    '<div class="bat-apuestas">' +
-      APUESTAS.map(m => `<button class="quiz-opt" data-monto="${m}"${coins < m ? ' disabled' : ''}>${m} monedas</button>`).join('') +
-    '</div>';
-  stage.querySelectorAll('[data-monto]').forEach(b => {
-    b.onclick = () => elegirEquipo(Number(b.dataset.monto));
-  });
-  document.getElementById('battleOverlay').classList.add('show');
-}
-
-function elegirEquipo(monto){
-  batallaApuesta = monto;
-  const mios = mezclar(DATA.filter(p => state[p.id].got)).slice(0, 3);
-  document.getElementById('battleTitle').textContent = '¿Con cuál le ganás?';
-
-  const stage = document.getElementById('battleStage');
-  stage.innerHTML = '<div class="bat-fila">' + cartaBatalla(batallaRival) + '</div>' +
-    '<div class="bat-sub">Apostaste ' + monto + ' monedas · elegí tu Pokémon</div>' +
-    '<div class="bat-fila bat-equipo">' + mios.map(cartaBatalla).join('') + '</div>';
-
-  Array.from(stage.querySelectorAll('.bat-equipo .bat-carta')).forEach((el, i) => {
-    el.classList.add('elegible');
-    el.onclick = () => resolverBatalla(mios[i]);
-  });
-
-  arrancarReloj('battleTimer', BATALLA_SEGUNDOS, () => batallaSinElegir(stage));
-}
-
-/* Se acabó el tiempo y no eligió a nadie: la apuesta ya estaba puesta, así que
-   se pierde. Si no costara nada, intentar hacer trampa sería gratis. */
-function batallaSinElegir(stage){
-  Array.from(stage.querySelectorAll('.bat-equipo .bat-carta')).forEach(el => {
-    el.classList.remove('elegible');
-    el.onclick = null;
-  });
-
-  coins = Math.max(0, coins - batallaApuesta);
-  updateCoins();
-  saveProgress();
-
-  document.getElementById('battleTitle').textContent = '¡Se acabó el tiempo!';
-  const fb = document.getElementById('battleFeedback');
-  fb.style.color = '#E3453B';
-  fb.textContent = `No elegiste a nadie, así que ${batallaRival.name} gana la pelea. −${batallaApuesta} monedas.`;
-}
-
-function resolverBatalla(mio){
-  ocultarReloj();
-  const multMio  = efectividad(mio.type, batallaRival.type);
-  const multRiv  = efectividad(batallaRival.type, mio.type);
-  const puntoMio = puntajeBatalla(mio, batallaRival);
-  const puntoRiv = puntajeBatalla(batallaRival, mio);
-
-  const yo = TYPE_LABEL[mio.type];
-  const su = TYPE_LABEL[batallaRival.type];
-  /* Se mira la ventaja en las DOS direcciones: que el rival sea poco efectivo
-     contra vos también es una ventaja tuya, y antes se anunciaba como "ninguno
-     tiene ventaja". */
-  let razon;
-  if(multMio === 0 && multRiv === 0) razon = `${yo} y ${su} no se hacen nada entre sí`;
-  else if(multMio === 0)  razon = `${yo} no le hace nada a ${su}`;
-  else if(multRiv === 0)  razon = `${su} no le hace nada a ${yo}`;
-  else if(multMio > 1)    razon = `${yo} es súper efectivo contra ${su}`;
-  else if(multRiv > 1)    razon = `${su} es súper efectivo contra ${yo}`;
-  else if(multMio < 1)    razon = `${yo} es poco efectivo contra ${su}`;
-  else if(multRiv < 1)    razon = `${su} es poco efectivo contra ${yo}`;
-  else                    razon = 'Ninguno de los dos tiene ventaja de tipo';
-
-  let delta, color, titulo;
-  if(puntoMio > puntoRiv){
-    delta = batallaApuesta; color = '#3DAA5B'; titulo = '¡Ganaste!';
-  } else if(puntoMio < puntoRiv){
-    delta = -batallaApuesta; color = '#E3453B'; titulo = 'Perdiste';
-  } else {
-    delta = 0; color = '#6B7180'; titulo = 'Empate';
-  }
-
-  /* Cuando la fuerza le gana a la ventaja de tipo hay que decirlo, si no
-     parece que el juego hace trampa. */
-  const teniaVentaja = multMio > multRiv;
-  const gane = puntoMio > puntoRiv;
-  if(teniaVentaja && !gane){
-    razon += `, pero ${batallaRival.name} es mucho más fuerte (${poderDe(batallaRival)} contra ${poderDe(mio)})`;
-  } else if(!teniaVentaja && gane && multMio < multRiv){
-    razon += `, pero tu ${mio.name} es mucho más fuerte (${poderDe(mio)} contra ${poderDe(batallaRival)})`;
-  } else if(multMio === multRiv){
-    razon += `: gana el más fuerte`;
-  }
-
-  const monedas = delta === 0
-    ? 'Recuperás tu apuesta.'
-    : (delta > 0 ? `+${delta} monedas.` : `−${Math.abs(delta)} monedas.`);
-
-  coins = Math.max(0, coins + delta);
-  updateCoins();
-  saveProgress();
-
-  document.getElementById('battleTitle').textContent = titulo;
-  document.getElementById('battleStage').innerHTML =
-    '<div class="bat-fila">' + cartaBatalla(mio) + '<div class="bat-vs">VS</div>' + cartaBatalla(batallaRival) + '</div>' +
-    `<div class="bat-sub">Puntaje: ${Math.round(puntoMio)} contra ${Math.round(puntoRiv)}</div>`;
-  const fb = document.getElementById('battleFeedback');
-  fb.style.color = color;
-  fb.textContent = razon + '. ' + monedas;
-}
+/* Para entrar a la arena hacen falta PELEA_MIN Pokémon de Kanto (ver arena.js). */
+const PELEA_MIN = 3;
+function kantoMios(){ return DATA.filter(p => p.region === 'kanto' && state[p.id].got); }
 
 function updateBarras(){
   const dups = repetidasTotales();
@@ -1232,7 +1090,7 @@ function updateBarras(){
   const cb = document.getElementById('canjeBtn');
   if(cb) cb.disabled = dups < CANJE_COSTO || tengo === DATA.length;
   const bb = document.getElementById('battleBtn');
-  if(bb) bb.disabled = coins < APUESTAS[0] || tengo < 3;
+  if(bb) bb.disabled = kantoMios().length < PELEA_MIN;
 }
 
 const QUIZ_REWARD_CORRECT = 15;
@@ -3705,9 +3563,9 @@ document.getElementById('quizCloseBtn').onclick = () => { ocultarReloj(); docume
 document.getElementById('quizNextBtn').onclick = startQuiz;
 document.getElementById('openBtn').onclick = openPack;
 document.getElementById('canjeBtn').onclick = canjearRepetidas;
-document.getElementById('battleBtn').onclick = abrirBatalla;
+document.getElementById('battleBtn').onclick = () => abrirArena();
 document.getElementById('battleCloseBtn').onclick = () => { ocultarReloj(); document.getElementById('battleOverlay').classList.remove('show'); };
-document.getElementById('battleNextBtn').onclick = abrirBatalla;
+document.getElementById('battleNextBtn').onclick = () => document.getElementById('battleCloseBtn').click();
 document.getElementById('earnBtn').onclick = startQuiz;
 document.getElementById('resetBtn').onclick = resetProgress;
 
