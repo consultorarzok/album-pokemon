@@ -1853,6 +1853,116 @@ function anotarLegendario(p, santuario){
    de un dibujo a mano: sería un montón de legendarios distintos para pintar
    pixel por pixel. */
 const LEG_SPRITE_CACHE = {};
+const LEG_TAM = 52;   // lado mayor del sprite en píxeles de mundo (el tile mide 16)
+
+/* Paleta por "median cut": parte la nube de colores en cajas por el canal de
+   más rango hasta tener n, y cada caja se resume en su promedio. Con pocos
+   colores (y bien elegidos) la reducción lee como pixel art dibujado a mano
+   en vez de una miniatura lavada. */
+function paletaMedianCut(pixeles, n){
+  let cajas = [pixeles];
+  while(cajas.length < n){
+    let mejor = -1, mejorPuntaje = 0, mejorCanal = 0;
+    cajas.forEach((c, i) => {
+      if(c.length < 2) return;
+      for(let k = 0; k < 3; k++){
+        let mn = 255, mx = 0;
+        c.forEach(px => { if(px[k] < mn) mn = px[k]; if(px[k] > mx) mx = px[k]; });
+        const puntaje = (mx - mn) * Math.sqrt(c.length);
+        if(puntaje > mejorPuntaje){ mejorPuntaje = puntaje; mejor = i; mejorCanal = k; }
+      }
+    });
+    if(mejor < 0) break;
+    const c = cajas[mejor].slice().sort((x, y) => x[mejorCanal] - y[mejorCanal]);
+    const mitad = c.length >> 1;
+    cajas.splice(mejor, 1, c.slice(0, mitad), c.slice(mitad));
+  }
+  return cajas.map(c => {
+    const t = c.length || 1;
+    return [0, 1, 2].map(k => Math.round(c.reduce((a, px) => a + px[k], 0) / t));
+  });
+}
+
+/* Imagen grande -> sprite pixel art: recorta al contenido, achica por pasos
+   (mitad por mitad, con suavizado, para promediar bien en vez de saltear
+   píxeles), corta la transparencia a todo-o-nada, aviva color y contraste
+   (al achicar todo se lava), reduce a una paleta chica y rodea con un
+   contorno del tono oscuro del propio color en vez de negro parejo. */
+function pixelarImagen(img, lado){
+  const W = img.naturalWidth || img.width, H = img.naturalHeight || img.height;
+  const t = document.createElement('canvas'); t.width = W; t.height = H;
+  const tctx = t.getContext('2d'); tctx.drawImage(img, 0, 0);
+  const d0 = tctx.getImageData(0, 0, W, H).data;
+  let x0 = W, y0 = H, x1 = 0, y1 = 0;
+  for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
+    if(d0[(y * W + x) * 4 + 3] > 40){ if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y; }
+  }
+  if(x1 <= x0 || y1 <= y0) return null;
+  const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+  const k = lado / Math.max(cw, ch);
+  const w = Math.max(1, Math.round(cw * k)), h = Math.max(1, Math.round(ch * k));
+
+  let cur = document.createElement('canvas'); cur.width = cw; cur.height = ch;
+  cur.getContext('2d').drawImage(t, x0, y0, cw, ch, 0, 0, cw, ch);
+  let cw2 = cw, ch2 = ch;
+  while(cw2 / 2 > w * 1.2 && ch2 / 2 > h * 1.2){
+    cw2 = Math.round(cw2 / 2); ch2 = Math.round(ch2 / 2);
+    const n = document.createElement('canvas'); n.width = cw2; n.height = ch2;
+    const nc = n.getContext('2d'); nc.imageSmoothingEnabled = true; nc.imageSmoothingQuality = 'high';
+    nc.drawImage(cur, 0, 0, cw2, ch2); cur = n;
+  }
+  const fin = document.createElement('canvas'); fin.width = w; fin.height = h;
+  const fctx = fin.getContext('2d'); fctx.imageSmoothingEnabled = true; fctx.imageSmoothingQuality = 'high';
+  fctx.drawImage(cur, 0, 0, w, h);
+  const id = fctx.getImageData(0, 0, w, h), d = id.data;
+
+  const pix = [];
+  for(let i = 0; i < d.length; i += 4){
+    if(d[i + 3] < 120){ d[i + 3] = 0; continue; }
+    d[i + 3] = 255;
+    const gris = .3 * d[i] + .59 * d[i + 1] + .11 * d[i + 2];
+    for(let c = 0; c < 3; c++){
+      let v = gris + (d[i + c] - gris) * 1.3;          // más color
+      v = (v - 128) * 1.12 + 128;                       // más contraste
+      d[i + c] = Math.max(0, Math.min(255, Math.round(v)));
+    }
+    pix.push([d[i], d[i + 1], d[i + 2]]);
+  }
+  if(!pix.length) return null;
+  const pal = paletaMedianCut(pix, 18);
+  const cercano = (r, g, b) => {
+    let mj = pal[0], md = 1e9;
+    for(const c of pal){
+      const dd = (c[0] - r) * (c[0] - r) + (c[1] - g) * (c[1] - g) + (c[2] - b) * (c[2] - b);
+      if(dd < md){ md = dd; mj = c; }
+    }
+    return mj;
+  };
+  for(let i = 0; i < d.length; i += 4){
+    if(!d[i + 3]) continue;
+    const c = cercano(d[i], d[i + 1], d[i + 2]);
+    d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2];
+  }
+  fctx.putImageData(id, 0, 0);
+
+  // contorno: 1px alrededor, del tono oscuro del vecino opaco más cercano
+  const out = document.createElement('canvas'); out.width = w + 2; out.height = h + 2;
+  const octx = out.getContext('2d');
+  octx.drawImage(fin, 1, 1);
+  const od = octx.getImageData(0, 0, w + 2, h + 2), o = od.data, W2 = w + 2, H2 = h + 2;
+  const copia = new Uint8ClampedArray(o);
+  const op = (x, y) => x >= 0 && y >= 0 && x < W2 && y < H2 && copia[(y * W2 + x) * 4 + 3] > 0;
+  for(let y = 0; y < H2; y++) for(let x = 0; x < W2; x++){
+    if(op(x, y)) continue;
+    const vec = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]].find(([a, b]) => op(a, b));
+    if(!vec) continue;
+    const j = (vec[1] * W2 + vec[0]) * 4, i = (y * W2 + x) * 4;
+    o[i] = Math.round(copia[j] * .22 + 6); o[i + 1] = Math.round(copia[j + 1] * .22 + 4); o[i + 2] = Math.round(copia[j + 2] * .22 + 8); o[i + 3] = 255;
+  }
+  octx.putImageData(od, 0, 0);
+  return out;
+}
+
 function spriteLegendario(p){
   let entry = LEG_SPRITE_CACHE[p.name];
   if(entry) return entry.canvas;
@@ -1860,31 +1970,12 @@ function spriteLegendario(p){
   LEG_SPRITE_CACHE[p.name] = entry;
   const img = new Image();
   /* jsdelivr manda Access-Control-Allow-Origin:*, así que pedir la imagen
-     como anónima no la tapa (sigue cargando igual) y deja el canvas SIN
-     "tainted": hace falta para poder leer los píxeles y agregar el
-     contorno oscuro de abajo. */
+     como anónima no la tapa y deja el canvas SIN "tainted": hace falta para
+     leer los píxeles (recorte, paleta y contorno). */
   img.crossOrigin = 'anonymous';
   img.onload = () => {
-    try{
-      /* Paso 1: reducir con suavizado a 48 (conserva mejor la silueta que
-         saltar directo a un tamaño chico). Paso 2: reducir de nuevo a 26
-         SIN suavizado, que es lo que lo vuelve "pixel art" en vez de una
-         miniatura prolija. Subido de 18 a 26: Zeta pidió que el altar (ahora
-         una plataforma grande) y el legendario se vean más imponentes. */
-      const inter = document.createElement('canvas');
-      inter.width = inter.height = 48;
-      const ictx = inter.getContext('2d');
-      ictx.imageSmoothingEnabled = true;
-      ictx.drawImage(img, 0, 0, 48, 48);
-      const final = document.createElement('canvas');
-      final.width = final.height = 26;
-      const fctx = final.getContext('2d');
-      fctx.imageSmoothingEnabled = false;
-      fctx.drawImage(inter, 0, 0, 26, 26);
-      /* Contorno oscuro: sin esto se ve como una miniatura borrosa flotando
-         en el pasto; con el borde lee como un sprite de verdad. */
-      entry.canvas = agregarBordeCanvas(final, '#14100A');
-    }catch(e){ /* si falla, se sigue mostrando el destello de reserva */ }
+    try{ entry.canvas = pixelarImagen(img, LEG_TAM); }
+    catch(e){ /* si falla, se sigue mostrando el destello de reserva */ }
   };
   img.src = p.img;
   return null;
@@ -1903,14 +1994,36 @@ function mostrarLegendarioEnMapa(p, x, y){
 
 function dibujarLegendario(ctx, p, ox, oy){
   ox = Math.round(ox); oy = Math.round(oy);
-  ctx.fillStyle = 'rgba(0,0,0,.35)';
-  ctx.fillRect(ox + 3, oy + 14, 10, 2);
+  const t = Date.now() / 1000;
+  const cx = ox + 8;                       // centro del tile del altar
+  // aura: dos óvalos de luz que laten, a pasos para que siga siendo pixel art
+  const latido = (Math.sin(t * 2.4) + 1) / 2;
+  ctx.fillStyle = `rgba(255,224,120,${(.16 + latido * .10).toFixed(3)})`;
+  ctx.beginPath(); ctx.ellipse(cx, oy + 4, 30 + latido * 3, 26 + latido * 2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = `rgba(255,244,190,${(.22 + latido * .12).toFixed(3)})`;
+  ctx.beginPath(); ctx.ellipse(cx, oy + 4, 20 + latido * 2, 17 + latido, 0, 0, Math.PI * 2); ctx.fill();
+  // sombra en el piso (más chica cuando flota más alto)
+  const flota = Math.round(Math.sin(t * 2.4) * 1.5);
+  ctx.fillStyle = 'rgba(0,0,0,.38)';
+  const sw = 22 - (flota > 0 ? 0 : 2);
+  ctx.fillRect(cx - sw / 2, oy + 14, sw, 2);
+  ctx.fillRect(cx - sw / 2 + 2, oy + 16, sw - 4, 1);
   const spr = spriteLegendario(p);
-  /* El sprite (26px + 2px de contorno = 28px) es bastante más grande que el
-     tile (16px) a propósito: ahora hay una plataforma grande debajo que lo
-     banca. Se ancla por los pies, alineado con la sombra. */
-  if(spr) ctx.drawImage(spr, ox - 6, oy - 14);
-  else pinta(ctx, '#FFD63A', ox + 6, oy + 5, 4, 4);   // mientras carga el sprite
+  /* Se ancla por los pies (centro-abajo) sobre el altar y flota un poquito.
+     El sprite mide ~LEG_TAM px: bastante más que el tile (16) a propósito,
+     ahora hay una plataforma grande debajo que lo banca. */
+  if(spr) ctx.drawImage(spr, Math.round(cx - spr.width / 2), oy + 14 - spr.height - 2 - flota);
+  else{ ctx.fillStyle = '#FFD63A'; ctx.fillRect(ox + 6, oy + 5, 4, 4); }   // mientras carga
+  // cuatro destellos girando alrededor
+  for(let i = 0; i < 4; i++){
+    const ang = t * 1.1 + i * Math.PI / 2;
+    const sx = Math.round(cx + Math.cos(ang) * 24), sy = Math.round(oy - 8 + Math.sin(ang) * 15);
+    const on = Math.sin(t * 5 + i * 1.7) > -.2;
+    if(!on) continue;
+    ctx.fillStyle = '#FFF6C2'; ctx.fillRect(sx, sy, 1, 1);
+    ctx.fillStyle = 'rgba(255,230,120,.8)';
+    ctx.fillRect(sx - 1, sy, 1, 1); ctx.fillRect(sx + 1, sy, 1, 1); ctx.fillRect(sx, sy - 1, 1, 1); ctx.fillRect(sx, sy + 1, 1, 1);
+  }
 }
 
 /* Regalo puntual: a Matías le suben las chances de que salgan en la Aventura
@@ -2904,7 +3017,7 @@ function avistamientoActivo(){
    pedazo del mapa y la cámara sigue al jugador). */
 function advEscala(ancho, alto){
   const chico = Math.min(ancho, alto);
-  let base = chico < 420 ? 2.6 : chico < 700 ? 3.2 : 4;
+  let base = chico < 420 ? 3 : chico < 700 ? 3.4 : 4;
   /* El avistamiento ya no pasa siempre pegado al altar (RADIO_AVISTAMIENTO):
      la cámara se aleja lo que haga falta para que jugador y altar-plataforma
      entren los dos en pantalla, con aire, en vez de un alejamiento fijo que
