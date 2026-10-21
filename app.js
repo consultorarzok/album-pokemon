@@ -673,6 +673,27 @@ function renderFilters(){
    historial real completo. state[] nunca se toca acá — es sólo lectura
    distinta para pintar la grilla; al terminar el evento vuelve a leerse
    tal cual. */
+let currentBusqueda = '';
+// Los filtros arrancan abiertos en pantallas anchas y plegados en el celular,
+// para que las figuritas se vean sin bajar medio kilómetro.
+(function(){
+  const box = document.getElementById('filtrosBox');
+  if(box && window.matchMedia('(min-width:720px)').matches) box.open = true;
+})();
+function normalizarBusqueda(t){
+  return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+(function(){
+  let t = null;
+  const inp = document.getElementById('buscarInput');
+  if(!inp) return;
+  inp.addEventListener('input', () => {
+    clearTimeout(t);
+    t = setTimeout(() => { currentBusqueda = inp.value; renderGrid(); }, 120);
+  });
+  inp.addEventListener('keydown', e => { if(e.key === 'Escape' && inp.value){ e.stopPropagation(); inp.value = ''; currentBusqueda = ''; renderGrid(); } });
+})();
+
 function renderGrid(){
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
@@ -680,6 +701,33 @@ function renderGrid(){
   const baseIds = ev ? eventoBaseIds(ev) : null;
   let lista = ev ? DATA.filter(p => IDS_KANTO_JOHTO.has(p.id)) : DATA;
   lista = lista.filter(p => (currentFilter==='all' || p.type===currentFilter) && (currentRegion==='all' || p.region===currentRegion));
+  /* Búsqueda: el NÚMERO sirve siempre, pero el NOMBRE sólo en las que ya
+     tenés. Si no, buscar "Mewtwo" revelaría cuáles faltan y se pierde la
+     gracia de descubrirlas. */
+  const q = normalizarBusqueda(currentBusqueda);
+  if(q){
+    const num = q.replace(/^#/, '');
+    lista = lista.filter(p => {
+      const s = state[p.id];
+      const gotV = ev ? (s.got && !baseIds.has(p.id)) : s.got;
+      return (/^\d+$/.test(num) && p.id === Number(num))
+        || (gotV && normalizarBusqueda(p.name).includes(q));
+    });
+  }
+  const activos = (currentFilter !== 'all' ? 1 : 0) + (currentRegion !== 'all' ? 1 : 0);
+  const resumen = document.getElementById('filtrosResumen');
+  if(resumen) resumen.textContent = activos ? 'Filtros · ' + activos + (activos === 1 ? ' activo' : ' activos') : 'Filtros';
+  const estado = document.getElementById('buscarEstado');
+  if(estado){
+    estado.textContent = q
+      ? (lista.length ? lista.length + (lista.length === 1 ? ' figurita' : ' figuritas')
+                      : 'No hay figuritas que coincidan.')
+      : '';
+  }
+  if(q && !lista.length){
+    grid.innerHTML = '<div class="grid-vacio">No encontramos ninguna figurita con eso.<br>Buscá el nombre de una que ya tengas, o un número (ej: 25).</div>';
+    return;
+  }
   lista.forEach(p=>{
     const s = state[p.id];
     const gotVista = ev ? (s.got && !baseIds.has(p.id)) : s.got;
@@ -3525,6 +3573,12 @@ document.getElementById('intercambioBtn').onclick = abrirIntercambio;
 document.getElementById('intercambioCloseBtn').onclick = () => document.getElementById('intercambioOverlay').classList.remove('show');
 document.getElementById('canjeCodigoBtn').onclick = canjearCodigoInput;
 document.getElementById('codigoCardCerrarBtn').onclick = () => document.getElementById('codigoCardOverlay').classList.remove('show');
+document.getElementById('codigoCardWhatsBtn').onclick = () => {
+  const cod = document.getElementById('codigoCardTexto').textContent;
+  const nom = document.getElementById('codigoCardName').textContent;
+  const p = DATA.find(d => d.name === nom);
+  compartirCodigoWhatsApp(cod, p ? p.id : 0);
+};
 document.getElementById('codigoCardCopiarBtn').onclick = () => copiarTexto(document.getElementById('codigoCardTexto').textContent, document.getElementById('codigoCardCopiarBtn'));
 document.getElementById('canjeCodigoInput').addEventListener('keydown', e => { if(e.key === 'Enter') canjearCodigoInput(); });
 
@@ -4147,6 +4201,17 @@ function copiarTexto(txt, btn){
   }
 }
 
+/* Compartir por WhatsApp: abre el chat con el mensaje ya escrito (wa.me
+   funciona igual en celular y en la compu). El código viaja en el texto. */
+function compartirCodigoWhatsApp(codigo, pokemonId){
+  const p = DATA.find(d => d.id === pokemonId);
+  const nombre = p ? p.name : 'una figurita';
+  const msg = '¡Te regalo a ' + nombre + ' en el Álbum Pokémon! 🎁\n' +
+    'Entrá a Intercambio, pegá este código y es tuya:\n*' + codigo + '*\n' +
+    'https://consultorarzok.github.io/album-pokemon/';
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+}
+
 function renderIntercambioDup(){
   const cont = document.getElementById('intercambioList');
   cont.innerHTML = '';
@@ -4186,7 +4251,15 @@ function renderMisCodigos(){
     btn.style.padding = '9px 14px';
     btn.textContent = 'Copiar';
     btn.onclick = () => copiarTexto(item.codigo, btn);
-    fila.appendChild(btn);
+    const wa = document.createElement('button');
+    wa.className = 'btn-whats';
+    wa.textContent = 'WhatsApp';
+    wa.setAttribute('aria-label', 'Compartir el código ' + item.codigo + ' por WhatsApp');
+    wa.onclick = () => compartirCodigoWhatsApp(item.codigo, item.pokemonId);
+    const caja = document.createElement('div');
+    caja.className = 'acciones-codigo';
+    caja.appendChild(btn); caja.appendChild(wa);
+    fila.appendChild(caja);
     cont.appendChild(fila);
   });
 }

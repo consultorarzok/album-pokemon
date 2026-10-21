@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261021">
+<link rel="stylesheet" href="styles.css?v=20261023">
 </head>
 <body>
 <main class="wrap" id="main">
@@ -196,8 +196,15 @@
         <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
       </div>
 
-      <div class="filters" id="regionFilters"></div>
-      <div class="filters" id="filters"></div>
+      <div class="buscador">
+        <input type="search" id="buscarInput" placeholder="Buscar por nombre o número" aria-label="Buscar figuritas por nombre o número" autocomplete="off" maxlength="30">
+        <div class="buscador-estado" id="buscarEstado" role="status"></div>
+      </div>
+      <details class="filtros" id="filtrosBox">
+        <summary id="filtrosResumen">Filtros</summary>
+        <div class="filters" id="regionFilters"></div>
+        <div class="filters" id="filters"></div>
+      </details>
 
       <div class="grid" id="grid" role="list" aria-label="Figuritas"></div>
 
@@ -236,8 +243,9 @@
     <div class="stag">Compartiselo a otro entrenador</div>
     <div class="codigo-chip" id="codigoCardTexto"></div>
   </div>
-  <div style="display:flex;gap:10px;">
+  <div class="codigo-acciones">
     <button class="special-continue" id="codigoCardCopiarBtn">Copiar código</button>
+    <button class="special-continue" id="codigoCardWhatsBtn" style="background:#1FA855;color:#fff;">Compartir por WhatsApp</button>
     <button class="special-continue" id="codigoCardCerrarBtn" style="background:transparent;border:1px solid #fff4;color:#fff;">Listo</button>
   </div>
 </div>
@@ -278,6 +286,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20261021"></script>
+<script src="app.js?v=20261023"></script>
 </body>
 </html>
