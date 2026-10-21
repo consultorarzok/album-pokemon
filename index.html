@@ -5,20 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2715%27 fill=%27%23fff%27 stroke=%27%23141728%27 stroke-width=%272%27/%3E%3Cpath d=%27M1 16a15 15 0 0130 0z%27 fill=%27%23EE1515%27/%3E%3Cpath d=%27M1 16h30%27 stroke=%27%23141728%27 stroke-width=%272%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%275%27 fill=%27%23fff%27 stroke=%27%23141728%27 stroke-width=%272%27/%3E%3C/svg%3E">
 <title>Álbum Pokémon</title>
+<meta name="theme-color" content="#1B2140">
+<meta name="description" content="Álbum Pokémon: abrí sobres, completá la Pokédex, intercambiá figuritas y salí de aventura.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Space+Mono:wght@400;700&display=swap">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Space+Mono:wght@400;700&display=swap');
-
   :root{
     --bg:#FFFFFF;
     --panel:#F4F5FA;
     --panel-2:#EAECF5;
     --ink:#1B2140;
-    --ink-dim:#6B7180;
+    --ink-dim:#565C70;
     --gold:#F0B400;
     --gold-dim:#E8D48A;
+    --gold-ink:#8A6200;
     --slot-empty:#EEF0F6;
     --border:#DADEEA;
-    --red:#EE1515;
+    --red:#D31212;
     --poke-blue:#2A75BB;
     --evento:#7C3AED;
     --evento-dim:#4C1D95;
@@ -41,7 +45,7 @@
   .coin-box{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px 14px;}
   .coin-box .ball{width:18px;height:18px;border-radius:50%;background:conic-gradient(var(--red) 0 50%, #fff 50% 100%);border:2px solid #14172a;flex:0 0 auto;}
   .coin-box .amount{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:18px;}
-  .earn-btn{background:var(--gold);color:#2b2205;border:none;border-radius:8px;padding:8px 14px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;cursor:pointer;}
+  .earn-btn{background:var(--gold);color:#2b2205;border:none;border-radius:8px;padding:11px 14px;min-height:44px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;cursor:pointer;}
   .earn-btn:active{transform:scale(.97);}
 
   .progress-row{margin-bottom:18px;}
@@ -50,7 +54,7 @@
   .progress-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));transition:width .4s ease;}
 
   .filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
-  .chip{font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px;border-radius:20px;border:1px solid var(--border);background:var(--panel);color:var(--ink-dim);cursor:pointer;}
+  .chip{font-family:'Space Mono',monospace;font-size:12px;padding:10px 12px;min-height:40px;border-radius:20px;border:1px solid var(--border);background:var(--panel);color:var(--ink-dim);cursor:pointer;}
   .chip.active{color:#14172a;font-weight:700;border-color:transparent;}
 
   /* Tarjeta que abre la Pokédex: la grilla de figuritas vive adentro del
@@ -67,11 +71,11 @@
   .pokedex-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--panel-2);flex:0 0 auto;}
   .pokedex-head h2{display:flex;align-items:center;gap:8px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:20px;margin:0;color:var(--ink);}
   .pokedex-head-icon{width:26px;height:auto;}
-  .pokedex-close{background:transparent;border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:8px 14px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;}
+  .pokedex-close{background:transparent;border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:11px 16px;min-height:44px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;}
   .pokedex-body{flex:1 1 auto;overflow-y:auto;padding:18px 20px 30px;max-width:1100px;margin:0 auto;width:100%;}
 
   .pack-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:22px;}
-  .pack-bar .info{font-size:12px;color:var(--ink-dim);}
+  .pack-bar .info{font-size:13px;line-height:1.5;color:var(--ink-dim);}
   .pack-bar .info b{color:var(--ink);font-family:'Baloo 2',sans-serif;}
   .open-btn{background:var(--red);color:#fff;border:none;border-radius:9px;padding:12px 20px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;}
   .open-btn:disabled{background:#D8DCE8;color:#9AA0B4;cursor:not-allowed;}
@@ -90,14 +94,14 @@
   .overlay{position:fixed;inset:0;background:rgba(6,8,18,.92);display:none;align-items:stretch;justify-content:stretch;z-index:50;padding:0;}
   .overlay.show{display:flex;}
   .reveal-panel{background:var(--panel-2);border:none;border-radius:0;padding:28px 20px 24px;width:100%;height:100%;max-width:100%;text-align:center;display:flex;flex-direction:column;overflow-y:auto;}
-  .reveal-panel h2{font-family:'Baloo 2',sans-serif;color:var(--gold);margin:0 0 20px;font-size:24px;flex:0 0 auto;}
+  .reveal-panel h2{font-family:'Baloo 2',sans-serif;color:var(--gold-ink);margin:0 0 20px;font-size:24px;flex:0 0 auto;}
   .reveal-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:16px;margin:0 auto 24px;max-width:1100px;width:100%;flex:1 1 auto;align-content:center;}
   .reveal-card{background:var(--panel);border-radius:14px;padding:14px 10px;border:1px solid var(--border);opacity:0;transform:translateY(10px) scale(.9);animation:pop .35s forwards;display:flex;flex-direction:column;align-items:center;justify-content:center;}
   .reveal-card img{width:100%;max-width:170px;height:auto;}
   .reveal-card .rname{font-size:14px;margin-top:10px;font-weight:700;}
   .reveal-card .tag{font-size:11px;margin-top:5px;font-weight:700;}
   .tag.new{color:#1F9D4C;}
-  .tag.dup{color:#B8860B;}
+  .tag.dup{color:var(--gold-ink);}
   @keyframes pop{to{opacity:1;transform:translateY(0) scale(1);}}
   .close-btn{background:transparent;border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:12px 26px;font-family:'Baloo 2',sans-serif;font-weight:700;cursor:pointer;font-size:14px;flex:0 0 auto;align-self:center;}
 
@@ -115,7 +119,7 @@
   }
   .special-card img{width:75%;height:auto;filter:drop-shadow(0 8px 18px rgba(0,0,0,.6));margin-bottom:10px;}
   .special-card .sname{font-family:'Baloo 2',sans-serif;font-size:26px;color:#fff;font-weight:700;}
-  .special-card .stag{font-family:'Space Mono',monospace;font-size:12px;color:var(--ink-dim);margin-top:4px;}
+  .special-card .stag{font-family:'Space Mono',monospace;font-size:12px;color:#BFC6DE;margin-top:4px;}
   .codigo-chip{margin-top:16px;background:rgba(255,255,255,.08);border:1px dashed var(--gold);border-radius:10px;padding:10px 20px;font-family:'Space Mono',monospace;font-size:22px;letter-spacing:4px;color:var(--gold);font-weight:700;}
   .special-continue{position:relative;margin-top:26px;background:var(--gold);color:#2b2205;border:none;border-radius:10px;padding:12px 26px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
   .special-continue:active{transform:scale(.97);}
@@ -130,39 +134,39 @@
   }
 
   /* ---------- Ranking ---------- */
-  .player-chip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:7px 12px;font-size:11px;color:var(--ink-dim);}
+  .player-chip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:7px 12px;font-size:12px;color:var(--ink-dim);}
   .player-chip b{font-family:'Baloo 2',sans-serif;font-size:14px;color:var(--ink);font-weight:700;}
 
   .rank-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:22px;}
   .rank-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
-  .rank-head h3{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:17px;margin:0;color:var(--ink);}
+  .rank-head h2{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:17px;margin:0;color:var(--ink);}
   .rank-tabs{display:flex;gap:6px;}
-  .rank-tab{font-family:'Space Mono',monospace;font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--ink-dim);cursor:pointer;}
+  .rank-tab{font-family:'Space Mono',monospace;font-size:12px;padding:10px 14px;min-height:40px;display:inline-flex;align-items:center;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--ink-dim);cursor:pointer;}
   .rank-tab.active{background:var(--poke-blue);border-color:transparent;color:#fff;font-weight:700;}
   #tabEvento.active{background:var(--evento);}
   /* Contador de entrenadores: va al lado de las pestañas pero NO es una pestaña,
      no se puede clickear; sale del campo 'jugadores' que manda /pokemon-top. */
-  .rank-count{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;padding:5px 12px;border-radius:20px;border:1px dashed var(--border);background:var(--bg);color:var(--ink-dim);}
+  .rank-count{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:12px;padding:8px 12px;border-radius:20px;border:1px dashed var(--border);background:var(--bg);color:var(--ink-dim);}
   .rank-count b{font-family:'Baloo 2',sans-serif;font-size:14px;font-weight:700;color:var(--ink);}
   .rank-list{display:flex;flex-direction:column;gap:5px;}
   .rank-row{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;}
   .rank-row.me{border-color:var(--gold);background:#FFFBEE;}
   .rank-pos{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;width:26px;flex:0 0 auto;color:var(--ink-dim);text-align:center;}
-  .rank-row:nth-child(1) .rank-pos{color:var(--gold);}
+  .rank-row:nth-child(1) .rank-pos{color:var(--gold-ink);}
   .rank-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:var(--ink);}
   .rank-score{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;color:var(--poke-blue);flex:0 0 auto;}
   .rank-medal{flex:0 0 auto;width:20px;height:20px;}
-  .rank-empty{font-size:11px;color:var(--ink-dim);padding:10px 2px;line-height:1.6;}
+  .rank-empty{font-size:12px;color:var(--ink-dim);padding:10px 2px;line-height:1.6;}
   .rank-done{margin-top:16px;padding-top:16px;border-top:1px dashed var(--border);}
   .rank-done-empty{font-size:11px;color:var(--ink-dim);line-height:1.7;text-align:center;}
-  .hof-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:21px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);text-shadow:0 0 14px rgba(240,180,0,.6);text-align:center;margin-bottom:2px;}
+  .hof-title{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:21px;letter-spacing:3px;text-transform:uppercase;color:var(--gold-ink);text-align:center;margin-bottom:2px;}
   .hof-sub{font-size:11px;color:var(--ink-dim);text-align:center;margin-bottom:12px;}
   .hof-row{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#FFF6D9,#FFFBEE);border:1px solid var(--gold);border-radius:10px;padding:10px 14px;margin-bottom:8px;box-shadow:0 0 12px rgba(240,180,0,.25);}
   .hof-row:last-child{margin-bottom:0;}
   .hof-crown{width:22px;height:22px;flex:0 0 auto;}
   .hof-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;color:#5B4300;}
   .hof-date{font-size:10px;color:var(--ink-dim);font-family:'Space Mono',monospace;flex:0 0 auto;}
-  .rank-status{font-size:10px;color:var(--ink-dim);}
+  .rank-status{font-size:11px;color:var(--ink-dim);}
   .rank-status.err{color:var(--red);}
 
   .name-overlay{position:fixed;inset:0;background:rgba(20,23,42,.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:60;}
@@ -177,7 +181,7 @@
 
   #quizImg{filter:drop-shadow(0 3px 6px rgba(0,0,0,.25));transition:filter .45s ease;}
   #quizImg.silueta{filter:brightness(0) drop-shadow(0 3px 6px rgba(0,0,0,.25));}
-  .quiz-opt{padding:10px 8px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink);font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;cursor:pointer;}
+  .quiz-opt{padding:13px 8px;min-height:46px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--ink);font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;cursor:pointer;}
   .quiz-opt:hover:not(:disabled){border-color:var(--gold);}
   .quiz-opt:disabled{opacity:.6;cursor:default;}
   .quiz-opt.correcta{border-color:#3DAA5B;background:#3DAA5B22;opacity:1;}
@@ -189,8 +193,8 @@
   .bat-tipo{font-size:10px;border-radius:20px;padding:2px 8px;display:inline-block;}
   .bat-carta.elegible{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;}
   .bat-carta.elegible:hover{transform:translateY(-4px);box-shadow:0 6px 14px rgba(0,0,0,.12);}
-  .bat-fuerza{font-size:10px;color:var(--ink-dim);margin-top:5px;}
-  .bat-sub{font-size:11px;color:var(--ink-dim);margin-bottom:10px;}
+  .bat-fuerza{font-size:11px;color:var(--ink-dim);margin-top:5px;}
+  .bat-sub{font-size:12px;color:var(--ink-dim);margin-bottom:10px;}
   .bat-apuestas{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;}
   .bat-vs{font-family:'Baloo 2',sans-serif;font-weight:700;color:var(--ink-dim);font-size:14px;}
   .bat-aviso{font-size:12px;color:var(--ink-dim);line-height:1.6;margin-bottom:14px;}
@@ -198,7 +202,7 @@
   /* Reloj de los juegos: la cuenta atrás es lo que evita que se pueda pensar
      la respuesta afuera (captura + IA). Ver .timer-num para el número grande. */
   .timer{margin:0 auto 12px;max-width:260px;}
-  .timer-pista{font-size:10px;color:var(--ink-dim);margin-bottom:4px;}
+  .timer-pista{font-size:11px;color:var(--ink-dim);margin-bottom:4px;}
   .timer-num{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:20px;line-height:1;margin-bottom:5px;color:var(--ink);}
   .timer-riel{height:7px;border-radius:6px;background:var(--border);overflow:hidden;}
   .timer-bar{height:100%;width:100%;border-radius:6px;background:#3DAA5B;transition:width .1s linear,background .3s ease;}
@@ -235,7 +239,7 @@
   /* Minimapa: el mundo entero con las 3 regiones y dónde estás parado. */
   .adv-mini{position:absolute;top:52px;right:10px;z-index:3;width:186px;height:49px;border:2px solid rgba(255,255,255,.35);border-radius:8px;background:rgba(16,20,38,.72);image-rendering:pixelated;}
   .adv-mini[hidden]{display:none;}
-  .adv-ayuda{position:absolute;right:12px;bottom:12px;z-index:3;color:rgba(255,255,255,.7);font-family:'Space Mono',monospace;font-size:10px;line-height:1.7;text-align:right;pointer-events:none;}
+  .adv-ayuda{position:absolute;right:12px;bottom:12px;z-index:3;color:rgba(255,255,255,.85);text-shadow:0 1px 3px rgba(0,0,0,.8);font-family:'Space Mono',monospace;font-size:11px;line-height:1.7;text-align:right;pointer-events:none;}
   /* En el celular las 4 pastillas del HUD no entraban en una línea y la última
      se caía encima del mapa. */
   @media (max-width:560px){
@@ -245,13 +249,13 @@
     .adv-back{padding:7px 11px;font-size:13px;}
     .adv-stick{width:118px;height:118px;left:14px;bottom:14px;}
     .adv-stick .knob{width:52px;height:52px;margin:-26px 0 0 -26px;}
-    .adv-ayuda{font-size:9px;}
+    .adv-ayuda{font-size:10px;}
     .adv-mini{width:132px;height:35px;top:46px;}
     .adv-zona{bottom:auto;top:120px;max-width:80vw;}
   }
 
   /* Pokébolas: botones del encuentro y filas de la tienda */
-  .bola-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 6px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--ink-dim);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;}
+  .bola-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 6px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--ink-dim);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;}
   .bola-btn b{font-family:'Baloo 2',sans-serif;font-size:12px;color:var(--ink);}
   .bola-btn:hover:not(:disabled){border-color:var(--gold);}
   .bola-btn:disabled{opacity:.4;cursor:not-allowed;}
@@ -265,7 +269,7 @@
   .firma{margin-top:38px;padding:6px 0 26px;text-align:center;}
   .firma-linea{height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-bottom:14px;}
   .firma strong{display:block;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;color:var(--ink);letter-spacing:.3px;}
-  .firma span{display:block;margin-top:4px;font-size:11px;color:var(--ink-dim);}
+  .firma span{display:block;margin-top:4px;font-size:12px;color:var(--ink-dim);}
   .firma a{color:var(--ink-dim);text-decoration:none;border-bottom:1px solid var(--gold-dim);}
   .firma a:hover{color:var(--ink);border-bottom-color:var(--gold);}
   .firma a.firma-logo,.firma a.firma-logo:hover{display:inline-block;margin-top:8px;border-bottom:none;}
@@ -276,15 +280,63 @@
     .firma-logo img{width:210px;}
     .firma-pacha{height:62px;}
   }
+
+  /* ---------- Accesibilidad ---------- */
+  button,.rank-tab,.chip,.slot,.quiz-opt,.bat-carta{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+  :focus{outline:none;}
+  :focus-visible{outline:3px solid var(--poke-blue);outline-offset:2px;border-radius:6px;}
+  .special-overlay :focus-visible,.adv-overlay :focus-visible{outline-color:#fff;}
+  .name-box input:focus-visible{outline-offset:-1px;}
+  button:disabled{cursor:not-allowed;}
+  /* Movimiento reducido: se conserva el cambio de estado (aparece, se tacha),
+     sólo se saca el giro, los rayos y los saltos. */
+  @media (prefers-reduced-motion:reduce){
+    .special-rays{animation:none;}
+    .special-card{animation:cardFade .4s ease forwards;}
+    @keyframes cardFade{from{opacity:0;}to{opacity:1;}}
+    .reveal-card{animation:cardFade .3s forwards;transform:none;}
+    .adv-map.flash{animation:none;}
+    .progress-fill,.timer-bar{transition:none;}
+    .bat-carta.elegible:hover{transform:none;}
+  }
+
+  /* ---------- Tablet y pantallas anchas ---------- */
+  .acciones{display:block;}
+  .rank-head > div{flex-wrap:wrap;min-width:0;max-width:100%;}
+  .rank-tabs{flex-wrap:wrap;}
+  @media (max-width:480px){
+    .rank-head > div{width:100%;}
+    .rank-status{flex:1 0 100%;}
+    .rank-tab{padding:8px 11px;}
+  }
+  @media (min-width:720px){
+    .wrap{padding:28px 28px 60px;}
+    .acciones{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px;}
+    .acciones .pack-bar{margin-bottom:0;align-items:center;}
+    .acciones .pack-bar:last-child:nth-child(odd){grid-column:1 / -1;}
+    .acciones .open-btn{min-width:130px;}
+    /* Los paneles chicos (intercambio, quiz, batalla, tienda, encuentro) se ven
+       como tarjeta centrada y no como una columna angosta a pantalla completa. */
+    .overlay:has(> .reveal-panel[style*="max-width"]){padding:24px;align-items:center;justify-content:center;}
+    .overlay > .reveal-panel[style*="max-width"]{height:auto;max-height:calc(100dvh - 48px);margin:0 auto;border-radius:20px;border:1px solid var(--border);box-shadow:0 24px 60px rgba(0,0,0,.45);}
+  }
+  @media (min-width:720px) and (max-width:1024px){
+    .pokedex-body{padding:20px 28px 36px;}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;}
+    .slot .name{font-size:9.5px;}
+  }
+  @media (min-width:1025px){
+    .grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px;}
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
+<main class="wrap" id="main">
 
   <header>
     <h1 class="marca">Álbum</h1>
     <div style="display:flex;gap:10px;align-items:center;">
-      <div class="coin-box"><div class="ball"></div><div class="amount" id="coinAmount">0</div></div>
+      <div class="coin-box" role="img" aria-label="Tus monedas"><div class="ball"></div><div class="amount" id="coinAmount" aria-live="polite">0</div></div>
       <button class="earn-btn" id="earnBtn">Responder y ganar</button>
     </div>
   </header>
@@ -309,6 +361,7 @@
     <button class="pokedex-btn" id="pokedexBtn">Ver Pokédex</button>
   </div>
 
+  <div class="acciones">
   <div class="pack-bar">
     <div class="info">Sobre: <b id="packSize">6</b> figuritas · costo <b id="packCost">150</b> monedas</div>
     <button class="open-btn" id="openBtn">Abrir sobre</button>
@@ -333,16 +386,17 @@
     <div class="info">Aventura · recorré el mapa, <b>tirá pokébolas</b> y atrapá Pokémon salvajes</div>
     <button class="open-btn" id="advBtn">Ir a la aventura</button>
   </div>
+  </div>
 
   <div class="rank-panel">
     <div class="rank-head">
-      <h3>Ranking de entrenadores</h3>
+      <h2>Ranking de entrenadores</h2>
       <div style="display:flex;align-items:center;gap:10px;">
-        <span class="rank-status" id="rankStatus"></span>
-        <div class="rank-tabs">
-          <div class="rank-tab" id="tabEvento" hidden>Evento</div>
-          <div class="rank-tab active" id="tabHoy">Hoy</div>
-          <div class="rank-tab" id="tabHist">Histórico</div>
+        <span class="rank-status" id="rankStatus" role="status"></span>
+        <div class="rank-tabs" role="tablist" aria-label="Ranking">
+          <div class="rank-tab" id="tabEvento" role="tab" tabindex="0" aria-selected="false" hidden>Evento</div>
+          <div class="rank-tab active" id="tabHoy" role="tab" tabindex="0" aria-selected="true">Hoy</div>
+          <div class="rank-tab" id="tabHist" role="tab" tabindex="0" aria-selected="false">Histórico</div>
         </div>
         <div class="rank-count" id="rankCount" hidden>Entrenadores <b id="rankCountNum">0</b></div>
       </div>
@@ -362,10 +416,10 @@
     <img class="firma-pacha" src="images/logo-pachamanga.png" alt="Asociación Pachamanga" width="288" height="440">
   </footer>
 
-</div>
+</main>
 
-<div class="adv-overlay" id="advOverlay">
-  <canvas class="adv-map" id="advMap" width="288" height="192"></canvas>
+<div class="adv-overlay" id="advOverlay" role="dialog" aria-modal="true" aria-label="Aventura">
+  <canvas class="adv-map" id="advMap" width="288" height="192" role="img" aria-label="Mapa de la aventura"></canvas>
   <div class="adv-objetos" id="advObjetos"></div>
   <button class="adv-back" id="advCloseBtn">◀ Atrás</button>
   <div class="adv-hud">
@@ -373,12 +427,12 @@
     <span id="advBolasHud" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"></span>
   </div>
   <canvas class="adv-mini" id="advMini" width="644" height="168"></canvas>
-  <div class="adv-zona" id="advZona"></div>
+  <div class="adv-zona" id="advZona" aria-live="polite"></div>
   <div class="adv-stick" id="advStick"><div class="knob" id="advKnob"></div></div>
   <div class="adv-ayuda">Arrastrá el dedo para caminar<br>o usá las flechas del teclado</div>
 </div>
 
-<div class="overlay" id="encOverlay" style="z-index:45;">
+<div class="overlay" id="encOverlay" role="dialog" aria-modal="true" style="z-index:45;">
   <div class="reveal-panel" style="max-width:430px;margin:0 auto;">
     <h2 id="encTitle">¡Pokémon salvaje!</h2>
     <img id="encImg" src="" alt="" style="width:150px;height:auto;margin:0 auto 10px;display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.25));">
@@ -386,22 +440,22 @@
     <div id="encInfo" style="font-size:11px;color:var(--ink-dim);margin-bottom:12px;"></div>
     <div class="enc-tiros" id="encTiros"></div>
     <div id="encBolas" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr));gap:8px;max-width:380px;width:100%;margin:0 auto 12px;"></div>
-    <div id="encFeedback" style="font-family:'Baloo 2',sans-serif;font-size:13px;min-height:20px;margin-bottom:12px;line-height:1.5;"></div>
+    <div id="encFeedback" aria-live="polite" style="font-family:'Baloo 2',sans-serif;font-size:13px;min-height:20px;margin-bottom:12px;line-height:1.5;"></div>
     <button class="close-btn" id="encCloseBtn">Huir</button>
   </div>
 </div>
 
-<div class="overlay" id="shopOverlay" style="z-index:45;">
+<div class="overlay" id="shopOverlay" role="dialog" aria-modal="true" style="z-index:45;">
   <div class="reveal-panel" style="max-width:430px;margin:0 auto;">
     <h2>🏥 Centro Pokémon</h2>
     <div style="font-size:11px;color:var(--ink-dim);margin-bottom:14px;">Acá sólo se venden pokébolas. Tenés <b id="shopCoins">0</b> monedas.</div>
     <div id="shopList" style="max-width:370px;width:100%;margin:0 auto;"></div>
-    <div id="shopFeedback" style="font-family:'Baloo 2',sans-serif;font-size:12px;min-height:20px;margin:6px 0 12px;"></div>
+    <div id="shopFeedback" aria-live="polite" style="font-family:'Baloo 2',sans-serif;font-size:12px;min-height:20px;margin:6px 0 12px;"></div>
     <button class="close-btn" id="shopCloseBtn">Cerrar</button>
   </div>
 </div>
 
-<div class="overlay" id="intercambioOverlay" style="z-index:45;">
+<div class="overlay" id="intercambioOverlay" role="dialog" aria-modal="true" style="z-index:45;">
   <div class="reveal-panel" style="max-width:430px;margin:0 auto;">
     <h2>🔁 Intercambio</h2>
     <div style="font-size:11px;color:var(--ink-dim);margin-bottom:14px;">
@@ -417,7 +471,7 @@
           style="flex:1;min-width:0;padding:10px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--ink);font-family:'Space Mono',monospace;font-size:13px;text-transform:uppercase;">
         <button class="open-btn" id="canjeCodigoBtn" style="padding:10px 16px;">Canjear</button>
       </div>
-      <div id="canjeCodigoFeedback" style="font-size:11px;min-height:16px;margin-top:6px;"></div>
+      <div id="canjeCodigoFeedback" aria-live="polite" style="font-size:11px;min-height:16px;margin-top:6px;"></div>
     </div>
 
     <div style="text-align:left;">
@@ -434,9 +488,9 @@
   </div>
 </div>
 
-<div class="name-overlay" id="nameOverlay">
+<div class="name-overlay" id="nameOverlay" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
   <div class="name-box">
-    <h2>¿Cómo te llamás?</h2>
+    <h2 id="nameTitle">¿Cómo te llamás?</h2>
     <p>Tu nombre aparece en el ranking de entrenadores para competir con los demás.<br><b>Elegilo bien: después no se puede cambiar.</b></p>
     <input id="nameInput" maxlength="20" placeholder="Tu nombre" autocomplete="off">
     <div id="nameError" class="name-error"></div>
@@ -444,7 +498,7 @@
   </div>
 </div>
 
-<div class="overlay" id="pokedexOverlay">
+<div class="overlay" id="pokedexOverlay" role="dialog" aria-modal="true">
   <div class="pokedex-panel">
     <div class="pokedex-head">
       <h2><img class="pokedex-head-icon" src="images/pokedex-icon.png" alt="">Pokédex</h2>
@@ -465,13 +519,13 @@
       <div class="grid" id="grid"></div>
 
       <div style="text-align:right;margin-top:16px;">
-        <button id="resetBtn" style="background:transparent;border:1px solid var(--border);color:var(--ink-dim);border-radius:8px;padding:5px 10px;font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;">Reiniciar álbum</button>
+        <button id="resetBtn" style="background:transparent;border:1px solid var(--border);color:var(--ink-dim);border-radius:8px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;">Reiniciar álbum</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="overlay" id="overlay">
+<div class="overlay" id="overlay" role="dialog" aria-modal="true">
   <div class="reveal-panel">
     <h2 id="revealTitle">Abriste un sobre</h2>
     <div class="reveal-cards" id="revealCards"></div>
@@ -479,7 +533,7 @@
   </div>
 </div>
 
-<div class="special-overlay" id="specialOverlay">
+<div class="special-overlay" id="specialOverlay" role="dialog" aria-modal="true" aria-label="Figura nueva">
   <div class="special-rays"></div>
   <div class="special-banner" id="specialBanner">¡Figura legendaria!</div>
   <div class="special-card" id="specialCardWrap">
@@ -490,7 +544,7 @@
   <button class="special-continue" id="specialContinueBtn">Continuar</button>
 </div>
 
-<div class="special-overlay" id="codigoCardOverlay">
+<div class="special-overlay" id="codigoCardOverlay" role="dialog" aria-modal="true" aria-label="Código generado">
   <div class="special-rays"></div>
   <div class="special-banner">Código generado</div>
   <div class="special-card" id="codigoCardWrap">
@@ -505,7 +559,7 @@
   </div>
 </div>
 
-<div class="overlay" id="battleOverlay">
+<div class="overlay" id="battleOverlay" role="dialog" aria-modal="true">
   <div class="reveal-panel" style="max-width:470px;">
     <h2 id="battleTitle">Batalla de tipos</h2>
     <div class="timer" id="battleTimer" hidden>
@@ -514,7 +568,7 @@
       <div class="timer-pista">Elegí antes de que se acabe el tiempo</div>
     </div>
     <div id="battleStage"></div>
-    <div id="battleFeedback" style="font-family:'Baloo 2',sans-serif;font-size:13px;min-height:20px;margin-bottom:12px;line-height:1.5;"></div>
+    <div id="battleFeedback" aria-live="polite" style="font-family:'Baloo 2',sans-serif;font-size:13px;min-height:20px;margin-bottom:12px;line-height:1.5;"></div>
     <div style="display:flex;gap:8px;justify-content:center;">
       <button class="close-btn" id="battleCloseBtn">Cerrar</button>
       <button class="open-btn" id="battleNextBtn" style="padding:9px 18px;">Otra batalla</button>
@@ -522,7 +576,7 @@
   </div>
 </div>
 
-<div class="overlay" id="quizOverlay">
+<div class="overlay" id="quizOverlay" role="dialog" aria-modal="true">
   <div class="reveal-panel" style="max-width:420px;">
     <h2 id="quizTitle">¿De qué tipo es...?</h2>
     <img id="quizImg" src="" alt="" style="width:150px;height:auto;margin:0 auto 14px;display:block;">
@@ -532,8 +586,8 @@
       <div class="timer-riel"><div class="timer-bar"></div></div>
       <div class="timer-pista">Contestá antes de que se acabe el tiempo</div>
     </div>
-    <div id="quizOptions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;"></div>
-    <div id="quizFeedback" style="font-family:'Baloo 2',sans-serif;font-size:14px;min-height:20px;margin-bottom:10px;"></div>
+    <div id="quizOptions" role="group" aria-label="Opciones" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;"></div>
+    <div id="quizFeedback" aria-live="polite" style="font-family:'Baloo 2',sans-serif;font-size:14px;min-height:20px;margin-bottom:10px;"></div>
     <div style="display:flex;gap:8px;justify-content:center;">
       <button class="close-btn" id="quizCloseBtn">Cerrar</button>
       <button class="open-btn" id="quizNextBtn" style="padding:9px 18px;">Siguiente</button>
@@ -4875,15 +4929,30 @@ function activarRankTab(valor){
   rankTab = valor;
   ['tabEvento', 'tabHoy', 'tabHist'].forEach(id => {
     const el = document.getElementById(id);
-    el.classList.toggle('active', (id === 'tabEvento' && valor === 'evento')
+    const on = (id === 'tabEvento' && valor === 'evento')
       || (id === 'tabHoy' && valor === 'hoy')
-      || (id === 'tabHist' && valor === 'historico'));
+      || (id === 'tabHist' && valor === 'historico');
+    el.classList.toggle('active', on);
+    el.setAttribute('aria-selected', on ? 'true' : 'false');
   });
   renderRank();
 }
 document.getElementById('tabEvento').onclick = () => activarRankTab('evento');
 document.getElementById('tabHoy').onclick = () => activarRankTab('hoy');
 document.getElementById('tabHist').onclick = () => activarRankTab('historico');
+document.querySelectorAll('.rank-tab').forEach(t => t.addEventListener('keydown', e => {
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); t.click(); }
+}));
+// Escape cierra el panel abierto (sólo los que ya tienen botón Cerrar)
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape' || advAbierto) return;
+  const cierres = ['intercambioCloseBtn','shopCloseBtn','pokedexCloseBtn','closeBtn','quizCloseBtn','battleCloseBtn'];
+  for(const id of cierres){
+    const b = document.getElementById(id);
+    const ov = b && b.closest('.overlay');
+    if(ov && ov.classList.contains('show')){ b.click(); return; }
+  }
+});
 
 try{ jugador = localStorage.getItem(NAME_KEY) || ''; }catch(e){ jugador = ''; }
 
