@@ -352,6 +352,12 @@
     .rank-status{flex:1 0 100%;}
     .rank-tab{padding:8px 11px;}
   }
+  /* Paneles chicos entre 480 y 720 px (celular grande, tablet angosta o con
+     zoom): antes quedaban pegados a la izquierda sobre fondo oscuro. */
+  @media (min-width:480px) and (max-width:719px){
+    .overlay:has(> .reveal-panel[style*="max-width"]){padding:16px;align-items:center;justify-content:center;}
+    .overlay > .reveal-panel[style*="max-width"]{height:auto;max-height:calc(100dvh - 32px);margin:0 auto;border-radius:20px;border:1px solid var(--border);box-shadow:0 24px 60px rgba(0,0,0,.45);}
+  }
   @media (min-width:720px){
     .wrap{padding:28px 28px 60px;}
     .acciones{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px;}
