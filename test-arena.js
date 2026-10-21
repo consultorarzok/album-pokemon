@@ -109,7 +109,7 @@ const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 3
       if(SHOTS && w === 390 && s.tLargo > .35 && !largoFoto){ largoFoto = true; await p.screenshot({path:`${SHOTS}/rival-largo-${w}.png`}); }
       if(SHOTS && w === 390 && s.accYo === 'largo' && !miLargoFoto){ miLargoFoto = true; await p.screenshot({path:`${SHOTS}/largo-${w}.png`}); }
       if(!resize && i > 40){ resize = true; await p.setViewportSize({width:w === 390 ? 420 : w - 40, height:h - 30}); await p.waitForTimeout(300);
-        const ok2 = await p.evaluate(() => { const st = document.getElementById('arStage').getBoundingClientRect(), cv = document.getElementById('arBg'); return Math.abs(cv.getBoundingClientRect().width - st.width) < 1 && Math.abs(cv.clientHeight - st.height) < 1; });
+        const ok2 = await p.evaluate(() => { const st = document.getElementById('arStage'), cv = document.getElementById('arBg'); return Math.abs(cv.offsetWidth - st.clientWidth) < 1 && Math.abs(cv.offsetHeight - st.clientHeight) < 1 && cv.width >= Math.floor(st.clientWidth / 4); });
         check('al cambiar el tamaño de la ventana el fondo se rehace a la medida', ok2);
       }
       if(i >= 60 && !cambio && s.fase === 'lucha' && !s.pausa && s.cambioCd === 0 && !s.accYo){ cambio = true; await p.keyboard.press('q'); await p.waitForTimeout(150); continue; }
@@ -119,8 +119,8 @@ const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 3
       await tecla('d', s.dx > .12 && ax > 0); await tecla('a', s.dx < -.12 && ax > 0);
       await tecla('s', s.dy > .12 && ax > 0); await tecla('w', s.dy < -.12 && ax > 0);
       const turno = i % 10;
-      const accion = d < .5 ? (turno < 5 ? 'j' : (turno < 7 ? 'k' : (turno === 8 ? 'l' : ' '))) : (turno < 4 ? 'k' : (turno < 6 ? 'l' : (turno === 8 ? ' ' : 'k')));
-      await p.keyboard.down(accion); await p.waitForTimeout(40); await p.keyboard.up(accion);
+      const accion = turno < 2 ? 'j' : d < .5 ? (turno < 5 ? 'j' : (turno < 7 ? 'k' : (turno === 8 ? 'l' : ' '))) : (turno < 4 ? 'k' : (turno < 6 ? 'l' : (turno === 8 ? ' ' : 'k')));
+      await p.keyboard.down(accion); await p.waitForTimeout(accion === 'j' ? 180 : 40); await p.keyboard.up(accion);
       if(s.accRiv === 'largo' && i % 3 === 0){ await p.keyboard.down(' '); await p.waitForTimeout(30); await p.keyboard.up(' '); }
       i++;
       await p.waitForTimeout(45);
