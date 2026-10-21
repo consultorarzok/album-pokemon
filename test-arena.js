@@ -49,7 +49,7 @@ const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 3
       const dentro = sel => { const q = r(sel); return q.left >= s.left - 1 && q.right <= s.right + 1 && q.top >= s.top - 1 && q.bottom <= s.bottom + 1; };
       const cv = document.getElementById('arBg');
       const c = r('#arCtrl'), b = r('.ar-btns');
-      return {hudY:dentro('#arHud-yo'), hudR:dentro('#arHud-riv'), mon:dentro('#arMon-yo .ar-spr'), rival:dentro('#arMon-riv .ar-spr'),
+      return {hudY:dentro('#arHud-yo'), hudR:dentro('#arHud-riv'), mon:dentro('#arMon-yo .ar-spr.vis'), rival:dentro('#arMon-riv .ar-spr.vis'),
         canvas:Math.abs(cv.getBoundingClientRect().width - s.width) < 1 && cv.width > 40, stageW:s.width, stageH:s.height,
         botones:b.right <= innerWidth + 1 && b.bottom <= innerHeight + 1 && b.left >= 0, vh:innerHeight};
     });
