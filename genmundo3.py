@@ -10,7 +10,7 @@ Reglas que valida solo (si alguna falla, avisa y no hay que publicar):
   5. el cruce entre regiones sigue siendo ÚNICO (puente y desfiladero)
 
 Salida: mundo3.txt (el mapa) y mundo3.json (cols/rows/zonas/carteles/
-santuarios), que consume aplicar_mundo3.py para escribir index.html.
+santuarios), que consume aplicar_mundo3.py para escribir app.js.
 """
 import json
 import math
@@ -230,7 +230,7 @@ CUEVAS  = [(16, 67), (97, 61), (134, 51), (183, 68), (225, 68), (305, 22)]
 # mano: colocar_altares() las busca respetando bioma, distancia mínima y que
 # haya tierra alrededor para la losa. Los legendarios "de cueva" (tipo dark o
 # fighting: no tienen bioma propio a cielo abierto) van directo en
-# ADV_MAPS.cueva.santuariosPorRegion en index.html, no acá.
+# ADV_MAPS.cueva.santuariosPorRegion en app.js, no acá.
 PEDIDOS = [
     # región, bioma, nombre, legendarios, zona preferida (centro temático)
     ('kanto', 'N',  'Cima Nevada',        ['Articuno'],                        (14, 73)),

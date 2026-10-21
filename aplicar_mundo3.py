@@ -5,7 +5,7 @@ import io
 import json
 import re
 
-RUTA = 'index.html'
+RUTA = 'app.js'
 filas = io.open('mundo3.txt', encoding='utf-8').read().split('\n')
 meta = json.load(io.open('mundo3.json', encoding='utf-8'))
 html = io.open(RUTA, encoding='utf-8').read()

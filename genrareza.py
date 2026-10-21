@@ -22,7 +22,7 @@ Corre sobre index.html y reescribe la rareza y el peso de esos Pokémon.
 import io
 import re
 
-RUTA = 'index.html'
+RUTA = 'app.js'
 PESO_EPICO = 4          # entre Rara (8) y Legendario (2)
 
 PSEUDO = [149, 248, 373, 376, 445, 635, 706, 784, 887, 998]
