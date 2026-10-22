@@ -479,6 +479,11 @@
   .ar-rodar .ar-rot{animation:arRodar .3s steps(8,end);}
   @keyframes arRodar{0%{transform:rotate(0) scale(1,1)}50%{transform:rotate(180deg) scale(1,.8)}100%{transform:rotate(360deg) scale(1,1)}}
   .ar-carga .ar-rot{animation:arCarga .3s steps(3,end) infinite alternate;}
+  /* cámara lenta del largo: el fondo se oscurece y se desatura; la zona marcada y los Pokémon quedan encima, nítidos */
+  .ar-stage::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity .18s ease-out;
+    background:radial-gradient(ellipse at center, rgba(4,6,18,.18) 30%, rgba(4,6,18,.82) 100%);}
+  .ar-stage.ar-lento::after{opacity:1;}
+  .ar-bg{transition:filter .18s ease-out;} .ar-lento .ar-bg{filter:saturate(.35) brightness(.62);}
   @keyframes arCarga{from{filter:drop-shadow(0 0 2px var(--tc)) brightness(1.1)}to{filter:drop-shadow(0 0 10px var(--tc)) brightness(1.6)}}
   .ar-hud{position:absolute;top:8px;width:min(44cqw,300px);background:rgba(8,12,28,.86);border:2px solid rgba(255,255,255,.28);border-radius:8px;padding:5px 8px;font-size:clamp(10px,2.3cqw,15px);line-height:1.25;z-index:7;}
   .ar-hud.riv{left:8px;}

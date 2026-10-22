@@ -28,11 +28,17 @@ const spEspalda = id => CDN + 'versions/generation-v/black-white/animated/back/'
 const spIcono   = id => CDN + id + '.png';
 
 /* ---------------- reglas ---------------- */
+/* El corto pega menos y se recarga más lento que antes: que la pelea no sea sólo
+   puño. El largo es el golpe fuerte que vale la pena cargar. */
 const ALC = {
-  corto: {etq:'Corto', poder:26, coste:8,  cd:.55},
-  medio: {etq:'Medio', poder:32, coste:16, cd:1.0},
-  largo: {etq:'Largo', poder:54, coste:34, cd:2.4}
+  corto: {etq:'Corto', poder:20, coste:10, cd:.75},
+  medio: {etq:'Medio', poder:34, coste:16, cd:1.0},
+  largo: {etq:'Largo', poder:64, coste:34, cd:2.4}
 };
+/* Mientras alguien carga el largo el juego va en cámara lenta, pero la carga avanza
+   más rápido que el resto: da tiempo de reaccionar, no de pasear. Esquivar rodando
+   adentro del ataque sólo lo roza (media pegada): para salvarse hay que salir. */
+const CAMARA_LENTA = .5, CARGA_EN_LENTA = 1.4, ROCE_LARGO = .5;
 const ATAQUES = ['corto', 'medio', 'largo'];
 const ESQ = {coste:12, cd:1.3, dur:.30};
 const EN_MAX = 100, EN_REGEN = 14, EN_PREMIO_ESQUIVE = 18;
@@ -183,10 +189,10 @@ const partDe = tipo => PART[tipo] || PART.normal;
 
 /* Estilos del rival: peso de cada acción en su guion. */
 const ESTILOS = {
-  agresivo:    {nombre:'Agresivo',    w:{acercar:2, corto:4, medio:1.5, largo:1, orbitar:1, esquivar:.5}, reflejo:.35},
+  agresivo:    {nombre:'Agresivo',    w:{acercar:2, corto:3, medio:2, largo:1.6, orbitar:1, esquivar:.5}, reflejo:.35},
   tirador:     {nombre:'Tirador',     w:{acercar:.5, corto:.6, medio:4, largo:2.5, orbitar:2, retroceder:1.5, esquivar:.6}, reflejo:.45},
-  escurridizo: {nombre:'Escurridizo', w:{acercar:1, corto:2, medio:2, largo:1.5, orbitar:3, retroceder:1, esquivar:2}, reflejo:.65},
-  equilibrado: {nombre:'Equilibrado', w:{acercar:1.5, corto:2.5, medio:2.5, largo:1.5, orbitar:2, retroceder:.5, esquivar:1}, reflejo:.45}
+  escurridizo: {nombre:'Escurridizo', w:{acercar:1, corto:1.6, medio:2, largo:1.8, orbitar:3, retroceder:1, esquivar:2}, reflejo:.65},
+  equilibrado: {nombre:'Equilibrado', w:{acercar:1.5, corto:2, medio:2.5, largo:2, orbitar:2, retroceder:.5, esquivar:1}, reflejo:.45}
 };
 const NOMBRES_RIVAL = ['Marcos', 'Lucía', 'Nico', 'Sofi', 'Facu', 'Cami', 'Tomi', 'Vale', 'Lauti', 'Mica'];
 
@@ -833,7 +839,8 @@ function golpear(att, def, alc, x, y){
   if(!def.mon.vivo) return false;
   const mov = movDe(att.mon.p, alc), tipo = mov.tipo;
   const c = cen(def), arriba = c.y - def.h * def.s * .6, ahora = performance.now();
-  if(def.rodando){
+  const roce = def.rodando && alc === 'largo';
+  if(def.rodando && !roce){
     if(ahora - def.tEsq > 400){
       texto(c.x, arriba, '¡Esquivó!', '#8be9ff', 3.6);
       def.mon.en = Math.min(EN_MAX, def.mon.en + EN_PREMIO_ESQUIVE);
@@ -844,6 +851,10 @@ function golpear(att, def, alc, x, y){
   }
   if(def.invul > 0) return false;
   const res = calcularDanio(att.mon, def.mon, alc, tipo), d = def.mon;
+  if(roce && res.dmg > 0){
+    res.dmg = Math.max(1, Math.round(res.dmg * ROCE_LARGO)); res.crit = false;
+    texto(c.x, arriba - u() * 4.5, '¡Lo rozó!', '#8be9ff', 3.2);
+  }
   if(res.dmg === 0){ texto(c.x, arriba, 'No afecta', '#aab', 3.4); return false; }
   d.hp = Math.max(0, d.hp - res.dmg);
   /* combo: golpes seguidos del mismo lado sin recibir */
@@ -1255,7 +1266,7 @@ function dispararLargo(e){
 /* Avanza el ataque en curso y define la pose del cuerpo (anticipación, golpe, recuperación). */
 function avanzarAccion(e, dt){
   const A = e.accion, O = otro(e), U = u(), vel = e.mon.st.vel;
-  A.t += dt;
+  A.t += dt * (A.tipo === 'largo' && !A.hecho && AR.esc < 1 ? 1 + (CARGA_EN_LENTA - 1) * (1 - AR.esc) / (1 - CAMARA_LENTA) : 1);
   if(A.tipo === 'esquivar'){
     const f = 1 - (A.t / ESQ.dur) * .55;
     empujar(e, A.dir.x * 86 * U * f * dt, A.dir.y * 86 * U * f * dt);
@@ -1655,6 +1666,11 @@ function bucle(ts){
   if(AR.pausa || !dt){ dibujar(E.yo, 0); dibujar(E.riv, 0); return; }
   /* hit-stop: un instante congelado en cada golpe */
   if(AR.congela > 0){ AR.congela -= dt; return; }
+  /* cámara lenta mientras se carga un largo (entra y sale suave) */
+  const cargando = [E.yo, E.riv].some(x => x.accion && x.accion.tipo === 'largo' && !x.accion.hecho);
+  AR.esc += ((cargando ? CAMARA_LENTA : 1) - AR.esc) * Math.min(1, dt * 12);
+  ST.classList.toggle('ar-lento', AR.esc < .85);
+  dt *= AR.esc;
   const pasos = Math.max(1, Math.ceil(dt / .05)), h = dt / pasos;
   for(let i = 0; i < pasos; i++){
     if(tok !== TOK || !AR) return;
@@ -1794,7 +1810,7 @@ async function luchar(mios){
     yo:  {mons:mios.map(p => crearMon(p)), idx:0, act:null},
     riv: {mons:rival.map(p => crearMon(p, true)), idx:0, act:null},
     estilo:ESTILOS[estilo], proys:[], zonas:[], pend:[], hold:new Set(), keys:new Set(), joy:{x:0, y:0},
-    fase:'intro', tLucha:0, pausa:false, pausaAntes:false, cambioCd:0, cambioRiv:3, ult:0, congela:0,
+    fase:'intro', tLucha:0, esc:1, pausa:false, pausaAntes:false, cambioCd:0, cambioRiv:3, ult:0, congela:0,
     combo:{lado:null, n:0, t:0},
     rivalNombre:'Entrenador ' + elige(NOMBRES_RIVAL)
   };
