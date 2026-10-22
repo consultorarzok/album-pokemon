@@ -546,24 +546,26 @@ DATA.forEach(p => state[p.id] = {got:false, dup:0});
    se pierden los más débiles. La fuerza se sortea al guardar, así recargar
    la página no la vuelve a sortear. La arena usa el más fuerte de cada uno. */
 const SERIE = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-/* Variocolor (shiny): 1 de cada 100 ejemplares nuevos. Tiene otro color y +15 de fuerza.
+/* Shiny: muy raro (1 de cada 500 ejemplares nuevos), con otro color y casi siempre fuerte:
+   el 85% sale entre 75 y 100 de fuerza y el resto entre 50 y 74.
    Viaja en los códigos de intercambio como fuerza+100 (101-200), así no hizo falta tocar
    la tabla del servidor: el que lo recibe lo decodifica acá. */
-const PROB_SHINY = 1 / 100, BONO_SHINY = 15;
+const PROB_SHINY = 1 / 500;
+const fuerzaShiny = () => Math.random() < .85 ? 75 + Math.floor(Math.random() * 26) : 50 + Math.floor(Math.random() * 25);
 function nuevoEjemplar(fuerza){
   let shiny = false;
   if(fuerza > 100 && fuerza <= 200){ shiny = true; fuerza -= 100; }
   else if(!(fuerza >= 1 && fuerza <= 100)){
     /* promedio de dos sorteos: casi todos andan por el medio, los de 90+ son raros */
     fuerza = Math.max(1, Math.round((Math.random() + Math.random()) / 2 * 100));
-    if(Math.random() < PROB_SHINY){ shiny = true; fuerza = Math.min(100, fuerza + BONO_SHINY); }
+    if(Math.random() < PROB_SHINY){ shiny = true; fuerza = fuerzaShiny(); }
   }
   let c = '';
   for(let i = 0; i < 4; i++) c += SERIE[Math.floor(Math.random() * SERIE.length)];
   return shiny ? {f:fuerza, c, s:true} : {f:fuerza, c};
 }
 const codigoFuerza = e => e.f + (e.s ? 100 : 0);
-/* Ilustración oficial: la variocolor tiene su propia carpeta en el mismo repositorio */
+/* Ilustración oficial: la shiny tiene su propia carpeta en el mismo repositorio */
 const imgVario = p => p.img.replace('/official-artwork/', '/official-artwork/shiny/');
 const imgEj = (p, e) => e && e.s ? imgVario(p) : p.img;
 const tieneShiny = id => !!(state[id].ej && state[id].ej.some(e => e && e.s));
@@ -572,7 +574,7 @@ function ejemplares(id){
   if(!Array.isArray(s.ej)) s.ej = [];
   s.ej = s.ej.filter(e => e && e.f >= 1 && e.f <= 100);
   while(s.ej.length < n) s.ej.push(nuevoEjemplar());
-  if(s.ej.length > n){ s.ej.sort((a, b) => (b.f + (b.s ? 1000 : 0)) - (a.f + (a.s ? 1000 : 0))); s.ej.length = n; }   // los variocolores son los últimos en irse
+  if(s.ej.length > n){ s.ej.sort((a, b) => (b.f + (b.s ? 1000 : 0)) - (a.f + (a.s ? 1000 : 0))); s.ej.length = n; }   // las shiny son las últimas en irse
   return s.ej;
 }
 function mejorEjemplar(id){
@@ -788,7 +790,7 @@ function renderGrid(){
     slot.setAttribute('role', 'listitem');
     const numero = '#' + String(p.id).padStart(3,'0');
     slot.setAttribute('aria-label', gotVista
-      ? numero + ' ' + p.name + (s.dup > 0 ? ', repetida, tenés ' + (s.dup + 1) : '') + (tieneShiny(p.id) ? ', variocolor' : '')
+      ? numero + ' ' + p.name + (s.dup > 0 ? ', repetida, tenés ' + (s.dup + 1) : '') + (tieneShiny(p.id) ? ', shiny' : '')
       : numero + ', todavía no la tenés');
     const numTag = `<div class="num">#${String(p.id).padStart(3,'0')}</div>`;
     const dupTag = s.dup>0 ? `<div class="dup">x${s.dup+1}</div>` : '';
@@ -796,7 +798,7 @@ function renderGrid(){
     if(gotVista){
       const vario = tieneShiny(p.id);
       slot.classList.toggle('vario', vario);
-      slot.innerHTML = numTag + dupTag + (vario ? '<div class="vario-tag" title="Tenés una variocolor">✨</div>' : '') +
+      slot.innerHTML = numTag + dupTag + (vario ? '<div class="vario-tag" title="Tenés una shiny">✨</div>' : '') +
         `<img src="${vario ? imgVario(p) : p.img}" alt="" loading="lazy"><div class="name">${p.name}</div>` + bar;
     } else {
       slot.innerHTML = numTag + `<div class="ball-icon"></div>` + bar;
@@ -938,7 +940,7 @@ function showReveal(pulls, titulo){
     card.innerHTML = `<img src="${imgEj(pull.p, ej)}" alt="${pull.p.name}">
       <div class="rname">${pull.p.name}</div>
       <div class="tag ${pull.isNew?'new':'dup'}">${pull.isNew?'¡Nueva!':'Repetida'}</div>
-      ${ej && ej.s ? '<div class="rvario">✨ ¡Variocolor!</div>' : ''}
+      ${ej && ej.s ? '<div class="rvario">✨ ¡Shiny!</div>' : ''}
       ${ej ? `<div class="rfuerza ${claseFuerza(ej.f)}" title="${nivelFuerza(ej.f)}">💪 ${ej.f}</div>` : ''}`;
     box.appendChild(card);
   });
@@ -4383,7 +4385,7 @@ function renderIntercambioDup(){
       <span class="txt"><b>${p.name}</b>Tenés ${lista.length}: elegí cuál dar</span>
       <div class="ej-lista" role="radiogroup" aria-label="Ejemplares de ${p.name}">${lista.map((e, i) =>
         `<button type="button" class="ej-chip ${claseFuerza(e.f)}" title="${nivelFuerza(e.f)}" data-c="${e.c}" role="radio">
-          <b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}${e.s ? ' · variocolor' : ''}${i === 0 ? ' · ⭐ Arena' : ''}</small></button>`).join('')}</div>`;
+          <b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}${e.s ? ' · shiny' : ''}${i === 0 ? ' · ⭐ Arena' : ''}</small></button>`).join('')}</div>`;
     const btn = document.createElement('button');
     btn.className = 'open-btn';
     btn.style.padding = '9px 14px';

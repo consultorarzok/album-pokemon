@@ -629,7 +629,7 @@
   .zonas > .rank-panel{grid-column:2;grid-row:2;margin-top:0;}
 }
 
-/* Variocolor (shiny) */
+/* Shiny */
 .slot.vario{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold-dim),0 0 10px #F0B40055;}
 .vario-tag{position:absolute;top:2px;right:3px;font-size:13px;line-height:1;filter:drop-shadow(0 0 2px #fff);}
 .reveal-card.vario{box-shadow:0 0 0 2px var(--gold),0 0 18px #F0B40088;background:linear-gradient(160deg,#FFF8DC,#fff);}
