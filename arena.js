@@ -559,17 +559,18 @@ function marca(x, y, r, col){
   const q = () => d.remove(); a.finished.then(q, q);
 }
 
-/* Copia del sprite que se desvanece: estela al esquivar o embestir. */
-function fantasma(e, col){
+/* Copia del sprite que se desvanece: estela al esquivar o embestir. Al esquivar
+   va suave (pocas copias, tenues y sin brillo) para no tapar la pelea. */
+function fantasma(e, col, suave){
   if(!PISO || REDUCE || !e.spr.naturalWidth) return;
   const s = ST.getBoundingClientRect(), r = e.spr.getBoundingClientRect();
   if(!r.width) return;
   const g = document.createElement('img');
   g.src = e.spr.src; g.alt = ''; g.className = 'ar-fant';
   Object.assign(g.style, {left:(r.left - s.left) + 'px', top:(r.top - s.top) + 'px', width:r.width + 'px', height:r.height + 'px',
-    filter:`brightness(1.7) drop-shadow(0 0 3px ${col})`, transform:`scaleX(${e.flipAp})`});
+    filter:suave ? 'saturate(.6)' : `brightness(1.7) drop-shadow(0 0 3px ${col})`, transform:`scaleX(${e.flipAp})`});
   PISO.appendChild(g);
-  const a = g.animate([{opacity:.5}, {opacity:0}], {duration:260, easing:'steps(4,end)', fill:'forwards'});
+  const a = g.animate([{opacity:suave ? .28 : .5}, {opacity:0}], {duration:suave ? 180 : 260, easing:'steps(4,end)', fill:'forwards'});
   const q = () => g.remove(); a.finished.then(q, q);
 }
 
@@ -754,7 +755,7 @@ function dibujar(e, dt){
   e.sombra.style.transform = `translate(-50%,-50%) scale(${somb})`;
   if(dt > 0 && (e.rodando || (e.accion && ((e.accion.tipo === 'corto' && e.accion.t > .08 && e.accion.t < .3) || (e.accion.dash && !e.accion.dash.pego && e.accion.dash.t < .3))))){
     e.fantT -= dt;
-    if(e.fantT <= 0){ e.fantT = .035; fantasma(e, TYPE_COLORS[e.mon.p.type]); }
+    if(e.fantT <= 0){ e.fantT = e.rodando ? .11 : .05; fantasma(e, TYPE_COLORS[e.mon.p.type], e.rodando); }
   }
 }
 
