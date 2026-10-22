@@ -28,6 +28,9 @@ const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 3
       const st = {}; for(let i = 1; i <= 151; i++) st[i] = {got:eq ? eq.includes(i) : (i <= 14 || i === 25 || i === 150), dup:0};
       localStorage.setItem('album-kanto-progreso', JSON.stringify({coins:300, state:st}));
     }, EQUIPO);
+    /* RIVAL=ids,… NOMBRE_RIVAL=Green NOMBRE_YO=Ash fijan el rival y los nombres (para grabar) */
+    await ctx.addInitScript(([r, nr, ny]) => { if(r) window.__rivalIds = r; if(nr) window.__rivalNombre = nr; if(ny) window.__yoNombre = ny; },
+      [process.env.RIVAL ? process.env.RIVAL.split(',').map(Number) : null, process.env.NOMBRE_RIVAL || '', process.env.NOMBRE_YO || '']);
     const p = await ctx.newPage();
     const errores = []; p.on('pageerror', e => errores.push(e.message));
     await p.goto('file:///root/pokemon/index.html');

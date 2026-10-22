@@ -1718,7 +1718,7 @@ function armarEscenario(){
         ${monHTML('riv')}${monHTML('yo')}
         <div class="ar-fx" id="arFx"></div>
       </div>
-      ${hudHTML('riv', AR.rivalNombre)}${hudHTML('yo', 'Vos')}
+      ${hudHTML('riv', AR.rivalNombre)}${hudHTML('yo', window.__yoNombre || 'Vos')}
       <div class="ar-lineas"></div>
       <div class="ar-log" id="arLog" aria-live="polite"></div>
       <div class="ar-aviso" id="arAviso" aria-hidden="true"></div>
@@ -1812,7 +1812,7 @@ async function luchar(mios){
     estilo:ESTILOS[estilo], proys:[], zonas:[], pend:[], hold:new Set(), keys:new Set(), joy:{x:0, y:0},
     fase:'intro', tLucha:0, esc:1, pausa:false, pausaAntes:false, cambioCd:0, cambioRiv:3, ult:0, congela:0,
     combo:{lado:null, n:0, t:0},
-    rivalNombre:'Entrenador ' + elige(NOMBRES_RIVAL)
+    rivalNombre:window.__rivalNombre || 'Entrenador ' + elige(NOMBRES_RIVAL)
   };
   armarEscenario();
   E = {yo:crearEntidad('yo'), riv:crearEntidad('riv')};
@@ -1902,6 +1902,11 @@ function calcularPremio(gane){
 }
 
 function armarRival(mios){
+  /* para grabar videos: window.__rivalIds = [ids] fija el equipo rival (no se usa en el juego) */
+  if(Array.isArray(window.__rivalIds)){
+    const fijo = window.__rivalIds.map(id => DATA.find(p => p.id === id)).filter(Boolean);
+    if(fijo.length) return fijo;
+  }
   const prom = mios.reduce((s, p) => s + bstDe(p), 0) / mios.length;
   const ids = new Set(mios.map(p => p.id));
   const pool = DATA.filter(p => p.region === 'kanto')
