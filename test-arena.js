@@ -142,6 +142,7 @@ const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 3
     check('cobró monedas por el resultado (+' + (coins - antes) + ')', coins - antes >= 15 && coins - antes <= 80 + 6 * 35 + 60);
     check('muestra el desglose del premio', await p.isVisible('.ar-premio .tot'));
     check('suma la pelea al registro de Maestro', await p.evaluate(() => maestro.peleas >= 1 && (maestro.ganadas === 0 || maestro.pts >= 10)));
+    if(VIDEO) await p.waitForTimeout(4500);   // que en el video se lea el premio
     await tocar('#arCerrar2');
     check('Cerrar vuelve al álbum', !(await p.isVisible('#arenaOverlay')));
     await p.setViewportSize({width:w, height:h});
