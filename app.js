@@ -3746,6 +3746,12 @@ const REGALOS = [
      (el Mewtwo "acorazado" no existe como figurita: es el 150 normal). */
   { id: 'mostaza-5shiny-mewtwo-20261022', para: ['mostaza', 'el mostaza'], monedas: 0,
     ejemplares: [{id:6, f:100, s:true}, {id:149, f:98, s:true}, {id:130, f:96, s:true}, {id:94, f:95, s:true}, {id:65, f:94, s:true}, {id:150, f:100}] },
+  /* 22/10/2026: pedido de Zeta para sí mismo — 50.000 monedas, 10 shiny poderosos y un Mewtwo de
+     fuerza 100 (el "acorazado" no existe como figurita: es el 150 normal). */
+  { id: 'zeta-50000-10shiny-mewtwo-20261022', para: 'zeta centeno', monedas: 50000,
+    ejemplares: [{id:6, f:100, s:true}, {id:149, f:99, s:true}, {id:130, f:98, s:true}, {id:94, f:97, s:true}, {id:65, f:96, s:true},
+                 {id:248, f:95, s:true}, {id:373, f:94, s:true}, {id:445, f:93, s:true}, {id:376, f:92, s:true}, {id:9, f:91, s:true},
+                 {id:150, f:100}] },
   { id: 'todos-2500-bolas-20260907', para: '*', monedas: 2500,
     bolas: {roja: 25, azul: 50, ultra: 20, maestra: 10}, aventura: true },
   { id: 'matias-bolas-kanto-20260908', para: 'matias', monedas: 0,
