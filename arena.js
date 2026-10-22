@@ -23,9 +23,9 @@
 'use strict';
 
 const CDN = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/';
-const spFrente  = (id, v) => v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].frente : CDN + 'versions/generation-v/black-white/animated/' + (v ? 'shiny/' : '') + id + '.gif';
-const spEspalda = (id, v) => v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].espalda : CDN + 'versions/generation-v/black-white/animated/back/' + (v ? 'shiny/' : '') + id + '.gif';
-const spIcono   = (id, v) => v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].icono : CDN + (v ? 'shiny/' : '') + id + '.png';
+const spFrente  = (id, v) => ESPECIAL_POR_ID[id] ? ESPECIAL_POR_ID[id].frente : v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].frente : CDN + 'versions/generation-v/black-white/animated/' + (v ? 'shiny/' : '') + id + '.gif';
+const spEspalda = (id, v) => ESPECIAL_POR_ID[id] ? ESPECIAL_POR_ID[id].espalda : v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].espalda : CDN + 'versions/generation-v/black-white/animated/back/' + (v ? 'shiny/' : '') + id + '.gif';
+const spIcono   = (id, v) => ESPECIAL_POR_ID[id] ? ESPECIAL_POR_ID[id].icono : v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].icono : CDN + (v ? 'shiny/' : '') + id + '.png';
 
 /* ---------------- reglas ---------------- */
 /* El corto pega menos y se recarga más lento que antes: que la pelea no sea sólo
@@ -156,7 +156,7 @@ SETS.split(';').forEach(l => { const m = l.trim().match(/^(\d+) (.+)$/); if(m) M
 const FORMA_FX = {bola:'bola', chorro:'gota', onda:'anillo', hojas:'hoja', agujas:'aguja', piedra:'roca', rayito:'chispa', polvo:'nube',
   estrella:'estrella', lodo:'lodo', burbujas:'burbuja', tornado:'tornado', hueso:'hueso', semillas:'semilla', suelo:'suelo', monedas:'moneda'};
 function movDe(p, alc){
-  const lista = MOVESET[p.id] || ['Placaje', 'Rapidez', 'Hiperrayo'];
+  const lista = MOVESET[p.base || p.id] || ['Placaje', 'Rapidez', 'Hiperrayo'];
   const n = lista[ATAQUES.indexOf(alc)], d = ATQ[n] || ['normal', alc === 'corto' ? 'golpe' : (alc === 'medio' ? 'bola' : 'rayo')];
   return {n, tipo:d[0], fx:d[1], forma:d[2] || FORMA_FX[d[1]] || 'bola'};
 }
@@ -196,6 +196,38 @@ const ESTILOS = {
 };
 const NOMBRES_RIVAL = ['Marcos', 'Lucía', 'Nico', 'Sofi', 'Facu', 'Cami', 'Tomi', 'Vale', 'Lauti', 'Mica'];
 
+/* El rival lleva el nombre de un entrenador REAL del álbum (ranking de hoy, histórico, los que
+   completaron y Maestros), nunca uno mismo. Sigue siendo el bot de siempre con ese nombre: no hay
+   pelea online. El ranking sólo trae nombre y figuritas, así que la fuerza de sus Pokémon sale de
+   eso: de 20 (recién empieza) a 85 de piso (álbum completo), más un azar de 0-15. Sin ranking
+   cargado (sin conexión) quedan los nombres de reserva y la fuerza al azar de siempre. */
+let rivalFig = null;
+function entrenadoresReales(){
+  const yo = claveNombre(jugador);
+  const vistos = new Map();
+  const sumar = (n, fig) => {
+    const k = claveNombre(n);
+    if(!k || k === yo) return;
+    const prev = vistos.get(k);
+    if(!prev || fig > prev.fig) vistos.set(k, {nombre:n.trim(), fig});
+  };
+  const t = ultimoTop || {};
+  (t.hoy || []).concat(t.historico || []).forEach(r => sumar(r.jugador, r.figuritas || 0));
+  (t.completaron || []).forEach(r => sumar(r.jugador, DATA.length));
+  ((ultimoTopMaestro || {}).top || []).forEach(r => sumar(r.jugador, 0));
+  return [...vistos.values()];
+}
+function elegirRival(){
+  if(window.__rivalNombre) return {nombre:window.__rivalNombre, fig:null};
+  const reales = entrenadoresReales();
+  return reales.length ? elige(reales) : {nombre:'Entrenador ' + elige(NOMBRES_RIVAL), fig:null};
+}
+function fuerzaRival(){
+  if(rivalFig == null) return nuevoEjemplar(50).f;
+  const piso = Math.round(20 + Math.min(1, rivalFig / DATA.length) * 65);
+  return Math.min(100, piso + Math.floor(Math.random() * 16));
+}
+
 const REDUCE = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------------- estado ---------------- */
@@ -210,7 +242,7 @@ const $ = id => document.getElementById(id);
 const azar = (a, b) => a + Math.random() * (b - a);
 const elige = arr => arr[Math.floor(Math.random() * arr.length)];
 const lim = (v, a, b) => Math.max(a, Math.min(b, v));
-const bstDe = p => (typeof BST !== 'undefined' && BST[p.id - 1]) || 300;
+const bstDe = p => p.bst || (typeof BST !== 'undefined' && BST[p.id - 1]) || 300;
 const u = () => Math.min(G.W, G.H * 1.4) / 100;       // unidad de longitud de efectos y velocidades
 const otro = e => e.lado === 'yo' ? E.riv : E.yo;
 
@@ -594,7 +626,7 @@ function festejo(fuerte){
    ejemplar; el del rival se sortea como cualquier figurita nueva. */
 function crearMon(p, rival){
   const ej = rival ? null : mejorEjemplar(p.id);
-  const fz = rival ? nuevoEjemplar(50).f : ((ej || {}).f || 50);
+  const fz = rival ? fuerzaRival() : ((ej || {}).f || 50);
   const k = .9 + fz / 500, bst = bstDe(p), max = Math.round((60 + bst * .22) * k);
   return {p, bst, max, hp:max, en:EN_MAX, vivo:true, st:statsDe(p), fz, k, vario:!!(ej && ej.s)};
 }
@@ -1808,6 +1840,8 @@ function pedirSalida(){
 async function luchar(mios){
   audio();   // el navegador sólo deja arrancar el sonido después de un toque del usuario
   const rival = armarRival(mios);
+  const ent = elegirRival();
+  rivalFig = ent.fig;
   const estilo = elige(Object.keys(ESTILOS));
   AR = {
     yo:  {mons:mios.map(p => crearMon(p)), idx:0, act:null},
@@ -1815,7 +1849,7 @@ async function luchar(mios){
     estilo:ESTILOS[estilo], proys:[], zonas:[], pend:[], hold:new Set(), keys:new Set(), joy:{x:0, y:0},
     fase:'intro', tLucha:0, esc:1, pausa:false, pausaAntes:false, cambioCd:0, cambioRiv:3, ult:0, congela:0,
     combo:{lado:null, n:0, t:0},
-    rivalNombre:window.__rivalNombre || 'Entrenador ' + elige(NOMBRES_RIVAL)
+    rivalNombre:ent.nombre
   };
   armarEscenario();
   E = {yo:crearEntidad('yo'), riv:crearEntidad('riv')};
@@ -1922,13 +1956,14 @@ function armarRival(mios){
 /* ---------------- elegir equipo ---------------- */
 function abrirArena(){
   const ov = $('arenaOverlay');
-  const mios = kantoMios();
+  const mios = kantoMios().concat(especialesMios());   // las especiales (Mewtwo Acorazado) pelean aparte
   if(mios.length < EQUIPO_MIN){
     if(typeof avisoBatalla === 'function')
       avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto para pelear en la arena. Abrí un sobre primero.`);
     return;
   }
   limpiar();
+  if(!ultimoTopMaestro) cargarTopMaestro();   // más nombres de entrenadores para los rivales
   ov.classList.add('show');
   const orden = mios.slice().sort((a, b) => bstDe(b) - bstDe(a));
   const sel = orden.slice(0, EQUIPO_MAX).map(p => p.id);
@@ -1959,7 +1994,7 @@ function abrirArena(){
       };
     });
     $('arPickCerrar').onclick = cerrarArena;
-    $('arPickGo').onclick = () => luchar(sel.map(id => DATA.find(p => p.id === id)));
+    $('arPickGo').onclick = () => luchar(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]));
   };
   pintar();
 }

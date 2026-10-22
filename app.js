@@ -570,13 +570,32 @@ const codigoFuerza = e => e.f + (e.s ? 100 : 0);
    ojos rojos. Los archivos están en images/shiny/ (recoloreados desde los originales). */
 const SHINY_PROPIO = {
   94: {arte:'images/shiny/gengar-arte.png', icono:'images/shiny/gengar-icono.png',
-       frente:'images/shiny/gengar-frente.gif', espalda:'images/shiny/gengar-espalda.gif'},
-  /* 150 = Mewtwo: el shiny es el Mewtwo ACORAZADO (pedido de Zeta). Arte de Pokémon GO limpio de
-     destellos; los sprites de la Arena se armaron a partir de esa imagen (la espalda es la misma
-     figura espejada y más oscura: no hay una vista de espaldas oficial). */
-  150: {arte:'images/shiny/mewtwo-arte.png', icono:'images/shiny/mewtwo-icono.png',
-       frente:'images/shiny/mewtwo-frente.gif', espalda:'images/shiny/mewtwo-espalda.gif'}
+       frente:'images/shiny/gengar-frente.gif', espalda:'images/shiny/gengar-espalda.gif'}
 };
+
+/* Figuritas ESPECIALES (edición especial, como las de evento): NO son parte de las 1025, no
+   cuentan para el álbum ni para el ranking y no tocan a su Pokémon base (el Mewtwo común sigue
+   igual). Se guardan aparte (progreso.especiales) y se pueden usar en la Arena. Por ahora sólo
+   llegan por regalo. Mewtwo Acorazado: arte de Pokémon GO limpio de destellos; los sprites de la
+   Arena salen de esa imagen (la espalda es la misma figura espejada y más oscura: no hay una
+   vista de espaldas oficial). bst 780 = más fuerte que el Mewtwo común (680). */
+const ESPECIALES = [
+  {id:10150, base:150, name:'Mewtwo Acorazado', type:'psychic', rarity:'Legendario', region:'kanto', especial:true, bst:780,
+   img:'images/especial/mewtwo-acorazado-arte.png', icono:'images/especial/mewtwo-acorazado-icono.png',
+   frente:'images/especial/mewtwo-acorazado-frente.gif', espalda:'images/especial/mewtwo-acorazado-espalda.gif'}
+];
+const ESPECIAL_POR_ID = Object.fromEntries(ESPECIALES.map(e => [e.id, e]));
+let especiales = {};   // id -> {f, c}: las especiales que tiene el jugador
+function especialesMios(){ return ESPECIALES.filter(e => especiales[e.id]); }
+function renderEspeciales(){
+  const box = document.getElementById('especialesBox');
+  if(!box) return;
+  const mias = especialesMios();
+  box.hidden = !mias.length;
+  box.innerHTML = mias.length ? '<b class="esp-tit">⭐ Figuritas especiales</b><div class="esp-lista">' + mias.map(e =>
+    `<div class="esp-carta"><img src="${e.img}" alt="${e.name}" width="120" height="120"><b>${e.name}</b>` +
+    `<small>Edición especial · usala en la Arena</small><span class="esp-f">💪 ${especiales[e.id].f}</span></div>`).join('') + '</div>' : '';
+}
 const imgVario = p => (SHINY_PROPIO[p.id] && SHINY_PROPIO[p.id].arte) || p.img.replace('/official-artwork/', '/official-artwork/shiny/');
 /* jsDelivr bloquea algunas imágenes shiny (archivos grandes: 19 en total). Respaldo en cadena:
    1) el mismo archivo desde GitHub directo, 2) la versión normal. Se usa con onerror="respaldoShiny(this)". */
@@ -599,6 +618,7 @@ function ejemplares(id){
   return s.ej;
 }
 function mejorEjemplar(id){
+  if(ESPECIAL_POR_ID[id]) return especiales[id] ? {f:especiales[id].f, c:especiales[id].c} : null;
   return ejemplares(id).reduce((m, e) => (!m || e.f > m.f || (e.f === m.f && e.s)) ? e : m, null);
 }
 function sincronizarEjemplares(){
@@ -615,7 +635,7 @@ function saveProgress(){
   sincronizarEjemplares();
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify({coins, state, bolas, comprasDia, legendariosDia, maestro,
-      tomados: [...advTomados]}));
+      tomados: [...advTomados], especiales}));
   }catch(e){
     console.warn('No se pudo guardar el progreso', e);
   }
@@ -644,6 +664,9 @@ function loadProgress(){
        los hacía reaparecer a todos y se podían juntar infinitas monedas y
        pokébolas -incluida la Master Ball-. */
     if(Array.isArray(data.tomados)) data.tomados.forEach(k => advTomados.add(k));
+    if(data.especiales && typeof data.especiales === 'object')
+      Object.keys(data.especiales).forEach(id => { const e = data.especiales[id];
+        if(ESPECIAL_POR_ID[id] && e && e.f >= 1 && e.f <= 100) especiales[id] = e; });
   }catch(e){
     console.warn('No se pudo leer el progreso guardado', e);
   }
@@ -656,6 +679,7 @@ function resetProgress(){
   DATA.forEach(p => state[p.id] = {got:false, dup:0});
   Object.assign(bolas, BOLAS_INICIALES);
   Object.assign(maestro, {pts:0, ganadas:0, peleas:0, nivel:0});
+  especiales = {};
   comprasDia = {};
   legendariosDia = {dia: null, obtenidos: {}};
   advTomados.clear();
@@ -829,6 +853,7 @@ function renderGrid(){
 }
 
 function updateProgress(){
+  renderEspeciales();
   const ev = eventoVistaActiva();
   let got, total;
   if(ev){
@@ -966,6 +991,22 @@ function showReveal(pulls, titulo){
     box.appendChild(card);
   });
   document.getElementById('overlay').classList.add('show');
+}
+
+/* Carta de una figurita especial regalada (mismo cartel que el sobre). Al cerrarla sigue 'despues'. */
+function mostrarEspeciales(pulls, despues){
+  document.getElementById('revealTitle').textContent = '¡Figurita especial!';
+  const box = document.getElementById('revealCards');
+  box.innerHTML = pulls.map(pull => `<div class="reveal-card vario" style="border-left:3px solid ${TYPE_COLORS[pull.p.type]}">
+      <img src="${pull.p.img}" alt="${pull.p.name}"><div class="rname">${pull.p.name}</div>
+      <div class="tag new">⭐ Edición especial</div>
+      <div class="rfuerza ${claseFuerza(especiales[pull.p.id].f)}">💪 ${especiales[pull.p.id].f}</div></div>`).join('');
+  const ov = document.getElementById('overlay');
+  ov.classList.add('show');
+  if(despues){
+    const obs = new MutationObserver(() => { if(!ov.classList.contains('show')){ obs.disconnect(); despues(); } });
+    obs.observe(ov, {attributes:true, attributeFilter:['class']});
+  }
 }
 
 /* ====================== CANJE DE REPETIDAS ====================== */
@@ -3757,8 +3798,9 @@ const REGALOS = [
     ejemplares: [{id:6, f:100, s:true}, {id:149, f:99, s:true}, {id:130, f:98, s:true}, {id:94, f:97, s:true}, {id:65, f:96, s:true},
                  {id:248, f:95, s:true}, {id:373, f:94, s:true}, {id:445, f:93, s:true}, {id:376, f:92, s:true}, {id:9, f:91, s:true},
                  {id:150, f:100}] },
-  /* 22/10/2026: Zeta pidió el Mewtwo Acorazado para él, poderoso: es el Mewtwo shiny (arte propio). */
-  { id: 'zeta-mewtwo-acorazado-20261022', para: 'zeta centeno', monedas: 0, ejemplares: [{id:150, f:100, s:true}] },
+  /* 22/10/2026: Zeta pidió el Mewtwo Acorazado para él, poderoso y APARTE del Mewtwo común:
+     figurita especial (ver ESPECIALES), se usa en la Arena. */
+  { id: 'zeta-acorazado-especial-20261022', para: 'zeta centeno', monedas: 0, especiales: [{id:10150, f:100}] },
   { id: 'todos-2500-bolas-20260907', para: '*', monedas: 2500,
     bolas: {roja: 25, azul: 50, ultra: 20, maestra: 10}, aventura: true },
   { id: 'matias-bolas-kanto-20260908', para: 'matias', monedas: 0,
@@ -3869,6 +3911,7 @@ function aplicarRegalos(){
   const regaladas = [];
   const ejPulls = [];
   const bolasGanadas = {};
+  const espPulls = [];
   REGALOS.forEach(r => {
     /* 'para' puede ser un nombre, '*' (todos) o una LISTA de nombres: sirve
        cuando no se sabe con cuál variante se registró (a "El Mostaza" no le
@@ -3895,6 +3938,13 @@ function aplicarRegalos(){
       const pull = regalarEspecie(id);
       if(pull) regaladas.push(pull);
     });
+    (r.especiales || []).forEach(x => {
+      const e = ESPECIAL_POR_ID[x.id];
+      if(!e) return;
+      const nueva = !especiales[x.id];
+      if(nueva || x.f > especiales[x.id].f) especiales[x.id] = {f:x.f, c:nuevoEjemplar(x.f).c};
+      espPulls.push({p:e, isNew:nueva});
+    });
     (r.ejemplares || []).forEach(x => {
       const pull = regalarEjemplar(x.id, x.f, x.s);
       if(pull) ejPulls.push(pull);
@@ -3914,7 +3964,7 @@ function aplicarRegalos(){
     total += (r.monedas || 0);
   });
   const totalBolas = Object.keys(bolasGanadas).reduce((a, t) => a + bolasGanadas[t], 0);
-  if(total === 0 && !regaladas.length && !totalBolas && !ejPulls.length) return;
+  if(total === 0 && !regaladas.length && !totalBolas && !ejPulls.length && !espPulls.length) return;
 
   try{ localStorage.setItem(REGALOS_KEY, JSON.stringify(usados)); }catch(e){}
   saveProgress();
@@ -3928,6 +3978,8 @@ function aplicarRegalos(){
   const partes = [];
   if(total) partes.push('<b>' + total + '</b> monedas');
   if(ejPulls.length) partes.push(ejPulls.map(pull => '<b>' + pull.p.name + '</b>').join(', '));
+  if(espPulls.length) partes.push('la figurita especial ' + espPulls.map(pull => '<b>' + pull.p.name + '</b>').join(', '));
+  renderEspeciales();
   if(regaladas.length) partes.push((regaladas.length > 1 ? 'las figuritas <b>' : 'la figurita <b>')
     + regaladas.map(pull => pull.p.name).join('</b> y <b>') + '</b>');
   if(totalBolas){
@@ -3947,7 +3999,8 @@ function aplicarRegalos(){
   /* La legendaria regalada se muestra con la misma carta dorada del sobre,
      una por una; recién después aparece el cartel del regalo. */
   /* los ejemplares regalados se muestran como cartas (con su ✨ Shiny y su 💪) */
-  const mostrar = () => ejPulls.length ? showReveal(ejPulls, '¡Te regalaron!') : aviso();
+  const mostrar = () => espPulls.length ? mostrarEspeciales(espPulls, ejPulls.length ? () => showReveal(ejPulls, '¡Te regalaron!') : aviso)
+                                        : ejPulls.length ? showReveal(ejPulls, '¡Te regalaron!') : aviso();
   if(regaladas.length) playSpecialSequence(regaladas, 0, mostrar);
   else mostrar();
 }
