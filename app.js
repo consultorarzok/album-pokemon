@@ -570,7 +570,12 @@ const codigoFuerza = e => e.f + (e.s ? 100 : 0);
    ojos rojos. Los archivos están en images/shiny/ (recoloreados desde los originales). */
 const SHINY_PROPIO = {
   94: {arte:'images/shiny/gengar-arte.png', icono:'images/shiny/gengar-icono.png',
-       frente:'images/shiny/gengar-frente.gif', espalda:'images/shiny/gengar-espalda.gif'}
+       frente:'images/shiny/gengar-frente.gif', espalda:'images/shiny/gengar-espalda.gif'},
+  /* 150 = Mewtwo: el shiny es el Mewtwo ACORAZADO (pedido de Zeta). Arte de Pokémon GO limpio de
+     destellos; los sprites de la Arena se armaron a partir de esa imagen (la espalda es la misma
+     figura espejada y más oscura: no hay una vista de espaldas oficial). */
+  150: {arte:'images/shiny/mewtwo-arte.png', icono:'images/shiny/mewtwo-icono.png',
+       frente:'images/shiny/mewtwo-frente.gif', espalda:'images/shiny/mewtwo-espalda.gif'}
 };
 const imgVario = p => (SHINY_PROPIO[p.id] && SHINY_PROPIO[p.id].arte) || p.img.replace('/official-artwork/', '/official-artwork/shiny/');
 /* jsDelivr bloquea algunas imágenes shiny (archivos grandes: 19 en total). Respaldo en cadena:
@@ -3752,6 +3757,8 @@ const REGALOS = [
     ejemplares: [{id:6, f:100, s:true}, {id:149, f:99, s:true}, {id:130, f:98, s:true}, {id:94, f:97, s:true}, {id:65, f:96, s:true},
                  {id:248, f:95, s:true}, {id:373, f:94, s:true}, {id:445, f:93, s:true}, {id:376, f:92, s:true}, {id:9, f:91, s:true},
                  {id:150, f:100}] },
+  /* 22/10/2026: Zeta pidió el Mewtwo Acorazado para él, poderoso: es el Mewtwo shiny (arte propio). */
+  { id: 'zeta-mewtwo-acorazado-20261022', para: 'zeta centeno', monedas: 0, ejemplares: [{id:150, f:100, s:true}] },
   { id: 'todos-2500-bolas-20260907', para: '*', monedas: 2500,
     bolas: {roja: 25, azul: 50, ultra: 20, maestra: 10}, aventura: true },
   { id: 'matias-bolas-kanto-20260908', para: 'matias', monedas: 0,
