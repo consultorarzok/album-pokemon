@@ -644,3 +644,9 @@
   .slot.especial .num{color:var(--gold-ink);}
   .slot.especial .esp-tag{position:absolute;top:3px;right:4px;display:flex;color:var(--gold);}
   .slot.especial .name{white-space:normal;line-height:1.15;color:var(--gold-ink);font-weight:700;}
+
+  /* Intercambio: cancelar un código y volver arriba */
+  .btn-cancelar-codigo{background:transparent;color:var(--red);border:1px solid #D3121266;border-radius:9px;padding:9px 12px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;min-height:40px;}
+  .btn-cancelar-codigo:disabled{opacity:.6;cursor:default;}
+  .volver-arriba{position:sticky;bottom:12px;align-self:flex-end;display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:10px 14px;min-height:44px;border:none;border-radius:999px;background:var(--ink);color:#fff;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 6px 16px rgba(10,14,30,.3);}
+  .volver-arriba[hidden]{display:none;}

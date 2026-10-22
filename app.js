@@ -3729,6 +3729,21 @@ document.getElementById('intercambioBtn').onclick = abrirIntercambio;
 document.getElementById('intercambioCloseBtn').onclick = () => document.getElementById('intercambioOverlay').classList.remove('show');
 document.getElementById('canjeCodigoBtn').onclick = canjearCodigoInput;
 document.getElementById('codigoCardCerrarBtn').onclick = () => document.getElementById('codigoCardOverlay').classList.remove('show');
+document.getElementById('codigoCardCancelarBtn').onclick = () => {
+  const b = document.getElementById('codigoCardCancelarBtn');
+  cancelarCodigo(document.getElementById('codigoCardTexto').textContent, b, (ok, txt) => {
+    document.getElementById('codigoCardOverlay').classList.remove('show');
+    b.disabled = false; b.textContent = 'Cancelar código';
+    avisoIntercambio(ok, txt);
+  });
+};
+/* Intercambio: botón "Arriba" que aparece al bajar por la lista */
+(() => {
+  const panel = document.getElementById('intercambioOverlay').querySelector('.reveal-panel');
+  const arriba = document.getElementById('intercambioArribaBtn');
+  panel.addEventListener('scroll', () => { arriba.hidden = panel.scrollTop < 240; }, {passive:true});
+  arriba.onclick = () => panel.scrollTo({top:0, behavior:'smooth'});
+})();
 document.getElementById('codigoCardWhatsBtn').onclick = () => {
   const cod = document.getElementById('codigoCardTexto').textContent;
   compartirCodigoWhatsApp(cod, Number(document.getElementById('codigoCardOverlay').dataset.pokemonId) || 0);
@@ -4545,6 +4560,66 @@ function renderIntercambioDup(){
   });
 }
 
+/* Cancelar un código generado: el servidor lo anula sólo si es tuyo y nadie lo canjeó todavía
+   (update atómico), y te devuelve la figurita con la misma fuerza (y shiny) que tenía.
+   Pide confirmar con un segundo toque para no cancelar sin querer. */
+function cancelarCodigo(codigo, btn, alTerminar){
+  if(!jugador) return;
+  if(btn.dataset.confirmar !== '1'){
+    btn.dataset.confirmar = '1';
+    btn.dataset.texto = btn.textContent;
+    btn.textContent = '¿Seguro? Tocá de nuevo';
+    setTimeout(() => { if(btn.dataset.confirmar === '1'){ btn.dataset.confirmar = ''; btn.textContent = btn.dataset.texto; } }, 3500);
+    return;
+  }
+  btn.dataset.confirmar = '';
+  btn.disabled = true;
+  btn.textContent = 'Cancelando...';
+  const sacarDeLista = () => {
+    try{ localStorage.setItem(CODIGOS_KEY, JSON.stringify(misCodigos().filter(i => i.codigo !== codigo))); }catch(e){}
+  };
+  fetch(API_BASE + '/pokemon-cancelar-codigo', {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=UTF-8'},
+    body: JSON.stringify({jugador, dispositivo, codigo})
+  })
+  .then(r => r.json())
+  .then(res => {
+    const p = res && res.ok ? DATA.find(d => d.id === res.pokemonId) : null;
+    if(!p){
+      /* ya lo canjeó otro entrenador (o no es tuyo): no vuelve nada y deja de figurar */
+      sacarDeLista();
+      renderMisCodigos();
+      if(alTerminar) alTerminar(false, 'No se pudo cancelar: ese código ya lo canjeó otro entrenador.');
+      return;
+    }
+    const isNew = !state[p.id].got;
+    ejemplares(p.id).push(nuevoEjemplar(res.fuerza));   // vuelve con la fuerza que tenía
+    if(isNew) state[p.id].got = true; else state[p.id].dup += 1;
+    sacarDeLista();
+    renderGrid();
+    updateProgress();
+    saveProgress();
+    enviarPuntaje();
+    renderIntercambioDup();
+    renderMisCodigos();
+    if(alTerminar) alTerminar(true, 'Código ' + codigo + ' cancelado: ' + p.name + ' volvió a tu álbum.');
+  })
+  .catch(() => {
+    btn.disabled = false;
+    btn.textContent = 'Sin conexión, probá de nuevo';
+    setTimeout(() => { btn.textContent = btn.dataset.texto || 'Cancelar'; }, 2500);
+  });
+}
+
+/* Aviso corto arriba de la lista de códigos (resultado de cancelar). */
+function avisoIntercambio(ok, txt){
+  const fb = document.getElementById('canjeCodigoFeedback');
+  fb.style.color = ok ? 'var(--poke-blue)' : 'var(--red)';
+  fb.textContent = txt;
+  document.getElementById('intercambioOverlay').querySelector('.reveal-panel').scrollTo({top:0, behavior:'smooth'});
+}
+
 function renderMisCodigos(){
   const wrap = document.getElementById('intercambioMisCodigosWrap');
   const cont = document.getElementById('misCodigosList');
@@ -4566,15 +4641,22 @@ function renderMisCodigos(){
     wa.textContent = 'WhatsApp';
     wa.setAttribute('aria-label', 'Compartir el código ' + item.codigo + ' por WhatsApp');
     wa.onclick = () => compartirCodigoWhatsApp(item.codigo, item.pokemonId);
+    const cancelar = document.createElement('button');
+    cancelar.className = 'btn-cancelar-codigo';
+    cancelar.textContent = 'Cancelar';
+    cancelar.setAttribute('aria-label', 'Cancelar el código ' + item.codigo + ' y recuperar la figurita');
+    cancelar.onclick = () => cancelarCodigo(item.codigo, cancelar, avisoIntercambio);
     const caja = document.createElement('div');
     caja.className = 'acciones-codigo';
-    caja.appendChild(btn); caja.appendChild(wa);
+    caja.appendChild(btn); caja.appendChild(wa); caja.appendChild(cancelar);
     fila.appendChild(caja);
     cont.appendChild(fila);
   });
 }
 
 function abrirIntercambio(){
+  document.getElementById('intercambioArribaBtn').hidden = true;
+  document.getElementById('intercambioOverlay').querySelector('.reveal-panel').scrollTop = 0;
   document.getElementById('canjeCodigoInput').value = '';
   document.getElementById('canjeCodigoFeedback').textContent = '';
   renderIntercambioDup();
