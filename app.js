@@ -1658,11 +1658,11 @@ const bolas = Object.assign({}, BOLAS_INICIALES);
 const maestro = {pts:0, ganadas:0, peleas:0, nivel:0};
 const RANGOS_MAESTRO = [
   {pts:0,    nombre:'Entrenador Novato'},
-  {pts:100,  nombre:'Entrenador',        premio:{bolas:{azul:3}}},
-  {pts:400,  nombre:'Líder de Gimnasio', premio:{monedas:300, bolas:{ultra:2}}},
-  {pts:1200, nombre:'Alto Mando',        premio:{monedas:500, bolas:{maestra:1}}},
-  {pts:3000, nombre:'Campeón',           premio:{legendarias:1, bolas:{maestra:1}}},
-  {pts:7000, nombre:'Maestro Pokémon',   premio:{monedas:1000, legendarias:1, bolas:{maestra:2}}}
+  {pts:100,  nombre:'Entrenador',        premio:{monedas:150, bolas:{azul:3}}},
+  {pts:1000, nombre:'Líder de Gimnasio', premio:{monedas:1000, bolas:{ultra:4}}},
+  {pts:3000, nombre:'Alto Mando',        premio:{monedas:2500, bolas:{maestra:2}}},
+  {pts:7000, nombre:'Campeón',           premio:{monedas:5000, legendarias:1, bolas:{maestra:3}}},
+  {pts:15000, nombre:'Maestro Pokémon',   premio:{monedas:12000, legendarias:2, bolas:{maestra:6}}}
 ];
 const NOMBRE_BOLA = {roja:'Poké Ball', azul:'Súper Ball', ultra:'Ultra Ball', maestra:'Master Ball'};
 /* Un rango ya cobrado no se pierde aunque se muevan los puntajes */

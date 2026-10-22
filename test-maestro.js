@@ -17,7 +17,7 @@ const SHOTS = process.env.SHOTS || '';
       const u = r.request().url();
       if(u.includes('pokemon-maestro-score')){ enviados.push(JSON.parse(r.request().postData())); return r.fulfill({status:200, body:'{"ok":true}'}); }
       if(u.includes('pokemon-maestro-top')) return r.fulfill({status:200, contentType:'application/json', body:JSON.stringify({ok:true, jugadores:3,
-        top:[{puesto:1, jugador:'Ash', pts:1500, ganadas:12, peleas:14}, {puesto:2, jugador:'Tester', pts:60, ganadas:3, peleas:5}, {puesto:3, jugador:'Misty', pts:12, ganadas:1, peleas:4}]})});
+        top:[{puesto:1, jugador:'Ash', pts:3500, ganadas:12, peleas:14}, {puesto:2, jugador:'Tester', pts:60, ganadas:3, peleas:5}, {puesto:3, jugador:'Misty', pts:12, ganadas:1, peleas:4}]})});
       return r.abort();
     });
     await ctx.addInitScript(() => {
@@ -35,11 +35,11 @@ const SHOTS = process.env.SHOTS || '';
     check('se ve la pestaña Maestros', await p.isVisible('#tabMaestro'));
     await p.click('#tabMaestro'); await p.waitForTimeout(400);
     const filas = await p.$$eval('#rankList .rank-row', rs => rs.map(r => r.textContent));
-    check('lista las filas del servidor (' + filas.length + ')', filas.length === 3 && filas[0].includes('Ash') && filas[0].includes('1500'));
-    check('cada fila muestra el rango (Ash con 1500 = Alto Mando)', filas[0].includes('Alto Mando'));
+    check('lista las filas del servidor (' + filas.length + ')', filas.length === 3 && filas[0].includes('Ash') && filas[0].includes('3500'));
+    check('cada fila muestra el rango (Ash con 3500 = Alto Mando)', filas[0].includes('Alto Mando'));
     check('mi fila resaltada', await p.isVisible('#rankList .rank-row.me'));
     const abajo = await p.textContent('#rankDone');
-    check('abajo muestra mi rango y cuánto falta', abajo.includes('Entrenador') && abajo.includes('te faltan 260 para Líder de Gimnasio'));
+    check('abajo muestra mi rango y cuánto falta', abajo.includes('Entrenador') && abajo.includes('te faltan 860 para Líder de Gimnasio'));
     check('lista los 5 rangos con su premio', (await p.$$('#rankDone .hof-row.rango')).length === 5 && abajo.includes('Master Ball'));
     check('el rango ya cobrado aparece con ✅', (await p.$$('#rankDone .hof-row.rango.ok')).length === 1);
     const tabsDentro = await p.$$eval('.rank-tab:not([hidden])', ts => ts.every(t => { const b = t.getBoundingClientRect(); return b.right <= innerWidth && b.left >= 0; }));
@@ -49,15 +49,15 @@ const SHOTS = process.env.SHOTS || '';
 
     const r = await p.evaluate(() => {
       const antes = {coins, azul:bolas.azul, ultra:bolas.ultra};
-      maestro.pts = 450;
+      maestro.pts = 1100;
       const sub = cobrarRangosMaestro();
       const otra = cobrarRangosMaestro();
       return {sub, otra, dc:coins - antes.coins, du:bolas.ultra - antes.ultra, da:bolas.azul - antes.azul, nivel:maestro.nivel};
     });
-    check('al pasar 400 pts sube a Líder de Gimnasio', r.sub.length === 1 && r.sub[0].nombre === 'Líder de Gimnasio' && r.nivel === 2);
-    check('cobra 300 monedas y 2 Ultra Ball (no repite el de Entrenador)', r.dc === 300 && r.du === 2 && r.da === 0);
+    check('al pasar 1000 pts sube a Líder de Gimnasio', r.sub.length === 1 && r.sub[0].nombre === 'Líder de Gimnasio' && r.nivel === 2);
+    check('cobra 1000 monedas y 4 Ultra Ball (no repite el de Entrenador)', r.dc === 1000 && r.du === 4 && r.da === 0);
     check('no se cobra dos veces', r.otra.length === 0);
-    const leg = await p.evaluate(() => { const antes = Object.values(state).filter(s => s.got).length; maestro.pts = 3200; const s = cobrarRangosMaestro();
+    const leg = await p.evaluate(() => { const antes = Object.values(state).filter(s => s.got).length; maestro.pts = 7200; const s = cobrarRangosMaestro();
       return {n:s.map(x => x.nombre), got:Object.values(state).filter(s => s.got).length - antes, txt:s[1] && s[1].premio}; });
     check('saltando dos rangos paga los dos (' + leg.n.join(', ') + ')', leg.n.join() === 'Alto Mando,Campeón');
     check('Campeón regala una legendaria con nombre', leg.got === 1 && /legendaria.*\(.+\)$/.test(leg.txt || ''));
