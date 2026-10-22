@@ -21,11 +21,13 @@ const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 3
     const ctx = await browser.newContext({viewport:{width:w, height:h}, hasTouch:tactil, isMobile:tactil && w < 900,
       ...(VIDEO ? {recordVideo:{dir:VIDEO, size:{width:w, height:h}}} : {})});
     await ctx.route('**://n8n.consultorarz.com/**', r => r.abort());
-    await ctx.addInitScript(() => {
+    /* EQUIPO=25,4,7 → sólo tengo esas figuritas de Kanto (para grabar con Pokémon conocidos) */
+    const EQUIPO = process.env.EQUIPO ? process.env.EQUIPO.split(',').map(Number) : null;
+    await ctx.addInitScript(eq => {
       localStorage.setItem('album-kanto-jugador', 'Tester');
-      const st = {}; for(let i = 1; i <= 151; i++) st[i] = {got:i <= 14 || i === 25 || i === 150, dup:0};
+      const st = {}; for(let i = 1; i <= 151; i++) st[i] = {got:eq ? eq.includes(i) : (i <= 14 || i === 25 || i === 150), dup:0};
       localStorage.setItem('album-kanto-progreso', JSON.stringify({coins:300, state:st}));
-    });
+    }, EQUIPO);
     const p = await ctx.newPage();
     const errores = []; p.on('pageerror', e => errores.push(e.message));
     await p.goto('file:///root/pokemon/index.html');
