@@ -636,13 +636,11 @@
 .rvario{margin-top:4px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;color:var(--gold-ink);}
 .ej-chip.on{} .ej-chip b{white-space:nowrap;}
 
-  /* Figuritas especiales: fondo oscuro FIJO con texto claro fijo (no depende del tema) */
-  .especiales{background:#1B1F33;border:1px solid #F0B400;border-radius:12px;padding:14px 16px;margin:14px 0 16px;color:#F4F5FA;}
+  /* Figuritas especiales: la misma figurita del álbum, marcada con borde y fondo dorados y una estrella */
+  .especiales{margin:16px 0 18px;padding-bottom:16px;border-bottom:1px solid var(--border);}
   .especiales[hidden]{display:none;}
-  .esp-tit{display:block;font-family:'Baloo 2',sans-serif;font-size:15px;color:#FFD63A;margin-bottom:10px;}
-  .esp-lista{display:flex;flex-wrap:wrap;gap:12px;}
-  .esp-carta{display:flex;flex-direction:column;align-items:center;gap:2px;width:150px;padding:10px;border-radius:10px;background:linear-gradient(160deg,#2C3354,#14172A);box-shadow:0 0 0 1px #F0B40066,0 0 18px #F0B40033;text-align:center;}
-  .esp-carta img{width:120px;height:120px;object-fit:contain;}
-  .esp-carta b{font-size:14px;color:#FFFFFF;}
-  .esp-carta small{font-size:11px;color:#C9CDE0;}
-  .esp-f{font-size:13px;font-weight:700;color:#FFD63A;}
+  .esp-tit{margin:0 0 8px;font-family:'Baloo 2',sans-serif;font-size:15px;font-weight:700;color:var(--ink);}
+  .slot.especial{background:#FFF6D6;border-color:var(--gold);}
+  .slot.especial .num{color:var(--gold-ink);}
+  .slot.especial .esp-tag{position:absolute;top:3px;right:4px;display:flex;color:var(--gold);}
+  .slot.especial .name{white-space:normal;line-height:1.15;color:var(--gold-ink);font-weight:700;}

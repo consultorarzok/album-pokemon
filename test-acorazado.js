@@ -26,7 +26,7 @@ check('el Mewtwo común no cambió ('+st.m+')', st.m.join()==='40');
 check('no suma figuritas al ranking ('+st.fig+')', st.fig===21);
 await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>e.classList.remove('show')));
 await p.waitForTimeout(400);
-check('después de la carta sale el cartel del regalo', await p.isVisible('#battleOverlay.show')); await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>e.classList.remove('show'))); check('NO está afuera', !(await p.isVisible('#especialesBox .esp-carta'))); await p.click('#pokedexBtn'); await p.waitForTimeout(500); check('aparece adentro de la Pokédex', await p.isVisible('#pokedexOverlay #especialesBox .esp-carta'));
+check('después de la carta sale el cartel del regalo', await p.isVisible('#battleOverlay.show')); await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>e.classList.remove('show'))); check('NO está afuera', !(await p.isVisible('#especialesBox .slot.especial'))); await p.click('#pokedexBtn'); await p.waitForTimeout(500); check('aparece adentro de la Pokédex', await p.isVisible('#pokedexOverlay #especialesBox .slot.especial'));
 await (await p.$('#especialesBox')).screenshot({path:(process.env.SHOTS||'/tmp')+'/box.png'});
 await p.reload();await p.waitForTimeout(1500);
 check('sigue después de recargar y no se regala de nuevo', !(await p.isVisible('#overlay.show')) && await p.evaluate(()=>especiales[10150].f===100));

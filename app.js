@@ -592,9 +592,13 @@ function renderEspeciales(){
   if(!box) return;
   const mias = especialesMios();
   box.hidden = !mias.length;
-  box.innerHTML = mias.length ? '<b class="esp-tit">⭐ Figuritas especiales</b><div class="esp-lista">' + mias.map(e =>
-    `<div class="esp-carta"><img src="${e.img}" alt="${e.name}" width="120" height="120"><b>${e.name}</b>` +
-    `<small>Edición especial · usala en la Arena</small><span class="esp-f">💪 ${especiales[e.id].f}</span></div>`).join('') + '</div>' : '';
+  /* misma figurita que las del álbum (.slot dentro de .grid), sólo marcada como especial */
+  const estrella = '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>';
+  box.innerHTML = mias.length ? '<h3 class="esp-tit">Especiales</h3><div class="grid esp-grid" role="list" aria-label="Figuritas especiales">' + mias.map(e =>
+    `<div class="slot got especial" role="listitem" aria-label="${e.name}, figurita especial, fuerza ${especiales[e.id].f}. Se usa en la Arena" title="${e.name} · fuerza ${especiales[e.id].f}">` +
+    `<div class="num">#${String(e.base).padStart(3,'0')}</div><div class="esp-tag">${estrella}</div>` +
+    `<img src="${e.img}" alt="" loading="lazy"><div class="name">${e.name}</div>` +
+    `<div class="typebar" style="background:${TYPE_COLORS[e.type]}"></div></div>`).join('') + '</div>' : '';
 }
 const imgVario = p => (SHINY_PROPIO[p.id] && SHINY_PROPIO[p.id].arte) || p.img.replace('/official-artwork/', '/official-artwork/shiny/');
 /* jsDelivr bloquea algunas imágenes shiny (archivos grandes: 19 en total). Respaldo en cadena:
@@ -3800,6 +3804,11 @@ const REGALOS = [
                  {id:150, f:100}] },
   /* 22/10/2026: Zeta pidió el Mewtwo Acorazado para él, poderoso y APARTE del Mewtwo común:
      figurita especial (ver ESPECIALES), se usa en la Arena. */
+  /* 22/10/2026: Zeta pidió sacar el Mewtwo shiny común de fuerza 100 que le llegó con el regalo viejo
+     'zeta-mewtwo-acorazado-20261022' (antes de que el Acorazado fuera figurita aparte). Sólo se quita
+     si ese regalo llegó a cobrarse; si no, no hay nada que sacar. */
+  { id: 'zeta-quitar-mewtwo-shiny-20261022', para: 'zeta centeno', monedas: 0,
+    quitar: [{id:150, f:100, s:true}], siCobro: 'zeta-mewtwo-acorazado-20261022' },
   { id: 'zeta-acorazado-especial-20261022', para: 'zeta centeno', monedas: 0, especiales: [{id:10150, f:100}] },
   { id: 'todos-2500-bolas-20260907', para: '*', monedas: 2500,
     bolas: {roja: 25, azul: 50, ultra: 20, maestra: 10}, aventura: true },
@@ -3895,6 +3904,16 @@ function regalarEjemplar(id, f, shiny){
   return {p, isNew};
 }
 
+/* Saca UN ejemplar concreto (misma fuerza y shiny). Si era el único, la figurita vuelve a faltar. */
+function quitarEjemplar(id, f, shiny){
+  if(!state[id]) return false;
+  const l = ejemplares(id), i = l.findIndex(e => e.f === f && !!e.s === !!shiny);
+  if(i < 0) return false;
+  l.splice(i, 1);
+  if(state[id].dup > 0) state[id].dup--; else { state[id].got = false; state[id].dup = 0; }
+  return true;
+}
+
 function aplicarRegalos(){
   let usados = [];
   try{ usados = JSON.parse(localStorage.getItem(REGALOS_KEY) || '[]'); }catch(e){}
@@ -3912,6 +3931,7 @@ function aplicarRegalos(){
   const ejPulls = [];
   const bolasGanadas = {};
   const espPulls = [];
+  let quitados = 0;
   REGALOS.forEach(r => {
     /* 'para' puede ser un nombre, '*' (todos) o una LISTA de nombres: sirve
        cuando no se sabe con cuál variante se registró (a "El Mostaza" no le
@@ -3928,6 +3948,12 @@ function aplicarRegalos(){
       const ev = eventoActivo();
       if(!ev || ev.slug !== r.soloDuranteEvento) return;
       esEvento = ev;
+    }
+    /* Quitar un ejemplar puntual que se regaló de más: sólo si el regalo de origen se cobró. */
+    if(r.quitar){
+      if(r.siCobro && usados.indexOf(r.siCobro) !== -1) r.quitar.forEach(x => { if(quitarEjemplar(x.id, x.f, x.s)) quitados++; });
+      usados.push(r.id);
+      return;
     }
     coins += (r.monedas || 0);
     for(let i = 0; i < (r.legendarias || 0); i++){
@@ -3964,7 +3990,14 @@ function aplicarRegalos(){
     total += (r.monedas || 0);
   });
   const totalBolas = Object.keys(bolasGanadas).reduce((a, t) => a + bolasGanadas[t], 0);
-  if(total === 0 && !regaladas.length && !totalBolas && !ejPulls.length && !espPulls.length) return;
+  if(quitados){
+    try{ localStorage.setItem(REGALOS_KEY, JSON.stringify(usados)); }catch(e){}
+    saveProgress(); renderGrid(); updateProgress(); enviarPuntaje();
+  }
+  if(total === 0 && !regaladas.length && !totalBolas && !ejPulls.length && !espPulls.length){
+    try{ localStorage.setItem(REGALOS_KEY, JSON.stringify(usados)); }catch(e){}
+    return;
+  }
 
   try{ localStorage.setItem(REGALOS_KEY, JSON.stringify(usados)); }catch(e){}
   saveProgress();
