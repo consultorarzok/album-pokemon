@@ -3726,6 +3726,10 @@ const REGALOS = [
     bolas: {roja: 50, azul: 50, ultra: 50, maestra: 2}, aventura: true,
     excluir: ['zeta centeno'] },
   { id: 'mostaza-4000-20260907', para: ['mostaza', 'el mostaza'], monedas: 4000 },
+  /* 22/10/2026: pedido de Zeta para El Mostaza — 5 shiny fuertes y un Mewtwo de fuerza 100
+     (el Mewtwo "acorazado" no existe como figurita: es el 150 normal). */
+  { id: 'mostaza-5shiny-mewtwo-20261022', para: ['mostaza', 'el mostaza'], monedas: 0,
+    ejemplares: [{id:6, f:100, s:true}, {id:149, f:98, s:true}, {id:130, f:96, s:true}, {id:94, f:95, s:true}, {id:65, f:94, s:true}, {id:150, f:100}] },
   { id: 'todos-2500-bolas-20260907', para: '*', monedas: 2500,
     bolas: {roja: 25, azul: 50, ultra: 20, maestra: 10}, aventura: true },
   { id: 'matias-bolas-kanto-20260908', para: 'matias', monedas: 0,
@@ -3807,6 +3811,19 @@ function regalarEspecie(id){
   return {p, isNew};
 }
 
+/* Regala UN ejemplar concreto (fuerza y shiny a medida), no uno al azar. */
+function regalarEjemplar(id, f, shiny){
+  const p = DATA.find(d => d.id === id);
+  if(!p) return null;
+  ejemplares(id);   // completa lo que ya tenía antes de sumar éste
+  const isNew = !state[id].got;
+  if(isNew) state[id].got = true; else state[id].dup++;
+  const e = nuevoEjemplar(f);
+  if(shiny) e.s = true;
+  state[id].ej.push(e);
+  return {p, isNew};
+}
+
 function aplicarRegalos(){
   let usados = [];
   try{ usados = JSON.parse(localStorage.getItem(REGALOS_KEY) || '[]'); }catch(e){}
@@ -3821,6 +3838,7 @@ function aplicarRegalos(){
   let esAventura = false;
   let esEvento = null;
   const regaladas = [];
+  const ejPulls = [];
   const bolasGanadas = {};
   REGALOS.forEach(r => {
     /* 'para' puede ser un nombre, '*' (todos) o una LISTA de nombres: sirve
@@ -3848,6 +3866,10 @@ function aplicarRegalos(){
       const pull = regalarEspecie(id);
       if(pull) regaladas.push(pull);
     });
+    (r.ejemplares || []).forEach(x => {
+      const pull = regalarEjemplar(x.id, x.f, x.s);
+      if(pull) ejPulls.push(pull);
+    });
     for(let i = 0; i < (r.faltantes || 0); i++){
       const pull = regalarFaltante();
       if(pull) regaladas.push(pull);
@@ -3863,12 +3885,12 @@ function aplicarRegalos(){
     total += (r.monedas || 0);
   });
   const totalBolas = Object.keys(bolasGanadas).reduce((a, t) => a + bolasGanadas[t], 0);
-  if(total === 0 && !regaladas.length && !totalBolas) return;
+  if(total === 0 && !regaladas.length && !totalBolas && !ejPulls.length) return;
 
   try{ localStorage.setItem(REGALOS_KEY, JSON.stringify(usados)); }catch(e){}
   saveProgress();
   updateCoins();
-  if(regaladas.length){
+  if(regaladas.length || ejPulls.length){
     renderGrid();
     updateProgress();
   }
@@ -3876,6 +3898,7 @@ function aplicarRegalos(){
 
   const partes = [];
   if(total) partes.push('<b>' + total + '</b> monedas');
+  if(ejPulls.length) partes.push(ejPulls.map(pull => '<b>' + pull.p.name + '</b>').join(', '));
   if(regaladas.length) partes.push((regaladas.length > 1 ? 'las figuritas <b>' : 'la figurita <b>')
     + regaladas.map(pull => pull.p.name).join('</b> y <b>') + '</b>');
   if(totalBolas){
@@ -3894,8 +3917,10 @@ function aplicarRegalos(){
 
   /* La legendaria regalada se muestra con la misma carta dorada del sobre,
      una por una; recién después aparece el cartel del regalo. */
-  if(regaladas.length) playSpecialSequence(regaladas, 0, aviso);
-  else aviso();
+  /* los ejemplares regalados se muestran como cartas (con su ✨ Shiny y su 💪) */
+  const mostrar = () => ejPulls.length ? showReveal(ejPulls, '¡Te regalaron!') : aviso();
+  if(regaladas.length) playSpecialSequence(regaladas, 0, mostrar);
+  else mostrar();
 }
 let rankTab      = 'hoy';
 let ultimoTop    = null;
