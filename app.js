@@ -566,7 +566,23 @@ function nuevoEjemplar(fuerza){
 }
 const codigoFuerza = e => e.f + (e.s ? 100 : 0);
 /* Ilustración oficial: la shiny tiene su propia carpeta en el mismo repositorio */
-const imgVario = p => p.img.replace('/official-artwork/', '/official-artwork/shiny/');
+/* Shiny con arte propio, hecho a medida (el de PokeAPI no gustaba). 94 = Gengar: blanco con
+   ojos rojos. Los archivos están en images/shiny/ (recoloreados desde los originales). */
+const SHINY_PROPIO = {
+  94: {arte:'images/shiny/gengar-arte.png', icono:'images/shiny/gengar-icono.png',
+       frente:'images/shiny/gengar-frente.gif', espalda:'images/shiny/gengar-espalda.gif'}
+};
+const imgVario = p => (SHINY_PROPIO[p.id] && SHINY_PROPIO[p.id].arte) || p.img.replace('/official-artwork/', '/official-artwork/shiny/');
+/* jsDelivr bloquea algunas imágenes shiny (archivos grandes: 19 en total). Respaldo en cadena:
+   1) el mismo archivo desde GitHub directo, 2) la versión normal. Se usa con onerror="respaldoShiny(this)". */
+function respaldoShiny(el){
+  const paso = Number(el.dataset.rs || 0);
+  el.dataset.rs = paso + 1;
+  if(!/^https?:/.test(el.src) || !el.src.includes('/shiny/')){ el.onerror = null; return; }
+  if(paso === 0 && el.src.includes('cdn.jsdelivr.net')) el.src = el.src.replace('https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/');
+  else if(paso <= 1){ el.src = el.src.replace('/shiny/', '/'); }
+  else el.onerror = null;
+}
 const imgEj = (p, e) => e && e.s ? imgVario(p) : p.img;
 const tieneShiny = id => !!(state[id].ej && state[id].ej.some(e => e && e.s));
 function ejemplares(id){
@@ -799,7 +815,7 @@ function renderGrid(){
       const vario = tieneShiny(p.id);
       slot.classList.toggle('vario', vario);
       slot.innerHTML = numTag + dupTag + (vario ? '<div class="vario-tag" title="Tenés una shiny">✨</div>' : '') +
-        `<img src="${vario ? imgVario(p) : p.img}" alt="" loading="lazy"><div class="name">${p.name}</div>` + bar;
+        `<img src="${vario ? imgVario(p) : p.img}" alt="" loading="lazy"${vario ? ' onerror="respaldoShiny(this)"' : ''}><div class="name">${p.name}</div>` + bar;
     } else {
       slot.innerHTML = numTag + `<div class="ball-icon"></div>` + bar;
     }
@@ -937,7 +953,7 @@ function showReveal(pulls, titulo){
     card.style.animationDelay = (i*0.12)+'s';
     card.style.borderLeft = `3px solid ${TYPE_COLORS[pull.p.type]}`;
     if(ej && ej.s) card.classList.add('vario');
-    card.innerHTML = `<img src="${imgEj(pull.p, ej)}" alt="${pull.p.name}">
+    card.innerHTML = `<img src="${imgEj(pull.p, ej)}" alt="${pull.p.name}"${ej && ej.s ? ' onerror="respaldoShiny(this)"' : ''}>
       <div class="rname">${pull.p.name}</div>
       <div class="tag ${pull.isNew?'new':'dup'}">${pull.isNew?'¡Nueva!':'Repetida'}</div>
       ${ej && ej.s ? '<div class="rvario">✨ ¡Shiny!</div>' : ''}
@@ -4509,7 +4525,9 @@ function mostrarCartaCodigo(pokemonId, codigo, fuerza, shiny){
   void card.offsetWidth;
   card.style.animation = '';
 
-  document.getElementById('codigoCardImg').src = shiny ? imgVario(p) : p.img;
+  const imgCodigo = document.getElementById('codigoCardImg');
+  imgCodigo.removeAttribute('data-rs'); imgCodigo.onerror = shiny ? () => respaldoShiny(imgCodigo) : null;
+  imgCodigo.src = shiny ? imgVario(p) : p.img;
   document.getElementById('codigoCardName').textContent = (shiny ? '✨ ' : '') + p.name + (fuerza ? ' · 💪 ' + fuerza : '');
   document.getElementById('codigoCardOverlay').dataset.pokemonId = p.id;
   document.getElementById('codigoCardTexto').textContent = codigo;

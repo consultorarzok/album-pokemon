@@ -23,9 +23,9 @@
 'use strict';
 
 const CDN = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/';
-const spFrente  = (id, v) => CDN + 'versions/generation-v/black-white/animated/' + (v ? 'shiny/' : '') + id + '.gif';
-const spEspalda = (id, v) => CDN + 'versions/generation-v/black-white/animated/back/' + (v ? 'shiny/' : '') + id + '.gif';
-const spIcono   = (id, v) => CDN + (v ? 'shiny/' : '') + id + '.png';
+const spFrente  = (id, v) => v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].frente : CDN + 'versions/generation-v/black-white/animated/' + (v ? 'shiny/' : '') + id + '.gif';
+const spEspalda = (id, v) => v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].espalda : CDN + 'versions/generation-v/black-white/animated/back/' + (v ? 'shiny/' : '') + id + '.gif';
+const spIcono   = (id, v) => v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].icono : CDN + (v ? 'shiny/' : '') + id + '.png';
 
 /* ---------------- reglas ---------------- */
 /* El corto pega menos y se recarga más lento que antes: que la pelea no sea sólo
@@ -653,9 +653,11 @@ function ponerSprite(e){
   e.giroEl.style.opacity = '0';
   for(const v of ['frente', 'espalda']){
     const img = e.imgs[v];
-    img.removeAttribute('data-fb');
+    img.removeAttribute('data-fb'); img.removeAttribute('data-rs');
     img.onload = () => { tamanoSprite(e); if(v === e.vista){ e.refl.src = img.src; e.giroEl.style.opacity = '1'; } };
     img.onerror = () => {
+      /* shiny que jsDelivr no sirve: probar GitHub directo y después la versión normal */
+      if(mon.vario && /^https?:/.test(img.src) && img.src.includes('/shiny/') && !img.dataset.fb){ respaldoShiny(img); if(img.dataset.rs <= 2) return; }
       if(img.dataset.fb) return;
       img.dataset.fb = '1';     // si no carga el animado, la ilustración oficial (en chico)
       img.src = mon.vario ? imgVario(mon.p) : mon.p.img;

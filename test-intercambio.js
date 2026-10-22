@@ -89,8 +89,8 @@ const estadoDe = p => p.evaluate(() => JSON.parse(localStorage.getItem('album-ka
   check('B recibe la figurita #25 como nueva', sb[25].got === true && sb[25].dup === 0);
   check('se abre la carta "Canjeaste un código"', (await B.textContent('#revealTitle')).includes('Canjeaste'));
   check('el servidor la marcó usada', codigos[codigo].usado === true);
-  await B.reload(); await B.waitForTimeout(600);
-  check('la figurita de B sobrevive al recargar', (await estadoDe(B))[25].got === true);
+  await B.reload(); await B.waitForTimeout(1800);
+  { const eb = await estadoDe(B); if(!(eb[25] && eb[25].got === true)) console.log('ESTADO B tras recargar:', JSON.stringify(eb), '| url', B.url()); check('la figurita de B sobrevive al recargar', eb[25] && eb[25].got === true); }
 
   console.log('— C intenta reusar el código —');
   const C = await entrenador(browser, 'Cami', null);

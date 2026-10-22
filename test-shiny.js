@@ -19,7 +19,9 @@ const SHOTS = process.env.SHOTS || '';
       if(u.includes('pokemon-canjear-codigo')) return r.fulfill({status:200, body:'{"ok":true,"pokemonId":20,"fuerza":172}'});
       return r.abort();
     });
-    await ctx.route('**/PokeAPI/sprites**', r => r.abort());   // sin internet: sólo importa qué URL se pide
+    /* sin internet de verdad: las imágenes se contestan con un PNG chico (así el respaldo no cambia la URL) */
+    const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+    await ctx.route('**/PokeAPI/sprites**', r => r.fulfill({status:200, contentType:'image/png', body:PNG}));
     await ctx.addInitScript(() => {
       if(sessionStorage.getItem('sembrado')) return; sessionStorage.setItem('sembrado', '1');
       localStorage.setItem('album-kanto-jugador', 'Tester');
