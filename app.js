@@ -546,23 +546,37 @@ DATA.forEach(p => state[p.id] = {got:false, dup:0});
    se pierden los más débiles. La fuerza se sortea al guardar, así recargar
    la página no la vuelve a sortear. La arena usa el más fuerte de cada uno. */
 const SERIE = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+/* Variocolor (shiny): 1 de cada 100 ejemplares nuevos. Tiene otro color y +15 de fuerza.
+   Viaja en los códigos de intercambio como fuerza+100 (101-200), así no hizo falta tocar
+   la tabla del servidor: el que lo recibe lo decodifica acá. */
+const PROB_SHINY = 1 / 100, BONO_SHINY = 15;
 function nuevoEjemplar(fuerza){
-  /* promedio de dos sorteos: casi todos andan por el medio, los de 90+ son raros */
-  if(!(fuerza >= 1 && fuerza <= 100)) fuerza = Math.max(1, Math.round((Math.random() + Math.random()) / 2 * 100));
+  let shiny = false;
+  if(fuerza > 100 && fuerza <= 200){ shiny = true; fuerza -= 100; }
+  else if(!(fuerza >= 1 && fuerza <= 100)){
+    /* promedio de dos sorteos: casi todos andan por el medio, los de 90+ son raros */
+    fuerza = Math.max(1, Math.round((Math.random() + Math.random()) / 2 * 100));
+    if(Math.random() < PROB_SHINY){ shiny = true; fuerza = Math.min(100, fuerza + BONO_SHINY); }
+  }
   let c = '';
   for(let i = 0; i < 4; i++) c += SERIE[Math.floor(Math.random() * SERIE.length)];
-  return {f:fuerza, c};
+  return shiny ? {f:fuerza, c, s:true} : {f:fuerza, c};
 }
+const codigoFuerza = e => e.f + (e.s ? 100 : 0);
+/* Ilustración oficial: la variocolor tiene su propia carpeta en el mismo repositorio */
+const imgVario = p => p.img.replace('/official-artwork/', '/official-artwork/shiny/');
+const imgEj = (p, e) => e && e.s ? imgVario(p) : p.img;
+const tieneShiny = id => !!(state[id].ej && state[id].ej.some(e => e && e.s));
 function ejemplares(id){
   const s = state[id], n = s.got ? 1 + s.dup : 0;
   if(!Array.isArray(s.ej)) s.ej = [];
   s.ej = s.ej.filter(e => e && e.f >= 1 && e.f <= 100);
   while(s.ej.length < n) s.ej.push(nuevoEjemplar());
-  if(s.ej.length > n){ s.ej.sort((a, b) => b.f - a.f); s.ej.length = n; }
+  if(s.ej.length > n){ s.ej.sort((a, b) => (b.f + (b.s ? 1000 : 0)) - (a.f + (a.s ? 1000 : 0))); s.ej.length = n; }   // los variocolores son los últimos en irse
   return s.ej;
 }
 function mejorEjemplar(id){
-  return ejemplares(id).reduce((m, e) => (!m || e.f > m.f) ? e : m, null);
+  return ejemplares(id).reduce((m, e) => (!m || e.f > m.f || (e.f === m.f && e.s)) ? e : m, null);
 }
 function sincronizarEjemplares(){
   Object.keys(state).forEach(id => { if(state[id].got || state[id].ej) ejemplares(id); });
@@ -774,13 +788,16 @@ function renderGrid(){
     slot.setAttribute('role', 'listitem');
     const numero = '#' + String(p.id).padStart(3,'0');
     slot.setAttribute('aria-label', gotVista
-      ? numero + ' ' + p.name + (s.dup > 0 ? ', repetida, tenés ' + (s.dup + 1) : '')
+      ? numero + ' ' + p.name + (s.dup > 0 ? ', repetida, tenés ' + (s.dup + 1) : '') + (tieneShiny(p.id) ? ', variocolor' : '')
       : numero + ', todavía no la tenés');
     const numTag = `<div class="num">#${String(p.id).padStart(3,'0')}</div>`;
     const dupTag = s.dup>0 ? `<div class="dup">x${s.dup+1}</div>` : '';
     const bar = `<div class="typebar" style="background:${TYPE_COLORS[p.type]}"></div>`;
     if(gotVista){
-      slot.innerHTML = numTag + dupTag + `<img src="${p.img}" alt="" loading="lazy"><div class="name">${p.name}</div>` + bar;
+      const vario = tieneShiny(p.id);
+      slot.classList.toggle('vario', vario);
+      slot.innerHTML = numTag + dupTag + (vario ? '<div class="vario-tag" title="Tenés una variocolor">✨</div>' : '') +
+        `<img src="${vario ? imgVario(p) : p.img}" alt="" loading="lazy"><div class="name">${p.name}</div>` + bar;
     } else {
       slot.innerHTML = numTag + `<div class="ball-icon"></div>` + bar;
     }
@@ -917,9 +934,11 @@ function showReveal(pulls, titulo){
     card.className = 'reveal-card';
     card.style.animationDelay = (i*0.12)+'s';
     card.style.borderLeft = `3px solid ${TYPE_COLORS[pull.p.type]}`;
-    card.innerHTML = `<img src="${pull.p.img}" alt="${pull.p.name}">
+    if(ej && ej.s) card.classList.add('vario');
+    card.innerHTML = `<img src="${imgEj(pull.p, ej)}" alt="${pull.p.name}">
       <div class="rname">${pull.p.name}</div>
       <div class="tag ${pull.isNew?'new':'dup'}">${pull.isNew?'¡Nueva!':'Repetida'}</div>
+      ${ej && ej.s ? '<div class="rvario">✨ ¡Variocolor!</div>' : ''}
       ${ej ? `<div class="rfuerza ${claseFuerza(ej.f)}" title="${nivelFuerza(ej.f)}">💪 ${ej.f}</div>` : ''}`;
     box.appendChild(card);
   });
@@ -4364,7 +4383,7 @@ function renderIntercambioDup(){
       <span class="txt"><b>${p.name}</b>Tenés ${lista.length}: elegí cuál dar</span>
       <div class="ej-lista" role="radiogroup" aria-label="Ejemplares de ${p.name}">${lista.map((e, i) =>
         `<button type="button" class="ej-chip ${claseFuerza(e.f)}" title="${nivelFuerza(e.f)}" data-c="${e.c}" role="radio">
-          <b>💪 ${e.f}</b><small>N.º ${e.c}${i === 0 ? ' · ⭐ Arena' : ''}</small></button>`).join('')}</div>`;
+          <b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}${e.s ? ' · variocolor' : ''}${i === 0 ? ' · ⭐ Arena' : ''}</small></button>`).join('')}</div>`;
     const btn = document.createElement('button');
     btn.className = 'open-btn';
     btn.style.padding = '9px 14px';
@@ -4427,7 +4446,7 @@ function generarCodigo(pokemonId, btn, serie){
   fetch(API_BASE + '/pokemon-generar-codigo', {
     method: 'POST',
     headers: {'Content-Type': 'text/plain;charset=UTF-8'},
-    body: JSON.stringify({jugador, dispositivo, pokemonId, fuerza: ej.f})
+    body: JSON.stringify({jugador, dispositivo, pokemonId, fuerza: codigoFuerza(ej)})
   })
   .then(r => r.json())
   .then(res => {
@@ -4442,7 +4461,7 @@ function generarCodigo(pokemonId, btn, serie){
     guardarCodigoGenerado(res.codigo, pokemonId);
     renderIntercambioDup();   // reconstruye la lista entera; este btn queda descartado
     renderMisCodigos();
-    mostrarCartaCodigo(pokemonId, res.codigo, ej.f);
+    mostrarCartaCodigo(pokemonId, res.codigo, ej.f, ej.s);
   })
   .catch(() => {
     btn.disabled = false;
@@ -4455,7 +4474,7 @@ function generarCodigo(pokemonId, btn, serie){
    (reusa las clases .special-overlay/.special-card), pero con el código en
    vez del cartel "¡Nueva!"/"Repetida" — acá lo importante no es si es nueva,
    es que el código se vea grande y fácil de copiar. */
-function mostrarCartaCodigo(pokemonId, codigo, fuerza){
+function mostrarCartaCodigo(pokemonId, codigo, fuerza, shiny){
   const p = DATA.find(d => d.id === pokemonId);
   if(!p) return;
   const card = document.getElementById('codigoCardWrap');
@@ -4463,8 +4482,8 @@ function mostrarCartaCodigo(pokemonId, codigo, fuerza){
   void card.offsetWidth;
   card.style.animation = '';
 
-  document.getElementById('codigoCardImg').src = p.img;
-  document.getElementById('codigoCardName').textContent = p.name + (fuerza ? ' · 💪 ' + fuerza : '');
+  document.getElementById('codigoCardImg').src = shiny ? imgVario(p) : p.img;
+  document.getElementById('codigoCardName').textContent = (shiny ? '✨ ' : '') + p.name + (fuerza ? ' · 💪 ' + fuerza : '');
   document.getElementById('codigoCardOverlay').dataset.pokemonId = p.id;
   document.getElementById('codigoCardTexto').textContent = codigo;
   card.style.background = `linear-gradient(160deg, ${TYPE_COLORS[p.type]}33, #12172B)`;

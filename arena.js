@@ -23,9 +23,9 @@
 'use strict';
 
 const CDN = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/';
-const spFrente  = id => CDN + 'versions/generation-v/black-white/animated/' + id + '.gif';
-const spEspalda = id => CDN + 'versions/generation-v/black-white/animated/back/' + id + '.gif';
-const spIcono   = id => CDN + id + '.png';
+const spFrente  = (id, v) => CDN + 'versions/generation-v/black-white/animated/' + (v ? 'shiny/' : '') + id + '.gif';
+const spEspalda = (id, v) => CDN + 'versions/generation-v/black-white/animated/back/' + (v ? 'shiny/' : '') + id + '.gif';
+const spIcono   = (id, v) => CDN + (v ? 'shiny/' : '') + id + '.png';
 
 /* ---------------- reglas ---------------- */
 /* El corto pega menos y se recarga más lento que antes: que la pelea no sea sólo
@@ -593,9 +593,10 @@ function festejo(fuerte){
 /* La fuerza del ejemplar (1-100) mueve vida y golpe un ±10%: el tuyo es tu mejor
    ejemplar; el del rival se sortea como cualquier figurita nueva. */
 function crearMon(p, rival){
-  const fz = rival ? nuevoEjemplar().f : ((mejorEjemplar(p.id) || {}).f || 50);
+  const ej = rival ? null : mejorEjemplar(p.id);
+  const fz = rival ? nuevoEjemplar(50).f : ((ej || {}).f || 50);
   const k = .9 + fz / 500, bst = bstDe(p), max = Math.round((60 + bst * .22) * k);
-  return {p, bst, max, hp:max, en:EN_MAX, vivo:true, st:statsDe(p), fz, k};
+  return {p, bst, max, hp:max, en:EN_MAX, vivo:true, st:statsDe(p), fz, k, vario:!!(ej && ej.s)};
 }
 function crearEntidad(lado){
   const w = $('arMon-' + lado);
@@ -657,10 +658,10 @@ function ponerSprite(e){
     img.onerror = () => {
       if(img.dataset.fb) return;
       img.dataset.fb = '1';     // si no carga el animado, la ilustración oficial (en chico)
-      img.src = mon.p.img;
+      img.src = mon.vario ? imgVario(mon.p) : mon.p.img;
     };
     img.alt = mon.p.name;
-    img.src = v === 'frente' ? spFrente(mon.p.id) : spEspalda(mon.p.id);
+    img.src = v === 'frente' ? spFrente(mon.p.id, mon.vario) : spEspalda(mon.p.id, mon.vario);
   }
   mostrarVista(e);
   e.rot.style.setProperty('--tc', TYPE_COLORS[mon.p.type]);
@@ -1517,7 +1518,7 @@ function abrirEquipo(forzado){
     <div class="ar-eq-grid">${eq.mons.map((m, i) => {
       const off = !m.vivo || i === eq.idx, fr = m.hp / m.max;
       return `<button class="ar-b ar-carta" data-i="${i}"${off ? ' disabled' : ''} style="border-left-color:${TYPE_COLORS[m.p.type]}">
-        <img src="${spIcono(m.p.id)}" alt="" width="48" height="48"><b>${m.p.name}</b>
+        <img src="${spIcono(m.p.id, m.vario)}" alt="" width="48" height="48"><b>${m.vario ? "✨ " : ""}${m.p.name}</b>
         <span class="ar-mini"><i style="width:${fr * 100}%;background:${fr > .5 ? '#3DDC6E' : (fr > .2 ? '#F7B731' : '#F0463C')}"></i></span>
         <small>${m.vivo ? Math.round(m.hp) + '/' + m.max : 'Debilitado'}</small></button>`;
     }).join('')}</div>${forzado ? '' : '<button class="ar-b ar-med" id="arVolver"><b>← Volver</b></button>'}</div>`;
@@ -1938,8 +1939,8 @@ function abrirArena(){
         const n = sel.indexOf(p.id) + 1, s = statsDe(p);
         return `<button class="ar-sel${n ? ' on' : ''}" data-id="${p.id}" aria-pressed="${n ? 'true' : 'false'}" style="border-color:${n ? TYPE_COLORS[p.type] : '#34407a'}">
           ${n ? `<span class="ar-n">${n}</span>` : ''}
-          <img src="${spIcono(p.id)}" alt="" width="64" height="64" loading="lazy">
-          <b>${p.name}</b><small>${TYPE_LABEL[p.type]} · ${bstDe(p)} · 💪${(mejorEjemplar(p.id) || {}).f || 50}</small>
+          <img src="${spIcono(p.id, (mejorEjemplar(p.id) || {}).s)}" alt="" width="64" height="64" loading="lazy">
+          <b>${(mejorEjemplar(p.id) || {}).s ? '✨ ' : ''}${p.name}</b><small>${TYPE_LABEL[p.type]} · ${bstDe(p)} · 💪${(mejorEjemplar(p.id) || {}).f || 50}</small>
           <small class="ar-st">Crít. ${Math.round(s.crit * 100)}% ×${s.critMult.toFixed(1)}</small>
           <small class="ar-st">Veloc. ${'★'.repeat(Math.max(1, Math.round((s.vel - .65) / .14)))}</small></button>`;
       }).join('')}</div>
