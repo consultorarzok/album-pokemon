@@ -3807,6 +3807,9 @@ const REGALOS = [
   /* 22/10/2026: Zeta pidió sacar el Mewtwo shiny común de fuerza 100 que le llegó con el regalo viejo
      'zeta-mewtwo-acorazado-20261022' (antes de que el Acorazado fuera figurita aparte). Sólo se quita
      si ese regalo llegó a cobrarse; si no, no hay nada que sacar. */
+  /* 22/10/2026: Zeta pidió otro Charizard y otro Gengar shiny, poderosos. */
+  { id: 'zeta-charizard-gengar-shiny-20261022', para: 'zeta centeno', monedas: 0,
+    ejemplares: [{id:6, f:100, s:true}, {id:94, f:100, s:true}] },
   { id: 'zeta-quitar-mewtwo-shiny-20261022', para: 'zeta centeno', monedas: 0,
     quitar: [{id:150, f:100, s:true}], siCobro: 'zeta-mewtwo-acorazado-20261022' },
   { id: 'zeta-acorazado-especial-20261022', para: 'zeta centeno', monedas: 0, especiales: [{id:10150, f:100}] },
