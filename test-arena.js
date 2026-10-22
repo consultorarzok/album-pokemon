@@ -7,6 +7,7 @@ catch(e){ ({ chromium } = require(process.env.PLAYWRIGHT_PATH || '/root/.npm/_np
 let ok = 0, fail = 0;
 const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail++; console.log('  ❌ ' + n); } };
 const SHOTS = process.env.SHOTS || '';
+const TURBO = process.env.VIDEO ? 1 : 3;
 /* [nombre, ancho, alto, táctil] */
 const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 390, true], ['tablet parada', 820, 1180, true],
                  ['compu', 1366, 768, false], ['ancho medio', 600, 900, true]];
@@ -15,7 +16,10 @@ const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 3
   const browser = await chromium.launch();
   for(const [nombre, w, h, tactil] of TAMANOS.filter(t => !process.env.SOLO || t[0].includes(process.env.SOLO))){
     console.log('— ' + nombre + ' (' + w + '×' + h + ') —');
-    const ctx = await browser.newContext({viewport:{width:w, height:h}, hasTouch:tactil, isMobile:tactil && w < 900});
+    /* VIDEO=carpeta graba la pelea a velocidad real (sin turbo) */
+    const VIDEO = process.env.VIDEO || '';
+    const ctx = await browser.newContext({viewport:{width:w, height:h}, hasTouch:tactil, isMobile:tactil && w < 900,
+      ...(VIDEO ? {recordVideo:{dir:VIDEO, size:{width:w, height:h}}} : {})});
     await ctx.route('**://n8n.consultorarz.com/**', r => r.abort());
     await ctx.addInitScript(() => {
       localStorage.setItem('album-kanto-jugador', 'Tester');
@@ -30,7 +34,7 @@ const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 3
     const tocar = s => tactil ? p.tap(s) : p.click(s);
 
     check('el botón Pelear está habilitado', await p.isEnabled('#battleBtn'));
-    await p.evaluate(() => { window.__arenaTurbo = 3; });
+    await p.evaluate(t => { window.__arenaTurbo = t; }, TURBO);
     await tocar('#battleBtn');
     await p.waitForSelector('.ar-sel');
     check('selector de equipo con los Kanto que tengo', (await p.$$('.ar-sel')).length === await p.evaluate(() => kantoMios().length));
@@ -141,7 +145,7 @@ const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 3
     await tocar('#arCerrar2');
     check('Cerrar vuelve al álbum', !(await p.isVisible('#arenaOverlay')));
     await p.setViewportSize({width:w, height:h});
-    await p.evaluate(() => { window.__arenaTurbo = 3; });
+    await p.evaluate(t => { window.__arenaTurbo = t; }, TURBO);
     await tocar('#battleBtn'); await p.waitForSelector('.ar-sel'); await tocar('#arPickGo');
     await p.waitForSelector('#arStage'); await p.keyboard.press('Escape');
     check('Esc pregunta si abandonar', await p.isVisible('#arAbandonar'));

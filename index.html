@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261029">
+<link rel="stylesheet" href="styles.css?v=20261030">
 </head>
 <body>
 <main class="wrap" id="main">
@@ -34,42 +34,48 @@
     <div class="evento-banner-sub" id="eventoBannerSub"></div>
   </div>
 
-  <div class="pokedex-launch">
-    <img class="pokedex-launch-icon" src="images/pokedex-icon.png" alt="">
-    <div class="pokedex-launch-text">
-      <span class="pokedex-launch-label">Mi Pokédex</span>
-      <span class="pokedex-launch-progress" id="pokedexLaunchProgress">0 / 151 figuritas · 0%</span>
-      <span class="pokedex-launch-barra" aria-hidden="true"><i id="pokedexLaunchFill"></i></span>
+  <div class="zonas">
+  <section class="zona zona-album" aria-labelledby="zonaAlbumTit">
+    <h2 class="zona-tit" id="zonaAlbumTit">Completar el álbum</h2>
+    <div class="pokedex-launch">
+      <img class="pokedex-launch-icon" src="images/pokedex-icon.png" alt="">
+      <div class="pokedex-launch-text">
+        <span class="pokedex-launch-label">Mi Pokédex</span>
+        <span class="pokedex-launch-progress" id="pokedexLaunchProgress">0 / 151 figuritas · 0%</span>
+        <span class="pokedex-launch-barra" aria-hidden="true"><i id="pokedexLaunchFill"></i></span>
+      </div>
+      <button class="pokedex-btn" id="pokedexBtn">Ver Pokédex</button>
     </div>
-    <button class="pokedex-btn" id="pokedexBtn">Ver Pokédex</button>
-  </div>
+    <div class="zona-acc">
+      <div class="acc acc-pri">
+        <div class="acc-txt"><b>Sobre</b><span><b id="packSize">6</b> figuritas por <b id="packCost">150</b> monedas</span></div>
+        <button class="open-btn" id="openBtn">Abrir sobre</button>
+      </div>
+      <div class="acc">
+        <div class="acc-txt"><b>Repetidas</b><span>Tenés <b id="dupCount">0</b> · 3 repetidas = 1 que te falte</span></div>
+        <button class="open-btn sec" id="canjeBtn">Canjear</button>
+      </div>
+      <div class="acc">
+        <div class="acc-txt"><b>Intercambio</b><span>Regalá una repetida con un código o canjeá uno</span></div>
+        <button class="open-btn sec" id="intercambioBtn">Intercambiar</button>
+      </div>
+    </div>
+  </section>
 
-  <div class="acciones">
-  <div class="pack-bar">
-    <div class="info">Sobre: <b id="packSize">6</b> figuritas · costo <b id="packCost">150</b> monedas</div>
-    <button class="open-btn" id="openBtn">Abrir sobre</button>
-  </div>
-
-  <div class="pack-bar">
-    <div class="info">Repetidas: <b id="dupCount">0</b> · <b>3 repetidas</b> = 1 figurita que te falte</div>
-    <button class="open-btn" id="canjeBtn">Canjear</button>
-  </div>
-
-  <div class="pack-bar">
-    <div class="info">Intercambio · regalá una repetida con un código, o canjeá uno que te pasaron</div>
-    <button class="open-btn" id="intercambioBtn">Intercambiar</button>
-  </div>
-
-  <div class="pack-bar">
-    <div class="info">Arena Pokémon · combate por turnos de a 6 de <b>Kanto</b>, con ataques cortos, medios y largos</div>
-    <button class="open-btn" id="battleBtn">Pelear</button>
-  </div>
-
-  <div class="pack-bar">
-    <div class="info">Aventura · recorré el mapa, <b>tirá pokébolas</b> y atrapá Pokémon salvajes</div>
-    <button class="open-btn" id="advBtn">Ir a la aventura</button>
-  </div>
-  </div>
+  <section class="zona zona-mejor" aria-labelledby="zonaMejorTit">
+    <h2 class="zona-tit" id="zonaMejorTit">Ser el mejor</h2>
+    <div class="zona-acc">
+      <div class="acc acc-pri">
+        <div class="acc-txt"><b>Arena</b><span>Peleá en tiempo real con tu equipo de Kanto</span>
+          <span class="acc-maestro" id="maestroResumen"></span></div>
+        <button class="open-btn" id="battleBtn">Pelear</button>
+      </div>
+      <div class="acc">
+        <div class="acc-txt"><b>Aventura</b><span>Recorré el mapa, tirá pokébolas y atrapá salvajes</span></div>
+        <button class="open-btn sec" id="advBtn">Ir a la aventura</button>
+      </div>
+    </div>
+  </section>
 
   <div class="rank-panel">
     <div class="rank-head">
@@ -87,6 +93,7 @@
     </div>
     <div class="rank-list" id="rankList"></div>
     <div class="rank-done" id="rankDone"></div>
+  </div>
   </div>
 
   <footer class="firma">
@@ -291,7 +298,7 @@
   <div class="ar-root" id="arRoot"></div>
 </div>
 
-<script src="app.js?v=20261029"></script>
-<script src="arena.js?v=20261029"></script>
+<script src="app.js?v=20261030"></script>
+<script src="arena.js?v=20261030"></script>
 </body>
 </html>

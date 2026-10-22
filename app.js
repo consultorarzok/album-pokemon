@@ -809,7 +809,17 @@ function updateProgress(){
   updateBarras();
 }
 
+/* En la portada, bajo la Arena: tu rango de Maestro y cuánto falta para el próximo */
+function pintarMaestroResumen(){
+  const el = document.getElementById('maestroResumen');
+  if(!el) return;
+  const n = rangoMaestro(maestro.pts), sig = RANGOS_MAESTRO[n + 1];
+  el.innerHTML = '<b>' + RANGOS_MAESTRO[n].nombre + '</b> · ' + maestro.pts + ' pts' +
+    (sig ? ' · ' + (sig.pts - maestro.pts) + ' para ' + sig.nombre : '');
+}
+
 function updateCoins(){
+  pintarMaestroResumen();
   document.getElementById('coinAmount').textContent = coins;
   document.getElementById('openBtn').disabled = coins < PACK_COST;
   advSyncHud();
