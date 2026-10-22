@@ -583,9 +583,12 @@ function festejo(fuerte){
 }
 
 /* ---------------- entidades ---------------- */
-function crearMon(p){
-  const bst = bstDe(p), max = Math.round(60 + bst * .22);
-  return {p, bst, max, hp:max, en:EN_MAX, vivo:true, st:statsDe(p)};
+/* La fuerza del ejemplar (1-100) mueve vida y golpe un ±10%: el tuyo es tu mejor
+   ejemplar; el del rival se sortea como cualquier figurita nueva. */
+function crearMon(p, rival){
+  const fz = rival ? nuevoEjemplar().f : ((mejorEjemplar(p.id) || {}).f || 50);
+  const k = .9 + fz / 500, bst = bstDe(p), max = Math.round((60 + bst * .22) * k);
+  return {p, bst, max, hp:max, en:EN_MAX, vivo:true, st:statsDe(p), fz, k};
 }
 function crearEntidad(lado){
   const w = $('arMon-' + lado);
@@ -819,7 +822,7 @@ function pintarCooldowns(){
 function calcularDanio(a, d, alc, tipoMov){
   const mult = efectividad(tipoMov, d.p.type), f = factorTipo(mult);
   const crit = f > 0 && Math.random() < a.st.crit;
-  let dmg = ALC[alc].poder * Math.sqrt(a.bst / d.bst) * f * azar(.9, 1.1) * (crit ? a.st.critMult : 1);
+  let dmg = ALC[alc].poder * Math.sqrt(a.bst / d.bst) * f * (a.k || 1) * azar(.9, 1.1) * (crit ? a.st.critMult : 1);
   dmg = f === 0 ? 0 : Math.max(1, Math.round(dmg));
   return {dmg, mult, crit};
 }
@@ -1787,8 +1790,8 @@ async function luchar(mios){
   const rival = armarRival(mios);
   const estilo = elige(Object.keys(ESTILOS));
   AR = {
-    yo:  {mons:mios.map(crearMon), idx:0, act:null},
-    riv: {mons:rival.map(crearMon), idx:0, act:null},
+    yo:  {mons:mios.map(p => crearMon(p)), idx:0, act:null},
+    riv: {mons:rival.map(p => crearMon(p, true)), idx:0, act:null},
     estilo:ESTILOS[estilo], proys:[], zonas:[], pend:[], hold:new Set(), keys:new Set(), joy:{x:0, y:0},
     fase:'intro', tLucha:0, pausa:false, pausaAntes:false, cambioCd:0, cambioRiv:3, ult:0, congela:0,
     combo:{lado:null, n:0, t:0},
@@ -1908,13 +1911,13 @@ function abrirArena(){
   const pintar = () => {
     root.innerHTML = `<div class="ar-pick">
       <h2>Arena Pokémon · Kanto</h2>
-      <p>Elegí tu equipo: de ${EQUIPO_MIN} a ${EQUIPO_MAX}. Sale primero el que marcaste con el 1. Cada uno tiene su crítico y su velocidad.</p>
+      <p>Elegí tu equipo: de ${EQUIPO_MIN} a ${EQUIPO_MAX}. Sale primero el que marcaste con el 1. Pelea tu ejemplar más fuerte (💪).</p>
       <div class="ar-grid">${orden.map(p => {
         const n = sel.indexOf(p.id) + 1, s = statsDe(p);
         return `<button class="ar-sel${n ? ' on' : ''}" data-id="${p.id}" aria-pressed="${n ? 'true' : 'false'}" style="border-color:${n ? TYPE_COLORS[p.type] : '#34407a'}">
           ${n ? `<span class="ar-n">${n}</span>` : ''}
           <img src="${spIcono(p.id)}" alt="" width="64" height="64" loading="lazy">
-          <b>${p.name}</b><small>${TYPE_LABEL[p.type]} · ${bstDe(p)}</small>
+          <b>${p.name}</b><small>${TYPE_LABEL[p.type]} · ${bstDe(p)} · 💪${(mejorEjemplar(p.id) || {}).f || 50}</small>
           <small class="ar-st">Crít. ${Math.round(s.crit * 100)}% ×${s.critMult.toFixed(1)}</small>
           <small class="ar-st">Veloc. ${'★'.repeat(Math.max(1, Math.round((s.vel - .65) / .14)))}</small></button>`;
       }).join('')}</div>
