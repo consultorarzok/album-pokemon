@@ -813,7 +813,7 @@ function updateProgress(){
 function pintarMaestroResumen(){
   const el = document.getElementById('maestroResumen');
   if(!el) return;
-  const n = rangoMaestro(maestro.pts), sig = RANGOS_MAESTRO[n + 1];
+  const n = rangoPropio(), sig = RANGOS_MAESTRO[n + 1];
   el.innerHTML = '<b>' + RANGOS_MAESTRO[n].nombre + '</b> · ' + maestro.pts + ' pts' +
     (sig ? ' · ' + (sig.pts - maestro.pts) + ' para ' + sig.nombre : '');
 }
@@ -1658,13 +1658,15 @@ const bolas = Object.assign({}, BOLAS_INICIALES);
 const maestro = {pts:0, ganadas:0, peleas:0, nivel:0};
 const RANGOS_MAESTRO = [
   {pts:0,    nombre:'Entrenador Novato'},
-  {pts:30,   nombre:'Entrenador',        premio:{bolas:{azul:3}}},
-  {pts:100,  nombre:'Líder de Gimnasio', premio:{monedas:300, bolas:{ultra:2}}},
-  {pts:250,  nombre:'Alto Mando',        premio:{monedas:500, bolas:{maestra:1}}},
-  {pts:500,  nombre:'Campeón',           premio:{legendarias:1, bolas:{maestra:1}}},
-  {pts:1000, nombre:'Maestro Pokémon',   premio:{monedas:1000, legendarias:1, bolas:{maestra:2}}}
+  {pts:100,  nombre:'Entrenador',        premio:{bolas:{azul:3}}},
+  {pts:400,  nombre:'Líder de Gimnasio', premio:{monedas:300, bolas:{ultra:2}}},
+  {pts:1200, nombre:'Alto Mando',        premio:{monedas:500, bolas:{maestra:1}}},
+  {pts:3000, nombre:'Campeón',           premio:{legendarias:1, bolas:{maestra:1}}},
+  {pts:7000, nombre:'Maestro Pokémon',   premio:{monedas:1000, legendarias:1, bolas:{maestra:2}}}
 ];
 const NOMBRE_BOLA = {roja:'Poké Ball', azul:'Súper Ball', ultra:'Ultra Ball', maestra:'Master Ball'};
+/* Un rango ya cobrado no se pierde aunque se muevan los puntajes */
+function rangoPropio(){ return Math.max(rangoMaestro(maestro.pts), maestro.nivel); }
 function rangoMaestro(pts){
   let n = 0;
   RANGOS_MAESTRO.forEach((x, i) => { if(pts >= x.pts) n = i; });
@@ -3968,7 +3970,7 @@ function renderRankMaestro(lista, cont, done){
     });
   }
   /* abajo: en qué rango estás y qué premio destraba cada uno */
-  const mio = rangoMaestro(maestro.pts), sig = RANGOS_MAESTRO[mio + 1];
+  const mio = rangoPropio(), sig = RANGOS_MAESTRO[mio + 1];
   done.innerHTML = '<div class="hof-title">⚔️ Rangos de Maestro</div>' +
     '<div class="hof-sub">Sumás puntos ganando en la Arena (más si tumbás a todos y no perdés a ninguno).<br>' +
     'Vos: <b>' + RANGOS_MAESTRO[mio].nombre + '</b> · ' + maestro.pts + ' pts' +
