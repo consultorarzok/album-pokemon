@@ -31,7 +31,7 @@ const spIcono   = id => CDN + id + '.png';
 /* El corto pega menos y se recarga más lento que antes: que la pelea no sea sólo
    puño. El largo es el golpe fuerte que vale la pena cargar. */
 const ALC = {
-  corto: {etq:'Corto', poder:20, coste:10, cd:.75},
+  corto: {etq:'Corto', poder:22, coste:10, cd:1.7},
   medio: {etq:'Medio', poder:34, coste:16, cd:1.0},
   largo: {etq:'Largo', poder:64, coste:34, cd:2.4}
 };
