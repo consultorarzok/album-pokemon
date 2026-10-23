@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261047">
+<link rel="stylesheet" href="styles.css?v=20261049">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -149,7 +149,10 @@
 
 <div class="overlay" id="intercambioOverlay" role="dialog" aria-modal="true" style="z-index:45;">
   <div class="reveal-panel" style="max-width:430px;margin:0 auto;">
-    <h2>🔁 Intercambio</h2>
+    <div class="panel-top">
+      <button type="button" class="panel-atras" id="intercambioAtrasBtn" aria-label="Cerrar el intercambio y volver"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Atrás</button>
+      <h2>🔁 Intercambio</h2>
+    </div>
     <div style="font-size:11px;color:var(--ink-dim);margin-bottom:14px;">
       Generá un código desde una figurita repetida y compartiselo a otro entrenador,
       o pegá acá el código que te pasaron a vos. Siempre te queda 1 en el álbum: el
@@ -303,7 +306,7 @@
   <div class="ar-root" id="arRoot"></div>
 </div>
 
-<script src="app.js?v=20261046"></script>
+<script src="app.js?v=20261048"></script>
 <script src="arena.js?v=20261046"></script>
 <script src="portada.js?v=20261046"></script>
 </body>

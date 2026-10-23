@@ -3728,6 +3728,7 @@ document.getElementById('encCloseBtn').onclick = cerrarEncuentro;
 document.getElementById('shopCloseBtn').onclick = () => document.getElementById('shopOverlay').classList.remove('show');
 document.getElementById('intercambioBtn').onclick = abrirIntercambio;
 document.getElementById('intercambioCloseBtn').onclick = () => document.getElementById('intercambioOverlay').classList.remove('show');
+document.getElementById('intercambioAtrasBtn').onclick = () => document.getElementById('intercambioCloseBtn').click();
 document.getElementById('canjeCodigoBtn').onclick = canjearCodigoInput;
 document.getElementById('codigoCardCerrarBtn').onclick = () => document.getElementById('codigoCardOverlay').classList.remove('show');
 document.getElementById('codigoCardCancelarBtn').onclick = () => {
