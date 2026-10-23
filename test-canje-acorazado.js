@@ -14,7 +14,7 @@ await ctx.addInitScript((IDS)=>{ if(sessionStorage.getItem('s'))return; sessionS
  const st={};for(let i=1;i<=151;i++)st[i]={got:i<=20,dup:0};
  localStorage.setItem('album-kanto-progreso',JSON.stringify({coins:300,state:st}));},IDS);
 const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
-await p.goto('file:///root/pokemon/index.html');await p.waitForTimeout(1200);
+await p.goto('file:///root/pokemon/index.html');await p.click('#portadaEntrar',{force:true});await p.waitForTimeout(1200);
 await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>e.classList.remove('show')));
 const fig0=await p.evaluate(()=>figuritasObtenidas());
 async function canjear(c){ await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>e.classList.remove('show')));

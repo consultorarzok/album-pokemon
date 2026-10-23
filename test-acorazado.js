@@ -16,7 +16,7 @@ await ctx.addInitScript((IDS)=>{ if(sessionStorage.getItem('s'))return; sessionS
  const st={};for(let i=1;i<=151;i++)st[i]={got:i<=20||i===150,dup:0};st[150]={got:true,dup:0,ej:[{f:40,c:'AAAA'}]};
  localStorage.setItem('album-kanto-progreso',JSON.stringify({coins:300,state:st}));},IDS);
 const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
-await p.goto('file:///root/pokemon/index.html');await p.waitForTimeout(500);
+await p.goto('file:///root/pokemon/index.html');await p.click('#portadaEntrar',{force:true});await p.waitForTimeout(500);
 await p.waitForTimeout(2000);
 check('cartel de regalo especial', (await p.textContent('#revealTitle')).includes('especial') && (await p.textContent('#revealCards')).includes('Mewtwo Acorazado'));
 await p.screenshot({path:(process.env.SHOTS||'/tmp')+'/r1.png'});
@@ -28,7 +28,7 @@ await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>e.classList.r
 await p.waitForTimeout(400);
 check('después de la carta sale el cartel del regalo', await p.isVisible('#battleOverlay.show')); await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>e.classList.remove('show'))); check('NO está afuera', !(await p.isVisible('#especialesBox .slot.especial'))); await p.click('#pokedexBtn'); await p.waitForTimeout(500); check('aparece adentro de la Pokédex', await p.isVisible('#pokedexOverlay #especialesBox .slot.especial'));
 await (await p.$('#especialesBox')).screenshot({path:(process.env.SHOTS||'/tmp')+'/box.png'});
-await p.reload();await p.waitForTimeout(1500);
+await p.reload();await p.click('#portadaEntrar',{force:true});await p.waitForTimeout(1500);
 check('sigue después de recargar y no se regala de nuevo', !(await p.isVisible('#overlay.show')) && await p.evaluate(()=>especiales[10150].f===100));
 await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>e.classList.remove('show')));
 const rivales=new Set();
@@ -41,7 +41,7 @@ for(let k=0;k<6;k++){
  const r=await p.evaluate(()=>({riv:document.querySelector('#arHud-riv').textContent.replace(/\s+/g,' ').trim(), src:[...document.querySelectorAll('#arMon-yo img')].map(i=>i.getAttribute('src')).join(' '), yo:document.querySelector('#arHud-yo').textContent.replace(/\s+/g,' ').trim()}));
  if(k===0){ check('pelea con el Acorazado: '+r.yo, r.yo.includes('Mewtwo Acorazado') && r.src.includes('mewtwo-acorazado')); await p.screenshot({path:(process.env.SHOTS||'/tmp')+'/pelea.png'}); }
  rivales.add(r.riv.split(' ').slice(0,2).join(' '));
- await p.goto('file:///root/pokemon/index.html');await p.waitForTimeout(1300);
+ await p.goto('file:///root/pokemon/index.html');await p.click('#portadaEntrar',{force:true});await p.waitForTimeout(1300);
  await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>e.classList.remove('show')));
 }
 console.log('rivales:',[...rivales]);

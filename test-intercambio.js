@@ -44,7 +44,7 @@ async function entrenador(browser, nombre, estado){
   const page = await ctx.newPage();
   page.errores = [];
   page.on('pageerror', e => page.errores.push(e.message));
-  await page.goto('file:///root/pokemon/index.html');
+  await page.goto('file:///root/pokemon/index.html');await page.click('#portadaEntrar',{force:true});
   await page.waitForTimeout(1500);
   for(let i = 0; i < 4; i++){
     for(const s of ['#specialContinueBtn', '#battleCloseBtn'])
@@ -89,7 +89,7 @@ const estadoDe = p => p.evaluate(() => JSON.parse(localStorage.getItem('album-ka
   check('B recibe la figurita #25 como nueva', sb[25].got === true && sb[25].dup === 0);
   check('se abre la carta "Canjeaste un código"', (await B.textContent('#revealTitle')).includes('Canjeaste'));
   check('el servidor la marcó usada', codigos[codigo].usado === true);
-  await B.reload(); await B.waitForTimeout(1800);
+  await B.reload();await B.click('#portadaEntrar',{force:true}); await B.waitForTimeout(1800);
   { const eb = await estadoDe(B); if(!(eb[25] && eb[25].got === true)) console.log('ESTADO B tras recargar:', JSON.stringify(eb), '| url', B.url()); check('la figurita de B sobrevive al recargar', eb[25] && eb[25].got === true); }
 
   console.log('— C intenta reusar el código —');

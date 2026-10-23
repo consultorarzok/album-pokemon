@@ -27,7 +27,7 @@ const SHOTS = process.env.SHOTS || '';
     });
     const p = await ctx.newPage();
     const errores = []; p.on('pageerror', e => errores.push(e.message));
-    await p.goto('file:///root/pokemon/index.html');
+    await p.goto('file:///root/pokemon/index.html');await p.click('#portadaEntrar',{force:true});
     await p.waitForTimeout(1200);
     for(let i = 0; i < 4; i++) for(const s of ['#specialContinueBtn', '#battleCloseBtn']) if(await p.isVisible(s)){ await p.click(s); await p.waitForTimeout(250); }
 

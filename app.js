@@ -4518,7 +4518,7 @@ function copiarTexto(txt, btn){
 function compartirCodigoWhatsApp(codigo, pokemonId){
   const p = DATA.find(d => d.id === pokemonId);
   const nombre = p ? p.name : 'una figurita';
-  const msg = '¡Te regalo a ' + nombre + ' en el Álbum Pokémon! 🎁\n' +
+  const msg = '¡Te regalo a ' + nombre + ' en Entrenadores RZ! 🎁\n' +
     'Entrá a Intercambio, pegá este código y es tuya:\n*' + codigo + '*\n' +
     'https://consultorarzok.github.io/album-pokemon/';
   window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');

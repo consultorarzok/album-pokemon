@@ -24,7 +24,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   const errores = []; page.on('pageerror', e => errores.push(e.message));
   let abierta = null;
   await ctx.route('https://wa.me/**', r => { abierta = r.request().url(); r.fulfill({status:200, body:'ok'}); });
-  await page.goto('file:///root/pokemon/index.html');
+  await page.goto('file:///root/pokemon/index.html');await page.click('#portadaEntrar',{force:true});
   await page.waitForTimeout(1500);
   for(let i = 0; i < 4; i++) for(const s of ['#specialContinueBtn', '#battleCloseBtn']) if(await page.isVisible(s)){ await page.click(s); await page.waitForTimeout(300); }
 

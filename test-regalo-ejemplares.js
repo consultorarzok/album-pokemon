@@ -24,7 +24,7 @@ const SHOTS = process.env.SHOTS || '';
     }, nombre);
     const p = await ctx.newPage();
     const errores = []; p.on('pageerror', e => errores.push(e.message));
-    await p.goto('file:///root/pokemon/index.html'); await p.waitForTimeout(1800);
+    await p.goto('file:///root/pokemon/index.html');await p.click('#portadaEntrar',{force:true}); await p.waitForTimeout(1800);
     const est = () => p.evaluate(() => { const o = {}; [6, 149, 130, 94, 65, 150].forEach(id => { o[id] = {got:state[id].got, dup:state[id].dup, ej:ejemplares(id).map(e => e.f + (e.s ? 's' : ''))}; }); return o; });
     const e1 = await est();
     if(recibe){

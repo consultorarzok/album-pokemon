@@ -12,7 +12,7 @@ await ctx.addInitScript(()=>{ if(sessionStorage.getItem('s'))return; sessionStor
  localStorage.setItem('album-kanto-progreso',JSON.stringify({coins:0,state:st}));});
 await ctx.addInitScript(()=>{ window.REGALOS_OFF=1; });
 const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
-await p.goto('file:///root/pokemon/index.html');await p.waitForTimeout(1200);
+await p.goto('file:///root/pokemon/index.html');await p.click('#portadaEntrar',{force:true});await p.waitForTimeout(1200);
 await p.evaluate(()=>{ REGALOS.length=0; document.querySelectorAll('.show').forEach(e=>e.classList.remove('show')); });
 const pika=()=>p.evaluate(()=>({dup:state[25].dup, ej:ejemplares(25).map(e=>e.f+(e.s?'s':'')).sort().join()}));
 await p.click('#intercambioBtn'); await p.waitForTimeout(300);

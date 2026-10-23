@@ -18,7 +18,7 @@ for(const [nombre,cobro,m150,esperado,got] of casos){
   const st={};for(let i=1;i<=151;i++)st[i]={got:i<=20,dup:0}; st[150]=m;
   localStorage.setItem('album-kanto-progreso',JSON.stringify({coins:300,state:st,especiales:{10150:{f:100,c:'ZZZZ'}}}));},[nombre,usados,m150]);
  const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
- await p.goto('file:///root/pokemon/index.html');await p.waitForTimeout(1500);
+ await p.goto('file:///root/pokemon/index.html');await p.click('#portadaEntrar',{force:true});await p.waitForTimeout(1500);
  const r=await p.evaluate(()=>({ej:ejemplares(150).map(e=>e.f+(e.s?'s':'')).join(), got:String(state[150].got), esp:especiales[10150]&&especiales[10150].f}));
  await p.reload();await p.waitForTimeout(1200);
  const r2=await p.evaluate(()=>ejemplares(150).map(e=>e.f+(e.s?'s':'')).join());

@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+let chromium; try{({chromium}=require('playwright'))}catch(e){({chromium}=require('/root/.npm/_npx/e41f203b7505f1fb/node_modules/playwright'))}
 
 let ok = 0, fail = 0;
 const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail++; console.log('  ❌ ' + n); } };
@@ -10,7 +10,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   const page = await ctx.newPage();
   const errores = [];
   page.on('pageerror', e => errores.push(e.message));
-  await page.goto('file:///root/pokemon/index.html');
+  await page.goto('file:///root/pokemon/index.html');await page.click('#portadaEntrar',{force:true});
   await page.fill('#nameInput', 'TestMundo');
   await page.click('#nameSaveBtn');
   await page.waitForTimeout(700);

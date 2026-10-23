@@ -33,7 +33,7 @@ const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 3
       [process.env.RIVAL ? process.env.RIVAL.split(',').map(Number) : null, process.env.NOMBRE_RIVAL || '', process.env.NOMBRE_YO || '']);
     const p = await ctx.newPage();
     const errores = []; p.on('pageerror', e => errores.push(e.message));
-    await p.goto('file:///root/pokemon/index.html');
+    await p.goto('file:///root/pokemon/index.html');await p.click('#portadaEntrar',{force:true});
     await p.waitForTimeout(1200);
     for(let i = 0; i < 4; i++) for(const s of ['#specialContinueBtn', '#battleCloseBtn']) if(await p.isVisible(s)){ await (tactil ? p.tap(s) : p.click(s)); await p.waitForTimeout(250); }
     const tocar = s => tactil ? p.tap(s) : p.click(s);

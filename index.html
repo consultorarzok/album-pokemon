@@ -4,19 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2715%27 fill=%27%23fff%27 stroke=%27%23141728%27 stroke-width=%272%27/%3E%3Cpath d=%27M1 16a15 15 0 0130 0z%27 fill=%27%23EE1515%27/%3E%3Cpath d=%27M1 16h30%27 stroke=%27%23141728%27 stroke-width=%272%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%275%27 fill=%27%23fff%27 stroke=%27%23141728%27 stroke-width=%272%27/%3E%3C/svg%3E">
-<title>Álbum Pokémon</title>
+<title>Entrenadores RZ</title>
 <meta name="theme-color" content="#1B2140">
-<meta name="description" content="Álbum Pokémon: abrí sobres, completá la Pokédex, intercambiá figuritas y salí de aventura.">
+<meta name="description" content="Entrenadores RZ: abrí sobres, completá la Pokédex, intercambiá figuritas y salí de aventura.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261044">
+<link rel="stylesheet" href="styles.css?v=20261045">
 </head>
 <body>
+<div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
+  <div class="portada-body">
+    <h1 class="portada-tit" id="portadaTit"><span class="marca-ball" aria-hidden="true"></span>Entrenadores <span class="marca-pk">RZ</span></h1>
+    <canvas class="portada-mundo" id="portadaMundo" role="img" aria-label="El mundo girando con pokébolas, monedas y la Pokédex alrededor. Tocalo para entrar."></canvas>
+    <button type="button" class="portada-entrar" id="portadaEntrar">Entrar</button>
+  </div>
+</div>
+
 <main class="wrap" id="main">
 
   <header>
-    <h1 class="marca"><span class="marca-ball" aria-hidden="true"></span><span class="marca-texto">Álbum <span class="marca-pk">Pokémon</span></span></h1>
+    <h1 class="marca"><span class="marca-ball" aria-hidden="true"></span><span class="marca-texto">Entrenadores <span class="marca-pk">RZ</span></span></h1>
     <div style="display:flex;gap:10px;align-items:center;">
       <div class="coin-box" role="img" aria-label="Tus monedas"><div class="ball"></div><div class="amount" id="coinAmount" aria-live="polite">0</div></div>
       <button class="earn-btn" id="earnBtn">Responder y ganar</button>
@@ -274,7 +282,7 @@
     <div id="battleFeedback" aria-live="polite" style="font-family:'Baloo 2',sans-serif;font-size:13px;min-height:20px;margin-bottom:12px;line-height:1.5;"></div>
     <div style="display:flex;gap:8px;justify-content:center;">
       <button class="close-btn" id="battleCloseBtn">Cerrar</button>
-      <button class="open-btn" id="battleNextBtn" style="padding:9px 18px;">Otra batalla</button>
+      <button class="open-btn" id="battleNextBtn" style="padding:9px 18px;" hidden>Otra batalla</button>
     </div>
   </div>
 </div>
@@ -304,5 +312,6 @@
 
 <script src="app.js?v=20261044"></script>
 <script src="arena.js?v=20261044"></script>
+<script src="portada.js?v=20261045"></script>
 </body>
 </html>

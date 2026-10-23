@@ -35,11 +35,11 @@ const SHOTS = process.env.SHOTS || '';
       await p.waitForTimeout(1200);
       for(let i = 0; i < 4; i++) for(const s of ['#specialContinueBtn', '#battleCloseBtn']) if(await p.isVisible(s)){ await p.click(s); await p.waitForTimeout(250); }
     };
-    await p.goto('file:///root/pokemon/index.html'); await entrar();
+    await p.goto('file:///root/pokemon/index.html');await p.click('#portadaEntrar',{force:true}); await entrar();
 
     const a = await p.evaluate(() => { saveProgress(); return ejemplares(1).map(e => e.f + e.c); });
     check('a las figuritas viejas se les sortea fuerza (4 ejemplares)', a.length === 4);
-    await p.reload(); await entrar();
+    await p.reload();await p.click('#portadaEntrar',{force:true}); await entrar();
     const b = await p.evaluate(() => ejemplares(1).map(e => e.f + e.c));
     check('al recargar no se vuelven a sortear', JSON.stringify(a) === JSON.stringify(b));
     check('el mejor ejemplar de Charmander es el de 95', await p.evaluate(() => mejorEjemplar(4).f === 95));

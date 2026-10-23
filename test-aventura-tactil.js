@@ -21,7 +21,7 @@ const TAMANOS = [['celular parado', 390, 844], ['celular acostado', 844, 390], [
     });
     const p = await ctx.newPage();
     const errores = []; p.on('pageerror', e => errores.push(e.message));
-    await p.goto('file:///root/pokemon/index.html');
+    await p.goto('file:///root/pokemon/index.html');await p.click('#portadaEntrar',{force:true});
     await p.waitForTimeout(1500);
     for(let i = 0; i < 4; i++) for(const s of ['#specialContinueBtn', '#battleCloseBtn']) if(await p.isVisible(s)){ await p.tap(s); await p.waitForTimeout(300); }
     await p.tap('#advBtn'); await p.waitForTimeout(1200);
