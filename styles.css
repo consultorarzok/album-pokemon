@@ -735,3 +735,4 @@
   .panel-atras:focus-visible{outline:3px solid var(--poke-blue);outline-offset:2px;}
   @media (max-height:520px){ .panel-top{top:-14px;margin:-14px -18px 10px;} }
   .panel-top h2{white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;font-size:20px;min-width:0;}
+  .ar-sel .ar-movs{color:#cfe3ff;line-height:1.2;text-align:center;margin-top:2px;}
