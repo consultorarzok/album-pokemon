@@ -4750,6 +4750,22 @@ function canjearCodigoInput(){
       btn.textContent = textoBtn;
       return;
     }
+    /* figurita especial (Mewtwo Acorazado): va a las especiales, no al álbum; si ya la tenía
+       se queda con la más fuerte, igual que con los regalos */
+    const esp = ESPECIAL_POR_ID[res.pokemonId];
+    if(esp){
+      const f = res.fuerza >= 1 && res.fuerza <= 100 ? res.fuerza : 100;
+      const nueva = !especiales[esp.id];
+      if(nueva || f > especiales[esp.id].f) especiales[esp.id] = {f, c:nuevoEjemplar(f).c};
+      saveProgress();
+      renderEspeciales();
+      inp.value = '';
+      btn.disabled = false;
+      btn.textContent = textoBtn;
+      document.getElementById('intercambioOverlay').classList.remove('show');
+      mostrarEspeciales([{p:esp, isNew:nueva}]);
+      return;
+    }
     const p = DATA.find(d => d.id === res.pokemonId);
     if(!p){
       fb.style.color = 'var(--red)';
