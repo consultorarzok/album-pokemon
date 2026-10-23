@@ -15,7 +15,9 @@
     --evento-dim:#4C1D95;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Space Mono',monospace;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Baloo 2',system-ui,sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;}
+  ::selection{background:var(--gold);color:#14172A;}
+  button{font-family:inherit;}
 
   .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px;}
 
@@ -52,11 +54,11 @@
 
   /* Tarjeta que abre la Pokédex: la grilla de figuritas vive adentro del
      overlay, no en la home, para que la portada no se vea saturada. */
-  .pokedex-launch{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;background:var(--panel-2);border:1px solid var(--gold-dim);border-radius:12px;padding:16px 18px;margin-bottom:22px;}
+  .pokedex-launch{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;background:var(--panel-2);border:1px solid var(--gold-dim);border-radius:14px;padding:16px 18px;margin-bottom:22px;}
   .pokedex-launch-icon{width:38px;height:auto;flex:0 0 auto;}
   .pokedex-launch-text{display:flex;flex-direction:column;gap:3px;flex:1 1 auto;}
   .pokedex-launch-label{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;color:var(--ink);}
-  .pokedex-launch-progress{font-size:12px;color:var(--ink-dim);}
+  .pokedex-launch-progress{font-size:14px;color:var(--ink-dim);}
   .pokedex-launch-barra{display:block;height:6px;border-radius:4px;background:var(--border);overflow:hidden;margin-top:4px;max-width:260px;}
   .pokedex-launch-barra i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-dim),var(--gold));transition:width .4s ease;}
   .pokedex-btn{background:var(--gold);color:#2b2205;border:none;border-radius:9px;padding:12px 20px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap;}
@@ -517,7 +519,7 @@
   .ar-hint{display:none;position:absolute;left:50%;bottom:4px;transform:translateX(-50%);font-size:11px;color:#8f9ad0;text-align:center;pointer-events:none;white-space:nowrap;}
   .ar-btns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;flex:1 1 auto;min-width:0;max-width:300px;}
   .ar-act{position:relative;overflow:hidden;min-width:0;height:60px;border-radius:12px;border:3px solid #3a4680;background:#161d44;color:#f2f4ff;font-family:'Baloo 2',sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 4px;touch-action:none;-webkit-tap-highlight-color:transparent;}
-  .ar-act b{font-size:11px;line-height:1.1;text-align:center;position:relative;overflow-wrap:anywhere;} .ar-act small{font-size:10px;color:#aab3d9;position:relative;}
+  .ar-act b{font-size:11px;line-height:1.1;text-align:center;position:relative;overflow-wrap:break-word;hyphens:none;} .ar-act small{font-size:10px;color:#aab3d9;position:relative;}
   .ar-act .cd{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(255,255,255,.28);pointer-events:none;}
   .ar-act.sinEn{opacity:.5;} .ar-act:active{background:#252f70;}
   .ar-act.eqp{grid-column:1;grid-row:2;} .ar-act.esq{grid-column:2 / span 2;grid-row:2;border-color:#8be9ff;}
@@ -600,16 +602,16 @@
 /* ---------- Portada: dos zonas (completar el álbum / ser el mejor) ---------- */
 .zonas{margin-bottom:8px;}
 .zona{margin-bottom:28px;}
-.zona-tit{display:flex;align-items:center;gap:10px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:19px;line-height:1.2;color:var(--ink);margin:0 4px 10px;}
+.zona-tit{display:flex;align-items:center;gap:10px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:21px;line-height:1.2;color:var(--ink);margin:0 4px 12px;}
 .zona-tit::before{content:'';width:6px;height:20px;border-radius:3px;background:var(--red);flex:0 0 auto;}
 .zona-mejor .zona-tit::before{background:var(--poke-blue);}
 .zona .pokedex-launch{margin-bottom:8px;}
 .zona-acc{display:flex;flex-direction:column;gap:8px;}
-.acc{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
+.acc{display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px 16px;}
 .acc-pri{background:var(--panel-2);}
 .acc-txt{display:flex;flex-direction:column;gap:2px;min-width:0;}
-.acc-txt > b{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:16px;line-height:1.2;color:var(--ink);}
-.acc-txt > span{font-size:12px;line-height:1.45;color:var(--ink-dim);}
+.acc-txt > b{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:17px;line-height:1.2;color:var(--ink);}
+.acc-txt > span{font-size:14px;line-height:1.35;color:var(--ink-dim);}
 .acc-txt span b{color:var(--ink);font-family:'Baloo 2',sans-serif;}
 .acc-maestro{margin-top:2px;color:var(--poke-blue) !important;}
 .acc-maestro b{color:var(--poke-blue) !important;}
@@ -661,8 +663,8 @@
     font-size:clamp(34px,9vw,60px);line-height:1;color:#fff;letter-spacing:.3px;text-shadow:0 3px 12px rgba(0,0,0,.45);}
   .portada-tit .marca-pk{text-shadow:-2px 0 var(--poke-blue),2px 0 var(--poke-blue),0 -2px var(--poke-blue),0 2px var(--poke-blue),0 4px 0 var(--poke-blue);}
   .portada-mundo{display:block;width:min(760px,100%,74svh);aspect-ratio:1;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-  .portada-entrar{margin-top:-2svh;background:var(--red);color:#fff;border:none;border-radius:12px;padding:15px 56px;min-height:52px;
-    font-family:'Baloo 2',sans-serif;font-weight:700;font-size:19px;letter-spacing:.3px;cursor:pointer;
+  .portada-entrar{margin-top:-2svh;background:var(--red);color:#fff;border:none;border-radius:12px;padding:10px 34px;min-height:44px;
+    font-family:'Baloo 2',sans-serif;font-weight:700;font-size:16px;letter-spacing:.3px;cursor:pointer;
     box-shadow:0 6px 18px rgba(211,18,18,.35),0 2px 0 #8E0B0B;animation:portada-latido 2.6s cubic-bezier(.45,0,.55,1) infinite;}
   .portada-entrar:hover{background:#E41A1A;}
   .portada-entrar:active{transform:scale(.97);}
@@ -670,3 +672,37 @@
   @keyframes portada-latido{50%{transform:scale(1.05);}}
   body.portada-open{overflow:hidden;}
   @media (prefers-reduced-motion:reduce){ .portada-entrar{animation:none;} .portada{transition:none;} }
+
+  /* ---------- Cabecera: la misma noche estrellada de la portada, compacta ---------- */
+  .cabecera{position:relative;display:grid;grid-template-columns:1fr auto;grid-template-areas:'marca monedas' 'jugador ganar';
+    align-items:center;gap:12px 12px;margin:0 0 26px;padding:18px 18px 22px;border-radius:18px;overflow:hidden;color:#fff;
+    background:
+      radial-gradient(1.5px 1.5px at 12% 30%,#fff9 50%,transparent 51%),radial-gradient(1.5px 1.5px at 38% 78%,#fff7 50%,transparent 51%),
+      radial-gradient(1px 1px at 63% 22%,#fff8 50%,transparent 51%),radial-gradient(1.5px 1.5px at 86% 64%,#fff6 50%,transparent 51%),
+      radial-gradient(1px 1px at 74% 88%,#fff7 50%,transparent 51%),radial-gradient(1px 1px at 24% 70%,#fff5 50%,transparent 51%),
+      radial-gradient(circle at 18% 0%,#2A3A72 0%,#1B2140 45%,#0B0F22 100%);
+    box-shadow:0 10px 24px rgba(20,23,42,.18);}
+  .cabecera::after{content:'';position:absolute;left:0;right:0;bottom:0;height:5px;background:linear-gradient(90deg,var(--red) 0 33.3%,var(--gold) 33.3% 66.6%,var(--poke-blue) 66.6%);}
+  .cabecera .marca{grid-area:marca;color:#fff;font-size:clamp(24px,6.4vw,34px);min-width:0;}
+  .cabecera .marca-ball{border-color:#0B0F22;box-shadow:0 0 0 2px rgba(255,255,255,.18);}
+  .cabecera .coin-box{grid-area:monedas;justify-self:end;background:rgba(255,255,255,.08);border:1px solid rgba(240,180,0,.55);border-radius:999px;padding:6px 14px 6px 8px;}
+  .cabecera .coin-box .amount{color:#FFD84D;font-size:19px;font-variant-numeric:tabular-nums;}
+  .cabecera .player-chip{grid-area:jugador;justify-self:start;margin:0;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:#C9D0EC;font-size:14px;border-radius:999px;padding:6px 14px;min-width:0;}
+  .cabecera .player-chip b{color:#fff;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cabecera .earn-btn{grid-area:ganar;justify-self:end;border-radius:999px;padding:10px 18px;font-size:14px;box-shadow:0 4px 12px rgba(240,180,0,.25);}
+  .cabecera .earn-btn:hover{background:#FFC414;}
+  .cabecera .earn-btn:focus-visible{outline:3px solid #fff;outline-offset:2px;}
+  @media (max-width:380px){ .cabecera .earn-btn{padding:10px 14px;font-size:13px;} }
+  @media (min-width:900px){
+    .cabecera{grid-template-columns:1fr auto auto auto;grid-template-areas:'marca jugador monedas ganar';padding:20px 24px 24px;}
+    .cabecera .player-chip{justify-self:end;}
+  }
+  .cabecera .marca-texto{color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.35);}
+  .cabecera .marca-texto .marca-pk{color:var(--gold);text-shadow:-1.5px 0 var(--poke-blue),1.5px 0 var(--poke-blue),0 -1.5px var(--poke-blue),0 1.5px var(--poke-blue),0 3px 0 var(--poke-blue);}
+  .cabecera .marca{white-space:nowrap;font-size:clamp(21px,5.9vw,34px);}
+  .cabecera .player-chip{white-space:nowrap;font-size:13px;gap:6px;}
+  .cabecera .player-chip b{min-width:0;}
+  /* pestañas y contadores del ranking con la misma letra que el resto */
+  .rank-tab,.rank-count,.chip{font-family:'Baloo 2',sans-serif;font-size:14px;font-weight:600;}
+  .rank-tab.active{font-weight:700;}
+  .rank-name{font-size:15px;}

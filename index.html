@@ -9,8 +9,8 @@
 <meta name="description" content="Entrenadores RZ: abrí sobres, completá la Pokédex, intercambiá figuritas y salí de aventura.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261045">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="styles.css?v=20261046">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -23,19 +23,12 @@
 
 <main class="wrap" id="main">
 
-  <header>
+  <header class="cabecera">
     <h1 class="marca"><span class="marca-ball" aria-hidden="true"></span><span class="marca-texto">Entrenadores <span class="marca-pk">RZ</span></span></h1>
-    <div style="display:flex;gap:10px;align-items:center;">
-      <div class="coin-box" role="img" aria-label="Tus monedas"><div class="ball"></div><div class="amount" id="coinAmount" aria-live="polite">0</div></div>
-      <button class="earn-btn" id="earnBtn">Responder y ganar</button>
-    </div>
+    <div class="coin-box" role="img" aria-label="Tus monedas"><div class="ball"></div><div class="amount" id="coinAmount" aria-live="polite">0</div></div>
+    <div class="player-chip" id="playerChip">Jugás como <b id="playerName">-</b></div>
+    <button class="earn-btn" id="earnBtn">Responder y ganar</button>
   </header>
-
-  <div class="player-chip" id="playerChip" style="margin:0 4px 12px;width:fit-content;">
-    Jugás como <b id="playerName">-</b>
-  </div>
-
-  <div class="accent-bar"></div>
 
   <div class="evento-banner" id="eventoBanner" hidden>
     <div class="evento-banner-nombre" id="eventoBannerNombre"></div>
@@ -74,7 +67,7 @@
     <h2 class="zona-tit" id="zonaMejorTit">Ser el mejor</h2>
     <div class="zona-acc">
       <div class="acc acc-pri">
-        <div class="acc-txt"><b>Arena</b><span>Peleá en tiempo real con tu equipo de Kanto</span>
+        <div class="acc-txt"><b>Arena</b><span>Peleá en tiempo real con tu equipo de Kanto y Johto</span>
           <span class="acc-maestro" id="maestroResumen"></span></div>
         <button class="open-btn" id="battleBtn">Pelear</button>
       </div>
@@ -264,7 +257,7 @@
   </div>
   <div class="codigo-acciones">
     <button class="special-continue" id="codigoCardCopiarBtn">Copiar código</button>
-    <button class="special-continue" id="codigoCardWhatsBtn" style="background:#1FA855;color:#fff;">Compartir por WhatsApp</button>
+    <button class="special-continue" id="codigoCardWhatsBtn" style="background:#15803D;color:#fff;">Compartir por WhatsApp</button>
     <button class="special-continue" id="codigoCardCancelarBtn" style="background:transparent;border:1px solid #FF8A8A88;color:#FFB4B4;">Cancelar código</button>
     <button class="special-continue" id="codigoCardCerrarBtn" style="background:transparent;border:1px solid #fff4;color:#fff;">Listo</button>
   </div>
@@ -310,8 +303,8 @@
   <div class="ar-root" id="arRoot"></div>
 </div>
 
-<script src="app.js?v=20261044"></script>
-<script src="arena.js?v=20261044"></script>
-<script src="portada.js?v=20261045"></script>
+<script src="app.js?v=20261046"></script>
+<script src="arena.js?v=20261046"></script>
+<script src="portada.js?v=20261046"></script>
 </body>
 </html>

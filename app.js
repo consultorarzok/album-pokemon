@@ -1218,9 +1218,10 @@ function avisoBatalla(txt){
   document.getElementById('battleOverlay').classList.add('show');
 }
 
-/* Para entrar a la arena hacen falta PELEA_MIN Pokémon de Kanto (ver arena.js). */
+/* Para entrar a la arena hacen falta PELEA_MIN Pokémon de Kanto o Johto (ver arena.js). */
 const PELEA_MIN = 3;
-function kantoMios(){ return DATA.filter(p => p.region === 'kanto' && state[p.id].got); }
+const REGIONES_ARENA = ['kanto', 'johto'];
+function kantoMios(){ return DATA.filter(p => REGIONES_ARENA.includes(p.region) && state[p.id].got); }   // nombre histórico: ahora son Kanto + Johto
 
 function updateBarras(){
   const dups = repetidasTotales();

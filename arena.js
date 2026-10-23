@@ -1,4 +1,4 @@
-/* ====================== ARENA DE BATALLA (Kanto) · tiempo real ======================
+/* ====================== ARENA DE BATALLA (Kanto y Johto) · tiempo real ======================
    Cada uno maneja a su Pokémon por la arena (joystick o WASD) y ataca con botones:
      · Corto  = embestida con garra (pega fuerte pero hay que estar encima)
      · Medio  = proyectil con forma según el tipo (se esquiva moviéndose)
@@ -107,10 +107,32 @@ const ATQ = {
   'Terremoto':['ground','propia'], 'Fisura':['ground','propia'], 'Avalancha':['rock','lluvia','roca'], 'Psíquico':['psychic','zona'],
   'Come Sueños':['psychic','zona'], 'Maldición':['ghost','zona'], 'Sísmico':['fighting','zona'], 'Tóxico':['poison','zona'],
   'Zumbido':['bug','rayo'], 'Vendaval':['flying','zona'], 'Ataque Aéreo':['flying','rayo'], 'Fuerza Lunar':['fairy','rayo'],
-  'Autodestrucción':['normal','propia'], 'Explosión':['normal','propia']
+  'Autodestrucción':['normal','propia'], 'Explosión':['normal','propia'],
+  /* agregados para Johto */
+  'Rueda Fuego':['fire','cuerpo'], 'Colmillo Hielo':['ice','mordisco'], 'Triturar':['dark','mordisco'], 'Cola Férrea':['steel','latigo'],
+  'Ala de Acero':['steel','golpe'], 'Garra Metal':['steel','garra'], 'Puño Hielo':['ice','golpe'], 'Megacuerno':['bug','golpe'],
+  'Finta':['dark','garra'], 'Persecución':['dark','golpe'], 'Ultrapuño':['fighting','golpe'], 'Patada Giro':['fighting','patada'],
+  'Tajo Umbrío':['dark','garra'], 'Giro Rápido':['normal','cuerpo'], 'Furia':['normal','golpe'], 'Cascada':['water','golpe'],
+  'Acua Cola':['water','latigo'], 'Hoja Aguda':['grass','garra'], 'Doble Filo':['normal','cuerpo'], 'Puño Mareo':['normal','golpe'],
+  'Carantoña':['fairy','golpe'], 'Golpe Roca':['fighting','golpe'], 'Golpe Aéreo':['flying','garra'], 'Picadura':['bug','mordisco'],
+  'Contraataque':['fighting','golpe'], 'Beso Drenaje':['fairy','mordisco'], 'Impresionar':['ghost','golpe'],
+
+  'Pulso Umbrío':['dark','bola'], 'Hidropulso':['water','onda'], 'Bofetón Lodo':['ground','lodo'], 'Viento Plata':['bug','tornado'],
+  'Viento Feérico':['fairy','tornado'], 'Voz Cautivadora':['fairy','onda'], 'Nieve Polvo':['ice','tornado'], 'Canto Helado':['ice','piedra'],
+  'Gigadrenado':['grass','semillas'], 'Megaagotar':['grass','semillas'], 'Pulpocañón':['water','chorro'], 'Presente':['normal','bola'],
+  'Esporagodón':['grass','polvo'], 'Fuego Fatuo':['fire','bola'], 'Polución':['poison','polvo'], 'Rayo Confuso':['ghost','onda'],
+  'Psicoonda':['psychic','onda'], 'Tierra Viva':['ground','suelo'], 'Telaraña':['bug','polvo'], 'Manto Espejo':['psychic','onda'],
+  'Boceto':['normal','estrella'], 'Poder Oculto':['normal','estrella'], 'Triataque':['normal','estrella'], 'Rayo Carga':['electric','rayito'],
+  'Bola Hielo':['ice','piedra'], 'Bomba Ácida':['poison','lodo'], 'Chispazo':['electric','rayito'], 
+
+  'Fuego Sagrado':['fire','zona'], 'Aerochorro':['flying','rayo'], 'Foco Resplandor':['steel','rayo'], 'Pájaro Osado':['flying','embestida'],
+  'Juego Sucio':['dark','zona'], 'Magnitud':['ground','propia'], 'Premonición':['psychic','lluvia','estrella'], 'Erupción':['fire','zona'],
+  'Roca Afilada':['rock','lluvia','roca'], 'Gancho Alto':['fighting','embestida'], 'Lanzamugre':['poison','zona'], 'Hidrocañón':['water','rayo'],
+  'Mismo Destino':['ghost','zona'], 'Megapatada':['normal','embestida'], 
+  'Tormenta Floral':['grass','lluvia','hoja'], 
 };
 
-/* Los tres ataques (corto / medio / largo) de cada Pokémon de Kanto. */
+/* Los tres ataques (corto / medio / largo) de cada Pokémon de Kanto (1-151) y Johto (152-251). */
 const SETS = `1 Látigo Cepa|Drenadoras|Rayo Solar;2 Látigo Cepa|Hoja Afilada|Rayo Solar;3 Látigo Cepa|Bomba Germen|Rayo Solar;
 4 Arañazo|Ascuas|Lanzallamas;5 Cuchillada|Ascuas|Lanzallamas;6 Garra Dragón|Ascuas|Llamarada;
 7 Placaje|Pistola Agua|Hidrobomba;8 Mordisco|Burbuja|Hidrobomba;9 Cabezazo|Pistola Agua|Hidrobomba;
@@ -150,7 +172,33 @@ const SETS = `1 Látigo Cepa|Drenadoras|Rayo Solar;2 Látigo Cepa|Hoja Afilada|R
 137 Placaje|Psicorrayo|Hiperrayo;138 Mordisco|Pistola Agua|Hidrobomba;139 Mordisco|Clavo Cañón|Hidrobomba;140 Arañazo|Pistola Agua|Hidrobomba;
 141 Cuchillada|Pistola Agua|Hidrobomba;142 Mordisco|Tornado|Hiperrayo;143 Golpe Cuerpo|Pisotón|Hiperrayo;144 Picotazo|Viento Hielo|Ventisca;
 145 Pico Taladro|Onda Trueno|Trueno;146 Ataque Ala|Ascuas|Llamarada;147 Atadura|Furia Dragón|Hiperrayo;148 Atadura|Furia Dragón|Hiperrayo;
-149 Garra Dragón|Pulso Dragón|Hiperrayo;150 Cabezazo Zen|Psicorrayo|Psíquico;151 Destructor|Bola Sombra|Psíquico`;
+149 Garra Dragón|Pulso Dragón|Hiperrayo;150 Cabezazo Zen|Psicorrayo|Psíquico;151 Destructor|Bola Sombra|Psíquico;
+152 Placaje|Hoja Afilada|Rayo Solar;153 Placaje|Hoja Afilada|Rayo Solar;154 Golpe Cuerpo|Hoja Afilada|Tormenta Floral;
+155 Placaje|Ascuas|Lanzallamas;156 Rueda Fuego|Ascuas|Lanzallamas;157 Rueda Fuego|Ascuas|Erupción;
+158 Arañazo|Pistola Agua|Hidrobomba;159 Mordisco|Pistola Agua|Hidrobomba;160 Triturar|Hidropulso|Hidrobomba;
+161 Arañazo|Rapidez|Surf;162 Golpe Furia|Rapidez|Hiperrayo;163 Picotazo|Confusión|Come Sueños;164 Picotazo|Confusión|Ataque Aéreo;
+165 Placaje|Viento Plata|Zumbido;166 Puño Hielo|Viento Plata|Zumbido;167 Picotazo Veneno|Telaraña|Tóxico;168 Picadura|Pin Misil|Tóxico;
+169 Ataque Ala|Rayo Confuso|Pájaro Osado;170 Placaje|Chispa|Hidrobomba;171 Golpe Cuerpo|Chispazo|Trueno;172 Ataque Rápido|Impactrueno|Rayo;
+173 Destructor|Voz Cautivadora|Fuerza Lunar;174 Destructor|Canto|Psíquico;175 Destructor|Beso Amoroso|Premonición;176 Ataque Ala|Brillo Mágico|Ataque Aéreo;
+177 Picotazo|Confusión|Premonición;178 Picotazo|Confusión|Psíquico;179 Placaje|Impactrueno|Rayo;180 Puño Trueno|Chispa|Rayo;
+181 Puño Trueno|Rayo Carga|Trueno;182 Destructor|Gigadrenado|Danza Pétalo;183 Desenrollar|Burbuja|Hidrobomba;184 Carantoña|Rayo Burbuja|Hidrobomba;
+185 Golpe Roca|Lanzarrocas|Roca Afilada;186 Golpe Cuerpo|Hidropulso|Hidrobomba;187 Placaje|Esporagodón|Rayo Solar;188 Placaje|Megaagotar|Rayo Solar;
+189 Golpe Aéreo|Gigadrenado|Rayo Solar;190 Golpe Furia|Rapidez|Trueno;191 Placaje|Megaagotar|Rayo Solar;192 Destructor|Gigadrenado|Danza Pétalo;
+193 Ataque Rápido|Supersónico|Zumbido;194 Golpe Cuerpo|Pistola Agua|Terremoto;195 Golpe Cuerpo|Bofetón Lodo|Terremoto;196 Ataque Rápido|Confusión|Psíquico;
+197 Finta|Pulso Umbrío|Juego Sucio;198 Picotazo|Pulso Umbrío|Pájaro Osado;199 Cabezazo|Pistola Agua|Psíquico;200 Impresionar|Bola Sombra|Mismo Destino;
+201 Placaje|Poder Oculto|Psíquico;202 Contraataque|Manto Espejo|Mismo Destino;203 Cabezazo Zen|Psicorrayo|Psíquico;204 Placaje|Clavo Cañón|Autodestrucción;
+205 Giro Rápido|Clavo Cañón|Explosión;206 Mordisco|Bofetón Lodo|Terremoto;207 Tijera X|Ataque Arena|Terremoto;208 Cola Férrea|Lanzarrocas|Terremoto;
+209 Mordisco|Brillo Mágico|Terremoto;210 Carantoña|Brillo Mágico|Terremoto;211 Picotazo Veneno|Pin Misil|Hidrobomba;212 Garra Metal|Viento Plata|Foco Resplandor;
+213 Picadura|Lanzarrocas|Roca Afilada;214 Megacuerno|Pin Misil|A Bocajarro;215 Tajo Umbrío|Canto Helado|Ventisca;216 Golpe Furia|Rapidez|Terremoto;
+217 Cuchillada|Rapidez|Hiperrayo;218 Placaje|Ascuas|Lanzallamas;219 Desenrollar|Ascuas|Llamarada;220 Placaje|Nieve Polvo|Ventisca;
+221 Colmillo Hielo|Nieve Polvo|Terremoto;222 Placaje|Rayo Burbuja|Roca Afilada;223 Placaje|Rayo Aurora|Hiperrayo;224 Constricción|Pulpocañón|Hiperrayo;
+225 Picotazo|Presente|Ventisca;226 Ataque Ala|Rayo Burbuja|Hidrobomba;227 Ala de Acero|Rapidez|Pájaro Osado;228 Mordisco|Ascuas|Lanzallamas;
+229 Triturar|Pulso Umbrío|Llamarada;230 Cascada|Pulso Dragón|Hidrobomba;231 Desenrollar|Bofetón Lodo|Terremoto;232 Giro Rápido|Lanzarrocas|Terremoto;
+233 Placaje|Triataque|Hiperrayo;234 Cornada|Pisotón|Psíquico;235 Placaje|Boceto|Hiperrayo;236 Ultrapuño|Onda Vacío|Patada Salto Alta;
+237 Patada Giro|Onda Vacío|A Bocajarro;238 Destructor|Nieve Polvo|Psíquico;239 Puño Trueno|Chispa|Trueno;240 Puño Fuego|Ascuas|Lanzallamas;
+241 Desenrollar|Pisotón|Hiperrayo;242 Destructor|Bomba Huevo|Hiperrayo;243 Triturar|Chispa|Trueno;244 Colmillo Ígneo|Fuego Fatuo|Erupción;
+245 Triturar|Hidropulso|Hidrobomba;246 Mordisco|Lanzarrocas|Avalancha;247 Golpe Cuerpo|Lanzarrocas|Avalancha;248 Triturar|Pulso Umbrío|Roca Afilada;
+249 Ala de Acero|Hidropulso|Aerochorro;250 Ala de Acero|Ascuas|Fuego Sagrado;251 Hoja Aguda|Gigadrenado|Premonición`;
 const MOVESET = {};
 SETS.split(';').forEach(l => { const m = l.trim().match(/^(\d+) (.+)$/); if(m) MOVESET[m[1]] = m[2].split('|'); });
 const FORMA_FX = {bola:'bola', chorro:'gota', onda:'anillo', hojas:'hoja', agujas:'aguja', piedra:'roca', rayito:'chispa', polvo:'nube',
@@ -842,7 +890,11 @@ function pintarBotones(){
   const col = TYPE_COLORS[m.p.type];
   ATAQUES.forEach(k => {
     const b = $('arB-' + k); if(!b) return;
-    b.querySelector('b').textContent = nombreAtaque(m.p, k);
+    const n = nombreAtaque(m.p, k), el = b.querySelector('b');
+    el.textContent = n;
+    /* que las palabras largas (Aerochorro, Autodestrucción) entren enteras en el botón del celular */
+    const larga = Math.max(...n.split(' ').map(w => w.length));
+    el.style.fontSize = larga > 12 ? '9px' : larga > 9 ? '10px' : '';
     b.style.borderColor = col;
   });
 }
@@ -1274,7 +1326,7 @@ function dispararLargo(e){
       const tx = z.x + azar(-z.r, z.r) * .85, ty = z.y + azar(-z.r, z.r) * G.pz * .85;
       const tam = Math.max(8, (mov.forma === 'roca' ? 3.4 : 2.4) * U);
       const o = mk('ar-orbe f-' + mov.forma, {width:tam + 'px', height:tam + 'px', left:tx + 'px', top:'0px', opacity:0});
-      o.style.setProperty('--c', mov.n === 'Danza Pétalo' ? elige(['#FFB3D9', '#FF7FBF', '#ffffff']) : elige(elemDe(tipo).c));
+      o.style.setProperty('--c', (mov.n === 'Danza Pétalo' || mov.n === 'Tormenta Floral') ? elige(['#FFB3D9', '#FF7FBF', '#ffffff']) : elige(elemDe(tipo).c));
       const a = o.animate([
         {transform:'translate(-50%,-50%) translateY(0) rotate(0)', opacity:1},
         {transform:`translate(-50%,-50%) translateY(${ty}px) rotate(200deg)`, opacity:1}
@@ -1946,7 +1998,7 @@ function armarRival(mios){
   }
   const prom = mios.reduce((s, p) => s + bstDe(p), 0) / mios.length;
   const ids = new Set(mios.map(p => p.id));
-  const pool = DATA.filter(p => p.region === 'kanto')
+  const pool = DATA.filter(p => REGIONES_ARENA.includes(p.region))
     .sort((x, y) => Math.abs(bstDe(x) - prom) - Math.abs(bstDe(y) - prom)).slice(0, 18);
   const sorteado = pool.sort(() => Math.random() - .5);
   const sinRepetir = sorteado.filter(p => !ids.has(p.id));
@@ -1959,7 +2011,7 @@ function abrirArena(){
   const mios = kantoMios().concat(especialesMios());   // las especiales (Mewtwo Acorazado) pelean aparte
   if(mios.length < EQUIPO_MIN){
     if(typeof avisoBatalla === 'function')
-      avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto para pelear en la arena. Abrí un sobre primero.`);
+      avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto o Johto para pelear en la arena. Abrí un sobre primero.`);
     return;
   }
   limpiar();
@@ -1970,7 +2022,7 @@ function abrirArena(){
   const root = $('arRoot');
   const pintar = () => {
     root.innerHTML = `<div class="ar-pick">
-      <h2>Arena Pokémon · Kanto</h2>
+      <h2>Arena Pokémon · Kanto y Johto</h2>
       <p>Elegí tu equipo: de ${EQUIPO_MIN} a ${EQUIPO_MAX}. Sale primero el que marcaste con el 1. Pelea tu ejemplar más fuerte (💪).</p>
       <div class="ar-grid">${orden.map(p => {
         const n = sel.indexOf(p.id) + 1, s = statsDe(p);
