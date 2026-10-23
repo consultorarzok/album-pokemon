@@ -706,3 +706,21 @@
   .rank-tab,.rank-count,.chip{font-family:'Baloo 2',sans-serif;font-size:14px;font-weight:600;}
   .rank-tab.active{font-weight:700;}
   .rank-name{font-size:15px;}
+  /* celular: título centrado arriba; jugador y monedas en la segunda línea; "Responder y ganar" a lo ancho.
+     Así entran nombres largos y monedas de 5-6 cifras sin pisarse. */
+  @media (max-width:899px){
+    .cabecera{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'marca marca' 'jugador monedas' 'ganar ganar';gap:12px 10px;padding:18px 16px 22px;}
+    .cabecera .marca{justify-self:center;font-size:clamp(24px,7.4vw,34px);}
+    .cabecera .player-chip{justify-self:stretch;min-width:0;}
+    .cabecera .player-chip b{flex:1 1 auto;}
+    .cabecera .coin-box{justify-self:end;}
+    .cabecera .earn-btn{justify-self:stretch;width:100%;min-height:46px;font-size:15px;}
+  }
+  .cabecera .player-chip{display:flex;align-items:center;}
+  @media (max-width:899px){
+    .cabecera .pc-label{display:none;}
+    .cabecera .player-chip{justify-content:center;padding:8px 14px;}
+    .cabecera .player-chip b{flex:0 1 auto;font-size:16px;}
+    .cabecera .player-chip::before{content:'';flex:0 0 auto;width:16px;height:16px;margin-right:2px;
+      background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23C9D0EC'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z'/%3E%3C/svg%3E");}
+  }
