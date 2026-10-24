@@ -131,8 +131,10 @@ async function cerrarCarteles(pg){
   await esperar(C.pg, () => document.getElementById('nameOverlay').classList.contains('show'));
   await C.pg.fill('#nameInput', 'Nuevo ' + suf);
   await C.pg.click('#nameSaveBtn');
-  check('arranca con 300 monedas', await esperar(C.pg, () => servidorListo && coins === 300), await C.pg.evaluate(() => coins));
-  check('recibe los regalos "para todos"', await esperar(C.pg, () => document.getElementById('battleOverlay').classList.contains('show') || document.getElementById('specialCardWrap') && document.querySelector('.special-overlay.show'), null, 5000));
+  check('arranca con 1000 monedas y 15 Poké Ball (bienvenida)', await esperar(C.pg, () => servidorListo && coins === 1000 && bolas.roja === 15 && bolas.ultra === 0), await C.pg.evaluate(() => [coins, bolas]));
+  check('le sale UNA carta especial de bienvenida', await esperar(C.pg, () => document.querySelector('.special-overlay.show'), null, 5000));
+  for(let i = 0; i < 3 && await C.pg.isVisible('#specialContinueBtn'); i++){ await C.pg.click('#specialContinueBtn'); await C.pg.waitForTimeout(400); }
+  check('cartel de bienvenida', await esperar(C.pg, () => /Bienvenido a Entrenadores RZ/.test(document.getElementById('battleStage').textContent), null, 5000));
   await cerrarCarteles(C.pg);
 
   console.log('10) Intercambio entre A y C');

@@ -4064,7 +4064,7 @@ function aplicarRegalos(){
 }
 
 /* El cartel "¡Regalo!" con las cartas de lo que llegó. */
-function mostrarRegalos({total, regaladas, ejPulls, espPulls, bolasGanadas, esAventura, esEvento}){
+function mostrarRegalos({total, regaladas, ejPulls, espPulls, bolasGanadas, esAventura, esEvento, esBienvenida}){
   const totalBolas = Object.keys(bolasGanadas).reduce((a, t) => a + bolasGanadas[t], 0);
   const partes = [];
   if(total) partes.push('<b>' + total + '</b> monedas');
@@ -4085,7 +4085,10 @@ function mostrarRegalos({total, regaladas, ejPulls, espPulls, bolasGanadas, esAv
   const cartelEvento = esEvento
     ? '<br><br><b>¡Bienvenido al ' + esEvento.nombre + '!</b> Durante el evento sólo cuentan figuritas de Kanto y Johto.'
     : '';
-  const aviso = () => avisoRegalo('Te regalaron ' + partes.join(' y ') + '.' + cartelAventura + cartelEvento + ' ¡A jugar!');
+  const aviso = () => avisoRegalo(esBienvenida
+    ? '<b>¡Bienvenido a Entrenadores RZ!</b><br><br>Arrancás con <b>' + coins + '</b> monedas, <b>' + bolas.roja + '</b> Poké Ball y ' +
+      (regaladas.length ? 'la figurita <b>' + regaladas[0].p.name + '</b>' : 'tu primera figurita') + '. Abrí sobres, salí de aventura y peleá en la Arena. ¡A jugar!'
+    : 'Te regalaron ' + partes.join(' y ') + '.' + cartelAventura + cartelEvento + ' ¡A jugar!');
 
   /* La legendaria regalada se muestra con la misma carta dorada del sobre,
      una por una; recién después aparece el cartel del regalo. */

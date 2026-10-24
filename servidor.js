@@ -512,7 +512,7 @@ function cobrarRegalosServidor(){
     if(!out.monedas && !regaladas.length && !ejPulls.length && !espPulls.length && !Object.keys(out.bolas).length) return;
     enviarPuntaje();
     mostrarRegalos({total: out.monedas, regaladas, ejPulls, espPulls, bolasGanadas: out.bolas, esAventura: out.aventura,
-      esEvento: out.evento ? EVENTOS.find(e => e.slug === out.evento) : null});
+      esEvento: out.evento ? EVENTOS.find(e => e.slug === out.evento) : null, esBienvenida: !!out.bienvenida});
   }).catch(() => {});
 }
 
