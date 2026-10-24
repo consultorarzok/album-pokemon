@@ -67,6 +67,11 @@ async function cerrarCarteles(pg){
 
   console.log('2) Abrir un sobre');
   await A.pg.click('#openBtn');
+  /* si sale una épica o legendaria, primero aparece su carta dorada: se toca Continuar */
+  for(let i = 0; i < 20 && !(await A.pg.evaluate(() => document.getElementById('overlay').classList.contains('show'))); i++){
+    if(await A.pg.isVisible('#specialContinueBtn')) await A.pg.click('#specialContinueBtn').catch(() => {});
+    await A.pg.waitForTimeout(300);
+  }
   check('aparecen las 6 cartas', await esperar(A.pg, () => document.querySelectorAll('#revealCards .reveal-card').length === 6));
   check('descontó 150', await A.pg.evaluate(() => coins) === 850);
   await cerrarCarteles(A.pg);
@@ -107,10 +112,17 @@ async function cerrarCarteles(pg){
 
   console.log('7) Ranking: lo arma el servidor');
   /* el ranking muestra sólo los 10 primeros (en la base de pruebas hay muchos): se le pregunta al servidor por este jugador */
-  const info = await (await fetch(SERVIDOR + '/admin/jugador', {method: 'POST', headers: {'x-admin': process.env.ADMIN_CLAVE || 'prueba-local'}, body: JSON.stringify({nombre})})).json();
-  check('el servidor lleva sus figuritas para el ranking', info.ok && info.jugador.figuritas === await A.pg.evaluate(() => figuritasObtenidas()), info.jugador);
+  let info = null, iguales = false;
+  for(let i = 0; i < 10 && !iguales; i++){   // puede estar guardando la última jugada
+    info = await (await fetch(SERVIDOR + '/admin/jugador', {method: 'POST', headers: {'x-admin': process.env.ADMIN_CLAVE || 'prueba-local'}, body: JSON.stringify({nombre})})).json();
+    iguales = info.ok && info.jugador.figuritas === await A.pg.evaluate(() => figuritasObtenidas());
+    if(!iguales) await A.pg.waitForTimeout(500);
+  }
+  check('el servidor lleva sus figuritas para el ranking', iguales, [info && info.jugador, await A.pg.evaluate(() => figuritasObtenidas())]);
   check('el ranking lo arma el servidor', await A.pg.evaluate(() => !!(ultimoTop && ultimoTop.dia && Array.isArray(ultimoTop.hoy))));
-  check('aparece en Maestros con sus puntos viejos', await A.pg.evaluate(async n => { await cargarTopMaestro(); return ultimoTopMaestro.top.some(x => x.jugador === n && x.pts === 120); }, nombre));
+  /* (el top muestra 20 y la base de pruebas tiene muchos: se le pregunta al servidor por él) */
+  const infoM = await (await fetch(SERVIDOR + '/admin/jugador', {method: 'POST', headers: {'x-admin': process.env.ADMIN_CLAVE || 'prueba-local'}, body: JSON.stringify({nombre})})).json();
+  check('conserva sus puntos de Maestro viejos', infoM.ok && infoM.jugador.maestro === 120, infoM.jugador);
 
   console.log('8) Otro celular: nombre ocupado → entra con PIN y ve el MISMO álbum');
   const B = await abrir(br, {'album-kanto-dispositivo': 'dotro' + suf});
@@ -164,7 +176,7 @@ async function cerrarCarteles(pg){
   await A.ctx.route(new RegExp(SERVIDOR.replace(/^https?:\/\//, '').replace(/\./g, '\\.')), r => r.abort());
   await cerrarCarteles(A.pg);
   await A.pg.evaluate(() => document.getElementById('intercambioOverlay').classList.remove('show'));
-  await A.pg.evaluate(() => openPack());
+  await A.pg.evaluate(() => startQuiz());   // no cuesta monedas: siempre intenta conectarse
   check('avisa que no hay conexión', await esperar(A.pg, () => document.getElementById('offlineOverlay').classList.contains('show')));
   await A.ctx.unrouteAll(); await A.ctx.route(/n8n\.consultorarz\.com/, r => r.abort());
   await A.pg.click('#offlineBtn');
