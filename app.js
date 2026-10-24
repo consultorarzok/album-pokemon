@@ -4404,25 +4404,28 @@ let eventoYaIniciado = null;   // slug del evento cuyo top ya se pidió, para no
    poll de 60s. */
 let vistaEventoPrevia = false;
 
-/* Decoración visual del Pachamanga Fest Halloween: fantasmas flotando, Pokémon
-   fantasma corriendo por abajo y calabazas. Sólo adorno (pointer-events:none). */
+/* Decoración del Pachamanga Fest Halloween, todo estático y dentro del flujo (no tapa nada):
+   un Gengar asomando en el banner del evento y, arriba del logo de Pachamanga, una
+   fila de Pokémon fantasma con calabazas. */
 function decorarHalloween(on){
-  let d = document.getElementById('decorHalloween');
-  if(!on){ if(d) d.remove(); return; }
-  if(d) return;
-  d = document.createElement('div');
-  d.id = 'decorHalloween';
-  d.setAttribute('aria-hidden', 'true');
-  let h = '';
-  [[6,'0s',26],[24,'-4s',20],[46,'-9s',30],[68,'-13s',22],[88,'-6s',26]].forEach(([x,dl,t]) => {
-    h += '<span class="dh-fantasma" style="left:' + x + '%;animation-delay:' + dl + ';font-size:' + t + 'px">👻</span>';
-  });
-  [[92,'0s',9],[93,'-7s',11],[94,'-14s',10],[200,'-3s',12]].forEach(([id,dl,seg]) => {
-    h += '<img class="dh-corre" alt="" src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/' + id + '.png" style="animation-duration:' + (seg + 9) + 's;animation-delay:' + dl + '">';
-  });
-  for(let i = 0; i < 6; i++) h += '<img class="dh-calabaza" alt="" src="' + CALABAZA_IMG + '" style="left:' + (4 + i * 18) + '%">';
-  d.innerHTML = h;
-  document.body.appendChild(d);
+  const viejo = document.querySelectorAll('.dh-asoma, #decorHalloween');
+  if(!on){ viejo.forEach(n => n.remove()); return; }
+  if(viejo.length) return;
+  const art = id => 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/' + id + '.png';
+  const banner = document.getElementById('eventoBanner');
+  if(banner){
+    const g = document.createElement('img');
+    g.className = 'dh-asoma'; g.alt = ''; g.src = art(94);
+    banner.appendChild(g);
+  }
+  const pie = document.querySelector('.firma-colab');
+  if(pie){
+    const d = document.createElement('div');
+    d.id = 'decorHalloween'; d.setAttribute('aria-hidden', 'true');
+    const calab = '<img class="dh-calabaza" alt="" src="' + CALABAZA_IMG + '">';
+    d.innerHTML = calab + '<img alt="" src="' + art(92) + '">' + calab + '<img class="dh-grande" alt="" src="' + art(93) + '">' + calab + '<img alt="" src="' + art(200) + '">' + calab;
+    pie.parentNode.insertBefore(d, pie);
+  }
 }
 
 function sincronizarEvento(){

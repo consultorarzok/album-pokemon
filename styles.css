@@ -762,11 +762,10 @@
   .panel-top h2{white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;font-size:20px;min-width:0;}
   .ar-sel .ar-movs{color:#cfe3ff;line-height:1.2;text-align:center;margin-top:2px;}
 
-  /* Decoración Pachamanga Fest Halloween (sólo adorno) */
-  #decorHalloween{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:5;}
-  .dh-fantasma{position:absolute;bottom:-40px;opacity:.55;animation:dhSube 16s linear infinite;}
-  .dh-corre{position:absolute;bottom:2px;width:54px;height:54px;left:-70px;opacity:.9;animation:dhCorre 18s linear infinite;}
-  .dh-calabaza{position:absolute;bottom:0;width:30px;height:30px;image-rendering:pixelated;opacity:.9;}
-  @keyframes dhSube{0%{transform:translate(0,0);opacity:0}10%{opacity:.55}50%{transform:translate(24px,-45vh)}90%{opacity:.5}100%{transform:translate(-16px,-105vh);opacity:0}}
-  @keyframes dhCorre{0%{transform:translateX(0)}100%{transform:translateX(calc(100vw + 140px))}}
-  @media (prefers-reduced-motion:reduce){.dh-fantasma,.dh-corre{animation:none;display:none}}
+  /* Decoración Pachamanga Fest Halloween: estática, dentro del flujo */
+  .evento-banner.evento-halloween{position:relative;overflow:hidden;padding-right:64px;}
+  .dh-asoma{position:absolute;right:6px;bottom:-14px;width:58px;height:58px;pointer-events:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.45));}
+  #decorHalloween{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:18px 0 6px;pointer-events:none;}
+  #decorHalloween img{width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.3));}
+  #decorHalloween .dh-grande{width:56px;height:56px;}
+  #decorHalloween .dh-calabaza{width:26px;height:26px;image-rendering:pixelated;filter:none;}
