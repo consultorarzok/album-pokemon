@@ -769,3 +769,4 @@
   #decorHalloween img{width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.3));}
   #decorHalloween .dh-grande{width:56px;height:56px;}
   #decorHalloween .dh-calabaza{width:26px;height:26px;image-rendering:pixelated;filter:none;}
+  .rank-count[hidden]{display:none;}

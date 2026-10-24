@@ -4435,6 +4435,13 @@ function sincronizarEvento(){
   const vistaActual = !!(ev && ev.soloRegion12);
 
   decorarHalloween(!!(ev && ev.tema === 'halloween'));
+  /* En el Halloween el ranking se reduce a Evento, Maestros y Salón de la Fama */
+  const soloEvento = !!(ev && ev.tema === 'halloween');
+  document.getElementById('tabHoy').hidden = soloEvento;
+  document.getElementById('tabHist').hidden = soloEvento;
+  document.getElementById('tabSalon').hidden = !soloEvento;
+  if(soloEvento && (rankTab === 'hoy' || rankTab === 'historico')) activarRankTab('evento');
+  if(!soloEvento && rankTab === 'salon') activarRankTab('hoy');
   if(!ev){
     banner.hidden = true;
     tab.hidden = true;
@@ -4517,6 +4524,13 @@ function renderRank(){
 
   if(rankTab === 'maestro'){
     renderRankMaestro(lista, cont, done);
+    return;
+  }
+
+  if(rankTab === 'salon'){
+    cont.hidden = true;
+    if(!ultimoTop) lista.innerHTML = '<div class="rank-empty">Cargando…</div>';
+    else renderSalonDeLaFama(done);
     return;
   }
 
@@ -5080,10 +5094,11 @@ document.getElementById('nameInput').addEventListener('keydown', e => {
 });
 function activarRankTab(valor){
   rankTab = valor;
-  ['tabEvento', 'tabHoy', 'tabHist', 'tabMaestro'].forEach(id => {
+  ['tabEvento', 'tabHoy', 'tabHist', 'tabMaestro', 'tabSalon'].forEach(id => {
     const el = document.getElementById(id);
     const on = (id === 'tabEvento' && valor === 'evento')
       || (id === 'tabMaestro' && valor === 'maestro')
+      || (id === 'tabSalon' && valor === 'salon')
       || (id === 'tabHoy' && valor === 'hoy')
       || (id === 'tabHist' && valor === 'historico');
     el.classList.toggle('active', on);
@@ -5094,6 +5109,7 @@ function activarRankTab(valor){
 }
 document.getElementById('tabMaestro').onclick = () => activarRankTab('maestro');
 document.getElementById('tabEvento').onclick = () => activarRankTab('evento');
+document.getElementById('tabSalon').onclick = () => activarRankTab('salon');
 document.getElementById('tabHoy').onclick = () => activarRankTab('hoy');
 document.getElementById('tabHist').onclick = () => activarRankTab('historico');
 document.querySelectorAll('.rank-tab').forEach(t => t.addEventListener('keydown', e => {
