@@ -4589,6 +4589,16 @@ function renderRank(){
   renderSalonDeLaFama(done);
 }
 
+/* Salón de la Fama · Edición Halloween: completaron Kanto+Johto durante el Pachamanga Fest.
+   Se pide una vez al cargar, así sigue visible cuando el evento termina. */
+let topHalloween = null;
+function cargarTopHalloween(){
+  const ev = EVENTOS.find(e => e.tema === 'halloween');
+  if(!ev || !MODO_SERVIDOR) return;
+  fetch(SERVIDOR_URL + '/evento-top?evento=' + encodeURIComponent(ev.slug), {cache: 'no-store'}).then(r => r.json())
+    .then(d => { topHalloween = d; if(rankTab === 'salon') renderRank(); }).catch(() => {});
+}
+
 function renderSalonDeLaFama(done){
   const comp = (ultimoTop && ultimoTop.completaron) || [];
   if(comp.length > 0){
@@ -4603,6 +4613,16 @@ function renderSalonDeLaFama(done){
   } else {
     done.innerHTML = '<div class="rank-done-empty"><b style="color:var(--ink);font-family:\'Baloo 2\',sans-serif;">Nadie completó el álbum todavía.</b><br>' +
       'El primero que junte las ' + DATA.length + ' figuritas queda en esta lista para siempre.</div>';
+  }
+  const hal = (topHalloween && topHalloween.completaron) || [];
+  if(hal.length){
+    const caja = document.createElement('div');
+    caja.innerHTML = '<div class="hof-title" style="margin-top:14px">🏆 Salón de la Fama</div>' +
+      '<div class="hof-sub">Edición Halloween · completaron Kanto+Johto</div>' +
+      hal.map(() => '<div class="hof-row"><img class="hof-crown" src="images/crown-oro.svg" alt=""><div class="hof-name"></div><div class="hof-date"></div></div>').join('');
+    caja.querySelectorAll('.hof-name').forEach((el, i) => { el.textContent = hal[i].jugador; });
+    caja.querySelectorAll('.hof-date').forEach((el, i) => { el.textContent = formatearDuracion(hal[i].duracionMs); });
+    done.appendChild(caja);
   }
   /* Ganadores de eventos especiales: quedan para siempre */
   const gan = (ultimoTop && ultimoTop.eventos) || [];
@@ -5105,6 +5125,7 @@ function activarRankTab(valor){
     el.setAttribute('aria-selected', on ? 'true' : 'false');
   });
   if(valor === 'maestro') cargarTopMaestro();
+  if(valor === 'salon') cargarTopHalloween();
   renderRank();
 }
 document.getElementById('tabMaestro').onclick = () => activarRankTab('maestro');
@@ -5199,6 +5220,7 @@ if(!MODO_SERVIDOR){   // con servidor, el arranque lo hace servidor.js (arrancar
 document.getElementById('playerName').textContent = jugador || '-';
 aplicarRegalos();
 cargarTop();
+cargarTopHalloween();
 enviarMaestro();   // por si la última pelea no llegó a mandarse
 sincronizarEvento();
 setInterval(sincronizarEvento, 60000);
