@@ -47,6 +47,7 @@ const EQUIPO_MAX = 6, EQUIPO_MIN = PELEA_MIN;
 /* Premio según cómo fue la pelea: base + cada rival que tumbaste + los tuyos que quedaron
    en pie + el tiempo peleado (con tope, para que no convenga estirarla). */
 const PREMIO = {ganar:80, perder:15, porKO:20, porVivo:15, segPorMoneda:3, topeTiempo:60};
+const TOPE_MONEDAS_PELEA = 100;
 /* Tamaño de los sprites respecto del píxel del fondo: más chicos que 1:1 para
    que la arena se vea grande y quede en escala con el público y los entrenadores. */
 const ESCALA_POKE = {yo:.66, riv:.6};
@@ -2327,6 +2328,12 @@ function calcularPremio(gane){
   const bolasTxt = Object.keys(b).map(t => `+${b[t]} ${nombres[t]}`).join(' · ');
   /* Puntos de Maestro: sólo ganando; suman los rivales tumbados y no perder a ninguno */
   const pts = gane ? 10 + kos * 2 + (vivos === AR.yo.mons.length ? 5 : 0) : 0;
+  /* tope de 100 monedas por pelea sumando todo (mismo cálculo que el servidor) */
+  const total = lineas.reduce((a, l) => a + l[1], 0);
+  if(total > TOPE_MONEDAS_PELEA){
+    lineas.forEach(l => { l[1] = Math.floor(l[1] * TOPE_MONEDAS_PELEA / total); });
+    lineas[0][1] += TOPE_MONEDAS_PELEA - lineas.reduce((a, l) => a + l[1], 0);
+  }
   return {monedas:lineas.reduce((a, l) => a + l[1], 0), lineas, bolas:b, bolasTxt, pts};
 }
 
