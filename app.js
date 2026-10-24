@@ -1704,7 +1704,7 @@ const EVENTOS = [
        quedan para siempre en "Ganadores de eventos" y les llega el premio solo (lo entrega el
        servidor, ver resolverEventos en pokemon-servidor). */
     slug: 'halloween-2026',
-    nombre: 'Evento Halloween',
+    nombre: '🎃👻 PACHAMANGA FEST: EDICIÓN HALLOWEEN! 👻🎃',
     inicio: '2026-10-24T10:20:00-03:00',
     fin:    '2026-10-24T20:00:00-03:00',
     cooldownLegendarioMin: 15,
@@ -4404,12 +4404,34 @@ let eventoYaIniciado = null;   // slug del evento cuyo top ya se pidió, para no
    poll de 60s. */
 let vistaEventoPrevia = false;
 
+/* Decoración visual del Pachamanga Fest Halloween: fantasmas flotando, Pokémon
+   fantasma corriendo por abajo y calabazas. Sólo adorno (pointer-events:none). */
+function decorarHalloween(on){
+  let d = document.getElementById('decorHalloween');
+  if(!on){ if(d) d.remove(); return; }
+  if(d) return;
+  d = document.createElement('div');
+  d.id = 'decorHalloween';
+  d.setAttribute('aria-hidden', 'true');
+  let h = '';
+  [[6,'0s',26],[24,'-4s',20],[46,'-9s',30],[68,'-13s',22],[88,'-6s',26]].forEach(([x,dl,t]) => {
+    h += '<span class="dh-fantasma" style="left:' + x + '%;animation-delay:' + dl + ';font-size:' + t + 'px">👻</span>';
+  });
+  [[92,'0s',9],[93,'-7s',11],[94,'-14s',10],[200,'-3s',12]].forEach(([id,dl,seg]) => {
+    h += '<img class="dh-corre" alt="" src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/' + id + '.png" style="animation-duration:' + (seg + 9) + 's;animation-delay:' + dl + '">';
+  });
+  for(let i = 0; i < 6; i++) h += '<img class="dh-calabaza" alt="" src="' + CALABAZA_IMG + '" style="left:' + (4 + i * 18) + '%">';
+  d.innerHTML = h;
+  document.body.appendChild(d);
+}
+
 function sincronizarEvento(){
   const ev = eventoActivo();
   const banner = document.getElementById('eventoBanner');
   const tab = document.getElementById('tabEvento');
   const vistaActual = !!(ev && ev.soloRegion12);
 
+  decorarHalloween(!!(ev && ev.tema === 'halloween'));
   if(!ev){
     banner.hidden = true;
     tab.hidden = true;
@@ -4428,8 +4450,7 @@ function sincronizarEvento(){
   const fin = new Date(ev.fin);
   const hora = fin.toLocaleTimeString('es-AR', {timeZone: ZONA_HORARIA, hour: '2-digit', minute: '2-digit', hour12: false});
   const nomEl = document.getElementById('eventoBannerNombre');
-  if(ev.tema === 'halloween') nomEl.innerHTML = '<img src="' + CALABAZA_IMG + '" alt=""><span></span><img src="' + CALABAZA_IMG + '" alt="">', nomEl.querySelector('span').textContent = ev.nombre;
-  else nomEl.textContent = ev.nombre;
+  nomEl.textContent = ev.nombre;
   document.getElementById('eventoBannerSub').textContent = ev.subtitulo
     ? ev.subtitulo + ' · termina a las ' + hora
     : 'Ranking propio del evento · los legendarios reaparecen cada ' + ev.cooldownLegendarioMin + ' min · termina a las ' + hora;
