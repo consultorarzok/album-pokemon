@@ -1706,7 +1706,7 @@ const EVENTOS = [
     slug: 'halloween-2026',
     nombre: '¡PACHAMANGA FEST: EDICIÓN HALLOWEEN!',
     inicio: '2026-10-24T15:00:00-03:00',
-    fin:    '2026-10-24T20:00:00-03:00',
+    fin:    '2026-10-24T21:00:00-03:00',
     cooldownLegendarioMin: 15,
     soloRegion12: true,
     boostEncuentrosFactor: 1.7,
