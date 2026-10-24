@@ -1705,7 +1705,7 @@ const EVENTOS = [
        servidor, ver resolverEventos en pokemon-servidor). */
     slug: 'halloween-2026',
     nombre: 'Evento Halloween',
-    inicio: '2026-10-24T15:00:00-03:00',
+    inicio: '2026-10-24T10:20:00-03:00',
     fin:    '2026-10-24T20:00:00-03:00',
     cooldownLegendarioMin: 15,
     soloRegion12: true,
