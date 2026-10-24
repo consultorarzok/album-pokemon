@@ -1713,7 +1713,7 @@ const EVENTOS = [
     mapaCerradoDesdeX: 109,           // de Hoenn en adelante (Johto llega hasta la columna 108)
     ranking: 'capturas',
     tema: 'halloween',
-    subtitulo: 'Sólo Kanto y Johto · gana el que más Pokémon atrape en la Aventura',
+    subtitulo: 'Sólo Kanto y Johto · suman los Pokémon que atrapes en la Aventura y las figuritas nuevas de tus sobres',
     premios: [
       {texto: 'Charizard shiny + 3000 monedas + 30 Poké Ball + 10 Súper Ball + 5 Ultra Ball', monedas: 3000, shiny: [6], bolas: {roja: 30, azul: 10, ultra: 5}},
       {texto: '1 legendaria + 1500 monedas + 20 Poké Ball + 5 Súper Ball', monedas: 1500, legendarias: 1, bolas: {roja: 20, azul: 5}},
@@ -4647,7 +4647,7 @@ function renderRankEvento(lista, cont){
   const evR = EVENTOS.find(e => e.slug === ultimoTopEvento.evento) || {};
   const capturas = evR.ranking === 'capturas';
   if(filas.length === 0){
-    lista.innerHTML = capturas ? '<div class="rank-empty">Todavía nadie atrapó Pokémon en el evento. ¡Salí de aventura y sé el primero!</div>'
+    lista.innerHTML = capturas ? '<div class="rank-empty">Todavía nadie sumó puntos en el evento. ¡Abrí sobres o salí de aventura y sé el primero!</div>'
       : '<div class="rank-empty">Todavía nadie sumó figuritas en el evento. ¡Arrancá vos!</div>';
     return;
   }
@@ -4658,7 +4658,7 @@ function renderRankEvento(lista, cont){
       '<div class="rank-pos">' + f.puesto + '</div>' +
       '<div class="rank-name"></div>' +
       iconoPuesto(f.puesto) +
-      '<div class="rank-score">' + f.figuritas + ' <span style="font-size:10px;color:var(--ink-dim);font-family:\'Space Mono\',monospace;">' + (capturas ? 'atrapados' : 'nuevas') + '</span></div>';
+      '<div class="rank-score">' + f.figuritas + ' <span style="font-size:10px;color:var(--ink-dim);font-family:\'Space Mono\',monospace;">' + (capturas ? 'puntos' : 'nuevas') + '</span></div>';
     row.querySelector('.rank-name').textContent = f.jugador;
     lista.appendChild(row);
   });
