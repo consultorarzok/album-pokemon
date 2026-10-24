@@ -816,7 +816,7 @@ function renderGrid(){
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
   const ev = eventoVistaActiva();
-  const baseIds = ev ? eventoBaseIds(ev) : null;
+  const delEvento = ev ? eventoTiene(ev) : null;
   let lista = ev ? DATA.filter(p => IDS_KANTO_JOHTO.has(p.id)) : DATA;
   lista = lista.filter(p => (currentFilter==='all' || p.type===currentFilter) && (currentRegion==='all' || p.region===currentRegion));
   /* Búsqueda: el NÚMERO sirve siempre, pero el NOMBRE sólo en las que ya
@@ -827,7 +827,7 @@ function renderGrid(){
     const num = q.replace(/^#/, '');
     lista = lista.filter(p => {
       const s = state[p.id];
-      const gotV = ev ? (s.got && !baseIds.has(p.id)) : s.got;
+      const gotV = ev ? delEvento(p.id) : s.got;
       return (/^\d+$/.test(num) && p.id === Number(num))
         || (gotV && normalizarBusqueda(p.name).includes(q));
     });
@@ -848,7 +848,7 @@ function renderGrid(){
   }
   lista.forEach(p=>{
     const s = state[p.id];
-    const gotVista = ev ? (s.got && !baseIds.has(p.id)) : s.got;
+    const gotVista = ev ? delEvento(p.id) : s.got;
     const slot = document.createElement('div');
     slot.className = 'slot' + (gotVista ? ' got' : '');
     slot.setAttribute('role', 'listitem');
@@ -876,9 +876,9 @@ function updateProgress(){
   const ev = eventoVistaActiva();
   let got, total;
   if(ev){
-    const baseIds = eventoBaseIds(ev);
+    const delEvento = eventoTiene(ev);
     const listaEvento = DATA.filter(p => IDS_KANTO_JOHTO.has(p.id));
-    got = listaEvento.filter(p => state[p.id].got && !baseIds.has(p.id)).length;
+    got = listaEvento.filter(p => delEvento(p.id)).length;
     total = listaEvento.length;
   } else {
     got = Object.values(state).filter(s=>s.got).length;
@@ -4342,6 +4342,17 @@ function eventoBaseIds(ev){
     try{ localStorage.setItem(EVENTO_BASE_IDS_KEY, JSON.stringify(base)); }catch(e){}
   }
   return new Set(base[ev.slug]);
+}
+
+/* Qué figuritas se ven "conseguidas" en el álbum del evento. En el evento por puntos (Halloween) el
+   servidor guarda las que salieron EN EL EVENTO (vistos), aunque ya estuvieran en el álbum de siempre;
+   en los otros eventos, las que no tenía cuando empezó. */
+function eventoTiene(ev){
+  const e = MODO_SERVIDOR && eventosServidor[ev.slug];
+  if(e && Array.isArray(e.vistos)){ const v = new Set(e.vistos); return id => v.has(id); }
+  if(MODO_SERVIDOR && ev.ranking === 'capturas') return () => false;
+  const base = eventoBaseIds(ev);
+  return id => state[id].got && !base.has(id);
 }
 
 function figuritasEvento(ev){
