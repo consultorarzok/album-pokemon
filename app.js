@@ -1,3 +1,12 @@
+/* =================== SERVIDOR (opcional) ===================
+   Con SERVIDOR_URL vacío el juego funciona como siempre: el álbum vive en el navegador y el
+   ranking en n8n. Con una dirección, el álbum vive en el servidor (Cloudflare) y cada jugada
+   se le pide a él: ver servidor.js. Para probar sin publicar, en la consola del navegador:
+   localStorage.setItem('album-servidor', 'http://localhost:8787') y recargar. */
+const SERVIDOR_URL = (() => { let u = ''; try{ u = localStorage.getItem('album-servidor') || ''; }catch(e){} return u || ''; })();
+const MODO_SERVIDOR = !!SERVIDOR_URL;
+let eventosServidor = {};   // bases de los eventos que guarda el servidor (las llena servidor.js)
+
 const TYPE_COLORS = {
   normal:'#A8A77A', fire:'#EE8130', water:'#6390F0', electric:'#F7D02C',
   grass:'#7AC74C', ice:'#96D9D6', fighting:'#C22E28', poison:'#A33EA1',
@@ -677,6 +686,7 @@ function loadProgress(){
 }
 
 function resetProgress(){
+  if(MODO_SERVIDOR) return abrirPin('poner');   // con servidor el botón es para el PIN
   if(!confirm('¿Reiniciar el álbum? Perdés todas las figuritas y monedas guardadas.')) return;
   try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
   coins = 300;
@@ -920,6 +930,7 @@ function weightedPick(){
 function isSpecial(p){ return p.rarity === 'Legendario' || p.rarity === 'Épico'; }
 
 function openPack(){
+  if(MODO_SERVIDOR) return openPackServidor();
   if(coins < PACK_COST) return;
   coins -= PACK_COST;
   updateCoins();
@@ -1042,6 +1053,7 @@ function elegirPesado(lista){
 }
 
 function canjearRepetidas(){
+  if(MODO_SERVIDOR) return canjearRepetidasServidor();
   const falta = faltantes();
   if(repetidasTotales() < CANJE_COSTO || falta.length === 0) return;
 
@@ -1249,6 +1261,7 @@ function mezclar(arr){
 }
 
 function startQuiz(){
+  if(MODO_SERVIDOR) return startQuizServidor();
   quizModo = Math.random() < 0.5 ? 'silueta' : 'tipo';
   quizTarget = DATA[Math.floor(Math.random()*DATA.length)];
 
@@ -3318,14 +3331,14 @@ function advPaso1(dt){
     const cerca = altarMasCercano(cx, cy);
     if(cerca && cerca.dist <= RADIO_AVISTAMIENTO){
       advCamino = 0;
-      tirarAltar(cerca.santuario, cerca.x, cerca.y);
+      tirarAltar(cerca.santuario, cerca.x, cerca.y, cx, cy);
       return;
     }
     if(t.encuentro){
       advCamino = 0;
       if(Math.random() <= probEncuentro(t.encuentro)){
         advDescanso = DESCANSO_ENCUENTRO;
-        iniciarEncuentro(elegirPesado(poolBioma(t.encuentro)));
+        salirEncuentro(t, cx, cy);
       }
     }
   }
@@ -3344,7 +3357,8 @@ function advPaso1(dt){
    al acertar. */
 let avistamientoPity = {};
 
-function tirarAltar(santuario, x, y){
+function tirarAltar(santuario, x, y, px, py){
+  if(MODO_SERVIDOR) return tirarAltarServidor(santuario, x, y, px, py);
   if(!santuario) return;
   if(legendariosAgotadosHoy(santuario)){
     const evLeg = eventoVistaActiva();
@@ -3390,6 +3404,7 @@ function advPisar(t, x, y){
     const clave = advMapa + ':' + x + ',' + y;
     if(advTomados.has(clave)) return;
     advTomados.add(clave);
+    if(MODO_SERVIDOR) return levantarServidor(advMapa, x, y);
     if(t.item === 'moneda'){
       const valor = monedasDelPiso(x, y);
       coins += valor;
@@ -3445,15 +3460,21 @@ function advMover(dx, dy){
   if(advDescanso > 0){ advDescanso -= ADV_PX; return; }
   if(avist) return;
   const cerca = altarMasCercano(nx, ny);
-  if(cerca && cerca.dist <= RADIO_AVISTAMIENTO){ tirarAltar(cerca.santuario, cerca.x, cerca.y); return; }
+  if(cerca && cerca.dist <= RADIO_AVISTAMIENTO){ tirarAltar(cerca.santuario, cerca.x, cerca.y, nx, ny); return; }
   if(t.encuentro && Math.random() <= probEncuentro(t.encuentro)){
     advDescanso = DESCANSO_ENCUENTRO;
-    iniciarEncuentro(elegirPesado(poolBioma(t.encuentro)));
+    salirEncuentro(t, nx, ny);
   }
 }
 
 /* ---------- Encuentro y captura ---------- */
 let encuentro = null;
+
+/* Quién sale en el encuentro: lo sortea el juego o, con servidor, el servidor. */
+function salirEncuentro(t, x, y){
+  if(MODO_SERVIDOR) return encuentroServidor(x, y);
+  iniciarEncuentro(elegirPesado(poolBioma(t.encuentro)));
+}
 
 function iniciarEncuentro(p){
   encuentro = {p, tiros:0};
@@ -3506,11 +3527,13 @@ function renderEncuentro(){
 }
 
 function cerrarEncuentro(){
+  if(MODO_SERVIDOR && encuentro) accionServidor('huir').catch(() => {});
   encuentro = null;
   document.getElementById('encOverlay').classList.remove('show');
 }
 
 function tirarBola(tipo){
+  if(MODO_SERVIDOR) return tirarBolaServidor(tipo);
   if(!encuentro || bolas[tipo] <= 0) return;
   const p = encuentro.p;
   bolas[tipo]--;
@@ -3543,6 +3566,9 @@ function capturar(p){
   renderGrid();
   updateProgress();
   saveProgress();
+  capturarVista(p, isNew);
+}
+function capturarVista(p, isNew){
   enviarPuntaje();
   encuentro = null;
 
@@ -3592,6 +3618,7 @@ function renderTienda(){
 }
 
 function comprarBola(tipo){
+  if(MODO_SERVIDOR) return comprarBolaServidor(tipo);
   const b = BOLAS[tipo];
   if(!puedeComprar(tipo)) return;
   coins -= b.precio;
@@ -3935,6 +3962,7 @@ function quitarEjemplar(id, f, shiny){
 }
 
 function aplicarRegalos(){
+  if(MODO_SERVIDOR) return cobrarRegalosServidor();
   let usados = [];
   try{ usados = JSON.parse(localStorage.getItem(REGALOS_KEY) || '[]'); }catch(e){}
   if(!Array.isArray(usados)) usados = [];
@@ -4027,7 +4055,12 @@ function aplicarRegalos(){
     updateProgress();
   }
   enviarPuntaje();
+  mostrarRegalos({total, regaladas, ejPulls, espPulls, bolasGanadas, esAventura, esEvento});
+}
 
+/* El cartel "¡Regalo!" con las cartas de lo que llegó. */
+function mostrarRegalos({total, regaladas, ejPulls, espPulls, bolasGanadas, esAventura, esEvento}){
+  const totalBolas = Object.keys(bolasGanadas).reduce((a, t) => a + bolasGanadas[t], 0);
   const partes = [];
   if(total) partes.push('<b>' + total + '</b> monedas');
   if(ejPulls.length) partes.push(ejPulls.map(pull => '<b>' + pull.p.name + '</b>').join(', '));
@@ -4074,6 +4107,7 @@ function setStatus(txt, esError){
 
 /* Se manda como text/plain a propósito: evita el preflight CORS del navegador. */
 function enviarPuntaje(){
+  if(MODO_SERVIDOR){ clearTimeout(enviosPend); enviosPend = setTimeout(cargarTop, 1500); return; }
   if(!jugador) return;
   const ahora = Date.now();
   if(ahora - ultimoEnvio < 3000){
@@ -4105,6 +4139,7 @@ function enviarPuntaje(){
    suelta): el servidor se queda con la fila de más puntos de cada uno. */
 let ultimoTopMaestro = null, topMaestroFallo = false;
 function enviarMaestro(){
+  if(MODO_SERVIDOR) return cargarTopMaestro();
   if(!jugador || !maestro.peleas) return Promise.resolve();
   return fetch(API_BASE + '/pokemon-maestro-score', {
     method: 'POST',
@@ -4116,7 +4151,7 @@ function enviarMaestro(){
   }).catch(() => {});
 }
 function cargarTopMaestro(){
-  return fetch(API_BASE + '/pokemon-maestro-top', {cache: 'no-store'})
+  return fetch(MODO_SERVIDOR ? SERVIDOR_URL + '/maestro-top' : API_BASE + '/pokemon-maestro-top', {cache: 'no-store'})
     .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(data => { ultimoTopMaestro = data; topMaestroFallo = false; if(rankTab === 'maestro') renderRank(); })
     .catch(() => { topMaestroFallo = true; if(rankTab === 'maestro') renderRank(); });
@@ -4191,6 +4226,10 @@ function eventoBase(ev){
 const EVENTO_BASE_IDS_KEY = 'album-kanto-evento-base-ids';
 
 function eventoBaseIds(ev){
+  if(MODO_SERVIDOR){
+    const e = eventosServidor[ev.slug];
+    return new Set(e ? e.baseIds : DATA.filter(p => state[p.id].got).map(p => p.id));
+  }
   let base = {};
   try{ base = JSON.parse(localStorage.getItem(EVENTO_BASE_IDS_KEY) || '{}'); }catch(e){ base = {}; }
   if(!Array.isArray(base[ev.slug])){
@@ -4222,6 +4261,7 @@ function eventoInicioMs(ev){
 
 function enviarPuntajeEvento(){
   const ev = eventoActivo();
+  if(MODO_SERVIDOR){ if(ev) cargarTopEvento(ev); return; }
   if(!ev || !jugador) return;
   const vista = eventoVistaActiva();
   let completo = false, duracionMs = 0;
@@ -4248,7 +4288,7 @@ function enviarPuntajeEvento(){
 let ultimoTopEvento = null;
 
 function cargarTopEvento(ev){
-  return fetch(API_BASE + '/pokemon-evento-top?evento=' + encodeURIComponent(ev.slug), {cache: 'no-store'})
+  return fetch((MODO_SERVIDOR ? SERVIDOR_URL + '/evento-top' : API_BASE + '/pokemon-evento-top') + '?evento=' + encodeURIComponent(ev.slug), {cache: 'no-store'})
     .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(data => { ultimoTopEvento = data; if(rankTab === 'evento') renderRank(); })
     .catch(() => {});
@@ -4314,7 +4354,7 @@ let topFallo = false;   // el último intento de traer el ranking falló
 function cargarTop(){
   topFallo = false;
   setStatus('actualizando...');
-  return fetch(API_BASE + '/pokemon-top', {cache: 'no-store'})
+  return fetch(MODO_SERVIDOR ? SERVIDOR_URL + '/top' : API_BASE + '/pokemon-top', {cache: 'no-store'})
     .then(r => {
       if(!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
@@ -4566,6 +4606,7 @@ function renderIntercambioDup(){
    (update atómico), y te devuelve la figurita con la misma fuerza (y shiny) que tenía.
    Pide confirmar con un segundo toque para no cancelar sin querer. */
 function cancelarCodigo(codigo, btn, alTerminar){
+  if(MODO_SERVIDOR) return cancelarCodigoServidor(codigo, btn, alTerminar);
   if(!jugador) return;
   if(btn.dataset.confirmar !== '1'){
     btn.dataset.confirmar = '1';
@@ -4667,6 +4708,7 @@ function abrirIntercambio(){
 }
 
 function generarCodigo(pokemonId, btn, serie){
+  if(MODO_SERVIDOR) return generarCodigoServidor(pokemonId, btn, serie);
   if(!jugador || state[pokemonId].dup < 1) return;
   const lista = ejemplares(pokemonId);
   const ej = lista.find(e => e.c === serie) || lista.slice().sort((a, b) => a.f - b.f)[0];
@@ -4722,6 +4764,7 @@ function mostrarCartaCodigo(pokemonId, codigo, fuerza, shiny){
 }
 
 function canjearCodigoInput(){
+  if(MODO_SERVIDOR) return canjearCodigoServidor();
   const inp = document.getElementById('canjeCodigoInput');
   const btn = document.getElementById('canjeCodigoBtn');
   const fb  = document.getElementById('canjeCodigoFeedback');
@@ -4812,6 +4855,7 @@ function pedirNombre(){
    en la pantalla a propósito: jugando, el nombre sigue sin poder cambiarse.
    Igual pasa por el registro, así que no sirve para robar el nombre de otro. */
 function fijarNombreDesdeLink(nuevo){
+  if(MODO_SERVIDOR) return;   // con servidor el nombre no se cambia por link
   fetch(API_BASE + '/pokemon-registrar', {
     method: 'POST',
     headers: {'Content-Type': 'text/plain;charset=UTF-8'},
@@ -4841,6 +4885,7 @@ function aceptarNombre(val){
 /* Reserva el nombre en el servidor: dos entrenadores no pueden llamarse igual
    (se compara sin tildes ni mayúsculas). Como text/plain para evitar el preflight. */
 function guardarNombre(){
+  if(MODO_SERVIDOR) return guardarNombreServidor();
   const inp = document.getElementById('nameInput');
   const btn = document.getElementById('nameSaveBtn');
   const err = document.getElementById('nameError');
@@ -4982,6 +5027,7 @@ try{
   if(nombreDelLink) history.replaceState(null, '', location.pathname);
 }catch(e){ nombreDelLink = ''; }
 
+if(!MODO_SERVIDOR){   // con servidor, el arranque lo hace servidor.js (arrancarServidor)
 document.getElementById('playerName').textContent = jugador || '-';
 aplicarRegalos();
 cargarTop();
@@ -4997,3 +5043,4 @@ if(nombreDelLink && nombreDelLink !== jugador){
   pedirNombre();
 }
 window.addEventListener('online', () => { if(topFallo) cargarTop(); });
+}

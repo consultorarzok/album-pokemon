@@ -191,8 +191,31 @@
     <input id="nameInput" maxlength="20" placeholder="Tu nombre" autocomplete="off">
     <div id="nameError" class="name-error"></div>
     <button id="nameSaveBtn">¡A jugar!</button>
+    <button id="namePinBtn" class="btn-sec" hidden>Ya tengo cuenta: entrar con mi PIN</button>
   </div>
 </div>
+
+<!-- Sólo con servidor (servidor.js): PIN para entrar al álbum desde otro celular -->
+<div class="name-overlay" id="pinOverlay" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+  <div class="name-box">
+    <h2 id="pinTitle">Protegé tu álbum</h2>
+    <p id="pinTexto">Elegí un PIN de 4 números. Si cambiás de celular o se borra el navegador, entrás con tu nombre y este PIN y recuperás todo.</p>
+    <input id="pinNombre" maxlength="20" placeholder="Tu nombre" autocomplete="off" hidden>
+    <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="PIN (4 a 6 números)" autocomplete="off">
+    <div id="pinError" class="name-error" role="alert"></div>
+    <button id="pinOkBtn">Guardar PIN</button>
+    <button id="pinNoBtn" class="btn-sec">Ahora no</button>
+  </div>
+</div>
+
+<div class="name-overlay" id="offlineOverlay" role="alertdialog" aria-modal="true" aria-labelledby="offlineTitle">
+  <div class="name-box">
+    <h2 id="offlineTitle">Sin conexión</h2>
+    <p>Tu álbum ahora se guarda en internet para que no se pierda nunca. Cuando vuelva la señal, seguís jugando donde lo dejaste.</p>
+    <button id="offlineBtn">Reintentar</button>
+  </div>
+</div>
+<div id="toastServidor" class="toast-servidor" role="status" aria-live="polite" hidden></div>
 
 <div class="overlay" id="pokedexOverlay" role="dialog" aria-modal="true">
   <div class="pokedex-panel">
@@ -307,6 +330,7 @@
 </div>
 
 <script src="app.js?v=20261048"></script>
+<script src="servidor.js?v=20261101"></script>
 <script src="arena.js?v=20261050"></script>
 <script src="portada.js?v=20261046"></script>
 </body>

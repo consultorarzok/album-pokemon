@@ -2179,6 +2179,11 @@ function pedirSalida(){
 
 async function luchar(mios){
   audio();   // el navegador sólo deja arrancar el sonido después de un toque del usuario
+  /* con servidor: anota que empieza la pelea y con qué equipo (al terminar controla el tiempo y los premios) */
+  if(MODO_SERVIDOR){
+    const res = await accionServidor('arenaEmpezar', {equipo: mios.map(p => p.id)}).catch(() => null);
+    if(!res || !res.ok){ avisoServidor(res ? res.motivo : 'sin_conexion'); return; }
+  }
   const rival = armarRival(mios);
   const ent = elegirRival();
   rivalFig = ent.fig;
@@ -2229,6 +2234,7 @@ async function luchar(mios){
 
 function terminar(gane){
   AR.fase = 'fin'; AR.hold.clear();
+  if(MODO_SERVIDOR){ terminarServidor(gane); return; }
   const pr = calcularPremio(gane);
   coins += pr.monedas;
   for(const t in pr.bolas) if(typeof bolas !== 'undefined' && t in bolas) bolas[t] += pr.bolas[t];
@@ -2240,6 +2246,30 @@ function terminar(gane){
   sfx(gane ? 'gana' : 'pierde');
   if(gane) festejo(true);
   decir(gane ? '¡Ganaste la batalla!' : 'Te quedaste sin Pokémon...');
+  pintarFin(gane, pr, subidas);
+}
+
+/* Con servidor: se le cuenta cómo terminó la pelea y él calcula y guarda el premio. */
+function terminarServidor(gane){
+  const kos = AR.riv.mons.filter(m => !m.vivo).length, vivos = AR.yo.mons.filter(m => m.vivo).length;
+  sfx(gane ? 'gana' : 'pierde');
+  if(gane) festejo(true);
+  decir(gane ? '¡Ganaste la batalla!' : 'Te quedaste sin Pokémon...');
+  const nombres = {roja:'Poké Ball', azul:'Súper Ball', ultra:'Ultra Ball', maestra:'Master Ball'};
+  const vacio = {monedas:0, lineas:[], bolas:{}, bolasTxt:'', pts:0};
+  accionServidor('arenaTerminar', {gane, kos, vivos, tLucha: AR.tLucha}).then(res => {
+    if(!res.ok){ pintarFin(gane, vacio, [], 'Esta pelea no se pudo anotar.'); return; }
+    const r = res.resultado;
+    const pr = {monedas:r.monedas, lineas:r.lineas, bolas:r.bolas, pts:r.pts,
+      bolasTxt:Object.keys(r.bolas).map(t => `+${r.bolas[t]} ${nombres[t]}`).join(' · ')};
+    const subidas = r.subidas.map(u => ({nombre:u.nombre, premio:textoPremioRango(RANGOS_MAESTRO[u.nivel].premio || {}) +
+      (u.legendarias.length ? ' (' + u.legendarias.map(x => (DATA.find(d => d.id === x.id) || {}).name).join(', ') + ')' : '')}));
+    cargarTopMaestro();
+    pintarFin(gane, pr, subidas, r.tope ? 'Ya peleaste un montón hoy: las peleas de acá a mañana no dan premio.' : '');
+  }).catch(() => pintarFin(gane, vacio, [], 'Sin conexión: esta pelea no se anotó.'));
+}
+
+function pintarFin(gane, pr, subidas, aviso){
   const col = gane ? '#3DDC6E' : '#F0463C', f = $('arFin');
   f.hidden = false;
   f.innerHTML = `<div class="ar-fin-caja" style="border-color:${col}">
@@ -2250,6 +2280,7 @@ function terminar(gane){
     ${pr.bolasTxt ? `<span class="ar-premio-bolas">${pr.bolasTxt}</span>` : ''}
     <span class="ar-premio-maestro">${pr.pts ? `+${pr.pts} puntos de Maestro · ` : ''}${RANGOS_MAESTRO[rangoPropio()].nombre}: <b>${maestro.pts}</b> pts · ${maestro.ganadas} ganada${maestro.ganadas === 1 ? '' : 's'} de ${maestro.peleas}</span>
     ${subidas.map(u => `<span class="ar-rango-sube">🏅 ¡Subiste a <b>${u.nombre}</b>! Premio: ${u.premio}</span>`).join('')}
+    ${aviso ? `<span class="ar-premio-maestro">${aviso}</span>` : ''}
     <div><button class="ar-b ar-med" id="arCerrar2"><b>Cerrar</b></button>
     <button class="ar-b ar-med" id="arOtra"><b>Revancha</b></button></div></div>`;
   $('arCerrar2').onclick = cerrarArena;
