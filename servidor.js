@@ -418,7 +418,7 @@ function comprarBolaServidor(tipo){
 /* ---------------- Aventura ---------------- */
 function levantarServidor(mapa, x, y){
   if(!servidorListo) return;
-  accionServidor('levantar', {mapa, x, y}).then(res => {
+  accionServidor('levantar', {mapa, x, y, region: advRegion}).then(res => {
     if(!res.ok) return;
     const r = res.resultado;
     if(r.moneda != null){ advMensaje(`Encontraste <b>${r.moneda}</b> monedas 🪙`); enviarPuntaje(); }
@@ -512,7 +512,7 @@ function cobrarRegalosServidor(){
     if(!out.monedas && !regaladas.length && !ejPulls.length && !espPulls.length && !Object.keys(out.bolas).length) return;
     enviarPuntaje();
     mostrarRegalos({total: out.monedas, regaladas, ejPulls, espPulls, bolasGanadas: out.bolas, esAventura: out.aventura,
-      esEvento: out.evento ? EVENTOS.find(e => e.slug === out.evento) : null, esBienvenida: !!out.bienvenida});
+      esEvento: out.evento ? EVENTOS.find(e => e.slug === out.evento) : null, esBienvenida: !!out.bienvenida, mensaje: out.mensaje || ''});
   }).catch(() => {});
 }
 

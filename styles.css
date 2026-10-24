@@ -27,6 +27,10 @@
   .evento-banner{background:linear-gradient(135deg,var(--evento),var(--evento-dim));border:1px solid var(--evento);border-radius:12px;padding:12px 16px;margin-bottom:18px;text-align:center;}
   .evento-banner-nombre{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:16px;color:#fff;letter-spacing:.3px;}
   .evento-banner-sub{font-size:11px;color:#E6D9FB;margin-top:2px;}
+  .evento-banner.evento-halloween{background:linear-gradient(135deg,#140b04 0%,#4a2208 55%,#c2571a 100%);border-color:#F28C28;box-shadow:0 6px 18px rgba(194,87,26,.25);}
+  .evento-halloween .evento-banner-nombre{display:flex;align-items:center;justify-content:center;gap:8px;color:#FFD9A8;}
+  .evento-halloween .evento-banner-nombre img{width:22px;height:22px;image-rendering:pixelated;}
+  .evento-halloween .evento-banner-sub{color:#FFE2C2;}
   h1{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:28px;letter-spacing:.5px;margin:0;color:var(--ink);}
   h1 span{color:var(--gold);text-shadow:-1px 0 var(--poke-blue),1px 0 var(--poke-blue),0 -1px var(--poke-blue),0 1px var(--poke-blue);}
 

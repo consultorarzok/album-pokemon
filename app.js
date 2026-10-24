@@ -1696,6 +1696,29 @@ const EVENTOS = [
     soloRegion12: true,
     boostEncuentrosFactor: 1.7,
     boostPokebolasPiso: true
+  },
+  {
+    /* Halloween (pedido por Zeta el 24/10): sólo Kanto y Johto (sobres, aventura, regalos), el
+       mapa de Hoenn en adelante clausurado con calabazas, más Pokémon en el pasto, legendarios
+       cada 15 min, y ranking de Pokémon ATRAPADOS en la Aventura. Al terminar, los 3 primeros
+       quedan para siempre en "Ganadores de eventos" y les llega el premio solo (lo entrega el
+       servidor, ver resolverEventos en pokemon-servidor). */
+    slug: 'halloween-2026',
+    nombre: 'Evento Halloween',
+    inicio: '2026-10-24T15:00:00-03:00',
+    fin:    '2026-10-24T20:00:00-03:00',
+    cooldownLegendarioMin: 15,
+    soloRegion12: true,
+    boostEncuentrosFactor: 1.7,
+    mapaCerradoDesdeX: 109,           // de Hoenn en adelante (Johto llega hasta la columna 108)
+    ranking: 'capturas',
+    tema: 'halloween',
+    subtitulo: 'Sólo Kanto y Johto · gana el que más Pokémon atrape en la Aventura',
+    premios: [
+      {texto: 'Charizard shiny + 3000 monedas + 30 Poké Ball + 10 Súper Ball + 5 Ultra Ball', monedas: 3000, shiny: [6], bolas: {roja: 30, azul: 10, ultra: 5}},
+      {texto: '1 legendaria + 1500 monedas + 20 Poké Ball + 5 Súper Ball', monedas: 1500, legendarias: 1, bolas: {roja: 20, azul: 5}},
+      {texto: '1 épica + 800 monedas + 15 Poké Ball', monedas: 800, epicas: 1, bolas: {roja: 15}}
+    ]
   }
 ];
 
@@ -2948,7 +2971,7 @@ function sincronizarObjetos(visibles, escala){
       el.dataset.tipo = o.tipo;
       /* La moneda usa el mismo emoji que el contador del HUD; las pokébolas,
          su imagen real. */
-      el.innerHTML = o.tipo === 'moneda' ? '🪙' : `<img src="${BOLAS[o.tipo].img}" alt="">`;
+      el.innerHTML = o.tipo === 'moneda' ? '🪙' : o.tipo === 'calabaza' ? `<img src="${CALABAZA_IMG}" alt="Calabaza" style="image-rendering:pixelated">` : `<img src="${BOLAS[o.tipo].img}" alt="">`;
     }
     el.style.display = 'block';
     el.style.fontSize = lado + 'px';
@@ -2962,8 +2985,55 @@ function sincronizarObjetos(visibles, escala){
 function advTileEn(x, y){
   const mapa = ADV_MAPS[advMapa];
   if(y < 0 || y >= mapa.rows.length || x < 0 || x >= mapa.cols) return null;
-  return ADV_TILE[mapa.rows[y][x]] || null;
+  const t = ADV_TILE[mapa.rows[y][x]] || null;
+  return t && t.walk && cerradoPorEvento(x) ? TILE_CERRADO : t;
 }
+
+/* ---------- Evento con mapa cerrado (Halloween) ----------
+   De la columna mapaCerradoDesdeX en adelante el mundo está clausurado: no se camina y en los
+   pasos de la frontera hay calabazas. Se lee como un cartel al chocarlo. */
+const TILE_CERRADO = {walk:false, cartel:true, label:'Clausurado por el evento'};
+function cerradoPorEvento(x){
+  const ev = eventoActivo();
+  return !!(ev && ev.mapaCerradoDesdeX && advMapa === 'overworld' && x >= ev.mapaCerradoDesdeX);
+}
+/* calabazas en los pasos de la frontera (dos columnas, donde el camino cruza) */
+function calabazasDelEvento(){
+  const ev = eventoActivo();
+  if(!ev || !ev.mapaCerradoDesdeX || advMapa !== 'overworld') return [];
+  if(calabazasDelEvento._x !== ev.mapaCerradoDesdeX){
+    const rows = ADV_MAPS.overworld.rows, lista = [];
+    for(const x of [ev.mapaCerradoDesdeX, ev.mapaCerradoDesdeX + 1])
+      for(let y = 0; y < rows.length; y++){ const t = ADV_TILE[rows[y][x]]; if(t && t.walk) lista.push({x, y}); }
+    calabazasDelEvento._x = ev.mapaCerradoDesdeX; calabazasDelEvento._lista = lista;
+  }
+  return calabazasDelEvento._lista;
+}
+/* si quedó parado del lado clausurado (abrió la aventura antes del evento), vuelve al inicio */
+function sacarDeZonaCerrada(){
+  const ev = eventoActivo();
+  if(!ev || !ev.mapaCerradoDesdeX) return;
+  const enCuevaCerrada = advMapa !== 'overworld' && !['kanto', 'johto'].includes(advRegion);
+  if(enCuevaCerrada || (advMapa === 'overworld' && advX >= ev.mapaCerradoDesdeX)){
+    advMapa = 'overworld';
+    const inicio = advBuscarTile('overworld', '@');
+    advPonerEn(inicio.x, inicio.y);
+    advMensaje('🎃 Durante el <b>' + ev.nombre + '</b> sólo se puede andar por Kanto y Johto.');
+  }
+}
+/* calabaza pixel-art 16x16 (se dibuja una vez) */
+const CALABAZA_IMG = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 16;
+  const g = c.getContext('2d');
+  const px = (col, pts) => { g.fillStyle = col; pts.forEach(([x, y, w, h]) => g.fillRect(x, y, w || 1, h || 1)); };
+  px('#5A2A0A', [[3,5,10,1],[2,6,1,7],[13,6,1,7],[3,13,10,1],[1,7,1,5],[14,7,1,5],[4,14,8,1]]);
+  px('#F28C28', [[3,6,10,7],[2,7,12,5],[4,13,8,1]]);
+  px('#C2571A', [[6,6,1,7],[9,6,1,7]]);
+  px('#FFB347', [[4,7,1,2],[11,7,1,2]]);
+  px('#2B1B0E', [[4,8,2,2],[10,8,2,2],[5,11,6,1],[6,12,1,1],[9,12,1,1]]);
+  px('#3E8E2F', [[7,2,2,4],[9,3,2,1]]);
+  return c.toDataURL();
+})();
 
 function advBuscarTile(mapaId, chars){
   const mapa = ADV_MAPS[mapaId];
@@ -3132,6 +3202,10 @@ function advRender(){
       if(px0 < -16 || py0 < -16 || px0 > vw || py0 > vh) return;
       objetos.push({tipo: t.item === 'moneda' ? 'moneda' : bolaDelPiso(x, y), px: px0, py: py0});
     });
+  });
+  calabazasDelEvento().forEach(({x, y}) => {
+    const px0 = x * ADV_PX - camX, py0 = y * ADV_PX - camY;
+    if(px0 >= -16 && py0 >= -16 && px0 <= vw && py0 <= vh) objetos.push({tipo: 'calabaza', px: px0, py: py0});
   });
   sincronizarObjetos(objetos, escala);
 
@@ -3426,6 +3500,12 @@ function advPisar(t, x, y){
 
 /* Los carteles no se pisan (son postes): el mensaje sale al chocarlos. */
 function advLeerCartel(x, y){
+  if(cerradoPorEvento(x)){
+    const ev = eventoActivo();
+    const fin = new Date(ev.fin).toLocaleTimeString('es-AR', {timeZone: ZONA_HORARIA, hour: '2-digit', minute: '2-digit', hour12: false});
+    advMensaje('🎃 <b>Clausurado por el ' + ev.nombre + '.</b> Hasta las ' + fin + ' sólo se puede andar por Kanto y Johto.');
+    return;
+  }
   const txt = (ADV_MAPS[advMapa].carteles || {})[x + ',' + y];
   if(txt) advMensaje(txt);
 }
@@ -3654,6 +3734,7 @@ function abrirAventura(){
     advPonerEn(inicio.x, inicio.y);
     advZonaActual = '';
   }
+  sacarDeZonaCerrada();
   advRender();
   advSyncHud();
   advMensaje('Caminá hasta la <b>hierba alta</b> o el <b>lago</b> para que salgan Pokémon');
@@ -4064,7 +4145,7 @@ function aplicarRegalos(){
 }
 
 /* El cartel "¡Regalo!" con las cartas de lo que llegó. */
-function mostrarRegalos({total, regaladas, ejPulls, espPulls, bolasGanadas, esAventura, esEvento, esBienvenida}){
+function mostrarRegalos({total, regaladas, ejPulls, espPulls, bolasGanadas, esAventura, esEvento, esBienvenida, mensaje}){
   const totalBolas = Object.keys(bolasGanadas).reduce((a, t) => a + bolasGanadas[t], 0);
   const partes = [];
   if(total) partes.push('<b>' + total + '</b> monedas');
@@ -4088,13 +4169,22 @@ function mostrarRegalos({total, regaladas, ejPulls, espPulls, bolasGanadas, esAv
   const aviso = () => avisoRegalo(esBienvenida
     ? '<b>¡Bienvenido a Entrenadores RZ!</b><br><br>Arrancás con <b>' + coins + '</b> monedas, <b>' + bolas.roja + '</b> Poké Ball y ' +
       (regaladas.length ? 'la figurita <b>' + regaladas[0].p.name + '</b>' : 'tu primera figurita') + '. Abrí sobres, salí de aventura y peleá en la Arena. ¡A jugar!'
+    : mensaje ? '<b>' + mensaje + '</b><br><br>Tu premio: ' + partes.join(' y ') + '. ¡Felicitaciones!'
     : 'Te regalaron ' + partes.join(' y ') + '.' + cartelAventura + cartelEvento + ' ¡A jugar!');
 
   /* La legendaria regalada se muestra con la misma carta dorada del sobre,
      una por una; recién después aparece el cartel del regalo. */
   /* los ejemplares regalados se muestran como cartas (con su ✨ Shiny y su 💪) */
-  const mostrar = () => espPulls.length ? mostrarEspeciales(espPulls, ejPulls.length ? () => showReveal(ejPulls, '¡Te regalaron!') : aviso)
-                                        : ejPulls.length ? showReveal(ejPulls, '¡Te regalaron!') : aviso();
+  /* un premio (con mensaje) muestra sus cartas y, al cerrarlas, el cartel de felicitación */
+  const cartas = () => {
+    showReveal(ejPulls, mensaje ? '¡Tu premio!' : '¡Te regalaron!');
+    if(!mensaje) return;
+    const ov = document.getElementById('overlay');
+    const obs = new MutationObserver(() => { if(!ov.classList.contains('show')){ obs.disconnect(); aviso(); } });
+    obs.observe(ov, {attributes:true, attributeFilter:['class']});
+  };
+  const mostrar = () => espPulls.length ? mostrarEspeciales(espPulls, ejPulls.length ? cartas : aviso)
+                                        : ejPulls.length ? cartas() : aviso();
   if(regaladas.length) playSpecialSequence(regaladas, 0, mostrar);
   else mostrar();
 }
@@ -4337,10 +4427,15 @@ function sincronizarEvento(){
 
   const fin = new Date(ev.fin);
   const hora = fin.toLocaleTimeString('es-AR', {timeZone: ZONA_HORARIA, hour: '2-digit', minute: '2-digit', hour12: false});
-  document.getElementById('eventoBannerNombre').textContent = ev.nombre;
-  document.getElementById('eventoBannerSub').textContent =
-    'Ranking propio del evento · los legendarios reaparecen cada ' + ev.cooldownLegendarioMin + ' min · termina a las ' + hora;
+  const nomEl = document.getElementById('eventoBannerNombre');
+  if(ev.tema === 'halloween') nomEl.innerHTML = '<img src="' + CALABAZA_IMG + '" alt=""><span></span><img src="' + CALABAZA_IMG + '" alt="">', nomEl.querySelector('span').textContent = ev.nombre;
+  else nomEl.textContent = ev.nombre;
+  document.getElementById('eventoBannerSub').textContent = ev.subtitulo
+    ? ev.subtitulo + ' · termina a las ' + hora
+    : 'Ranking propio del evento · los legendarios reaparecen cada ' + ev.cooldownLegendarioMin + ' min · termina a las ' + hora;
+  banner.classList.toggle('evento-halloween', ev.tema === 'halloween');
   banner.hidden = false;
+  if(advAbierto) sacarDeZonaCerrada();
   tab.hidden = false;
 
   if(eventoYaIniciado !== ev.slug){
@@ -4403,7 +4498,9 @@ function renderRank(){
 
   if(rankTab === 'evento'){
     renderRankEvento(lista, cont);
-    renderSalonDeLaFamaEvento(done);
+    const evA = eventoActivo();
+    if(evA && evA.premios) renderPremiosEvento(done, evA);
+    else renderSalonDeLaFamaEvento(done);
     return;
   }
 
@@ -4469,6 +4566,17 @@ function renderSalonDeLaFama(done){
     done.innerHTML = '<div class="rank-done-empty"><b style="color:var(--ink);font-family:\'Baloo 2\',sans-serif;">Nadie completó el álbum todavía.</b><br>' +
       'El primero que junte las ' + DATA.length + ' figuritas queda en esta lista para siempre.</div>';
   }
+  /* Ganadores de eventos especiales: quedan para siempre */
+  const gan = (ultimoTop && ultimoTop.eventos) || [];
+  if(gan.length){
+    const caja = document.createElement('div');
+    caja.innerHTML = '<div class="hof-title" style="margin-top:14px">Ganadores de eventos</div>' +
+      gan.map(g => '<div class="hof-row"><img class="hof-crown" src="images/medal-' + (['oro', 'plata', 'bronce'][g.puesto - 1] || 'bronce') + '.svg" alt="' + g.puesto + 'º">' +
+        '<div class="hof-name"></div><div class="hof-date"></div></div>').join('');
+    caja.querySelectorAll('.hof-name').forEach((el, i) => { el.textContent = gan[i].nombre; });
+    caja.querySelectorAll('.hof-date').forEach((el, i) => { el.textContent = gan[i].evento + ' · ' + gan[i].puesto + 'º'; });
+    done.appendChild(caja);
+  }
 }
 
 function formatearDuracion(ms){
@@ -4512,8 +4620,11 @@ function renderRankEvento(lista, cont){
   } else {
     cont.hidden = true;
   }
+  const evR = EVENTOS.find(e => e.slug === ultimoTopEvento.evento) || {};
+  const capturas = evR.ranking === 'capturas';
   if(filas.length === 0){
-    lista.innerHTML = '<div class="rank-empty">Todavía nadie sumó figuritas en el evento. ¡Arrancá vos!</div>';
+    lista.innerHTML = capturas ? '<div class="rank-empty">Todavía nadie atrapó Pokémon en el evento. ¡Salí de aventura y sé el primero!</div>'
+      : '<div class="rank-empty">Todavía nadie sumó figuritas en el evento. ¡Arrancá vos!</div>';
     return;
   }
   filas.forEach(f => {
@@ -4523,10 +4634,19 @@ function renderRankEvento(lista, cont){
       '<div class="rank-pos">' + f.puesto + '</div>' +
       '<div class="rank-name"></div>' +
       iconoPuesto(f.puesto) +
-      '<div class="rank-score">' + f.figuritas + ' <span style="font-size:10px;color:var(--ink-dim);font-family:\'Space Mono\',monospace;">nuevas</span></div>';
+      '<div class="rank-score">' + f.figuritas + ' <span style="font-size:10px;color:var(--ink-dim);font-family:\'Space Mono\',monospace;">' + (capturas ? 'atrapados' : 'nuevas') + '</span></div>';
     row.querySelector('.rank-name').textContent = f.jugador;
     lista.appendChild(row);
   });
+}
+
+/* Premios del evento (los que tienen premio): se muestran en la pestaña del evento */
+function renderPremiosEvento(done, ev){
+  done.innerHTML = '<div class="hof-title">Premios del ' + ev.nombre + '</div>' +
+    '<div class="hof-sub">(Se entregan solos al terminar, a las ' +
+    new Date(ev.fin).toLocaleTimeString('es-AR', {timeZone: ZONA_HORARIA, hour: '2-digit', minute: '2-digit', hour12: false}) + ')</div>' +
+    ev.premios.map((p, i) => '<div class="hof-row"><img class="hof-crown" src="images/medal-' + ['oro', 'plata', 'bronce'][i] + '.svg" alt="' + (i + 1) + 'º">' +
+      '<div class="hof-name"><b>' + (i + 1) + 'º</b> ' + p.texto + '</div></div>').join('');
 }
 
 /* =================== INTERCAMBIO ENTRE JUGADORES =================== */
