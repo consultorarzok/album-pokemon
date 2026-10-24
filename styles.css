@@ -564,6 +564,20 @@
   .ar-n{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#FFD54A;color:#111;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;}
   .ar-pick-pie{display:flex;gap:8px;align-items:center;} .ar-pick-pie span{font-size:12px;color:#aab3d9;flex:1;}
   .ar-pick-pie .ar-b{flex:0 0 auto;min-width:110px;} .ar-go{background:#C81F1F;border-color:#ff6a60;}
+  .ar-duelo-btn{width:100%;flex:0 0 auto;background:#123a5c;border-color:#4fb3ff;}
+  .ar-duelo{justify-content:flex-start;overflow-y:auto;}
+  .ar-duelo-eq{display:flex;justify-content:center;flex-wrap:wrap;gap:4px;} .ar-duelo-eq img{image-rendering:pixelated;background:#111838;border-radius:8px;}
+  .ar-duelo-ops{display:flex;flex-direction:column;gap:10px;align-items:stretch;width:min(100%,380px);margin:6px auto 0;}
+  .ar-duelo-o{text-align:center;color:#aab3d9;font-size:12px;}
+  .ar-duelo-unir{display:flex;gap:8px;} .ar-duelo-unir .ar-b{flex:0 0 auto;min-width:96px;}
+  .ar-duelo-unir input{flex:1;min-width:0;padding:10px;border-radius:10px;border:2px solid #3a4680;background:#0e1430;color:#f2f4ff;
+    font-family:'Space Mono',monospace;font-size:20px;letter-spacing:4px;text-align:center;text-transform:uppercase;}
+  .ar-duelo-unir input:focus-visible{outline:3px solid #FFD54A;outline-offset:2px;}
+  .ar-duelo-estado{min-height:24px;text-align:center;color:#f2f4ff;font-family:'Baloo 2',sans-serif;font-size:14px;line-height:1.4;}
+  .ar-duelo-codigo{font-family:'Space Mono',monospace;font-size:38px;font-weight:700;letter-spacing:8px;color:#FFD54A;margin:6px 0;}
+  .ar-duelo-comp{display:flex;gap:8px;justify-content:center;margin-bottom:6px;} .ar-duelo-comp .ar-b{min-width:110px;}
+  .ar-wa{background:#1f7a3f;border-color:#3DDC6E;}
+  .ar-duelo-esp{display:block;font-size:12px;color:#aab3d9;}
   @media (orientation:landscape){
     .ar-ctrl{position:absolute;left:0;right:0;bottom:0;height:auto;background:none;pointer-events:none;align-items:flex-end;padding:8px 16px;}
     .ar-ctrl > *{pointer-events:auto;} .ar-hint{pointer-events:none;}

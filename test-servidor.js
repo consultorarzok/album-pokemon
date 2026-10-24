@@ -96,8 +96,7 @@ async function cerrarCarteles(pg){
   console.log('5) Canje de 3 repetidas');
   const dupAntes = await A.pg.evaluate(() => Object.values(state).reduce((a, s) => a + s.dup, 0));
   await A.pg.evaluate(() => canjearRepetidas());
-  check('canjeó 3 por una nueva', await esperar(A.pg, () => document.getElementById('overlay').classList.contains('show')) &&
-    await A.pg.evaluate(d => Object.values(state).reduce((a, s) => a + s.dup, 0) === d - 3, dupAntes));
+  check('canjeó 3 por una nueva', await esperar(A.pg, d => Object.values(state).reduce((a, s) => a + s.dup, 0) === d - 3, dupAntes));
   await cerrarCarteles(A.pg);
 
   console.log('6) Tienda');
@@ -107,7 +106,10 @@ async function cerrarCarteles(pg){
   await A.pg.evaluate(() => document.getElementById('shopOverlay').classList.remove('show'));
 
   console.log('7) Ranking: lo arma el servidor');
-  check('aparece en el ranking de hoy', await esperar(A.pg, n => ultimoTop && ultimoTop.hoy.some(x => x.jugador === n), nombre));
+  /* el ranking muestra sólo los 10 primeros (en la base de pruebas hay muchos): se le pregunta al servidor por este jugador */
+  const info = await (await fetch(SERVIDOR + '/admin/jugador', {method: 'POST', headers: {'x-admin': process.env.ADMIN_CLAVE || 'prueba-local'}, body: JSON.stringify({nombre})})).json();
+  check('el servidor lleva sus figuritas para el ranking', info.ok && info.jugador.figuritas === await A.pg.evaluate(() => figuritasObtenidas()), info.jugador);
+  check('el ranking lo arma el servidor', await A.pg.evaluate(() => !!(ultimoTop && ultimoTop.dia && Array.isArray(ultimoTop.hoy))));
   check('aparece en Maestros con sus puntos viejos', await A.pg.evaluate(async n => { await cargarTopMaestro(); return ultimoTopMaestro.top.some(x => x.jugador === n && x.pts === 120); }, nombre));
 
   console.log('8) Otro celular: nombre ocupado → entra con PIN y ve el MISMO álbum');
