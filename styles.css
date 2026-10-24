@@ -770,3 +770,5 @@
   #decorHalloween .dh-grande{width:56px;height:56px;}
   #decorHalloween .dh-calabaza{width:26px;height:26px;image-rendering:pixelated;filter:none;}
   .rank-count[hidden]{display:none;}
+  .hof-premio{align-items:flex-start;}
+  .hof-premio .hof-name{white-space:normal;overflow:visible;font-size:13px;line-height:1.35;}

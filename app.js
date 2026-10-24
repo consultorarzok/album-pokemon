@@ -1715,9 +1715,16 @@ const EVENTOS = [
     tema: 'halloween',
     subtitulo: 'Sólo Kanto y Johto · suman los Pokémon que atrapes en la Aventura y las figuritas nuevas de tus sobres',
     premios: [
-      {texto: 'Charizard shiny + 3000 monedas + 30 Poké Ball + 10 Súper Ball + 5 Ultra Ball', monedas: 3000, shiny: [6], bolas: {roja: 30, azul: 10, ultra: 5}},
-      {texto: '1 legendaria + 1500 monedas + 20 Poké Ball + 5 Súper Ball', monedas: 1500, legendarias: 1, bolas: {roja: 20, azul: 5}},
-      {texto: '1 épica + 800 monedas + 15 Poké Ball', monedas: 800, epicas: 1, bolas: {roja: 15}}
+      {texto: 'Mewtwo Acorazado + Gengar shiny + Charizard shiny + 2 legendarias + 2 épicas + 5000 monedas + 30 Poké Ball, 15 Súper Ball, 10 Ultra Ball y 3 Master Ball',
+        monedas: 5000, especiales: [10150], shiny: [94, 6], legendarias: 2, epicas: 2, bolas: {roja: 30, azul: 15, ultra: 10, maestra: 3}},
+      {texto: 'Haunter shiny + 2 legendarias + 1 épica + 3000 monedas + 20 Poké Ball, 10 Súper Ball, 5 Ultra Ball y 1 Master Ball',
+        monedas: 3000, shiny: [93], legendarias: 2, epicas: 1, bolas: {roja: 20, azul: 10, ultra: 5, maestra: 1}},
+      {texto: '1 legendaria + 1 épica + 2000 monedas + 15 Poké Ball, 5 Súper Ball y 3 Ultra Ball',
+        monedas: 2000, legendarias: 1, epicas: 1, bolas: {roja: 15, azul: 5, ultra: 3}},
+      {texto: '1 legendaria + 1200 monedas + 10 Poké Ball y 3 Ultra Ball',
+        monedas: 1200, legendarias: 1, bolas: {roja: 10, ultra: 3}},
+      {texto: '1 épica + 800 monedas + 10 Poké Ball',
+        monedas: 800, epicas: 1, bolas: {roja: 10}}
     ]
   }
 ];
@@ -4723,7 +4730,7 @@ function renderPremiosEvento(done, ev){
   done.innerHTML = '<div class="hof-title">Premios del ' + ev.nombre + '</div>' +
     '<div class="hof-sub">(Se entregan solos al terminar, a las ' +
     new Date(ev.fin).toLocaleTimeString('es-AR', {timeZone: ZONA_HORARIA, hour: '2-digit', minute: '2-digit', hour12: false}) + ')</div>' +
-    ev.premios.map((p, i) => '<div class="hof-row"><img class="hof-crown" src="images/medal-' + ['oro', 'plata', 'bronce'][i] + '.svg" alt="' + (i + 1) + 'º">' +
+    ev.premios.map((p, i) => '<div class="hof-row hof-premio">' + (i < 3 ? '<img class="hof-crown" src="images/medal-' + ['oro', 'plata', 'bronce'][i] + '.svg" alt="' + (i + 1) + 'º">' : '<span class="hof-crown"></span>') +
       '<div class="hof-name"><b>' + (i + 1) + 'º</b> ' + p.texto + '</div></div>').join('');
 }
 
