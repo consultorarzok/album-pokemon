@@ -1,9 +1,14 @@
 /* =================== SERVIDOR (opcional) ===================
    Con SERVIDOR_URL vacío el juego funciona como siempre: el álbum vive en el navegador y el
    ranking en n8n. Con una dirección, el álbum vive en el servidor (Cloudflare) y cada jugada
-   se le pide a él: ver servidor.js. Para probar sin publicar, en la consola del navegador:
+   se le pide a él: ver servidor.js. Para probar contra otro servidor, en la consola del navegador:
    localStorage.setItem('album-servidor', 'http://localhost:8787') y recargar. */
-const SERVIDOR_URL = (() => { let u = ''; try{ u = localStorage.getItem('album-servidor') || ''; }catch(e){} return u || ''; })();
+const SERVIDOR_POR_DEFECTO = 'https://api.entrenadoresrz.com';
+/* 'album-servidor' = otra dirección (pruebas) u 'off' (forzar el modo viejo en este navegador).
+   Abierto como archivo (file://, las pruebas) NUNCA usa el servidor real salvo que se lo pidan. */
+const SERVIDOR_URL = (() => { let u = ''; try{ u = localStorage.getItem('album-servidor') || ''; }catch(e){}
+  if(u === 'off') return '';
+  return u || (location.protocol === 'file:' ? '' : SERVIDOR_POR_DEFECTO); })();
 const MODO_SERVIDOR = !!SERVIDOR_URL;
 let eventosServidor = {};   // bases de los eventos que guarda el servidor (las llena servidor.js)
 
@@ -4562,7 +4567,7 @@ function compartirCodigoWhatsApp(codigo, pokemonId){
   const nombre = p ? p.name : 'una figurita';
   const msg = '¡Te regalo a ' + nombre + ' en Entrenadores RZ! 🎁\n' +
     'Entrá a Intercambio, pegá este código y es tuya:\n*' + codigo + '*\n' +
-    'https://consultorarzok.github.io/album-pokemon/';
+    'https://entrenadoresrz.com/';
   window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
 }
 

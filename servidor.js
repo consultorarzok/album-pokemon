@@ -9,10 +9,42 @@
    este archivo se ejecuta. */
 
 const TOKEN_KEY = 'album-kanto-token';
+/* El juego se mudó a entrenadoresrz.com. El link viejo (github.io) queda de PUENTE: el álbum de
+   cada chico está guardado en su navegador bajo esa dirección, así que ahí se sube al servidor y
+   después se lo pasa al sitio nuevo con su sesión en el link (#pase=...). */
+const SITIO_NUEVO = 'https://entrenadoresrz.com/';
+const LINK_VIEJO = 'consultorarzok.github.io/album-pokemon';
+const ES_SITIO_VIEJO = /github\.io$/.test(location.hostname);
 const PIN_OFRECIDO_KEY = 'album-kanto-pin-ofrecido';
 const RESPALDO_KEY = 'album-kanto-progreso-antes-servidor';
 let tokenServidor = '';
 try{ tokenServidor = localStorage.getItem(TOKEN_KEY) || ''; }catch(e){}
+
+/* Llegó del link viejo con su sesión: se queda con su nombre, su dispositivo y su sesión. */
+(function recibirPase(){
+  const m = /[#&]pase=([^&]+)/.exec(location.hash || '');
+  if(!m) return;
+  try{
+    const p = JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g, '+').replace(/_/g, '/')))));
+    if(p && p.t && p.j){
+      tokenServidor = p.t; jugador = p.j;
+      if(p.d) dispositivo = p.d;
+      localStorage.setItem(TOKEN_KEY, p.t);
+      localStorage.setItem(NAME_KEY, p.j);
+      if(p.d) localStorage.setItem(DEVICE_KEY, p.d);
+    }
+  }catch(e){}
+  try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
+})();
+function irAlSitioNuevo(){
+  let pase = '';
+  if(tokenServidor && jugador){
+    pase = btoa(unescape(encodeURIComponent(JSON.stringify({t: tokenServidor, j: jugador, d: dispositivo}))))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  avisoServidor('', '¡Entrenadores RZ se mudó! Te llevamos a entrenadoresrz.com…');
+  setTimeout(() => location.replace(SITIO_NUEVO + (pase ? '#pase=' + pase : '')), 900);
+}
 let servidorListo = false;           // ya llegó el álbum del servidor: se puede jugar
 const enCurso = new Set();           // jugadas esperando respuesta (evita el doble toque)
 const POR_ID_C = Object.fromEntries(DATA.map(p => [p.id, p]));
@@ -112,13 +144,14 @@ function aplicarProgreso(P, conAlbum = true){
 function arrancarServidor(){
   document.getElementById('playerName').textContent = jugador || '-';
   document.getElementById('resetBtn').textContent = '🔒 PIN de tu álbum';
+  document.getElementById('nameViejo').hidden = ES_SITIO_VIEJO;
   cargarTop();
   sincronizarEvento();
   setInterval(sincronizarEvento, 60000);
   conectar();
 }
 function conectar(){
-  if(!jugador){ pedirNombre(); return; }
+  if(!jugador){ if(ES_SITIO_VIEJO) return irAlSitioNuevo(); pedirNombre(); return; }
   if(!tokenServidor){ registrarEnServidor(jugador, {alArrancar: true}); return; }
   cargarDelServidor();
 }
@@ -131,6 +164,7 @@ function cargarDelServidor(){
 }
 function listo(progreso, tienePin){
   aplicarProgreso(progreso);
+  if(ES_SITIO_VIEJO){ servidorListo = true; return irAlSitioNuevo(); }   // su álbum ya está arriba: al sitio nuevo
   servidorListo = true;
   cobrarRegalosServidor();
   sincronizarCodigos();
@@ -170,7 +204,9 @@ function registrarEnServidor(nombre, {alArrancar} = {}){
         err.textContent = 'El nombre «' + nombre + '» ya lo tiene otro entrenador. ' +
           (res.tienePin ? 'Si sos vos, entrá con tu PIN. Si no, elegí otro nombre: tus figuritas no se pierden.' : 'Elegí otro nombre: tus figuritas no se pierden.');
       } else {
-        err.textContent = res.tienePin ? 'Ese nombre ya tiene dueño. Si sos vos, entrá con tu PIN.' : 'Ese nombre ya lo está usando otro entrenador. Elegí otro.';
+        err.textContent = res.tienePin ? 'Ese nombre ya tiene dueño. Si sos vos, entrá con tu PIN.'
+          : 'Ese nombre ya lo está usando otro entrenador. Elegí otro.' +
+            (ES_SITIO_VIEJO ? '' : ' Si ya jugabas antes, abrí una vez el link viejo (' + LINK_VIEJO + ') desde tu celular y tu álbum viene solo.');
       }
       document.getElementById('namePinBtn').hidden = !res.tienePin;
       return;
