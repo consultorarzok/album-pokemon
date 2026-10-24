@@ -1705,7 +1705,7 @@ const EVENTOS = [
        servidor, ver resolverEventos en pokemon-servidor). */
     slug: 'halloween-2026',
     nombre: '¡PACHAMANGA FEST: EDICIÓN HALLOWEEN!',
-    inicio: '2026-10-24T10:20:00-03:00',
+    inicio: '2026-10-24T15:00:00-03:00',
     fin:    '2026-10-24T20:00:00-03:00',
     cooldownLegendarioMin: 15,
     soloRegion12: true,
@@ -4396,7 +4396,19 @@ function cargarTopEvento(ev){
    ahora mismo, y arranca el ranking de evento la primera vez que lo ve.
    Se llama al cargar y después cada un minuto, así el banner desaparece
    solo cuando termina la ventana sin necesitar recargar la página. */
-let eventoYaIniciado = null;   // slug del evento cuyo top ya se pidió, para no repetir el fetch cada minuto
+let eventoYaIniciado = null;
+let proximoEvento = null;      // evento que todavía no empezó (se muestra con cuenta regresiva)
+function actualizarCuentaAtras(){
+  const p = proximoEvento;
+  if(!p) return;
+  const falta = new Date(p.inicio).getTime() - Date.now();
+  if(falta <= 0){ proximoEvento = null; sincronizarEvento(); return; }
+  const hh = h => new Date(h).toLocaleTimeString('es-AR', {timeZone: ZONA_HORARIA, hour: '2-digit', minute: '2-digit', hour12: false});
+  const s = Math.floor(falta / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), seg = s % 60;
+  const t = (h ? h + ' h ' : '') + (h || m ? String(m).padStart(h ? 2 : 1, '0') + ' min ' : '') + String(seg).padStart(2, '0') + ' s';
+  document.getElementById('eventoBannerSub').textContent = 'Empieza hoy a las ' + hh(p.inicio) + ' y dura hasta las ' + hh(p.fin) + ' · faltan ' + t + '. Mientras tanto, jugá y aprendé cómo funciona: cuando arranca, todo se reinicia para el evento.';
+}
+setInterval(actualizarCuentaAtras, 1000);   // slug del evento cuyo top ya se pidió, para no repetir el fetch cada minuto
 
 /* true cuando la última vez que se corrió esto la Pokédex estaba mostrando
    la vista acotada a Kanto+Johto — para re-renderizar grid/filtros/progreso
@@ -4434,7 +4446,8 @@ function sincronizarEvento(){
   const tab = document.getElementById('tabEvento');
   const vistaActual = !!(ev && ev.soloRegion12);
 
-  decorarHalloween(!!(ev && ev.tema === 'halloween'));
+  const prox = ev ? null : EVENTOS.find(e => e.tema === 'halloween' && Date.now() < new Date(e.inicio).getTime());
+  decorarHalloween(!!((ev && ev.tema === 'halloween') || prox));
   /* En el Halloween el ranking se reduce a Evento, Maestros y Salón de la Fama */
   const soloEvento = !!(ev && ev.tema === 'halloween');
   document.getElementById('tabHoy').hidden = soloEvento;
@@ -4442,8 +4455,15 @@ function sincronizarEvento(){
   document.getElementById('tabSalon').hidden = !soloEvento;
   if(soloEvento && (rankTab === 'hoy' || rankTab === 'historico')) activarRankTab('evento');
   if(!soloEvento && rankTab === 'salon') activarRankTab('hoy');
+  if(prox){
+    proximoEvento = prox;
+    banner.classList.add('evento-halloween');
+    document.getElementById('eventoBannerNombre').textContent = prox.nombre;
+    actualizarCuentaAtras();
+    banner.hidden = false;
+  }
   if(!ev){
-    banner.hidden = true;
+    if(!prox){ banner.hidden = true; proximoEvento = null; }
     tab.hidden = true;
     if(rankTab === 'evento') activarRankTab('hoy');
     eventoYaIniciado = null;
