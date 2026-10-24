@@ -3503,7 +3503,7 @@ function advLeerCartel(x, y){
   if(cerradoPorEvento(x)){
     const ev = eventoActivo();
     const fin = new Date(ev.fin).toLocaleTimeString('es-AR', {timeZone: ZONA_HORARIA, hour: '2-digit', minute: '2-digit', hour12: false});
-    advMensaje('🎃 <b>Clausurado por el ' + ev.nombre + '.</b> Hasta las ' + fin + ' sólo se puede andar por Kanto y Johto.');
+    advMensaje('🎃 <b>Clausurado por el ' + ev.nombre.replace(/!$/, '') + '.</b> Hasta las ' + fin + ' sólo se puede andar por Kanto y Johto.');
     return;
   }
   const txt = (ADV_MAPS[advMapa].carteles || {})[x + ',' + y];
