@@ -4666,18 +4666,23 @@ function renderSalonDeLaFama(done){
   const gan = (ultimoTop && ultimoTop.eventos) || [];
   if(gan.length){
     const caja = document.createElement('div');
-    caja.innerHTML = '<div class="hof-title" style="margin-top:14px">Ganadores de eventos</div>' +
-      gan.map(g => '<div class="hof-row"><img class="hof-crown" src="images/medal-' + (['oro', 'plata', 'bronce'][g.puesto - 1] || 'bronce') + '.svg" alt="' + g.puesto + 'º">' +
-        '<div class="hof-name"></div><div class="hof-date"></div></div>').join('');
-    caja.querySelectorAll('.hof-name').forEach((el, i) => {
-      el.style.whiteSpace = 'normal';
-      el.textContent = gan[i].nombre;
-      const ev = document.createElement('small');
-      ev.style.cssText = 'display:block;font-weight:400;font-size:10px;color:var(--ink-dim);line-height:1.25';
-      ev.textContent = gan[i].evento;
-      el.appendChild(ev);
+    caja.innerHTML = '<div class="hof-title" style="margin-top:14px">Ganadores de eventos</div>';
+    const eventos = [...new Set(gan.map(g => g.evento))];
+    eventos.forEach(evNombre => {
+      const tit = document.createElement('div');
+      tit.style.cssText = 'text-align:center;font-family:"Baloo 2",sans-serif;font-weight:700;font-size:14px;color:#5B4300;margin:10px 0 8px';
+      tit.textContent = evNombre;
+      caja.appendChild(tit);
+      gan.filter(g => g.evento === evNombre).forEach(g => {
+        const fila = document.createElement('div');
+        fila.className = 'hof-row';
+        fila.innerHTML = '<img class="hof-crown" src="images/medal-' + (['oro', 'plata', 'bronce'][g.puesto - 1] || 'bronce') + '.svg" alt="' + g.puesto + 'º"><div class="hof-name"></div><div class="hof-date"></div>';
+        fila.querySelector('.hof-name').textContent = g.nombre;
+        const pu = fila.querySelector('.hof-date');
+        pu.textContent = g.puesto + 'º'; pu.style.fontSize = '14px'; pu.style.fontWeight = '700';
+        caja.appendChild(fila);
+      });
     });
-    caja.querySelectorAll('.hof-date').forEach((el, i) => { el.textContent = gan[i].puesto + 'º'; el.style.fontSize = '14px'; el.style.fontWeight = '700'; });
     done.appendChild(caja);
   }
 }
