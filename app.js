@@ -3852,9 +3852,7 @@ function moverKnob(dx, dy){
 }
 
 function stickDesde(ev){
-  const base = document.getElementById('advStick').getBoundingClientRect();
-  const cx = base.left + base.width / 2, cy = base.top + base.height / 2;
-  let dx = ev.clientX - cx, dy = ev.clientY - cy;
+  let dx = ev.clientX - stickCentro.x, dy = ev.clientY - stickCentro.y;
   const largo = Math.hypot(dx, dy);
   if(largo > RADIO_STICK){ dx = dx / largo * RADIO_STICK; dy = dy / largo * RADIO_STICK; }
   moverKnob(dx, dy);
@@ -3871,22 +3869,33 @@ function soltarStick(){
   advEje = ejeDeTeclado();
 }
 
+/* Joystick flotante: se toca en cualquier lado de la pantalla y el control aparece ahí mismo */
 const stickEl = document.getElementById('advStick');
-stickEl.addEventListener('pointerdown', ev => {
+const zonaToque = document.getElementById('advOverlay');
+let stickCentro = {x:0, y:0};
+zonaToque.addEventListener('pointerdown', ev => {
+  if(stickActivo || ev.target.closest('button')) return;
   ev.preventDefault();
   stickActivo = true;
   stickPuntero = ev.pointerId;
-  stickEl.setPointerCapture(ev.pointerId);
+  try{ zonaToque.setPointerCapture(ev.pointerId); }catch(e){}
+  const r = stickEl.offsetWidth / 2;
+  const pr = zonaToque.getBoundingClientRect();
+  const x = Math.min(Math.max(ev.clientX, pr.left + r), pr.right - r);   // que el aro no se salga de la pantalla
+  const y = Math.min(Math.max(ev.clientY, pr.top + r), pr.bottom - r);
+  stickCentro = {x, y};
+  stickEl.style.left = (x - pr.left - r) + 'px';
+  stickEl.style.top = (y - pr.top - r) + 'px';
   stickEl.classList.add('activo');
   stickDesde(ev);
 });
-stickEl.addEventListener('pointermove', ev => {
+zonaToque.addEventListener('pointermove', ev => {
   if(!stickActivo || ev.pointerId !== stickPuntero) return;
   ev.preventDefault();
   stickDesde(ev);
 });
 ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(tipo => {
-  stickEl.addEventListener(tipo, ev => { if(ev.pointerId === stickPuntero) soltarStick(); });
+  zonaToque.addEventListener(tipo, ev => { if(ev.pointerId === stickPuntero) soltarStick(); });
 });
 
 window.addEventListener('resize', () => { if(advAbierto) advRender(); });

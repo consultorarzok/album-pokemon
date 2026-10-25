@@ -262,7 +262,7 @@
   .adv-region{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:19px;letter-spacing:1px;color:var(--gold);}
   .adv-zona b{font-family:'Baloo 2',sans-serif;font-size:14px;}
   /* Único mando: un círculo fijo abajo a la izquierda para caminar. */
-  .adv-stick{position:absolute;z-index:3;left:20px;bottom:20px;width:132px;height:132px;border-radius:50%;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.42);touch-action:none;opacity:.72;transition:opacity .15s ease;}
+  .adv-stick{position:absolute;z-index:3;left:20px;bottom:20px;width:132px;height:132px;border-radius:50%;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.42);touch-action:none;pointer-events:none;opacity:0;transition:opacity .15s ease;}
   .adv-stick.activo{opacity:1;}
   .adv-stick .knob{position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;background:rgba(255,255,255,.82);border:2px solid rgba(16,20,38,.45);pointer-events:none;}
   /* Minimapa: el mundo entero con las 3 regiones y dónde estás parado. */
