@@ -1942,7 +1942,7 @@ function anotarLegendario(p, santuario){
    de un dibujo a mano: sería un montón de legendarios distintos para pintar
    pixel por pixel. */
 const LEG_SPRITE_CACHE = {};
-const LEG_TAM = 52;   // lado mayor del sprite en píxeles de mundo (el tile mide 16)
+const LEG_TAM = 39;   // lado mayor del sprite en píxeles de mundo (el tile mide 16)
 
 /* Paleta por "median cut": parte la nube de colores en cajas por el canal de
    más rango hasta tener n, y cada caja se resume en su promedio. Con pocos
@@ -2052,18 +2052,19 @@ function pixelarImagen(img, lado){
   return out;
 }
 
-function spriteLegendario(p){
-  let entry = LEG_SPRITE_CACHE[p.name];
+function spriteLegendario(p){ return spriteDe(p, LEG_TAM, LEG_SPRITE_CACHE); }
+function spriteDe(p, lado, cache){
+  let entry = cache[p.name];
   if(entry) return entry.canvas;
   entry = {canvas: null};
-  LEG_SPRITE_CACHE[p.name] = entry;
+  cache[p.name] = entry;
   const img = new Image();
   /* jsdelivr manda Access-Control-Allow-Origin:*, así que pedir la imagen
      como anónima no la tapa y deja el canvas SIN "tainted": hace falta para
      leer los píxeles (recorte, paleta y contorno). */
   img.crossOrigin = 'anonymous';
   img.onload = () => {
-    try{ entry.canvas = pixelarImagen(img, LEG_TAM); }
+    try{ entry.canvas = pixelarImagen(img, lado); }
     catch(e){ /* si falla, se sigue mostrando el destello de reserva */ }
   };
   img.src = p.img;
@@ -2112,6 +2113,85 @@ function dibujarLegendario(ctx, p, ox, oy){
     ctx.fillStyle = '#FFF6C2'; ctx.fillRect(sx, sy, 1, 1);
     ctx.fillStyle = 'rgba(255,230,120,.8)';
     ctx.fillRect(sx - 1, sy, 1, 1); ctx.fillRect(sx + 1, sy, 1, 1); ctx.fillRect(sx, sy - 1, 1, 1); ctx.fillRect(sx, sy + 1, 1, 1);
+  }
+}
+
+/* ---------- Pokémon salvajes a la vista ----------
+   Cuando "salta" un encuentro ya no se abre la pelea de golpe: aparecen 2 o 3 Pokémon parados
+   en el pasto, cerca, y cada entrenador camina hasta el que quiere atrapar. Si no se acerca a
+   ninguno, se van solos. Los sortea el servidor (o el juego, sin servidor); la elección es de cada uno. */
+const SALVAJE_TAM = 24;          // lado mayor del sprite en píxeles de mundo (el tile mide 16)
+const SALVAJE_VIVE_MS = 25000;
+const SALVAJE_SPRITE_CACHE = {};
+let salvajes = [];               // {p, mapa, x, y (casillero), hasta}
+
+function salvajesActivos(){
+  const ahora = Date.now();
+  return salvajes.filter(sv => sv.mapa === advMapa && ahora < sv.hasta);
+}
+
+function aparecerSalvajes(pokes, cx, cy){
+  pokes = (pokes || []).filter(Boolean);
+  if(!pokes.length) return;
+  const bioma = (advTileEn(cx, cy) || {}).encuentro;
+  const sitios = [];
+  for(let dy = -5; dy <= 5; dy++) for(let dx = -3; dx <= 3; dx++){
+    if(Math.max(Math.abs(dx), Math.abs(dy)) < 2) continue;      // ni arriba tuyo
+    const t = advTileEn(cx + dx, cy + dy);
+    if(t && t.walk && !t.item && !t.entra && !t.cartel && t.encuentro && t.encuentro === bioma) sitios.push({x: cx + dx, y: cy + dy});
+  }
+  for(let i = sitios.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [sitios[i], sitios[j]] = [sitios[j], sitios[i]]; }
+  const elegidos = [];
+  for(const st of sitios){
+    if(elegidos.length >= pokes.length) break;
+    if(elegidos.every(e => Math.max(Math.abs(e.x - st.x), Math.abs(e.y - st.y)) >= 2)) elegidos.push(st);
+  }
+  if(!elegidos.length){ iniciarEncuentro(pokes[0]); return; }   // no hay lugar para verlos: pelea directa, como antes
+  const hasta = Date.now() + SALVAJE_VIVE_MS;
+  salvajes = elegidos.map((st, i) => ({p: pokes[i], mapa: advMapa, x: st.x, y: st.y, hasta}));
+  salvajes.forEach(sv => spriteDe(sv.p, SALVAJE_TAM, SALVAJE_SPRITE_CACHE));   // que ya estén cargando
+  const nombres = salvajes.map(sv => `<b>${sv.p.name}</b>`);
+  const lista = nombres.length > 1 ? nombres.slice(0, -1).join(', ') + ' y ' + nombres[nombres.length - 1] : nombres[0];
+  advMensaje(`👀 ¡Aparecieron ${lista}! Acercate al que quieras atrapar`);
+}
+
+function salvajeTocado(){
+  const px = advPx + 8, py = advPy + 11;
+  return salvajesActivos().find(sv => Math.hypot(sv.x * ADV_PX + 8 - px, sv.y * ADV_PX + 8 - py) < 13) || null;
+}
+
+function elegirSalvaje(sv){
+  salvajes = [];
+  advDescanso = DESCANSO_ENCUENTRO;
+  if(MODO_SERVIDOR) return elegirSalvajeServidor(sv.p);
+  iniciarEncuentro(sv.p);
+}
+
+/* Se llama en cada cuadro: si ninguno se eligió a tiempo, se van. */
+function salvajesVencer(){
+  if(!salvajes.length) return;
+  const ahora = Date.now();
+  if(salvajes.some(sv => ahora < sv.hasta)) return;
+  const eraAca = salvajes.some(sv => sv.mapa === advMapa);
+  salvajes = [];
+  advDescanso = DESCANSO_ENCUENTRO;
+  if(eraAca) advMensaje('💨 Los Pokémon se escaparon antes de que llegaras.');
+}
+
+function dibujarSalvaje(ctx, sv, ox, oy){
+  ox = Math.round(ox); oy = Math.round(oy);
+  const t = Date.now() / 1000;
+  const flota = Math.round(Math.sin(t * 3 + sv.x) * 1);
+  const cx = ox + 8;
+  ctx.fillStyle = 'rgba(0,0,0,.30)';
+  ctx.fillRect(cx - 7, oy + 13, 14, 2);
+  ctx.fillRect(cx - 5, oy + 15, 10, 1);
+  const spr = spriteDe(sv.p, SALVAJE_TAM, SALVAJE_SPRITE_CACHE);
+  if(spr) ctx.drawImage(spr, Math.round(cx - spr.width / 2), oy + 14 - spr.height - flota);
+  else{ ctx.fillStyle = '#FFD63A'; ctx.fillRect(cx - 2, oy + 5, 4, 4); }
+  // titila los últimos 5 segundos: están por irse
+  if(sv.hasta - Date.now() < 5000 && Math.floor(t * 4) % 2 === 0){
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(cx - 1, oy - 2, 2, 3);
   }
 }
 
@@ -3270,6 +3350,9 @@ function advRender(){
     advMensaje(`💨 <b>${p.name}</b> se fue antes de que llegaras.`);
   }
 
+  salvajesVencer();
+  salvajesActivos().forEach(sv => dibujarSalvaje(ctx, sv, sv.x * ADV_PX - camX, sv.y * ADV_PX - camY));
+
   if(typeof dibujarOtros === 'function') dibujarOtros(ctx, camX, camY, vw, vh, escala);   // Aventura en vivo (servidor.js)
   dibujarJugador(ctx, advPx - camX, advPy - camY);
   dibujarMini();
@@ -3458,8 +3541,12 @@ function advPaso1(dt){
     return;
   }
 
+  const sv = salvajeTocado();
+  if(sv){ elegirSalvaje(sv); return; }
+
   if(advDescanso > 0){ advDescanso -= anduvo; return; }   // recién salió uno: dejalo caminar
   if(avist) return;   // ya hay uno esperando: no tirar otro altar ni cruzarlo con un encuentro salvaje
+  if(salvajesActivos().length) return;   // hay Pokémon a la vista: primero elegí uno
   if(advCamino >= 16){
     const cerca = altarMasCercano(cx, cy);
     if(cerca && cerca.dist <= RADIO_AVISTAMIENTO){
@@ -3596,8 +3683,12 @@ function advMover(dx, dy){
     return;
   }
 
+  const sv = salvajeTocado();
+  if(sv){ elegirSalvaje(sv); return; }
+
   if(advDescanso > 0){ advDescanso -= ADV_PX; return; }
   if(avist) return;
+  if(salvajesActivos().length) return;
   const cerca = altarMasCercano(nx, ny);
   if(cerca && cerca.dist <= RADIO_AVISTAMIENTO){ tirarAltar(cerca.santuario, cerca.x, cerca.y, nx, ny); return; }
   if(t.encuentro && Math.random() <= probEncuentro(t.encuentro)){
@@ -3612,7 +3703,9 @@ let encuentro = null;
 /* Quién sale en el encuentro: lo sortea el juego o, con servidor, el servidor. */
 function salirEncuentro(t, x, y){
   if(MODO_SERVIDOR) return encuentroServidor(x, y);
-  iniciarEncuentro(elegirPesado(poolBioma(t.encuentro)));
+  const pool = poolBioma(t.encuentro), sale = [elegirPesado(pool)];
+  for(let i = 0; i < 8 && sale.length < 3; i++){ const q = elegirPesado(pool); if(!sale.includes(q)) sale.push(q); }
+  aparecerSalvajes(sale, x, y);
 }
 
 function iniciarEncuentro(p){
@@ -3810,6 +3903,7 @@ function cerrarAventura(){
   advEje = {x:0, y:0};
   if(advRaf){ cancelAnimationFrame(advRaf); advRaf = null; }
   sincronizarObjetos([], 1);        // esconder las pokébolas del piso al salir
+  salvajes = [];
   if(typeof mundoSalir === 'function') mundoSalir();
   document.getElementById('advOverlay').classList.remove('show');
   try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }catch(e){}

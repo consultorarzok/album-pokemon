@@ -137,8 +137,8 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
       for(let x = 2; x < m.cols - 20; x++)
         if(m.rows[y].slice(x, x + 18).split('').every(c => c === '"')){ hierba = {x, y}; break; }
     let cuenta = 0;
-    const original = iniciarEncuentro;
-    window.iniciarEncuentro = () => { cuenta++; };
+    const original = aparecerSalvajes;   // ahora el encuentro se ve en el mapa antes de pelear
+    window.aparecerSalvajes = () => { cuenta++; };
     for(let vuelta = 0; vuelta < 12; vuelta++){
       advPonerEn(hierba.x, hierba.y);
       advDescanso = 0;
@@ -146,7 +146,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
       for(let i = 0; i < 260; i++) advPaso1(1 / 60);   // ~15 casilleros
     }
     advEje = {x:0, y:0};
-    window.iniciarEncuentro = original;
+    window.aparecerSalvajes = original;
     return cuenta;
   });
   check(`caminando ~180 casilleros de hierba salieron ${seguidos} encuentros (antes ~32)`, seguidos > 0 && seguidos < 22);

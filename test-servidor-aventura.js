@@ -44,6 +44,8 @@ const suf = Math.random().toString(36).slice(2, 6);
   await p.waitForTimeout(1200);
   check('TRAMPA: la misma moneda no se cobra dos veces', await p.evaluate(c => coins === c, c1));
   await p.evaluate(h => salirEncuentro(ADV_TILE['"'], h.x, h.y), pos.hierba);
+  await p.waitForFunction(() => salvajesActivos().length >= 1 || document.getElementById('encOverlay').classList.contains('show'), null, {timeout: 5000}).catch(() => {});
+  await p.evaluate(() => { const sv = salvajesActivos()[0]; if(sv) elegirSalvaje(sv); });   // va caminando hasta uno de los que se ven
   check('sale un encuentro que eligió el servidor', await p.waitForFunction(() => document.getElementById('encOverlay').classList.contains('show') && encuentro, null, {timeout: 5000}).then(() => true, () => false));
   const quien = await p.evaluate(() => encuentro && encuentro.p.id);
   await p.evaluate(() => tirarBola('maestra'));

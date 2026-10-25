@@ -431,8 +431,22 @@ function encuentroServidor(x, y){
   enCurso.add('encuentro');
   const mapa = advMapa;
   accionServidor('encuentro', {mapa, x, y, region: advRegion}).then(res => {
-    if(res.ok && advAbierto && advMapa === mapa && !encuentro && !avistamientoActivo()) iniciarEncuentro(POR_ID_C[res.resultado.id]);
+    if(res.ok && advAbierto && advMapa === mapa && !encuentro && !avistamientoActivo()){
+      const ids = res.resultado.opciones || [res.resultado.id];   // varias a la vista; el servidor las sorteó
+      if(ids.length > 1) aparecerSalvajes(ids.map(id => POR_ID_C[id]), x, y);
+      else iniciarEncuentro(POR_ID_C[ids[0]]);
+    }
   }).catch(() => {}).then(soltar('encuentro'));
+}
+
+/* Eligió a cuál ir: el servidor valida que sea una de las que sorteó y recién ahí empieza la pelea. */
+function elegirSalvajeServidor(p){
+  if(!servidorListo || enCurso.has('elegir')) return;
+  enCurso.add('elegir');
+  accionServidor('elegirSalvaje', {id: p.id}).then(res => {
+    if(res.ok && advAbierto && !encuentro) iniciarEncuentro(POR_ID_C[res.resultado.id]);
+    else if(!res.ok) advMensaje('💨 Se escapó antes de que llegaras.');
+  }).catch(() => {}).then(soltar('elegir'));
 }
 
 /* Cerca de un altar el juego tiraba los dados en cada paso; con servidor se juntan los pasos y
