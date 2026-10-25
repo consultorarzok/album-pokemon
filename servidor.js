@@ -159,16 +159,16 @@ function cargarDelServidor(){
   return api('/progreso').then(res => {
     if(!res.ok) return res.motivo === 'sin_sesion' ? null : avisoServidor(res.motivo);
     if(!res.migrado) return migrarAlServidor();
-    listo(res.progreso, res.tienePin);
+    listo(res.progreso, res.tienePin, res.avatar);
   }).catch(() => {});
 }
-function listo(progreso, tienePin){
+function listo(progreso, tienePin, avatar){
   aplicarProgreso(progreso);
   if(ES_SITIO_VIEJO){ servidorListo = true; return irAlSitioNuevo(); }   // su álbum ya está arriba: al sitio nuevo
   servidorListo = true;
   cobrarRegalosServidor();
   sincronizarCodigos();
-  pedirAvatarSiFalta(() => { if(!tienePin) ofrecerPin(); });
+  pedirAvatarSiFalta(() => { if(!tienePin) ofrecerPin(); }, avatar === undefined ? null : avatar);
 }
 
 /* Subir UNA vez el álbum que el chico tenía en este navegador (el servidor no deja hacerlo dos

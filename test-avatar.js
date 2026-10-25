@@ -1,4 +1,4 @@
-// Botón "Personaje" en la Aventura: cambia Red <-> May, se recuerda en el celular.
+// Personaje (modo sin servidor): los que ya jugaban eligen UNA vez al entrar; queda fijo y se dibuja.
 let chromium;
 try{ ({ chromium } = require('playwright')); }
 catch(e){ ({ chromium } = require(process.env.PLAYWRIGHT_PATH || '/root/.npm/_npx/e41f203b7505f1fb/node_modules/playwright')); }
@@ -16,42 +16,23 @@ const OUT = process.env.SHOTS || '/tmp';
   });
   const p = await ctx.newPage();
   const errores = []; p.on('pageerror', e => errores.push(e.message));
-  let primera = true;
-  const abrir = async () => {
+  const entrar = async () => {
     await p.goto('file:///root/pokemon/index.html'); await p.click('#portadaEntrar', {force:true});
     await p.waitForTimeout(1500);
-    if(primera){
-      primera = false;
-      check('un jugador que ya tenía cuenta ve "Elegí tu personaje"', await p.isVisible('#avatarOverlay'));
-      await p.screenshot({path: OUT + '/avatar-elegir.png'});
-      await p.tap('.avatar-op[data-avatar="red"]'); await p.waitForTimeout(300);
-      check('al elegir se cierra y queda guardado', !(await p.isVisible('#avatarOverlay')) && await p.evaluate(() => localStorage.getItem('album-avatar') === 'red'));
-    }else{
-      check('la segunda vez ya no pregunta', !(await p.isVisible('#avatarOverlay')));
-    }
-    for(let i = 0; i < 4; i++) for(const s of ['#specialContinueBtn', '#battleCloseBtn']) if(await p.isVisible(s)){ await p.tap(s); await p.waitForTimeout(300); }
-    await p.tap('#advBtn'); await p.waitForTimeout(1200);
   };
-  await abrir();
-  check('arranca con Red', await p.evaluate(() => avatarActual === 'red' && RED_SHEET.src.endsWith('red_walk.png')));
-  await p.screenshot({path: OUT + '/avatar-red.png'});
-  check('el botón Personaje se ve', await p.isVisible('#advAvatarBtn'));
-  await p.tap('#advAvatarBtn'); await p.waitForTimeout(600);
-  check('al tocarlo pasa a May', await p.evaluate(() => avatarActual === 'may' && RED_SHEET.complete && RED_SHEET.src.endsWith('may_walk.png')));
-  check('se dibuja el sprite de May', await p.evaluate(() => !!spriteJugadorCacheado('abajo', 0)));
+  await entrar();
+  check('un jugador que ya tenía cuenta ve "Elegí tu personaje"', await p.isVisible('#avatarOverlay'));
+  check('avisa que no se puede cambiar', /no se puede cambiar/.test(await p.textContent('#avatarOverlay')));
+  await p.screenshot({path: OUT + '/avatar-elegir.png'});
+  await p.tap('.avatar-op[data-avatar="may"]'); await p.waitForTimeout(400);
+  check('al elegir se cierra y queda May', !(await p.isVisible('#avatarOverlay')) && await p.evaluate(() => avatarActual === 'may' && localStorage.getItem('album-avatar') === 'may'));
+  await entrar();
+  check('la segunda vez ya no pregunta y sigue May', !(await p.isVisible('#avatarOverlay')) && await p.evaluate(() => avatarActual === 'may'));
+  for(let i = 0; i < 4; i++) for(const s of ['#specialContinueBtn', '#battleCloseBtn']) if(await p.isVisible(s)){ await p.tap(s); await p.waitForTimeout(300); }
+  await p.tap('#advBtn'); await p.waitForTimeout(1200);
+  check('en la Aventura no hay botón para cambiar', await p.locator('#advAvatarBtn').count() === 0);
+  check('se dibuja el sprite de May', await p.evaluate(() => { const s = spriteJugadorCacheado('abajo', 0); return !!s && (s.width === 16 || s.width === 18); }));   // 18 con contorno; en file:// va sin contorno
   await p.screenshot({path: OUT + '/avatar-may.png'});
-  const solapa = await p.evaluate(() => {
-    const a = document.getElementById('advAvatarBtn').getBoundingClientRect();
-    return [...document.querySelectorAll('#advCloseBtn, .adv-hud, #advMini, #advZona')].some(el => {
-      const b = el.getBoundingClientRect(); if(!b.width) return false;
-      return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
-    });
-  });
-  check('el botón no se pisa con Atrás, monedas ni minimapa', !solapa);
-  await abrir();
-  check('al volver a entrar sigue May', await p.evaluate(() => avatarActual === 'may'));
-  await p.tap('#advAvatarBtn'); await p.waitForTimeout(400);
-  check('tocando de nuevo vuelve a Red', await p.evaluate(() => avatarActual === 'red' && localStorage.getItem('album-avatar') === 'red'));
   check('sin errores de página', errores.length === 0); if(errores.length) console.log(errores);
   await browser.close();
   console.log(`\n${ok}/${ok + mal}`); process.exit(mal ? 1 : 0);

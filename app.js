@@ -2876,10 +2876,11 @@ function agregarBordeCanvas(origen, colorBorde){
    GitHub Pages), así que no hace falta crossOrigin para leerle los
    píxeles. Reemplaza al dibujo a mano de antes -Zeta pidió explícitamente
    usar una imagen real, como con las pokébolas-. */
-/* Personajes elegibles (botón "Personaje" en la Aventura). May (Rubí/Zafiro,
+/* Personajes elegibles (se elige UNA vez, como el nombre). May (Rubí/Zafiro,
    pañuelo y ropa roja) la pidió Zeta para las chicas: hoja de FireRed armada
-   con la misma grilla 4x4 de 48x72 que la de Red. La elección queda en este
-   celular (es sólo estética, no pasa por el servidor). */
+   con la misma grilla 4x4 de 48x72 que la de Red. Se guarda en el celular y,
+   con servidor, también en la cuenta (POST /avatar) para que lo vean los demás
+   y no se pregunte de nuevo en otro celular. */
 const AVATARES = {
   red: {src: 'images/red_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true},
   may: {src: 'images/may_walk.png', fw: 16, fh: 21, w: 16, h: 21, suave: false}   // ya viene a tamaño real: se copia pixel por pixel
@@ -2889,22 +2890,27 @@ try{ if(AVATARES[localStorage.getItem('album-avatar')]) avatarActual = localStor
 const RED_SHEET = new Image();
 RED_SHEET.src = AVATARES[avatarActual].src;
 RED_SHEET.onload = () => { for(const k in JUGADOR_SPRITE_CACHE) delete JUGADOR_SPRITE_CACHE[k]; if(typeof advAbierto !== 'undefined' && advAbierto) advRender(); };
-function fijarAvatar(a){
+function fijarAvatar(a, subir = true){
   avatarActual = a;
   try{ localStorage.setItem('album-avatar', a); }catch(e){}
   RED_SHEET.src = AVATARES[a].src;
+  if(subir) subirAvatar(a);
 }
-function cambiarAvatar(){
-  fijarAvatar(avatarActual === 'red' ? 'may' : 'red');
-  advMensaje(avatarActual === 'may' ? 'Ahora jugás con <b>May</b>' : 'Ahora jugás con <b>Red</b>');
+function subirAvatar(a){
+  if(MODO_SERVIDOR && typeof api === 'function' && tokenServidor) api('/avatar', {avatar: a})
+    .then(res => { if(res && AVATARES[res.avatar] && res.avatar !== avatarActual) fijarAvatar(res.avatar, false); })   // la cuenta ya tenía otro: manda ése
+    .catch(() => {});
 }
 /* Zeta 25/10: que cada chico elija personaje al crear su nombre, y los que ya
    tenían cuenta también (una sola vez, al entrar). `luego` sigue con lo que
    venía (p. ej. ofrecer el PIN) cuando ya eligió. */
-function pedirAvatarSiFalta(luego){
+function pedirAvatarSiFalta(luego, delServidor){
+  // el de la cuenta manda (eligió en otro celular)
+  if(AVATARES[delServidor]){ if(delServidor !== avatarActual) fijarAvatar(delServidor, false); luego && luego(); return; }
   let elegido = null;
   try{ elegido = localStorage.getItem('album-avatar'); }catch(e){ elegido = 'red'; }   // sin almacenamiento no se puede recordar: no molestar
-  if(AVATARES[elegido]){ luego && luego(); return; }
+  // ya había elegido en este celular antes de que se guardara en el servidor: se sube solo
+  if(AVATARES[elegido]){ if(delServidor === null) subirAvatar(elegido); luego && luego(); return; }
   const ov = document.getElementById('avatarOverlay');
   ov.querySelectorAll('.avatar-op').forEach(b => b.onclick = () => {
     fijarAvatar(b.dataset.avatar);
@@ -3882,7 +3888,6 @@ window.addEventListener('resize', () => { if(advAbierto) advRender(); });
 
 document.getElementById('advBtn').onclick = abrirAventura;
 document.getElementById('advCloseBtn').onclick = cerrarAventura;
-document.getElementById('advAvatarBtn').onclick = cambiarAvatar;
 document.getElementById('encCloseBtn').onclick = cerrarEncuentro;
 document.getElementById('shopCloseBtn').onclick = () => document.getElementById('shopOverlay').classList.remove('show');
 document.getElementById('intercambioBtn').onclick = abrirIntercambio;
