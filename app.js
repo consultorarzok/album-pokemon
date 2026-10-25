@@ -2120,7 +2120,7 @@ function dibujarLegendario(ctx, p, ox, oy){
    Cuando "salta" un encuentro ya no se abre la pelea de golpe: aparecen 2 o 3 Pokémon parados
    en el pasto, cerca, y cada entrenador camina hasta el que quiere atrapar. Si no se acerca a
    ninguno, se van solos. Los sortea el servidor (o el juego, sin servidor); la elección es de cada uno. */
-const SALVAJE_TAM = 24;          // lado mayor del sprite en píxeles de mundo (el tile mide 16)
+const SALVAJE_TAM = 14;          // lado mayor del sprite en píxeles de mundo (el tile mide 16)
 const SALVAJE_VIVE_MS = 25000;
 const SALVAJE_SPRITE_CACHE = {};
 let salvajes = [];               // {p, mapa, x, y (casillero), hasta}
