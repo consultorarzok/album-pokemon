@@ -16,7 +16,7 @@ const SHOTS = process.env.SHOTS || '';
     await ctx.route('**/PokeAPI/sprites**', r => r.abort());
     await ctx.addInitScript(n => {
       if(sessionStorage.getItem('sembrado')) return; sessionStorage.setItem('sembrado', '1');
-      localStorage.setItem('album-kanto-jugador', n);
+      localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', n);
       const st = {}; for(let i = 1; i <= 151; i++) st[i] = {got:i <= 5, dup:0};
       st[150] = {got:true, dup:1, ej:[{f:30, c:'AAAA'}, {f:60, c:'BBBB'}]};   // ya tenía un Mewtwo repetido
       localStorage.setItem('album-kanto-progreso', JSON.stringify({coins:100, state:st}));

@@ -24,7 +24,7 @@ const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 3
     /* EQUIPO=25,4,7 → sólo tengo esas figuritas de Kanto (para grabar con Pokémon conocidos) */
     const EQUIPO = process.env.EQUIPO ? process.env.EQUIPO.split(',').map(Number) : null;
     await ctx.addInitScript(eq => {
-      localStorage.setItem('album-kanto-jugador', 'Tester');
+      localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', 'Tester');
       const st = {}; for(let i = 1; i <= 151; i++) st[i] = {got:eq ? eq.includes(i) : (i <= 14 || i === 25 || i === 150), dup:0};
       localStorage.setItem('album-kanto-progreso', JSON.stringify({coins:300, state:st}));
     }, EQUIPO);

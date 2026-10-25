@@ -24,6 +24,7 @@ const espera = (p, fn, arg, ms = 8000) => p.waitForFunction(fn, arg, {timeout: m
     class D extends _Date { constructor(...a){ if(a.length) super(...a); else super(_Date.now() + desfase); } static now(){ return _Date.now() + desfase; } }
     window.Date = D;
     window.__arenaMudo = true;
+    try{ localStorage.setItem('album-avatar', 'red'); }catch(e){}
     if(sessionStorage.getItem('s')) return; sessionStorage.setItem('s', '1');
     localStorage.setItem('album-servidor', srv);
     localStorage.setItem('album-kanto-pin-ofrecido', '1');

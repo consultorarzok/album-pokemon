@@ -24,7 +24,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     await ctx.route('**raw.githubusercontent.com/**', r => { raw.push(r.request().url()); if(/shiny\/130\./.test(r.request().url())) return r.abort(); return r.fulfill({status:200, contentType:'image/png', body:PNG}); });
     await ctx.addInitScript(() => {
       if(sessionStorage.getItem('sembrado')) return; sessionStorage.setItem('sembrado', '1');
-      localStorage.setItem('album-kanto-jugador', 'Tester');
+      localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', 'Tester');
       const st = {}; for(let i = 1; i <= 151; i++) st[i] = {got:i <= 5, dup:0};
       st[94] = {got:true, dup:0, ej:[{f:90, c:'GGGG', s:true}]};
       st[25] = {got:true, dup:0, ej:[{f:70, c:'PPPP', s:true}]};

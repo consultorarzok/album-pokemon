@@ -12,7 +12,7 @@ await ctx.route('**://n8n.consultorarz.com/**',r=>{const u=r.request().url();
   return r.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});});
 await ctx.addInitScript((IDS)=>{ if(sessionStorage.getItem('s'))return; sessionStorage.setItem('s','1');
  localStorage.setItem('album-kanto-regalos',JSON.stringify(IDS));
- localStorage.setItem('album-kanto-jugador','Zeta Centeno');
+ localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador','Zeta Centeno');
  const st={};for(let i=1;i<=151;i++)st[i]={got:i<=20||i===150,dup:0};st[150]={got:true,dup:0,ej:[{f:40,c:'AAAA'}]};
  localStorage.setItem('album-kanto-progreso',JSON.stringify({coins:300,state:st}));},IDS);
 const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));

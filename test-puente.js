@@ -38,7 +38,7 @@ function servirLocal(route, base){
     localStorage.setItem('album-servidor', srv);
     if(location.hostname.endsWith('github.io') && !localStorage.getItem('sembrado')){
       localStorage.setItem('sembrado', '1');
-      localStorage.setItem('album-kanto-jugador', nombre);
+      localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', nombre);
       localStorage.setItem('album-kanto-dispositivo', 'dpuente' + suf);
       const st = {}; for(let i = 1; i <= 1025; i++) st[i] = {got: false, dup: 0};
       [1, 2, 3, 4, 5, 6, 7].forEach(i => st[i] = {got: true, dup: 0});

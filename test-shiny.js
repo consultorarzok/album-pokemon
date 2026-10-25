@@ -24,7 +24,7 @@ const SHOTS = process.env.SHOTS || '';
     await ctx.route('**/PokeAPI/sprites**', r => r.fulfill({status:200, contentType:'image/png', body:PNG}));
     await ctx.addInitScript(() => {
       if(sessionStorage.getItem('sembrado')) return; sessionStorage.setItem('sembrado', '1');
-      localStorage.setItem('album-kanto-jugador', 'Tester');
+      localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', 'Tester');
       const st = {}; for(let i = 1; i <= 151; i++) st[i] = {got:i <= 14, dup:0};
       st[4] = {got:true, dup:1, ej:[{f:80, c:'AAAA', s:true}, {f:40, c:'BBBB'}]};   // Charmander: una shiny
       st[1] = {got:true, dup:0, ej:[{f:55, c:'CCCC'}]};

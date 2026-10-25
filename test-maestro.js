@@ -21,7 +21,7 @@ const SHOTS = process.env.SHOTS || '';
       return r.abort();
     });
     await ctx.addInitScript(() => {
-      localStorage.setItem('album-kanto-jugador', 'Tester');
+      localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', 'Tester');
       const st = {}; for(let i = 1; i <= 151; i++) st[i] = {got:i <= 14, dup:0};
       localStorage.setItem('album-kanto-progreso', JSON.stringify({coins:300, state:st, maestro:{pts:140, ganadas:3, peleas:5, nivel:1}}));
     });

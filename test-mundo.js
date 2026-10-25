@@ -14,6 +14,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   await page.fill('#nameInput', 'TestMundo');
   await page.click('#nameSaveBtn');
   await page.waitForTimeout(700);
+  if(await page.isVisible('#avatarOverlay')){ await page.click('.avatar-op[data-avatar="red"]'); await page.waitForTimeout(200); }
   for(let i = 0; i < 4; i++){
     if(await page.isVisible('#specialContinueBtn')){ await page.click('#specialContinueBtn'); await page.waitForTimeout(500); }
     if(await page.isVisible('#battleCloseBtn')){ await page.click('#battleCloseBtn'); await page.waitForTimeout(300); }

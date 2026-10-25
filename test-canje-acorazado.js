@@ -10,7 +10,7 @@ await ctx.route('**://n8n.consultorarz.com/**',r=>{const u=r.request().url();
   if(u.includes('canjear-codigo')){ const c=JSON.parse(r.request().postData()).codigo; return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(RESP[c]||{ok:false,motivo:'no_existe'})}); }
   return r.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});});
 await ctx.addInitScript((IDS)=>{ if(sessionStorage.getItem('s'))return; sessionStorage.setItem('s','1');
- localStorage.setItem('album-kanto-regalos',JSON.stringify(IDS)); localStorage.setItem('album-kanto-jugador','Prueba Canje');
+ localStorage.setItem('album-kanto-regalos',JSON.stringify(IDS)); localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador','Prueba Canje');
  const st={};for(let i=1;i<=151;i++)st[i]={got:i<=20,dup:0};
  localStorage.setItem('album-kanto-progreso',JSON.stringify({coins:300,state:st}));},IDS);
 const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));

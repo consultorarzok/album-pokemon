@@ -127,6 +127,7 @@
   <canvas class="adv-map" id="advMap" width="288" height="192" role="img" aria-label="Mapa de la aventura"></canvas>
   <div class="adv-objetos" id="advObjetos"></div>
   <button class="adv-back" id="advCloseBtn">◀ Atrás</button>
+  <button class="adv-back adv-avatar" id="advAvatarBtn" aria-label="Cambiar personaje">👤 Personaje</button>
   <div class="adv-hud">
     <span class="pill">🪙 <b id="advCoins">0</b></span>
     <span id="advBolasHud" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"></span>
@@ -206,6 +207,17 @@
     <button id="nameSaveBtn">¡A jugar!</button>
     <button id="namePinBtn" class="btn-sec" hidden>Ya tengo cuenta: entrar con mi PIN</button>
     <p id="nameViejo" class="name-viejo" hidden>¿Ya jugabas antes? Abrí una vez <a href="https://consultorarzok.github.io/album-pokemon/">el link de siempre</a> desde tu celular y tu álbum viene solo.</p>
+  </div>
+</div>
+
+<div class="name-overlay" id="avatarOverlay" role="dialog" aria-modal="true" aria-labelledby="avatarTitle">
+  <div class="name-box">
+    <h2 id="avatarTitle">Elegí tu personaje</h2>
+    <p>Es el entrenador con el que caminás en la Aventura.<br>Después lo podés cambiar con el botón 👤 Personaje.</p>
+    <div class="avatar-opciones">
+      <button class="avatar-op" data-avatar="red"><img src="images/avatar-red.png" alt="" width="48" height="72"><span>Red</span></button>
+      <button class="avatar-op" data-avatar="may"><img src="images/avatar-may.png" alt="" width="48" height="72"><span>May</span></button>
+    </div>
   </div>
 </div>
 

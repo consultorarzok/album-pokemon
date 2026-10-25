@@ -168,7 +168,7 @@ function listo(progreso, tienePin){
   servidorListo = true;
   cobrarRegalosServidor();
   sincronizarCodigos();
-  if(!tienePin) ofrecerPin();
+  pedirAvatarSiFalta(() => { if(!tienePin) ofrecerPin(); });
 }
 
 /* Subir UNA vez el álbum que el chico tenía en este navegador (el servidor no deja hacerlo dos

@@ -16,7 +16,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   });
   await ctx.addInitScript(() => {
     if(localStorage.getItem('album-kanto-jugador')) return;
-    localStorage.setItem('album-kanto-jugador', 'Tester');
+    localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', 'Tester');
     localStorage.setItem('album-kanto-regalos', JSON.stringify(['agusg-legendaria-20260906','zeta-legendaria-prueba-20260906','zeta-legendaria-prueba2-20260906','todos-legendaria-20260906']));
     localStorage.setItem('album-kanto-progreso', JSON.stringify({coins:900, state:{25:{got:true,dup:1}, 150:{got:true,dup:0}, 1:{got:true,dup:0}}, bolas:{}, comprasDia:{}, legendariosDia:{}, tomados:[]}));
   });

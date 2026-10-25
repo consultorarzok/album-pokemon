@@ -10,7 +10,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   await ctx.route('**://n8n.consultorarz.com/**', r => r.abort());
   await ctx.addInitScript(() => {
     if(sessionStorage.getItem('x')) return; sessionStorage.setItem('x', '1');
-    localStorage.setItem('album-kanto-jugador', 'Tester');
+    localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', 'Tester');
     const st = {}; for(let i = 1; i <= 1025; i++) st[i] = {got:[6, 25, 132, 235, 249].includes(i), dup:i === 6 ? 7 : 0};
     localStorage.setItem('album-kanto-progreso', JSON.stringify({coins:300, state:st}));
   });

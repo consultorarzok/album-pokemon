@@ -7,7 +7,7 @@ const SHOTS=process.env.SHOTS||'';
 (async()=>{const b=await chromium.launch();const ctx=await b.newContext({viewport:{width:390,height:844}});
 await ctx.route('**://n8n.consultorarz.com/**',r=>/pokemon-(generar|cancelar)-codigo/.test(r.request().url())?r.continue():r.abort());
 await ctx.addInitScript(()=>{ if(sessionStorage.getItem('s'))return; sessionStorage.setItem('s','1');
- localStorage.setItem('album-kanto-jugador','zz prueba cancelar'); localStorage.setItem('album-kanto-regalos',JSON.stringify([]));
+ localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador','zz prueba cancelar'); localStorage.setItem('album-kanto-regalos',JSON.stringify([]));
  const st={};for(let i=1;i<=151;i++)st[i]={got:i<=40,dup:i<=40?1:0}; st[25]={got:true,dup:1,ej:[{f:30,c:'AAAA'},{f:77,c:'BBBB',s:true}]};
  localStorage.setItem('album-kanto-progreso',JSON.stringify({coins:0,state:st}));});
 await ctx.addInitScript(()=>{ window.REGALOS_OFF=1; });

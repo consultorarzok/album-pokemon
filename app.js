@@ -2876,11 +2876,44 @@ function agregarBordeCanvas(origen, colorBorde){
    GitHub Pages), así que no hace falta crossOrigin para leerle los
    píxeles. Reemplaza al dibujo a mano de antes -Zeta pidió explícitamente
    usar una imagen real, como con las pokébolas-. */
+/* Personajes elegibles (botón "Personaje" en la Aventura). May (Rubí/Zafiro,
+   pañuelo y ropa roja) la pidió Zeta para las chicas: hoja de FireRed armada
+   con la misma grilla 4x4 de 48x72 que la de Red. La elección queda en este
+   celular (es sólo estética, no pasa por el servidor). */
+const AVATARES = {
+  red: {src: 'images/red_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true},
+  may: {src: 'images/may_walk.png', fw: 16, fh: 21, w: 16, h: 21, suave: false}   // ya viene a tamaño real: se copia pixel por pixel
+};
+let avatarActual = 'red';
+try{ if(AVATARES[localStorage.getItem('album-avatar')]) avatarActual = localStorage.getItem('album-avatar'); }catch(e){}
 const RED_SHEET = new Image();
-RED_SHEET.src = 'images/red_walk.png';
-const RED_FRAME_W = 48, RED_FRAME_H = 72;
+RED_SHEET.src = AVATARES[avatarActual].src;
+RED_SHEET.onload = () => { for(const k in JUGADOR_SPRITE_CACHE) delete JUGADOR_SPRITE_CACHE[k]; if(typeof advAbierto !== 'undefined' && advAbierto) advRender(); };
+function fijarAvatar(a){
+  avatarActual = a;
+  try{ localStorage.setItem('album-avatar', a); }catch(e){}
+  RED_SHEET.src = AVATARES[a].src;
+}
+function cambiarAvatar(){
+  fijarAvatar(avatarActual === 'red' ? 'may' : 'red');
+  advMensaje(avatarActual === 'may' ? 'Ahora jugás con <b>May</b>' : 'Ahora jugás con <b>Red</b>');
+}
+/* Zeta 25/10: que cada chico elija personaje al crear su nombre, y los que ya
+   tenían cuenta también (una sola vez, al entrar). `luego` sigue con lo que
+   venía (p. ej. ofrecer el PIN) cuando ya eligió. */
+function pedirAvatarSiFalta(luego){
+  let elegido = null;
+  try{ elegido = localStorage.getItem('album-avatar'); }catch(e){ elegido = 'red'; }   // sin almacenamiento no se puede recordar: no molestar
+  if(AVATARES[elegido]){ luego && luego(); return; }
+  const ov = document.getElementById('avatarOverlay');
+  ov.querySelectorAll('.avatar-op').forEach(b => b.onclick = () => {
+    fijarAvatar(b.dataset.avatar);
+    ov.classList.remove('show');
+    luego && luego();
+  });
+  ov.classList.add('show');
+}
 const RED_FILA = {abajo: 0, izq: 1, der: 2, arriba: 3};
-const RED_FINAL_W = 14, RED_FINAL_H = 21;   // mantiene la proporción 48:72 del original
 
 /* Sólo hay 16 combinaciones (4 direcciones x 4 cuadros), así que el recorte
    + suavizado + contorno se hace una sola vez por combinación y se cachea. */
@@ -2890,6 +2923,14 @@ function spriteJugadorCacheado(dir, paso){
   if(JUGADOR_SPRITE_CACHE[clave]) return JUGADOR_SPRITE_CACHE[clave];
   if(!RED_SHEET.complete || !RED_SHEET.naturalWidth) return null;   // todavía cargando
   const fila = RED_FILA[dir] ?? 0;
+  const A = AVATARES[avatarActual];
+  const cv = document.createElement('canvas');
+  cv.width = A.w; cv.height = A.h;
+  const cctx = cv.getContext('2d');
+  cctx.imageSmoothingEnabled = false;
+  if(!A.suave){
+    cctx.drawImage(RED_SHEET, paso * A.fw, fila * A.fh, A.fw, A.fh, 0, 0, A.w, A.h);
+  }else{
   /* Reducir de 48x72 a 14x21 de UN salto con suavizado mezclaba de golpe
      brazos y piernas que en la hoja original están separados, y el
      resultado eran manchas grises/negras confusas -sobre todo en los
@@ -2899,17 +2940,14 @@ function spriteJugadorCacheado(dir, paso){
      silueta general) y recién ahí el final SIN suavizado (nitidez
      pixel-art, sin la mezcla de la reducción grande). */
   const inter = document.createElement('canvas');
-  inter.width = RED_FRAME_W / 2; inter.height = RED_FRAME_H / 2;
+  inter.width = A.fw / 2; inter.height = A.fh / 2;
   const ictx = inter.getContext('2d');
   ictx.imageSmoothingEnabled = true;
   ictx.drawImage(RED_SHEET,
-    paso * RED_FRAME_W, fila * RED_FRAME_H, RED_FRAME_W, RED_FRAME_H,
+    paso * A.fw, fila * A.fh, A.fw, A.fh,
     0, 0, inter.width, inter.height);
-  const cv = document.createElement('canvas');
-  cv.width = RED_FINAL_W; cv.height = RED_FINAL_H;
-  const cctx = cv.getContext('2d');
-  cctx.imageSmoothingEnabled = false;
-  cctx.drawImage(inter, 0, 0, RED_FINAL_W, RED_FINAL_H);
+  cctx.drawImage(inter, 0, 0, A.w, A.h);
+  }
   const sprConBorde = agregarBordeCanvas(cv, '#1A1310');
   JUGADOR_SPRITE_CACHE[clave] = sprConBorde;
   return sprConBorde;
@@ -2920,7 +2958,7 @@ function dibujarJugador(ctx, ox, oy){
   ctx.fillStyle = 'rgba(0,0,0,.28)';
   ctx.fillRect(ox + 4, oy + 14, 8, 2);
   const spr = spriteJugadorCacheado(advDir, advPaso);
-  if(spr) ctx.drawImage(spr, ox, oy - 7);   // 14+2 de contorno = 16, justo el ancho del tile
+  if(spr) ctx.drawImage(spr, ox - (spr.width - 16) / 2, oy - 7);   // Red: 14+2 de contorno = 16, justo el ancho del tile; May (16+2) se centra
 }
 
 /* Qué pokébola hay tirada en cada casillero. Sale por rareza, pero de forma
@@ -3844,6 +3882,7 @@ window.addEventListener('resize', () => { if(advAbierto) advRender(); });
 
 document.getElementById('advBtn').onclick = abrirAventura;
 document.getElementById('advCloseBtn').onclick = cerrarAventura;
+document.getElementById('advAvatarBtn').onclick = cambiarAvatar;
 document.getElementById('encCloseBtn').onclick = cerrarEncuentro;
 document.getElementById('shopCloseBtn').onclick = () => document.getElementById('shopOverlay').classList.remove('show');
 document.getElementById('intercambioBtn').onclick = abrirIntercambio;
@@ -5116,6 +5155,7 @@ function aceptarNombre(val){
   document.getElementById('nameOverlay').classList.remove('show');
   enviarPuntaje();
   aplicarRegalos();
+  pedirAvatarSiFalta();
 }
 
 /* Reserva el nombre en el servidor: dos entrenadores no pueden llamarse igual
@@ -5279,6 +5319,7 @@ if(nombreDelLink && nombreDelLink !== jugador){
   fijarNombreDesdeLink(nombreDelLink);
 } else if(jugador){
   if(figuritasObtenidas() > 0) enviarPuntaje();
+  pedirAvatarSiFalta();
 } else {
   pedirNombre();
 }

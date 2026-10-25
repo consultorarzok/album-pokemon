@@ -11,7 +11,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   await ctx.route('**://n8n.consultorarz.com/**', r => r.abort());
   await ctx.addInitScript(() => {
     if(localStorage.getItem('album-kanto-jugador')) return;
-    localStorage.setItem('album-kanto-jugador', 'Tester');
+    localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', 'Tester');
     localStorage.setItem('album-kanto-progreso', JSON.stringify({coins:900, state:{25:{got:true,dup:1}, 1:{got:true,dup:0}}, bolas:{}, comprasDia:{}, legendariosDia:{}, tomados:[]}));
   });
   const page = await ctx.newPage();

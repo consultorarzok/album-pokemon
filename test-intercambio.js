@@ -37,7 +37,7 @@ async function entrenador(browser, nombre, estado){
   await ctx.route('**://n8n.consultorarz.com/**', servidor);
   await ctx.addInitScript(([n, e]) => {
     if(localStorage.getItem('album-kanto-jugador')) return;   // recarga: no pisar lo guardado
-    localStorage.setItem('album-kanto-jugador', n);
+    localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', n);
     localStorage.setItem('album-kanto-regalos', JSON.stringify(['agusg-legendaria-20260906','zeta-legendaria-prueba-20260906','zeta-legendaria-prueba2-20260906','todos-legendaria-20260906']));
     if(e) localStorage.setItem('album-kanto-progreso', JSON.stringify(e));
   }, [nombre, estado]);

@@ -14,7 +14,7 @@ for(const [nombre,cobro,m150,esperado,got] of casos){
  const ctx=await b.newContext();await ctx.route('**://n8n.consultorarz.com/**',r=>r.abort());
  const usados=IDS.concat(cobro?['zeta-mewtwo-acorazado-20261022']:[]);
  await ctx.addInitScript(([n,u,m])=>{ if(sessionStorage.getItem('s'))return; sessionStorage.setItem('s','1');
-  localStorage.setItem('album-kanto-jugador',n); localStorage.setItem('album-kanto-regalos',JSON.stringify(u));
+  localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador',n); localStorage.setItem('album-kanto-regalos',JSON.stringify(u));
   const st={};for(let i=1;i<=151;i++)st[i]={got:i<=20,dup:0}; st[150]=m;
   localStorage.setItem('album-kanto-progreso',JSON.stringify({coins:300,state:st,especiales:{10150:{f:100,c:'ZZZZ'}}}));},[nombre,usados,m150]);
  const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));

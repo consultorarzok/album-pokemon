@@ -16,7 +16,7 @@ const TAMANOS = [['celular parado', 390, 844], ['celular acostado', 844, 390], [
     await ctx.route('**://n8n.consultorarz.com/**', r => r.abort());
     await ctx.addInitScript(() => {
       if(localStorage.getItem('album-kanto-jugador')) return;
-      localStorage.setItem('album-kanto-jugador', 'Tester');
+      localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', 'Tester');
       localStorage.setItem('album-kanto-regalos', JSON.stringify(['agusg-legendaria-20260906','zeta-legendaria-prueba-20260906','zeta-legendaria-prueba2-20260906','todos-legendaria-20260906']));
     });
     const p = await ctx.newPage();

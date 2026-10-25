@@ -21,7 +21,7 @@ const suf = Math.random().toString(36).slice(2, 6);
     if(sessionStorage.getItem('s')) return; sessionStorage.setItem('s', '1');
     localStorage.clear();
     localStorage.setItem('album-servidor', srv);
-    localStorage.setItem('album-kanto-jugador', 'Peleador ' + suf);
+    localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', 'Peleador ' + suf);
     localStorage.setItem('album-kanto-dispositivo', 'dpel' + suf);
     localStorage.setItem('album-kanto-regalos', JSON.stringify(regalos));
     localStorage.setItem('album-kanto-pin-ofrecido', '1');

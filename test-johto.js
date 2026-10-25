@@ -12,7 +12,7 @@ const JOHTO = [157, 160, 248, 249, 250, 212, 197, 181];
   const ctx = await b.newContext({viewport:{width:390, height:844}, hasTouch:true, isMobile:true});
   await ctx.route('**://n8n.consultorarz.com/**', r => r.abort());
   await ctx.addInitScript(j => {
-    localStorage.setItem('album-kanto-jugador', 'Tester');
+    localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', 'Tester');
     const st = {}; for(let i = 1; i <= 1025; i++) st[i] = {got:j.includes(i) || i === 25, dup:0};
     localStorage.setItem('album-kanto-progreso', JSON.stringify({coins:300, state:st}));
   }, JOHTO);

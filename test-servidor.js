@@ -21,6 +21,7 @@ async function abrir(br, init){
     if(sessionStorage.getItem('sembrado')) return;   // sólo la primera carga: después manda lo que guardó el juego
     sessionStorage.setItem('sembrado', '1');
     localStorage.setItem('album-servidor', srv);
+    localStorage.setItem('album-avatar', 'red');
     Object.keys(datos || {}).forEach(k => localStorage.setItem(k, typeof datos[k] === 'string' ? datos[k] : JSON.stringify(datos[k])));
   }, [SERVIDOR, init]);
   await pg.goto(URL);

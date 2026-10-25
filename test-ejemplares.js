@@ -23,7 +23,7 @@ const SHOTS = process.env.SHOTS || '';
     await ctx.addInitScript(() => {
       if(sessionStorage.getItem('sembrado')) return;
       sessionStorage.setItem('sembrado', '1');
-      localStorage.setItem('album-kanto-jugador', 'Tester');
+      localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', 'Tester');
       const st = {}; for(let i = 1; i <= 151; i++) st[i] = {got:i <= 14, dup:0};
       st[1].dup = 3;                                                     // Bulbasaur sin fuerzas todavía (jugador de antes)
       st[4] = {got:true, dup:2, ej:[{f:12, c:'AAAA'}, {f:95, c:'BBBB'}, {f:50, c:'CCCC'}]};
