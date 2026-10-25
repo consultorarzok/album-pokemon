@@ -127,6 +127,7 @@
   <canvas class="adv-map" id="advMap" width="288" height="192" role="img" aria-label="Mapa de la aventura"></canvas>
   <div class="adv-objetos" id="advObjetos"></div>
   <div class="adv-nombres" id="advNombres" aria-hidden="true"></div>
+  <div class="adv-globos" id="advGlobos" aria-hidden="true"></div>
   <button class="adv-back" id="advCloseBtn">◀ Atrás</button>
   <div class="adv-hud">
     <span class="pill">🪙 <b id="advCoins">0</b></span>
@@ -135,6 +136,12 @@
   <canvas class="adv-mini" id="advMini" width="644" height="168"></canvas>
   <div class="adv-zona" id="advZona" aria-live="polite"></div>
   <div class="adv-stick" id="advStick"><div class="knob" id="advKnob"></div></div>
+  <button class="adv-chatbtn" id="advChatBtn" hidden aria-label="Escribir un mensaje">💬</button>
+  <form class="adv-chatbar" id="advChatBar" hidden autocomplete="off">
+    <input id="advChatInput" type="text" maxlength="60" placeholder="Escribí algo (sin teléfonos ni links)" enterkeyhint="send" autocomplete="off" autocapitalize="sentences">
+    <button type="submit">Enviar</button>
+  </form>
+  <div class="adv-chataviso" id="advChatAviso" role="status"></div>
   <div class="adv-ayuda">Tocá y arrastrá en cualquier lado para caminar<br>o usá las flechas del teclado</div>
 </div>
 
@@ -355,8 +362,8 @@
   <div class="ar-root" id="arRoot"></div>
 </div>
 
-<script src="app.js?v=20261105"></script>
-<script src="servidor.js?v=20261105"></script>
+<script src="app.js?v=20261106"></script>
+<script src="servidor.js?v=20261106"></script>
 <script src="arena.js?v=20261105"></script>
 <script src="portada.js?v=20261105"></script>
 </body>

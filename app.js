@@ -3920,8 +3920,9 @@ function ejeDeTeclado(){
   return {x:Math.max(-1, Math.min(1, x)), y:Math.max(-1, Math.min(1, y))};
 }
 
+const escribiendo = e => e.target && e.target.closest && e.target.closest('input, textarea');   // chat: las letras no mueven al personaje
 document.addEventListener('keydown', e => {
-  if(!advAbierto) return;
+  if(!advAbierto || escribiendo(e)) return;
   const k = TECLAS[e.key] ? e.key : (e.key || '').toLowerCase();
   if(!TECLAS[k]) return;
   e.preventDefault();
@@ -3929,6 +3930,7 @@ document.addEventListener('keydown', e => {
   if(!stickActivo) advEje = ejeDeTeclado();
 });
 document.addEventListener('keyup', e => {
+  if(escribiendo(e)){ teclasApretadas.clear(); if(!stickActivo) advEje = ejeDeTeclado(); return; }
   const k = TECLAS[e.key] ? e.key : (e.key || '').toLowerCase();
   if(!TECLAS[k]) return;
   teclasApretadas.delete(k);
@@ -3968,7 +3970,7 @@ const stickEl = document.getElementById('advStick');
 const zonaToque = document.getElementById('advOverlay');
 let stickCentro = {x:0, y:0};
 zonaToque.addEventListener('pointerdown', ev => {
-  if(stickActivo || ev.target.closest('button')) return;
+  if(stickActivo || ev.target.closest('button, .adv-chatbar')) return;
   ev.preventDefault();
   stickActivo = true;
   stickPuntero = ev.pointerId;

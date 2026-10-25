@@ -628,7 +628,7 @@ if(MODO_SERVIDOR) arrancarServidor();
    Mientras la Aventura está abierta, una conexión al "mundo" del servidor: cada celular cuenta
    dónde está (~5 veces por segundo, sólo si se movió; si está quieto, cada 20 s para seguir
    visible) y recibe a los demás. Es sólo para verse: no paga ni descuenta nada. */
-const MUNDO = {ws: null, abierto: false, otros: {}, ultimoEnvio: 0, ultimo: '', reintento: null};
+const MUNDO = {ws: null, abierto: false, otros: {}, ultimoEnvio: 0, ultimo: '', reintento: null, yo: null, globos: {}};
 function mundoEntrar(){
   if(!MODO_SERVIDOR) return;
   MUNDO.abierto = true;
@@ -639,10 +639,12 @@ function mundoConectar(){
   let ws;
   try{ ws = new WebSocket(SERVIDOR_URL.replace(/^http/, 'ws') + '/mundo/ws?token=' + encodeURIComponent(tokenServidor)); }catch(e){ return; }
   MUNDO.ws = ws; MUNDO.ultimo = '';
+  ws.onopen = () => chatMostrarBoton(true);
   ws.onmessage = ev => { let m; try{ m = JSON.parse(ev.data); }catch(e){ return; } mundoMensaje(m); };
   ws.onclose = () => {
     if(MUNDO.ws === ws) MUNDO.ws = null;
-    MUNDO.otros = {};
+    MUNDO.otros = {}; MUNDO.globos = {};
+    chatMostrarBoton(false);
     if(MUNDO.abierto){ clearTimeout(MUNDO.reintento); MUNDO.reintento = setTimeout(mundoConectar, 4000); }   // se cortó la señal: reintenta solo
   };
 }
@@ -651,12 +653,16 @@ function mundoSalir(){
   clearTimeout(MUNDO.reintento);
   const ws = MUNDO.ws; MUNDO.ws = null;
   if(ws) try{ ws.close(); }catch(e){}
-  MUNDO.otros = {};
+  MUNDO.otros = {}; MUNDO.globos = {};
+  chatMostrarBoton(false);
   sincronizarNombres([], 1);
+  sincronizarGlobos([], 1);
 }
 function mundoMensaje(m){
   const ahora = performance.now();
-  if(m.t === 'todos'){ MUNDO.otros = {}; (m.lista || []).forEach(o => mundoPoner(o, ahora, true)); }
+  if(m.t === 'chat'){ MUNDO.globos[m.id] = {txt: String(m.txt || '').slice(0, 60), hasta: ahora + 6500}; return; }
+  if(m.t === 'chat_no'){ chatAviso(m); return; }
+  if(m.t === 'todos'){ MUNDO.yo = m.yo; MUNDO.otros = {}; (m.lista || []).forEach(o => mundoPoner(o, ahora, true)); }
   else if(m.t === 'p') mundoPoner(m, ahora, false);
   else if(m.t === 'sale') delete MUNDO.otros[m.id];
 }
@@ -678,7 +684,9 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
       MUNDO.ultimo = msg; MUNDO.ultimoEnvio = ahora;
     }
   }
-  const nombres = [];
+  const nombres = [], globos = [];
+  const miGlobo = MUNDO.globos[MUNDO.yo];
+  if(miGlobo && ahora < miGlobo.hasta) globos.push({txt: miGlobo.txt, px: advPx - camX, py: advPy - camY});
   for(const id in MUNDO.otros){
     const o = MUNDO.otros[id];
     if(ahora - o.visto > 60000){ delete MUNDO.otros[id]; continue; }   // hace rato que no se sabe nada
@@ -690,9 +698,63 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
     if(sx < -24 || sy < -32 || sx > vw + 8 || sy > vh + 8) continue;
     dibujarEntrenador(ctx, sx, sy, o.d, camina ? Math.floor(ahora / 140) % 4 : 0, o.av);
     nombres.push({n: o.n, px: sx, py: sy});
+    const g = MUNDO.globos[id];
+    if(g && ahora < g.hasta) globos.push({txt: g.txt, px: sx, py: sy});
   }
+  for(const id in MUNDO.globos) if(ahora >= MUNDO.globos[id].hasta) delete MUNDO.globos[id];
   sincronizarNombres(nombres, escala);
+  sincronizarGlobos(globos, escala);
 }
+/* Los globos de chat son <span> que se mueven con el personaje (textContent: nunca HTML). */
+function sincronizarGlobos(lista, escala){
+  const caja = document.getElementById('advGlobos');
+  if(!caja) return;
+  while(caja.children.length < lista.length) caja.appendChild(document.createElement('span'));
+  [...caja.children].forEach((el, i) => {
+    const o = lista[i];
+    if(!o){ el.style.display = 'none'; return; }
+    if(el.textContent !== o.txt) el.textContent = o.txt;
+    el.style.display = 'block';
+    el.style.left = Math.round((o.px + 8) * escala) + 'px';
+    el.style.top  = Math.round((o.py - 22) * escala) + 'px';
+  });
+}
+/* Escribir: botón 💬 → barra abajo → el servidor revisa (teléfonos, links, insultos) y avisa si no pasó. */
+const CHAT_AVISOS = {
+  numero: 'No se pueden pasar números de teléfono.', link: 'No se pueden mandar links.', insulto: 'Ese mensaje no se puede mandar. Tratemos bien a todos 💛',
+  contacto: 'No se pueden pedir ni dar contactos.', rapido: 'Esperá un momentito antes de mandar otro.', silenciado: 'Estás en pausa unos minutos por mensajes no permitidos.'
+};
+function chatMostrarBoton(ver){
+  const b = document.getElementById('advChatBtn');
+  if(b) b.hidden = !ver;
+  if(!ver) chatCerrar();
+}
+function chatAviso(m){
+  const a = document.getElementById('advChatAviso');
+  if(!a) return;
+  a.textContent = CHAT_AVISOS[m.motivo] || 'No se pudo mandar.';
+  clearTimeout(chatAviso._t); chatAviso._t = setTimeout(() => { a.textContent = ''; }, 4000);
+}
+function chatCerrar(){
+  const bar = document.getElementById('advChatBar');
+  if(bar && !bar.hidden){ bar.hidden = true; const i = document.getElementById('advChatInput'); if(i){ i.value = ''; i.blur(); } }
+  const b = document.getElementById('advChatBtn'); if(b && MUNDO.ws) b.hidden = false;
+}
+(() => {
+  const btn = document.getElementById('advChatBtn'), bar = document.getElementById('advChatBar'), inp = document.getElementById('advChatInput');
+  if(!btn || !bar || !inp) return;
+  btn.onclick = () => { bar.hidden = false; btn.hidden = true; inp.focus(); };
+  bar.addEventListener('submit', ev => {
+    ev.preventDefault();
+    const txt = inp.value.trim();
+    if(!txt){ chatCerrar(); return; }
+    if(MUNDO.ws && MUNDO.ws.readyState === 1) try{ MUNDO.ws.send(JSON.stringify({k: 'c', txt: txt.slice(0, 60)})); }catch(e){}
+    inp.value = '';
+    document.getElementById('advChatAviso').textContent = '';
+    chatCerrar();
+  });
+  inp.addEventListener('keydown', ev => { if(ev.key === 'Escape') chatCerrar(); });
+})();
 function sincronizarNombres(lista, escala){
   const caja = document.getElementById('advNombres');
   if(!caja) return;
