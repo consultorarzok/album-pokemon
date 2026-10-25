@@ -4669,8 +4669,15 @@ function renderSalonDeLaFama(done){
     caja.innerHTML = '<div class="hof-title" style="margin-top:14px">Ganadores de eventos</div>' +
       gan.map(g => '<div class="hof-row"><img class="hof-crown" src="images/medal-' + (['oro', 'plata', 'bronce'][g.puesto - 1] || 'bronce') + '.svg" alt="' + g.puesto + 'º">' +
         '<div class="hof-name"></div><div class="hof-date"></div></div>').join('');
-    caja.querySelectorAll('.hof-name').forEach((el, i) => { el.textContent = gan[i].nombre; });
-    caja.querySelectorAll('.hof-date').forEach((el, i) => { el.textContent = gan[i].evento + ' · ' + gan[i].puesto + 'º'; });
+    caja.querySelectorAll('.hof-name').forEach((el, i) => {
+      el.style.whiteSpace = 'normal';
+      el.textContent = gan[i].nombre;
+      const ev = document.createElement('small');
+      ev.style.cssText = 'display:block;font-weight:400;font-size:10px;color:var(--ink-dim);line-height:1.25';
+      ev.textContent = gan[i].evento;
+      el.appendChild(ev);
+    });
+    caja.querySelectorAll('.hof-date').forEach((el, i) => { el.textContent = gan[i].puesto + 'º'; el.style.fontSize = '14px'; el.style.fontWeight = '700'; });
     done.appendChild(caja);
   }
 }
