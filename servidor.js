@@ -609,3 +609,86 @@ function cancelarCodigoServidor(codigo, btn, alTerminar){
 }
 
 if(MODO_SERVIDOR) arrancarServidor();
+
+/* ---------------- Aventura en vivo: ver a los otros entrenadores ----------------
+   Mientras la Aventura está abierta, una conexión al "mundo" del servidor: cada celular cuenta
+   dónde está (~5 veces por segundo, sólo si se movió; si está quieto, cada 20 s para seguir
+   visible) y recibe a los demás. Es sólo para verse: no paga ni descuenta nada. */
+const MUNDO = {ws: null, abierto: false, otros: {}, ultimoEnvio: 0, ultimo: '', reintento: null};
+function mundoEntrar(){
+  if(!MODO_SERVIDOR) return;
+  MUNDO.abierto = true;
+  mundoConectar();
+}
+function mundoConectar(){
+  if(!MUNDO.abierto || MUNDO.ws || !tokenServidor) return;
+  let ws;
+  try{ ws = new WebSocket(SERVIDOR_URL.replace(/^http/, 'ws') + '/mundo/ws?token=' + encodeURIComponent(tokenServidor)); }catch(e){ return; }
+  MUNDO.ws = ws; MUNDO.ultimo = '';
+  ws.onmessage = ev => { let m; try{ m = JSON.parse(ev.data); }catch(e){ return; } mundoMensaje(m); };
+  ws.onclose = () => {
+    if(MUNDO.ws === ws) MUNDO.ws = null;
+    MUNDO.otros = {};
+    if(MUNDO.abierto){ clearTimeout(MUNDO.reintento); MUNDO.reintento = setTimeout(mundoConectar, 4000); }   // se cortó la señal: reintenta solo
+  };
+}
+function mundoSalir(){
+  MUNDO.abierto = false;
+  clearTimeout(MUNDO.reintento);
+  const ws = MUNDO.ws; MUNDO.ws = null;
+  if(ws) try{ ws.close(); }catch(e){}
+  MUNDO.otros = {};
+  sincronizarNombres([], 1);
+}
+function mundoMensaje(m){
+  const ahora = performance.now();
+  if(m.t === 'todos'){ MUNDO.otros = {}; (m.lista || []).forEach(o => mundoPoner(o, ahora, true)); }
+  else if(m.t === 'p') mundoPoner(m, ahora, false);
+  else if(m.t === 'sale') delete MUNDO.otros[m.id];
+}
+function mundoPoner(o, ahora, saltar){
+  const v = MUNDO.otros[o.id];
+  // cambió de mapa o pegó un salto grande (Centro Pokémon, cueva): aparece directo, sin deslizarse
+  if(!v || saltar || v.m !== o.m || Math.abs(v.x - o.x) + Math.abs(v.y - o.y) > 64)
+    MUNDO.otros[o.id] = {n: o.n, av: o.av, m: o.m, x: o.x, y: o.y, tx: o.x, ty: o.y, d: o.d, visto: ahora};
+  else Object.assign(v, {n: o.n, av: o.av, tx: o.x, ty: o.y, d: o.d, visto: ahora});
+}
+/* Se llama en cada cuadro desde advRender, antes de dibujar al propio jugador (que queda arriba). */
+function dibujarOtros(ctx, camX, camY, vw, vh, escala){
+  const ahora = performance.now();
+  const ws = MUNDO.ws;
+  if(ws && ws.readyState === 1 && ahora - MUNDO.ultimoEnvio > 200){
+    const msg = JSON.stringify({k: 'p', m: advMapa, x: Math.round(advPx), y: Math.round(advPy), d: advDir, p: advPaso});
+    if(msg !== MUNDO.ultimo || ahora - MUNDO.ultimoEnvio > 20000){
+      try{ ws.send(msg); }catch(e){}
+      MUNDO.ultimo = msg; MUNDO.ultimoEnvio = ahora;
+    }
+  }
+  const nombres = [];
+  for(const id in MUNDO.otros){
+    const o = MUNDO.otros[id];
+    if(ahora - o.visto > 60000){ delete MUNDO.otros[id]; continue; }   // hace rato que no se sabe nada
+    if(o.m !== advMapa) continue;
+    const dx = o.tx - o.x, dy = o.ty - o.y;
+    const camina = Math.abs(dx) + Math.abs(dy) > .5;
+    o.x += dx * .2; o.y += dy * .2;   // se desliza hacia la última posición que llegó
+    const sx = o.x - camX, sy = o.y - camY;
+    if(sx < -24 || sy < -32 || sx > vw + 8 || sy > vh + 8) continue;
+    dibujarEntrenador(ctx, sx, sy, o.d, camina ? Math.floor(ahora / 140) % 4 : 0, o.av);
+    nombres.push({n: o.n, px: sx, py: sy});
+  }
+  sincronizarNombres(nombres, escala);
+}
+function sincronizarNombres(lista, escala){
+  const caja = document.getElementById('advNombres');
+  if(!caja) return;
+  while(caja.children.length < lista.length) caja.appendChild(document.createElement('span'));
+  [...caja.children].forEach((el, i) => {
+    const o = lista[i];
+    if(!o){ el.style.display = 'none'; return; }
+    if(el.textContent !== o.n) el.textContent = o.n;
+    el.style.display = 'block';
+    el.style.left = Math.round((o.px + 8) * escala) + 'px';
+    el.style.top  = Math.round((o.py - 9) * escala) + 'px';
+  });
+}

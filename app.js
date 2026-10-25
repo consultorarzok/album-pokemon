@@ -2887,13 +2887,12 @@ const AVATARES = {
 };
 let avatarActual = 'red';
 try{ if(AVATARES[localStorage.getItem('album-avatar')]) avatarActual = localStorage.getItem('album-avatar'); }catch(e){}
-const RED_SHEET = new Image();
-RED_SHEET.src = AVATARES[avatarActual].src;
-RED_SHEET.onload = () => { for(const k in JUGADOR_SPRITE_CACHE) delete JUGADOR_SPRITE_CACHE[k]; if(typeof advAbierto !== 'undefined' && advAbierto) advRender(); };
+/* las dos hojas cargadas siempre: en la Aventura en vivo se ven Reds y Mays a la vez */
+const HOJAS = {};
+for(const a in AVATARES){ HOJAS[a] = new Image(); HOJAS[a].src = AVATARES[a].src; }
 function fijarAvatar(a, subir = true){
   avatarActual = a;
   try{ localStorage.setItem('album-avatar', a); }catch(e){}
-  RED_SHEET.src = AVATARES[a].src;
   if(subir) subirAvatar(a);
 }
 function subirAvatar(a){
@@ -2924,18 +2923,20 @@ const RED_FILA = {abajo: 0, izq: 1, der: 2, arriba: 3};
 /* Sólo hay 16 combinaciones (4 direcciones x 4 cuadros), así que el recorte
    + suavizado + contorno se hace una sola vez por combinación y se cachea. */
 const JUGADOR_SPRITE_CACHE = {};
-function spriteJugadorCacheado(dir, paso){
-  const clave = dir + '|' + paso;
+function spriteJugadorCacheado(dir, paso, av = avatarActual){
+  if(!AVATARES[av]) av = 'red';
+  const clave = av + '|' + dir + '|' + paso;
   if(JUGADOR_SPRITE_CACHE[clave]) return JUGADOR_SPRITE_CACHE[clave];
-  if(!RED_SHEET.complete || !RED_SHEET.naturalWidth) return null;   // todavía cargando
+  const HOJA = HOJAS[av];
+  if(!HOJA.complete || !HOJA.naturalWidth) return null;   // todavía cargando
   const fila = RED_FILA[dir] ?? 0;
-  const A = AVATARES[avatarActual];
+  const A = AVATARES[av];
   const cv = document.createElement('canvas');
   cv.width = A.w; cv.height = A.h;
   const cctx = cv.getContext('2d');
   cctx.imageSmoothingEnabled = false;
   if(!A.suave){
-    cctx.drawImage(RED_SHEET, paso * A.fw, fila * A.fh, A.fw, A.fh, 0, 0, A.w, A.h);
+    cctx.drawImage(HOJA, paso * A.fw, fila * A.fh, A.fw, A.fh, 0, 0, A.w, A.h);
   }else{
   /* Reducir de 48x72 a 14x21 de UN salto con suavizado mezclaba de golpe
      brazos y piernas que en la hoja original están separados, y el
@@ -2949,7 +2950,7 @@ function spriteJugadorCacheado(dir, paso){
   inter.width = A.fw / 2; inter.height = A.fh / 2;
   const ictx = inter.getContext('2d');
   ictx.imageSmoothingEnabled = true;
-  ictx.drawImage(RED_SHEET,
+  ictx.drawImage(HOJA,
     paso * A.fw, fila * A.fh, A.fw, A.fh,
     0, 0, inter.width, inter.height);
   cctx.drawImage(inter, 0, 0, A.w, A.h);
@@ -2959,13 +2960,14 @@ function spriteJugadorCacheado(dir, paso){
   return sprConBorde;
 }
 
-function dibujarJugador(ctx, ox, oy){
+function dibujarEntrenador(ctx, ox, oy, dir, paso, av){
   ox = Math.round(ox); oy = Math.round(oy);
   ctx.fillStyle = 'rgba(0,0,0,.28)';
   ctx.fillRect(ox + 4, oy + 14, 8, 2);
-  const spr = spriteJugadorCacheado(advDir, advPaso);
+  const spr = spriteJugadorCacheado(dir, paso, av);
   if(spr) ctx.drawImage(spr, ox - (spr.width - 16) / 2, oy - 7);   // Red: 14+2 de contorno = 16, justo el ancho del tile; May (16+2) se centra
 }
+function dibujarJugador(ctx, ox, oy){ dibujarEntrenador(ctx, ox, oy, advDir, advPaso, avatarActual); }
 
 /* Qué pokébola hay tirada en cada casillero. Sale por rareza, pero de forma
    DETERMINÍSTICA (a partir de la posición, con el mismo ruido que usa el
@@ -3268,6 +3270,7 @@ function advRender(){
     advMensaje(`💨 <b>${p.name}</b> se fue antes de que llegaras.`);
   }
 
+  if(typeof dibujarOtros === 'function') dibujarOtros(ctx, camX, camY, vw, vh, escala);   // Aventura en vivo (servidor.js)
   dibujarJugador(ctx, advPx - camX, advPy - camY);
   dibujarMini();
   advDibujado = true;
@@ -3794,6 +3797,7 @@ function abrirAventura(){
   if(ayuda){ ayuda.classList.remove('oculta'); clearTimeout(abrirAventura._t); abrirAventura._t = setTimeout(() => ayuda.classList.add('oculta'), 9000); }
   advUltimo = performance.now();
   if(!advRaf) advRaf = requestAnimationFrame(advCiclo);
+  if(typeof mundoEntrar === 'function') mundoEntrar();
   // pantalla completa de verdad donde el navegador lo permita
   try{
     const el = document.documentElement;
@@ -3806,6 +3810,7 @@ function cerrarAventura(){
   advEje = {x:0, y:0};
   if(advRaf){ cancelAnimationFrame(advRaf); advRaf = null; }
   sincronizarObjetos([], 1);        // esconder las pokébolas del piso al salir
+  if(typeof mundoSalir === 'function') mundoSalir();
   document.getElementById('advOverlay').classList.remove('show');
   try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }catch(e){}
 }
