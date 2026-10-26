@@ -3353,20 +3353,38 @@ function trenEstado(ahora){                             // {y, dir, parado} en c
   }
   return {y: TREN_EST[0], dir: 1, parado: true};
 }
-function dibujarTren(ctx, camX, camY, vw, vh){
+function dibujarTren(ctx, camX, camY, vw, vh){          // visto desde arriba, con la librea real: crema, franja naranja con montañas blancas
   const e = trenEstado(Date.now());
   const cx = TREN_X * ADV_PX + 8 - camX, cy = Math.round(e.y * ADV_PX + 8 - camY);
   if(cx < -20 || cx > vw + 20 || cy < -60 || cy > vh + 60) return;
-  const L = 52, top = cy - L / 2;
-  pinta(ctx, 'rgba(0,0,0,.25)', cx - 5, top + 3, 12, L);
-  pinta(ctx, '#2B6CB0', cx - 6, top, 12, L);                                          // carrocería azul
-  pinta(ctx, '#F2F5F7', cx - 5, top + 1, 10, L - 2);
-  pinta(ctx, '#1F3A5F', cx - 5, top + 4, 10, 10); pinta(ctx, '#1F3A5F', cx - 5, top + L - 14, 10, 10);    // paneles solares en el techo
-  for(let i = 0; i < 2; i++){ pinta(ctx, '#3B66A1', cx - 4, top + 5 + i * 4, 8, 1); pinta(ctx, '#3B66A1', cx - 4, top + L - 13 + i * 4, 8, 1); }
-  pinta(ctx, '#7FA8D8', cx - 2, top + 16, 4, L - 32);                                 // ventanas
-  pinta(ctx, '#2B6CB0', cx - 6, top + L / 2 - 1, 12, 2);                              // juntura entre coches
-  const frente = e.dir > 0 ? top + L - 2 : top;
-  pinta(ctx, '#FFF2A8', cx - 3, frente, 2, 2); pinta(ctx, '#FFF2A8', cx + 1, frente, 2, 2);               // faros
+  const L = 56, top = cy - L / 2, naranja = '#E8631F', crema = '#F1EADB';
+  pinta(ctx, 'rgba(0,0,0,.28)', cx - 5, top + 3, 12, L);
+  pinta(ctx, naranja, cx - 6, top + 2, 12, L - 4);                                     // flancos naranjas
+  for(let i = 4; i < L - 4; i += 6){                                                   // montañitas blancas de la librea
+    pinta(ctx, '#FFFFFF', cx - 6, top + i, 1, 2); pinta(ctx, '#FFFFFF', cx + 5, top + i, 1, 2);
+    pinta(ctx, '#FFFFFF', cx - 6, top + i + 2, 2, 1); pinta(ctx, '#FFFFFF', cx + 4, top + i + 2, 2, 1);
+  }
+  pinta(ctx, crema, cx - 4, top + 2, 8, L - 4);                                         // techo crema
+  pinta(ctx, '#DDD5C2', cx - 1, top + 6, 2, L - 12);                                    // lomo del techo
+  for(let i = 0; i < 2; i++){                                                           // rejillas de ventilación
+    const y0 = top + 10 + i * (L / 2 - 4);
+    for(let k = 0; k < 4; k++) pinta(ctx, '#B9B2A1', cx - 3, y0 + k * 2, 6, 1);
+  }
+  pinta(ctx, '#2A2E36', cx - 5, top + L / 2 - 1, 10, 2);                                // fuelle entre los dos coches
+  pinta(ctx, naranja, cx - 6, top + L / 2 - 1, 1, 2); pinta(ctx, naranja, cx + 5, top + L / 2 - 1, 1, 2);
+  for(const lado of [0, 1]){                                                            // las dos cabinas (el tren anda para los dos lados)
+    const adelante = (lado === 1) === (e.dir > 0);
+    const y0 = lado === 0 ? top : top + L - 12, signo = lado === 0 ? 1 : -1;
+    const base = lado === 0 ? top : top + L;                                            // punta
+    pinta(ctx, '#14161B', cx - 5, lado === 0 ? top : top + L - 6, 10, 6);               // frente negro
+    pinta(ctx, '#1B2430', cx - 4, lado === 0 ? top + 6 : top + L - 12, 8, 6);           // parabrisas grande
+    pinta(ctx, '#3C4A5E', cx - 3, lado === 0 ? top + 7 : top + L - 11, 3, 1);
+    pinta(ctx, '#FF5A3C', cx - 2, lado === 0 ? top + 12 : top + L - 13, 4, 1);          // cartel de destino
+    for(let k = 0; k < 6; k++) pinta(ctx, k % 2 ? '#14161B' : naranja, cx - 6 + k * 2, lado === 0 ? top - 1 : top + L, 2, 1);   // paragolpes rayado
+    pinta(ctx, adelante ? '#FFF6C2' : '#E53935', cx - 5, lado === 0 ? top + 1 : top + L - 3, 2, 2);
+    pinta(ctx, adelante ? '#FFF6C2' : '#E53935', cx + 3, lado === 0 ? top + 1 : top + L - 3, 2, 2);
+    pinta(ctx, adelante ? '#FFFFFF' : '#BFD2F2', cx - 1, lado === 0 ? top + 1 : top + L - 3, 2, 2);
+  }
 };
 PINTORES.iglesia = (ctx, ox, oy, x, y) => {           // iglesia: adobe encalado (Quebrada) o blanca (Puna)
   PINTORES.camino(ctx, ox, oy, x, y);
