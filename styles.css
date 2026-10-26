@@ -277,7 +277,7 @@
   .adv-stick.activo{opacity:1;}
   .adv-stick .knob{position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;background:rgba(255,255,255,.82);border:2px solid rgba(16,20,38,.45);pointer-events:none;}
   /* Minimapa: el mundo entero con las 3 regiones y dónde estás parado. */
-  .adv-mini{position:absolute;top:52px;right:10px;z-index:3;width:186px;height:49px;border:2px solid rgba(255,255,255,.35);border-radius:8px;background:rgba(16,20,38,.72);image-rendering:pixelated;}
+  .adv-mini{position:absolute;top:52px;right:10px;z-index:3;width:186px;height:69px;border:2px solid rgba(255,255,255,.35);border-radius:8px;background:rgba(16,20,38,.72);image-rendering:pixelated;}
   .adv-mini[hidden]{display:none;}
   .adv-ayuda{transition:opacity .8s ease;}
   .adv-ayuda.oculta{opacity:0;}
@@ -292,7 +292,7 @@
     .adv-stick{width:118px;height:118px;left:14px;bottom:14px;}
     .adv-stick .knob{width:52px;height:52px;margin:-26px 0 0 -26px;}
     .adv-ayuda{font-size:10px;}
-    .adv-mini{width:132px;height:35px;top:46px;}
+    .adv-mini{width:132px;height:49px;top:46px;}
     .adv-zona{bottom:auto;top:120px;max-width:80vw;}
   }
 

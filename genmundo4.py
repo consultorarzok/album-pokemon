@@ -22,7 +22,7 @@ import json
 import math
 from collections import deque
 
-W, H = 322, 84
+W, H = 322, 120
 DIST_MIN = 22                      # separación mínima entre altares (bajó de 30: con 6 regiones y 24 altares no entraba)
 g = [[',' for _ in range(W)] for _ in range(H)]
 PROT = set()            # casilleros que los parches no pisan (ríos, calles, casas) mientras está activo
@@ -463,22 +463,20 @@ mancha(172, 35, 9, 7, '~', 52)                     # Río Grande, remanso de Uqu
 mancha(170, 55, 11, 10, '#', 53)                   # cardonal
 mancha(170, 55, 7, 7, '"', 54)
 mancha(200, 30, 7, 6, 'e', 55)
-mancha(195, 62, 9, 6, 'm', 56)                     # vega de Iruya
-mancha(205, 72, 7, 5, 'F', 57)
+mancha(206, 64, 4, 3, 'm', 56)                     # vega de Iruya
+mancha(200, 113, 9, 3, 'F', 57)                    # base del Hornocal (ceniza)
 mancha(186, 74, 11, 5, 'Z', 58)
 mancha(184, 73, 10, 5, 'N', 59)
 R(178, 3, 190, 10, '.')
 R(179, 5, 189, 9, '.')
 centro_pokemon(182, 7)
-cerro(204, 72, 7, 7, 'M', 9)                       # Serranía del Hornocal (14 colores)
+cerro(200, 104, 12, 14, 'M', 9)                    # Serranía del Hornocal (14 colores)
 camino([(184, 10), (184, 42), (159, 42)])
 camino([(184, 42), (213, 42)])
 camino([(184, 22), (178, 22), (178, 45)])
 camino([(184, 35), (172, 35)])
 camino([(184, 55), (177, 55)])
-camino([(184, 62), (195, 62)])
 camino([(200, 42), (200, 30)])
-camino([(184, 66), (205, 66), (205, 71)])
 salpicar(166, 211, 2, 80, '#', .045, 4)
 
 # ============================ REGIÓN 5 · PUNA · ABRA PAMPA Y LAS SALINAS (x 220..266) ============================
@@ -617,10 +615,7 @@ cartel_en(141, 72, 'Salinas Grandes: un desierto de sal a más de 3.400 m de alt
 
 # (el Tren Solar con su vía este-oeste se coloca más abajo, después de las fronteras)
 # --- Alta Quebrada ---
-lugar(186, 6, 'D', 'Cabildo de Humahuaca: a las 12 sale San Francisco Solano a bendecir el pueblo.')
-lugar(188, 6, 'O', 'Monumento a la Independencia, Humahuaca: sube la escalinata y mirá todo el valle.')
-cartel_en(200, 66, 'Serranía del Hornocal: los 14 colores, a más de 4.300 m de altura.')
-cartel_en(181, 44, 'Coctaca: gigantescos andenes de cultivo preincaicos cerca de Humahuaca.')
+# (Humahuaca, Coctaca, Iruya y el Hornocal se arman en region4_detalle())
 # --- Puna ---
 cartel_en(240, 8, 'Abra Pampa: la ciudad más alta de Jujuy, entre llamas y vicuñas.')
 cartel_en(231, 51, 'Laguna de los Pozuelos: reserva de flamencos rosados en plena Puna.')
@@ -629,6 +624,81 @@ cartel_en(253, 33, 'Parque Solar Cauchari: uno de los más grandes de Sudaméric
 # --- Puna norte ---
 lugar(283, 38, 'I', 'Iglesia de San Francisco de Yavi (1690): capilla colonial con altar de pan de oro.', 286, 38)
 cartel_en(294, 8, 'La Quiaca: el último pueblo de Argentina, frente a Villazón (Bolivia).')
+
+def region4_detalle():
+    """Alta Quebrada: Humahuaca (plaza, Cabildo, iglesia de la Candelaria y Monumento a la Independencia sobre el cerro),
+    el Río Grande con su cauce ancho y chacras, las andenerías de Coctaca, Iruya en su vega y la Serranía del
+    Hornocal (14 colores) al sur, con su camino de mirador."""
+    # --- Río Grande de Humahuaca: cauce ancho (orilla = Pokémon de agua) y chacras en la margen oeste ---
+    for y in range(1, 87):
+        for x in range(196, 199):
+            _poner(x, y, '~')
+        for x in (193, 194, 195, 199, 200, 201):
+            if g[y][x] not in 'B~':
+                _poner(x, y, 'a')
+        for x in (191, 192):
+            if g[y][x] in ',"#':
+                _poner(x, y, '"')
+    mancha(197, 87, 5, 3, 'm', 41)
+    # --- Humahuaca: trama de calles, plaza con tipas, Cabildo, iglesia y monumento ---
+    for y in range(11, 31):
+        for x in range(170, 194):
+            if g[y][x] in ',"#':
+                g[y][x] = 'h' if ruido(x, y, 240) > .7 else ','
+    for x in range(170, 194):
+        for y in (11, 17, 23, 29):
+            _poner(x, y, '.')
+    for y in range(11, 30):
+        for x in (172, 178, 184, 190):
+            _poner(x, y, '.')
+    for y in range(12, 17):                            # plaza 5x5 entre las calles 178-184 y 11-17
+        for x in range(179, 184):
+            g[y][x] = 's' if (x + y) % 2 == 0 and ruido(x, y, 241) > .3 else ','
+    for k in range(179, 184):
+        g[14][k] = '.'
+    for k in range(12, 17):
+        g[k][181] = '.'
+    g[14][181] = '*'
+    for x in range(178, 185):
+        g[10][x] = '.'
+    g[10][180] = 'd'; g[10][181] = 'D'; g[10][182] = 'd'            # Cabildo de Humahuaca (arcos + torre del reloj)
+    g[14][186] = 'I'                                              # iglesia de la Candelaria
+    _camino(184, 14, 190, 14); _camino(190, 8, 190, 14)
+    g[7][190] = 'O'                                               # Monumento a la Independencia (sobre el cerro)
+    for y in range(3, 7):
+        for x in range(188, 193):
+            g[y][x] = '^' if ruido(x, y, 242) > .25 and (x, y) != (190, 7) else g[y][x]
+    cartel_xy(179, 9, 'Cabildo de Humahuaca: a las 12 sale San Francisco Solano a bendecir el pueblo.')
+    cartel_xy(187, 15, 'Iglesia de Nuestra Señora de la Candelaria, patrona de Humahuaca (siglo XVII).')
+    cartel_xy(191, 9, 'Monumento a la Independencia, Humahuaca: sube la escalinata y mirá todo el valle.')
+    cartel_xy(176, 25, 'Humahuaca, en la Quebrada Patrimonio de la Humanidad: pueblo de calles angostas y mucha historia.')
+    # --- Coctaca: andenes de cultivo preincaicos (terrazas escalonadas) ---
+    for y in range(40, 53):
+        for x in range(170, 187):
+            if ((x - 178) / 9) ** 2 + ((y - 46) / 6.5) ** 2 < 1 and g[y][x] not in '~a.':
+                g[y][x] = 'u' if (y - 40) % 3 == 0 else ','
+    cartel_xy(188, 46, 'Coctaca: gigantescos andenes de cultivo preincaicos cerca de Humahuaca.')
+    # --- Iruya: pueblo en la ladera, con su iglesia y la vega ---
+    for y in range(56, 70):
+        for x in range(202, 211):
+            if g[y][x] in ',"#':
+                g[y][x] = 'h' if ruido(x, y, 243) > .6 else ','
+    for x in range(202, 211):
+        _poner(x, 62, '.')
+    for y in range(56, 70):
+        _poner(206, y, '.')
+    g[60][206] = 'I'
+    _camino(200, 62, 206, 62)
+    cartel_xy(204, 58, 'Iruya: pueblo de calles empedradas colgado de la montaña, al final de un camino de cornisa.')
+    # --- Camino al Hornocal: baja por la orilla este y bordea la serranía ---
+    _camino(200, 44, 200, 88)
+    _camino(186, 88, 200, 88); _camino(186, 88, 186, 112); _camino(186, 112, 210, 112)
+    cartel_xy(202, 89, 'Serranía del Hornocal: los 14 colores, a más de 4.300 m de altura. Vista desde el mirador.')
+    cartel_xy(188, 111, 'Mirador del Hornocal: la montaña pintada se ve mejor al atardecer.')
+
+
+region4_detalle()
+
 
 # llamas (Quebrada, Puna) y flamencos (Pozuelos)
 for _cant, _a, _b, _sem in [(3, 113, 146, 700), (4, 167, 210, 701), (8, 221, 264, 702), (6, 275, 318, 703)]:
@@ -688,7 +758,7 @@ PEDIDOS = [
     ('hoenn', 'u',  'Pucará de Tilcara',   ['Latios', 'Latias', 'Rayquaza'],    (116, 16)),
     ('hoenn', ',"', 'Costa del Río Grande', ['Kyogre'],                         (146, 28)),
     ('sinnoh', 'u', 'Ruinas de Coctaca',   ['Uxie', 'Mesprit', 'Azelf'],        (178, 45)),
-    ('sinnoh', 'F', 'Serranía del Hornocal', ['Heatran'],                       (205, 72)),
+    ('sinnoh', 'F', 'Serranía del Hornocal', ['Heatran'],                       (200, 113)),
     ('sinnoh', 'N', 'Nevado de Aguilar',   ['Cresselia'],                       (184, 73)),
     ('sinnoh', ',"a', 'Remanso de Uquía',  ['Manaphy'],                         (172, 35)),
     ('sinnoh', '"', 'Cardonal de Humahuaca', ['Shaymin'],                       (170, 55)),
@@ -954,12 +1024,13 @@ zonas = [
     {'n': 'Quebrada · Vega de Maimará', 'x0': 112, 'y0': 31, 'x1': 129, 'y1': 55},
     {'n': 'Quebrada · Parque Solar', 'x0': 130, 'y0': 31, 'x1': 145, 'y1': 55},
     {'n': 'Quebrada · Purmamarca y los Siete Colores', 'x0': 112, 'y0': 56, 'x1': 145, 'y1': H - 2},
-    {'n': 'Alta Quebrada · Humahuaca', 'x0': 166, 'y0': 1, 'x1': 212, 'y1': 12},
-    {'n': 'Alta Quebrada · Valle de Cardones',   'x0': 166, 'y0': 13, 'x1': 212, 'y1': 26},
-    {'n': 'Alta Quebrada · Cardonal', 'x0': 166, 'y0': 27, 'x1': 183, 'y1': 58},
-    {'n': 'Alta Quebrada · Ruinas de Coctaca', 'x0': 184, 'y0': 27, 'x1': 212, 'y1': 40},
-    {'n': 'Alta Quebrada · Vega de Iruya', 'x0': 184, 'y0': 41, 'x1': 212, 'y1': 65},
-    {'n': 'Alta Quebrada · Serranía del Hornocal', 'x0': 166, 'y0': 66, 'x1': 212, 'y1': H - 2},
+    {'n': 'Alta Quebrada · Humahuaca', 'x0': 166, 'y0': 1, 'x1': 194, 'y1': 30},
+    {'n': 'Alta Quebrada · Río Grande de Humahuaca', 'x0': 195, 'y0': 1, 'x1': 201, 'y1': 90},
+    {'n': 'Alta Quebrada · Ruinas de Coctaca', 'x0': 166, 'y0': 38, 'x1': 194, 'y1': 54},
+    {'n': 'Alta Quebrada · Valle de Cardones',   'x0': 166, 'y0': 31, 'x1': 194, 'y1': 37},
+    {'n': 'Alta Quebrada · Cardonal', 'x0': 166, 'y0': 55, 'x1': 194, 'y1': 80},
+    {'n': 'Alta Quebrada · Iruya', 'x0': 202, 'y0': 1, 'x1': 212, 'y1': 75},
+    {'n': 'Alta Quebrada · Serranía del Hornocal', 'x0': 166, 'y0': 81, 'x1': 212, 'y1': H - 2},
     {'n': 'Puna · Abra Pampa',       'x0': 220, 'y0': 1, 'x1': 266, 'y1': 12},
     {'n': 'Puna · Pajonales',        'x0': 220, 'y0': 13, 'x1': 266, 'y1': 26},
     {'n': 'Puna · Pucará',           'x0': 220, 'y0': 27, 'x1': 237, 'y1': 58},

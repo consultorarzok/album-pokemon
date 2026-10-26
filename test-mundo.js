@@ -34,9 +34,9 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
       region: advRegion, x: advX, y: advY
     };
   });
-  check(`mundo gigante de ${mundo.cols}x${mundo.filas} = ${mundo.cols * mundo.filas} casilleros`, mundo.cols === 322 && mundo.filas === 84);
+  check(`mundo gigante de ${mundo.cols}x${mundo.filas} = ${mundo.cols * mundo.filas} casilleros`, mundo.cols === 322 && mundo.filas === 120);
   check('el juego ocupa toda la pantalla', mundo.anchoOk);
-  check('fondo pre-dibujado 5152x1344 px', mundo.fondo === '5152x1344');
+  check('fondo pre-dibujado 5152x1920 px', mundo.fondo === '5152x1920');
   check('hay un Centro Pokémon por región', mundo.centros === 6);
   check('hay una cueva por región', mundo.cuevas === 6);
   check('arranca en Kanto', mundo.region === 'kanto');
