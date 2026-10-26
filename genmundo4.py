@@ -534,15 +534,7 @@ cerro(127, 45, 5, 5, 'M', 12)                      # La Paleta del Pintor (Maima
 cartel_en(124, 49, 'La Paleta del Pintor, Maimará: la montaña pintada de mil colores.')
 cartel_en(141, 72, 'Salinas Grandes: un desierto de sal a más de 3.400 m de altura.')
 
-# --- Tren Solar de la Quebrada: vía N-S paralela a la Ruta 9 (x=145), con estaciones de sur a norte:
-#     Volcán, Tumbaya, Purmamarca, Hornillos, Maimará y Tilcara (la 2ª etapa real llegaría a Humahuaca) ---
-TREN_X = 145
-TREN_ESTACIONES = [('Tilcara', 9), ('Maimará', 44), ('Hornillos', 53), ('Purmamarca', 62), ('Tumbaya', 72), ('Volcán', 80)]
-for _y in range(3, 81):
-    g[_y][TREN_X] = 'v'
-for _n, _y in TREN_ESTACIONES:
-    g[_y][TREN_X - 1] = 'Y'
-    cartel_xy(TREN_X - 1, _y + 1, f'Estación {_n} del Tren Solar de la Quebrada: el tren eléctrico alimentado con paneles solares recorre la Quebrada junto a la Ruta 9.')
+# (el Tren Solar con su vía este-oeste se coloca más abajo, después de las fronteras)
 # --- Alta Quebrada ---
 lugar(186, 6, 'D', 'Cabildo de Humahuaca: a las 12 sale San Francisco Solano a bendecir el pueblo.')
 lugar(188, 6, 'O', 'Monumento a la Independencia, Humahuaca: sube la escalinata y mirá todo el valle.')
@@ -577,6 +569,20 @@ for cord in CORDS:
 for cruce in RIOS + CORDS:
     g[PASO_Y - 1][cruce[0] - 2] = 'T'; g[PASO_Y + 2][cruce[0] - 2] = 'i'
     g[PASO_Y - 1][cruce[1] + 2] = 'T'; g[PASO_Y + 2][cruce[1] + 2] = 'i'
+
+# ============================ TREN SOLAR: VÍA ESTE-OESTE POR LAS 6 REGIONES ============================
+# Sale de la 1ª región (San Salvador) y va de izquierda a derecha por todas, cruzando los ríos por los puentes y las
+# cordilleras por los desfiladeros (comparte la fila del paso: PASO_Y+1). Una estación por región, al sur de la vía.
+TREN_Y = PASO_Y + 1
+TREN_ESTACIONES = [('San Salvador', 30), ('Volcán', 84), ('Purmamarca', 134), ('Humahuaca', 188), ('Abra Pampa', 244), ('La Quiaca', 298)]
+for _x in range(2, W - 2):
+    if g[TREN_Y][_x] == '~':
+        g[TREN_Y][_x] = 'B'
+    elif g[TREN_Y][_x] != 'B':
+        g[TREN_Y][_x] = 'v'
+for _n, _x in TREN_ESTACIONES:
+    g[TREN_Y + 1][_x] = 'Y'
+    cartel_xy(_x + 1, TREN_Y + 1, f'Estación {_n} del Tren Solar: el tren eléctrico alimentado con paneles solares va de oeste a este por todas las regiones.')
 
 # ============================ CUEVAS Y ALTARES ============================
 CENTROS = [(22, 12), (65, 7), (117, 7), (182, 7), (236, 7), (290, 7)]     # la puerta 'P' de cada Centro
