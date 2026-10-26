@@ -336,26 +336,49 @@ salpicar(60, 103, 2, 80, '#', .06, 2)
 mancha(127, 21, 12, 8, '"', 10)                    # monte de churquis
 mancha(116, 16, 7, 5, 'u', 27)                     # Pucará de Tilcara
 R(148, 5, 157, 78, '~')                            # Río Grande de la Quebrada
-mancha(141, 47, 9, 13, '~', 11)                    # remanso
+mancha(140, 28, 5, 3, '~', 11)                     # remanso
 mancha(153, 27, 3, 2, ',', 12)
 mancha(119, 46, 7, 6, 'm', 28)                     # vega de Maimará
-mancha(139, 70, 6, 4, 'N', 34)                     # Salinas Grandes (costra blanca)
+mancha(139, 78, 6, 3, 'N', 34)                     # Salinas Grandes (costra blanca)
 mancha(135, 35, 6, 5, 'e', 29)                     # parque solar
-mancha(124, 68, 12, 7, 'F', 13)                    # Paseo de los Colorados
+mancha(127, 77, 9, 4, 'F', 13)                     # Paseo de los Colorados (al sur de Purmamarca)
 R(114, 3, 126, 10, '.')
 R(114, 5, 124, 9, '.')
 centro_pokemon(117, 7)
-cerro(131, 70, 11, 10, 'M', 4)                     # EL CERRO DE LOS SIETE COLORES
+cerro(122, 63, 8, 13, 'M', 4)                      # EL CERRO DE LOS SIETE COLORES (al oeste del pueblo, como en el satélite)
 camino([(120, 10), (120, 42), (112, 42)])
 camino([(120, 21), (140, 21)])
 camino([(120, 35), (135, 35)])
 camino([(120, 46), (126, 46)])
-camino([(120, 42), (120, 60)])
-camino([(120, 60), (120, 67)])                     # Purmamarca hasta la falda del cerro
+camino([(120, 42), (120, 47), (134, 47), (134, 53)])   # de la Quebrada al pueblo de Purmamarca
 camino([(120, 16), (116, 16)])
-camino([(139, 56), (139, 68)])                     # ramal a las Salinas, por detrás del cerro
 camino([(120, 42), (158, 42)])
 salpicar(112, 147, 2, 80, '#', .05, 3)             # cardones
+
+# --- Purmamarca: pueblo de adobe al pie del cerro (x 131..143, y 53..71), con plaza, iglesia, cabildo y puestos ---
+for _y in range(53, 72):
+    for _x in range(131, 144):
+        if g[_y][_x] in ',"#':
+            g[_y][_x] = 'h' if ruido(_x, _y, 210) > .28 else ','
+for _x in range(131, 144):
+    for _y in (58, 66, 70):
+        g[_y][_x] = '.'
+for _y in range(47, 73):
+    for _x in (134, 140):
+        g[_y][_x] = '.'
+for _y in range(59, 66):                            # plaza empedrada con algarrobos y puestos de artesanías
+    for _x in range(135, 140):
+        g[_y][_x] = '.'
+for (_x, _y) in ((135, 59), (139, 59), (135, 65), (139, 65)):
+    g[_y][_x] = '#'
+g[62][137] = '*'
+for _y in (60, 62, 64):
+    g[_y][135] = 'y'; g[_y][139] = 'y'
+for _x in range(135, 140):
+    g[57][_x] = ','
+g[57][135] = 'D'; g[57][137] = 'I'
+for _x in (131, 132, 133):                           # entrada al pueblo desde el cerro
+    g[62][_x] = '.'
 
 # ============================ REGIÓN 4 · QUEBRADA ALTA · HUMAHUACA Y EL HORNOCAL (x 166..212) ============================
 mancha(189, 20, 13, 8, '"', 50)
@@ -502,13 +525,24 @@ cartel_en(68, 44, 'Lagunas de Yala: lagos de montaña en plena Yunga, a 40 minut
 cartel_en(84, 14, 'Parque Nacional Calilegua: selva de yungas con tucanes, tapires y yaguaretés.')
 cartel_en(66, 62, 'Cañaverales de Ledesma: acá nace el azúcar jujeño.')
 # --- Quebrada ---
-lugar(117, 58, 'I', 'Iglesia de Santa Rosa de Lima, Purmamarca (1648). Al fondo, el Cerro de los Siete Colores.', 118, 60)
+cartel_xy(136, 56, 'Iglesia de Santa Rosa de Lima, Purmamarca (1648), frente a la plaza. Al fondo, el Cerro de los Siete Colores.')
+cartel_xy(133, 56, 'Cabildo de Purmamarca, sobre la plaza. Alrededor, el mercado de artesanías.')
 cartel_en(121, 9, 'Tilcara: pueblo de la Quebrada de Humahuaca, Patrimonio de la Humanidad.')
 cartel_en(119, 18, 'Pucará de Tilcara: ciudadela preincaica de piedra sobre la Quebrada.')
-cartel_en(121, 64, 'Cerro de los Siete Colores, Purmamarca. Las franjas son millones de años de historia.')
+cartel_en(131, 63, 'Cerro de los Siete Colores, Purmamarca. Las franjas son millones de años de historia.')
 cerro(127, 45, 5, 5, 'M', 12)                      # La Paleta del Pintor (Maimará)
 cartel_en(124, 49, 'La Paleta del Pintor, Maimará: la montaña pintada de mil colores.')
-cartel_en(136, 66, 'Salinas Grandes: un desierto de sal a más de 3.400 m de altura.')
+cartel_en(141, 72, 'Salinas Grandes: un desierto de sal a más de 3.400 m de altura.')
+
+# --- Tren Solar de la Quebrada: vía N-S paralela a la Ruta 9 (x=145), con estaciones de sur a norte:
+#     Volcán, Tumbaya, Purmamarca, Hornillos, Maimará y Tilcara (la 2ª etapa real llegaría a Humahuaca) ---
+TREN_X = 145
+TREN_ESTACIONES = [('Tilcara', 9), ('Maimará', 44), ('Hornillos', 53), ('Purmamarca', 62), ('Tumbaya', 72), ('Volcán', 80)]
+for _y in range(3, 81):
+    g[_y][TREN_X] = 'v'
+for _n, _y in TREN_ESTACIONES:
+    g[_y][TREN_X - 1] = 'Y'
+    cartel_xy(TREN_X - 1, _y + 1, f'Estación {_n} del Tren Solar de la Quebrada: el tren eléctrico alimentado con paneles solares recorre la Quebrada junto a la Ruta 9.')
 # --- Alta Quebrada ---
 lugar(186, 6, 'D', 'Cabildo de Humahuaca: a las 12 sale San Francisco Solano a bendecir el pueblo.')
 lugar(188, 6, 'O', 'Monumento a la Independencia, Humahuaca: sube la escalinata y mirá todo el valle.')
@@ -563,7 +597,7 @@ PEDIDOS = [
     ('johto', 'F',  'Altos Hornos de Zapla', ['Entei', 'Ho-Oh'],                (80, 30)),
     ('johto', 'e',  'Usina del Ingenio',   ['Raikou'],                          (99, 53)),
     ('johto', '"',  'Lagunas de Yala',     ['Lugia', 'Suicune'],                (66, 49)),
-    ('hoenn', 'F',  'Cerro de los Siete Colores', ['Groudon'],                  (124, 66)),
+    ('hoenn', 'F',  'Cerro de los Siete Colores', ['Groudon'],                  (127, 77)),
     ('hoenn', 'u',  'Pucará de Tilcara',   ['Latios', 'Latias', 'Rayquaza'],    (116, 16)),
     ('hoenn', ',"', 'Costa del Río Grande', ['Kyogre'],                         (146, 28)),
     ('sinnoh', 'u', 'Ruinas de Coctaca',   ['Uxie', 'Mesprit', 'Azelf'],        (178, 45)),
@@ -621,7 +655,7 @@ for (x, y) in MONEDAS:
         g[y][x] = 'c'
 
 # ============================ VALIDACIÓN ============================
-CAM = set('.,@*"aBFCPbckoLEeumNZ') - set('Z')       # Z (montaña nevada) NO se camina
+CAM = set('.,@*"aBFCPbckoLEeumNZv') - set('Z')       # Z (montaña nevada) NO se camina
 problemas = []
 
 
