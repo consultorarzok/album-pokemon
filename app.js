@@ -3340,7 +3340,7 @@ PINTORES.puestoArtesanias = (ctx, ox, oy, x, y) => {   // puesto del mercado: to
 /* Tren Solar: sale de la primera región (San Salvador), va de izquierda a derecha por las seis regiones parando en
    cada estación, llega a La Quiaca y vuelve. Es el mismo para todos (depende sólo de la hora). La vía está en la fila
    TREN_Y (la del paso entre regiones). TREN_EST = columnas de las estaciones (las mismas que genmundo4.py). */
-const TREN_Y = 43, TREN_EST = [30, 84, 134, 188, 244, 298], TREN_V = 4, TREN_PARADA = 5000;   // casilleros/seg y ms parado
+const TREN_Y = 43, TREN_EST = [30, 84, 134, 188, 244, 298], TREN_V = 4, TREN_PARADA = 8000;   // casilleros/seg y ms parado
 const TREN_TRAMOS = (() => {
   const ida = []; for(let i = 0; i < TREN_EST.length - 1; i++) ida.push({de: TREN_EST[i], a: TREN_EST[i + 1]});
   const vuelta = ida.slice().reverse().map(t => ({de: t.a, a: t.de}));
@@ -3357,11 +3357,12 @@ function trenEstado(ahora){                             // {x, dir, parado}: x e
   }
   return {x: TREN_EST[0], dir: 1, parado: true};
 }
+const TREN_ESCALA = 1.5, TREN_NOMBRES = ['San Salvador', 'Volcán', 'Purmamarca', 'Humahuaca', 'Abra Pampa', 'La Quiaca'];
 function dibujarTren(ctx, camX, camY, vw, vh){          // visto desde arriba, con la librea real: crema, franja naranja con montañas blancas
   const e = trenEstado(Date.now());
   const px = Math.round(e.x * ADV_PX + 8 - camX), py = TREN_Y * ADV_PX + 8 - camY;
   if(py < -20 || py > vh + 20 || px < -60 || px > vw + 60) return;
-  ctx.save(); ctx.translate(px, py); ctx.rotate(-Math.PI / 2);                          // se arma parado y se gira hacia el este
+  ctx.save(); ctx.translate(px, py); ctx.rotate(-Math.PI / 2); ctx.scale(TREN_ESCALA, TREN_ESCALA);   // se arma parado, se gira hacia el este y se agranda
   const cx = 0, cy = 0;
   const L = 56, top = cy - L / 2, naranja = '#E8631F', crema = '#F1EADB';
   pinta(ctx, 'rgba(0,0,0,.28)', cx - 5, top + 3, 12, L);
@@ -3427,6 +3428,64 @@ PINTORES.algarroboHistorico = (ctx, ox, oy, x, y) => {
     if(col) pinta(ctx, col, ox + px, oy + py, 1, 1);
   }
 };
+/* ---- Viajar en el Tren Solar ----
+   Con el tren parado en una estación y el jugador cerca de la vía aparece el botón "Subir". Arriba, el personaje va
+   pegado al tren (la cámara lo sigue) y cruza las regiones solo; en cada parada aparece "Bajar". No cuenta como
+   caminata (no suma pasos ni dispara encuentros) y el servidor no interviene: la posición sólo la ven los demás. */
+let advTrenAbordo = false;
+function trenSiguiente(e){                              // nombre de la próxima estación según para dónde va
+  if(e.dir > 0){ const i = TREN_EST.findIndex(x => x > e.x + .01); return TREN_NOMBRES[i < 0 ? TREN_EST.length - 1 : i]; }
+  let j = -1; TREN_EST.forEach((x, i) => { if(x < e.x - .01) j = i; });
+  return TREN_NOMBRES[j < 0 ? 0 : j];
+}
+function trenEstacionActual(e){ const i = TREN_EST.findIndex(x => Math.abs(x - e.x) < .05); return i; }
+function trenCerradoPorEvento(){ const ev = eventoActivo(); return !!(ev && ev.mapaCerradoDesdeX); }
+function trenBoton(){
+  let b = document.getElementById('advTrenBtn');
+  if(!b){
+    b = document.createElement('button'); b.id = 'advTrenBtn'; b.hidden = true;
+    b.style.cssText = 'position:absolute;left:50%;bottom:215px;transform:translateX(-50%);z-index:6;min-height:48px;padding:10px 20px;border-radius:14px;border:2px solid #FFD25E;background:rgba(232,99,31,.94);color:#fff;font-family:"Baloo 2",sans-serif;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4);';
+    b.addEventListener('click', ev => { ev.stopPropagation(); trenAccion(); });
+    b.addEventListener('pointerdown', ev => ev.stopPropagation());
+    document.getElementById('advOverlay').appendChild(b);
+  }
+  return b;
+}
+function trenAccion(){
+  const e = trenEstado(Date.now());
+  if(advTrenAbordo){
+    if(!e.parado) return;
+    advTrenAbordo = false;
+    advPonerEn(Math.round(e.x), TREN_Y - 1);              // baja al camino que corre al lado de la vía
+    advDir = 'abajo'; advPaso = 0; advEje = {x: 0, y: 0};
+    advMensaje('🚉 Bajaste en la estación <b>' + TREN_NOMBRES[trenEstacionActual(e)] + '</b>');
+    return;
+  }
+  if(!trenPuedeSubir(e)) return;
+  if(trenCerradoPorEvento()){ advMensaje('🚆 El Tren Solar no sale mientras dura el evento.'); return; }
+  advTrenAbordo = true; advEje = {x: 0, y: 0};
+  advMensaje('🚆 ¡Subiste al <b>Tren Solar</b>! Próxima parada: <b>' + trenSiguiente(e) + '</b>');
+}
+function trenPuedeSubir(e){
+  return advMapa === 'overworld' && e.parado && Math.abs((advPx + 8) / ADV_PX - 0.5 - e.x) <= 3.4 && Math.abs(advY - TREN_Y) <= 1;
+}
+function trenActualizar(){                              // se llama en cada cuadro: mueve al viajero y muestra el botón que toque
+  const b = trenBoton();
+  if(advMapa !== 'overworld'){ advTrenAbordo = false; b.hidden = true; return; }
+  const e = trenEstado(Date.now());
+  if(advTrenAbordo){
+    advPx = e.x * ADV_PX; advPy = TREN_Y * ADV_PX - 3;
+    advX = Math.floor((advPx + 8) / ADV_PX); advY = TREN_Y; advDir = e.dir > 0 ? 'der' : 'izq'; advPaso = 0;
+    advRegion = regionDe(advX);
+    if(advRegion !== advRegionAnterior){ advRegionAnterior = advRegion; advCartelRegion(advRegion); }
+    b.hidden = false;
+    b.textContent = e.parado ? '🚉 Bajar en ' + TREN_NOMBRES[trenEstacionActual(e)] : '🚆 Viajando a ' + trenSiguiente(e) + '…';
+    b.style.opacity = e.parado ? '1' : '.75';
+  } else if(trenPuedeSubir(e)){
+    b.hidden = false; b.style.opacity = '1';
+    b.textContent = '🚆 Subir al Tren Solar (' + TREN_NOMBRES[trenEstacionActual(e)] + ')';
+  } else b.hidden = true;
+}
 PINTORES.iglesia = (ctx, ox, oy, x, y) => {           // iglesia: adobe encalado (Quebrada) o blanca (Puna)
   PINTORES.camino(ctx, ox, oy, x, y);
   const blanca = climaDe(x) === 'puna';
@@ -4068,6 +4127,8 @@ function dibujarMini(){
   ctx.clearRect(0, 0, cv.width, cv.height);
   ctx.drawImage(miniFondo(), 0, 0);
   const px = (advPx / ADV_PX) * MINI_PX, py = (advPy / ADV_PX) * MINI_PX;
+  const te = trenEstado(Date.now());
+  ctx.fillStyle = '#E8631F'; ctx.fillRect(te.x * MINI_PX - 3, TREN_Y * MINI_PX - 1, 6, 3);        // el tren en el minimapa
   ctx.fillStyle = '#141728';
   ctx.fillRect(px - 3, py - 3, 7, 7);
   ctx.fillStyle = '#F0B400';
@@ -4142,6 +4203,8 @@ function advChoca(px, py){
 }
 
 function advPaso1(dt){
+  trenActualizar();
+  if(advTrenAbordo) return;                                            // viajando en el tren: no se camina
   if(advOcupado()){ advPaso = 0; return; }
   let vx = advEje.x, vy = advEje.y;
   const largo = Math.hypot(vx, vy);
@@ -4325,7 +4388,7 @@ function advCiclo(ahora){
 
 /* Compatibilidad con el modo de a pasos: mueve un casillero entero. */
 function advMover(dx, dy){
-  if(!advAbierto || advOcupado()) return;
+  if(!advAbierto || advOcupado() || advTrenAbordo) return;
   advDir = dy < 0 ? 'arriba' : dy > 0 ? 'abajo' : dx < 0 ? 'izq' : 'der';
   const nx = advX + dx, ny = advY + dy;
   const t = advTileEn(nx, ny);
@@ -4562,7 +4625,7 @@ function abrirAventura(){
 }
 
 function cerrarAventura(){
-  advAbierto = false;
+  advAbierto = false; advTrenAbordo = false;
   advEje = {x:0, y:0};
   if(advRaf){ cancelAnimationFrame(advRaf); advRaf = null; }
   sincronizarObjetos([], 1);        // esconder las pokébolas del piso al salir
