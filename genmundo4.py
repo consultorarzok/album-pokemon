@@ -1021,7 +1021,7 @@ for x in range(W):
     g[0][x] = '#'; g[H - 1][x] = '#'
 for y in range(H):
     g[y][0] = '#'; g[y][W - 1] = '#'
-g[19][33] = '@'
+g[15][35] = '@'
 _fl = [(x, y) for y in range(46, 64) for x in range(220, 245) if g[y][x] == 'a']
 _fl.sort(key=lambda p: ruido(p[0], p[1], 710))
 _pos = []
@@ -1051,7 +1051,7 @@ problemas = []
 
 
 def bfs(bloquear=()):
-    ini = (33, 19)
+    ini = (35, 15)
     vis = {ini}
     q = deque([ini])
     while q:
