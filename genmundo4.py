@@ -120,6 +120,132 @@ def pueblo(x0, y0, x1, y1, n=0):
     casas(x0, y0, x1, y1, .16, n)
 
 
+
+# ---- Detalle de San Salvador hecho mirando el satélite y las fotos (Plaza Belgrano, Parque San Martín, Xibi Xibi) ----
+def _poner(x, y, ch):
+    if 0 < x < W - 1 and 0 < y < H - 1:
+        g[y][x] = ch
+
+
+def _camino(x0, y0, x1, y1):
+    for x in range(min(x0, x1), max(x0, x1) + 1):
+        for y in range(min(y0, y1), max(y0, y1) + 1):
+            _poner(x, y, 'B' if g[y][x] == '~' else '.')
+
+
+# Fuentes redondas (se dibujan pixel a pixel en app.js, FUENTES): (centro x, centro y, radio en casilleros, con reja)
+FUENTES = [(33.0, 26.0, 2.0, False),      # plazoleta frente a la Casa de Gobierno
+           (6.0, 17.0, 1.7, True)]        # Parque San Martín (con reja de hierro)
+
+
+def _fuentes():
+    for (fx, fy, r, _reja) in FUENTES:
+        for y in range(int(fy - r - 2), int(fy + r + 3)):
+            for x in range(int(fx - r - 2), int(fx + r + 3)):
+                if math.hypot(x + .5 - fx, y + .5 - fy) <= r + .5:
+                    _poner(x, y, 'X')
+
+
+def plaza_belgrano():
+    """Plaza Belgrano, la manzana de 15x15 (sacada de las fotos): senderos en cruz y en diagonal que convergen en la
+    rotonda con el monumento ecuestre a Belgrano, cedros, palmeras, bancos y canteros. Alrededor, calles; al norte
+    la Catedral y el Cabildo; al sur la plazoleta con la fuente redonda y la Casa de Gobierno de frente."""
+    cx, cy = 33, 15
+    for x in range(25, 42):
+        _poner(x, 7, '.'); _poner(x, 23, '.')
+    for y in range(7, 24):
+        _poner(25, y, '.'); _poner(41, y, '.')
+    cedros = {(5, 3), (3, 5)}; palmas = {(6, 2), (2, 6)}; arbustos = {(4, 1), (1, 4), (6, 4), (4, 6)}
+    bancos = {(1, 3), (3, 1)}; flores = {(4, 2), (2, 4), (5, 1), (1, 5), (6, 3), (3, 6)}
+    for dy in range(-7, 8):
+        for dx in range(-7, 8):
+            ax, ay = abs(dx), abs(dy)
+            k = (ax, ay) if ax <= ay else (ay, ax)
+            if dx == 0 or dy == 0 or ax == ay or max(ax, ay) <= 2:
+                ch = '.'
+            elif (ax, ay) in cedros or (ay, ax) in cedros:
+                ch = 'g'
+            elif (ax, ay) in palmas or (ay, ax) in palmas:
+                ch = 'n'
+            elif (ax, ay) in arbustos or (ay, ax) in arbustos:
+                ch = '#'
+            elif (ax, ay) in bancos or (ay, ax) in bancos:
+                ch = 't'
+            elif (ax, ay) in flores or (ay, ax) in flores:
+                ch = '*'
+            elif max(ax, ay) == 7 and (ax + ay) % 2 == 1:
+                ch = '#'
+            else:
+                ch = ','
+            _poner(cx + dx, cy + dy, ch)
+    _poner(cx, cy, 'z')
+    for (fx, fy) in ((28, 9), (38, 9), (28, 21), (38, 21)):   # faroles en las esquinas de la plaza
+        _poner(fx, fy, 'l')
+    for x in range(26, 41):                              # frente de la Catedral y el Cabildo
+        for y in (4, 5, 6):
+            _poner(x, y, ',')
+    for x in range(26, 41):                              # plazoleta de la fuente frente a la Casa de Gobierno
+        for y in range(24, 29):
+            _poner(x, y, ',')
+    _fuentes()
+    for (fx, fy) in ((29, 25), (37, 25), (29, 27), (37, 27)):
+        _poner(fx, fy, '*')
+    for (fx, fy) in ((27, 24), (39, 24), (27, 28), (39, 28)):
+        _poner(fx, fy, 'n')
+    for (fx, fy) in ((30, 28), (36, 28)):
+        _poner(fx, fy, 'l')
+    centro_pokemon(22, 12)                               # Centro Pokémon al oeste de la plaza, sobre la avenida
+    _camino(22, 13, 24, 13)
+
+
+def parque_san_martin():
+    """Parque San Martín (~600 m): avenidas España (oeste), Córdoba (este) y General Paz (sur); adentro, monte denso
+    con senderos que salen en diagonal de la rotonda central y la fuente con reja al suroeste."""
+    x0, x1, y0, y1 = 2, 20, 4, 21
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            if x in (x0, x1) or y in (y0, y1):
+                _poner(x, y, '.')
+            else:
+                r = ruido(x, y, 61)
+                _poner(x, y, 'g' if r < .08 else ('#' if r < .46 else '"'))
+    cx, cy = 11, 13
+    for k in range(-8, 9):
+        for (a, b) in ((k, k), (k, -k)):
+            _poner(cx + a, cy + b, '.')
+    for d in range(-2, 3):
+        for e in range(-2, 3):
+            _poner(cx + d, cy + e, '.')
+    _poner(cx, cy, 'O')
+    _fuentes()
+    for (fx, fy) in ((6, 12), (16, 8), (16, 17), (7, 8)):
+        _poner(fx, fy, '*')
+    _camino(20, 10, 24, 10)                              # al oeste de la avenida principal
+    _camino(11, 21, 11, 30)                              # salida sur hacia el Xibi Xibi
+
+
+def rio_grande_y_xibi_xibi():
+    """Río Grande por el borde este (3 casilleros) y el Xibi Xibi que cruza la ciudad de oeste a este y lo alcanza:
+    cauce de 3 casilleros con playa, franja de parque con árboles, una avenida por orilla y puentes."""
+    for y in range(1, 36):
+        for x in range(46, 49):
+            _poner(x, y, '~')
+    for x in range(2, 49):
+        for y in range(33, 36):
+            _poner(x, y, '~')
+    for y in range(1, 36):
+        _poner(45, y, 'a'); _poner(49, y, 'a')
+    for x in range(2, 45):
+        _poner(x, 32, 'a'); _poner(x, 36, 'a')
+        for y in (31, 37):
+            _poner(x, y, '#' if ruido(x, y, 77) < .45 else '"')
+        for y in (30, 38):
+            _poner(x, y, '.')
+    for bx in (8, 14, 20, 31, 38, 43):                   # puentes (Lavalle, Necochea...)
+        _camino(bx, 30, bx, 38)
+    for x in range(2, 45):                               # avenida norte
+        _poner(x, 3, '.')
+
 # ============================ REGIÓN 1 · VALLES · SAN SALVADOR DE JUJUY (x 1..50) ============================
 # Base real: ríos Grande y Xibi Xibi, parques y calles de OpenStreetMap (capital_raster.py, 1 casillero ≈ 70 m).
 import capital_raster as _cap
@@ -136,14 +262,12 @@ for _y in range(2, 40):
             _nuevos.append((_x, _y))
 for _x, _y in _nuevos:
     g[_y][_x] = '"'
-mancha(9, 7, 6, 4, '"', 17)                        # Parque San Martín
-for _y in range(14, 22):                           # Parque Lineal Paseo Xibi-Xibi: franja de pasto a cada orilla del río
-    for _x in range(2, 40):
-        if g[_y][_x] in ',' and any(g[_y + _dy][_x + _dx] in '~a' for _dx in (-1, 0, 1) for _dy in (-1, 0, 1)):
-            g[_y][_x] = '"'
-R(20, 9, 28, 14, '.')                              # Plaza Belgrano (empedrada) con el Centro Pokémon
-mancha(24, 10, 3, 1, '*', 5)
-centro_pokemon(22, 12)
+for _y in range(1, 42):
+    for _x in range(1, 51):
+        g[_y][_x] = ','
+rio_grande_y_xibi_xibi()
+parque_san_martin()
+plaza_belgrano()
 mancha(45, 52, 5, 4, 'e', 21)                      # Usina del dique
 mancha(28, 56, 8, 5, '~', 4)                       # laguna
 mancha(42, 66, 7, 5, 'm', 22)                      # bañado del Río Grande
@@ -151,15 +275,12 @@ mancha(25, 44, 5, 4, 'u', 30)                      # viejo cementerio
 mancha(46, 76, 6, 4, 'F', 31)                      # Cerro Colorado
 mancha(14, 76, 15, 5, 'Z', 29)                     # cordón nevado del Chañi (al fondo)
 mancha(14, 72, 11, 3, 'N', 23)
-camino([(24, 15), (24, 42), (58, 42)])             # avenida principal: cruza el Xibi Xibi por un puente y sigue hasta el Río Grande
-camino([(24, 30), (36, 30)])
+camino([(24, 3), (24, 42), (58, 42)])             # avenida principal: cruza el Xibi Xibi por un puente y sigue hasta el Río Grande
 camino([(24, 52), (45, 52)])                       # a la usina
 camino([(14, 42), (14, 72)])                       # bajada al cordón nevado
 camino([(25, 42), (25, 46)])                       # al cementerio
 camino([(42, 42), (42, 66)])                       # bajada al bañado
 camino([(42, 66), (46, 66), (46, 75)])             # ramal al Cerro Colorado
-camino([(24, 15), (9, 15)])                        # costanera hacia el Parque San Martín
-camino([(9, 15), (9, 10)])
 salpicar(2, 49, 2, 80, '#', .03, 1)                # tipas y lapachos sueltos
 
 # ============================ REGIÓN 2 · YUNGAS · LIBERTADOR GENERAL SAN MARTÍN (x 59..104) ============================
@@ -331,13 +452,26 @@ def cartel_en(x, y, texto, r=3):
 
 
 # --- Valles: la Plaza Belgrano de San Salvador ---
-lugar(21, 9, 'G', 'La Casa de Gobierno de Jujuy: un palacio de estilo francés frente a la Plaza Belgrano.')
-lugar(24, 9, 'K', 'Catedral Basílica de Jujuy, en la Plaza Belgrano. Guarda un púlpito colonial de madera dorada.')
-lugar(27, 9, 'D', 'El Cabildo de Jujuy, sobre la Plaza Belgrano: el viejo edificio colonial de la ciudad.')
-cartel_en(25, 13, 'Centro Pokémon de la Plaza Belgrano ➜ ahí venden pokébolas.', 1)
-cartel_en(12, 12, 'Parque San Martín: el gran pulmón verde de San Salvador de Jujuy.')
-cartel_en(30, 16, 'Río Xibi Xibi y su Paseo Lineal: el lugar favorito de los jujeños para caminar.')
-cartel_en(40, 18, 'Río Grande: rodea la capital por el norte y el este. Acá empiezan las Yungas.')
+def cartel_xy(x, y, texto):
+    g[y][x] = 'i'
+    LUG_CARTELES[f'{x},{y}'] = texto
+
+
+for _i, _c in enumerate('QQGQQ'):                  # Casa de Gobierno: palacio de 5 casilleros con la torre al centro
+    g[29][31 + _i] = _c
+for _i, _c in enumerate('dDdd'):                    # Cabildo: galería de arcos con la torre del reloj
+    g[5][37 + _i] = _c
+g[5][36] = 'd'
+for _i, _c in enumerate('JKJ'):                     # Catedral: fachada con torre y naves laterales
+    g[5][32 + _i] = _c
+cartel_xy(29, 29, 'La Casa de Gobierno de Jujuy: un palacio de estilo francés frente a la Plaza Belgrano, con su fuente al frente.')
+cartel_xy(30, 5, 'Catedral Basílica de Jujuy, junto a la Plaza Belgrano. Guarda un púlpito colonial de madera dorada.')
+cartel_xy(41, 5, 'El Cabildo de Jujuy, sobre la Plaza Belgrano: el viejo edificio colonial de la ciudad.')
+cartel_xy(27, 9, 'Plaza Belgrano: en el centro, el monumento ecuestre al General Belgrano, entre cedros y palmeras.')
+cartel_xy(21, 12, 'Centro Pokémon de la Plaza Belgrano ➜ ahí venden pokébolas.')
+cartel_xy(22, 8, 'Parque San Martín: el gran pulmón verde de San Salvador de Jujuy.')
+cartel_xy(36, 31, 'Río Xibi Xibi y su Paseo Lineal: el lugar favorito de los jujeños para caminar.')
+cartel_xy(44, 12, 'Río Grande: rodea la capital por el norte y el este. Acá empiezan las Yungas.')
 cartel_en(46, 50, 'Dique La Ciénaga: de acá viene el agua y la luz de los Valles.')
 cartel_en(18, 70, 'Nevado del Chañi (6.200 m): la cumbre más alta de Jujuy.')
 # --- Yungas ---
@@ -440,7 +574,7 @@ for x in range(W):
     g[0][x] = '#'; g[H - 1][x] = '#'
 for y in range(H):
     g[y][0] = '#'; g[y][W - 1] = '#'
-g[12][24] = '@'
+g[19][33] = '@'
 _fl = [(x, y) for y in range(46, 64) for x in range(220, 245) if g[y][x] == 'a']
 _fl.sort(key=lambda p: ruido(p[0], p[1], 710))
 _pos = []
@@ -470,7 +604,7 @@ problemas = []
 
 
 def bfs(bloquear=()):
-    ini = (24, 12)
+    ini = (33, 19)
     vis = {ini}
     q = deque([ini])
     while q:
