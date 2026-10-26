@@ -225,24 +225,46 @@ def parque_san_martin():
 
 
 def rio_grande_y_xibi_xibi():
-    """Río Grande por el borde este (3 casilleros) y el Xibi Xibi que cruza la ciudad de oeste a este y lo alcanza:
-    cauce de 3 casilleros con playa, franja de parque con árboles, una avenida por orilla y puentes."""
-    for y in range(1, 36):
+    """Río Grande por el borde este y el Xibi Xibi, que cruza la ciudad de oeste a este serpenteando y lo alcanza.
+    Cauce de 3 casilleros con playa ancha (orilla: salen Pokémon de agua), parque con árboles e hierba alta,
+    lagunitas, una ciénaga en la desembocadura (bañado), una avenida por orilla y puentes."""
+    def eje(x):
+        return int(round(36 + 2.2 * math.sin((x - 2) / 5.5)))
+    for y in range(1, 42):
         for x in range(46, 49):
             _poner(x, y, '~')
+        for x in (43, 44, 45, 49):
+            _poner(x, y, 'a')
     for x in range(2, 49):
-        for y in range(33, 36):
+        for y in range(eje(x) - 1, eje(x) + 2):
             _poner(x, y, '~')
-    for y in range(1, 36):
-        _poner(45, y, 'a'); _poner(49, y, 'a')
-    for x in range(2, 45):
-        _poner(x, 32, 'a'); _poner(x, 36, 'a')
-        for y in (31, 37):
-            _poner(x, y, '#' if ruido(x, y, 77) < .45 else '"')
-        for y in (30, 38):
+    for x in range(2, 43):
+        for y in range(31, 41):
+            if g[y][x] == '~':
+                continue
+            dist = min(abs(y - (eje(x) - 1)), abs(y - (eje(x) + 1)))
+            if dist <= 2:
+                _poner(x, y, 'a')
+            else:
+                r = ruido(x, y, 77)
+                _poner(x, y, '#' if r < .38 else ('"' if r < .85 else ','))
+        for y in (30, 41):
             _poner(x, y, '.')
+    def libre(x, y, w, h):
+        return all(g[yy][xx] in '"#,' for yy in range(y - 2, y + h + 2) for xx in range(x - 2, x + w + 2))
+    puestas = 0
+    for (lx, ly) in ((12, 32), (12, 38), (28, 32), (28, 38), (20, 32), (34, 38), (34, 32), (6, 38)):
+        if puestas < 3 and libre(lx, ly, 3, 2):
+            for yy in range(ly, ly + 2):
+                for xx in range(lx, lx + 3):
+                    _poner(xx, yy, '~')
+            puestas += 1
+    for y in range(31, 41):                              # bañado en la desembocadura
+        for x in range(36, 43):
+            if g[y][x] in '"#,' and ((x - 40) / 3.6) ** 2 + ((y - 35.5) / 4.5) ** 2 < 1 and ruido(x, y, 88) > .3:
+                _poner(x, y, 'm')
     for bx in (8, 14, 20, 31, 38, 43):                   # puentes (Lavalle, Necochea...)
-        _camino(bx, 30, bx, 38)
+        _camino(bx, 30, bx, 41)
     for x in range(2, 45):                               # avenida norte
         _poner(x, 3, '.')
 
