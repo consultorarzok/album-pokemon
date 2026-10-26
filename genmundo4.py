@@ -173,9 +173,9 @@ def dique_el_carmen():
         pass
     # --- Dique La Ciénaga: presa en diagonal (de arriba-derecha a abajo-izquierda), el agua queda al oeste ---
     def cresta(y):
-        return 16 - 9 * (y - 44) / 13
+        return 22 - 9 * (y - 44) / 13
     for y in range(44, 58):
-        for x in range(2, 20):
+        for x in range(2, 27):
             cx = cresta(y)
             if x < cx - 1.2 and x >= 3 and y >= 46 and y <= 56:
                 g[y][x] = '~'
@@ -183,11 +183,14 @@ def dique_el_carmen():
                 g[y][x] = '.'                              # coronamiento de la presa (se camina)
             elif x > cx + 1.2 and x < cx + 4:
                 g[y][x] = '"' if ruido(x, y, 95) > .4 else '#'
-    for x in range(8, 12):                                 # pasarela blanca hacia la torre de toma
-        g[50][x] = 'w'
-    g[50][7] = 'U'
-    g[45][17] = 'R'                                        # Usina Eléctrica La Ciénaga
-    mancha(20, 48, 3, 3, 'e', 24)                          # campo eléctrico junto a la usina
+    for x in range(9, 17):                                 # pasarela blanca larga y ancha (3 casilleros): llega hasta el medio del lago
+        for y in (49, 50, 51):
+            g[y][x] = 'w'
+    g[50][8] = 'U'                                         # torre de toma, en el centro del agua
+    g[49][8] = 'w'; g[51][8] = 'w'
+    g[44][22] = 'R'                                        # Usina Eléctrica La Ciénaga
+    mancha(27, 48, 3, 3, 'e', 24)                          # campo eléctrico junto a la usina
+    _camino(13, 57, 13, 63)                                # de la presa al pueblo de El Carmen
     # --- El Carmen: plaza, iglesia y casas ---
     for y in range(60, 69):
         for x in range(4, 13):
@@ -357,14 +360,14 @@ parque_san_martin()
 plaza_belgrano()
 dique_el_carmen()
 mancha(46, 62, 3, 5, 'm', 22)                      # bañado del Río Grande
-mancha(25, 44, 5, 4, 'u', 30)                      # viejo cementerio
+mancha(37, 46, 5, 3, 'u', 30)                      # viejo cementerio
 mancha(46, 76, 6, 4, 'F', 31)                      # Cerro Colorado
 mancha(14, 76, 15, 5, 'Z', 29)                     # cordón nevado del Chañi (al fondo)
 mancha(14, 72, 11, 3, 'N', 23)
 camino([(24, 3), (24, 42), (58, 42)])             # avenida principal: cruza el Xibi Xibi por un puente y sigue hasta el Río Grande
 camino([(24, 46), (19, 46)])                       # a la presa y la usina de La Ciénaga
-camino([(14, 42), (14, 72)])                       # bajada al cordón nevado
-camino([(25, 42), (25, 46)])                       # al cementerio
+camino([(13, 64), (13, 72)])                       # de El Carmen a la bajada al cordón nevado
+camino([(37, 42), (37, 46)])                       # al cementerio
 camino([(42, 42), (42, 66)])                       # bajada al bañado
 camino([(42, 66), (46, 66), (46, 75)])             # ramal al Cerro Colorado
 salpicar(2, 49, 2, 80, '#', .03, 1)                # tipas y lapachos sueltos
@@ -590,8 +593,8 @@ cartel_xy(21, 12, 'Centro Pokémon de la Plaza Belgrano ➜ ahí venden pokébol
 cartel_xy(22, 8, 'Parque San Martín: el gran pulmón verde de San Salvador de Jujuy.')
 cartel_xy(36, 31, 'Río Xibi Xibi y su Paseo Lineal: el lugar favorito de los jujeños para caminar.')
 cartel_xy(44, 12, 'Río Grande: rodea la capital por el norte y el este. Acá empiezan las Yungas.')
-cartel_xy(16, 45, 'Dique La Ciénaga, en El Carmen: el más antiguo de Jujuy. Riega, frena las crecidas y da luz con su usina. Al fondo, la torre de toma de piedra.')
-cartel_xy(12, 50, 'La pasarela blanca lleva a la torre de toma: desde ahí se abren las compuertas.')
+cartel_xy(23, 46, 'Dique La Ciénaga, en El Carmen: el más antiguo de Jujuy. Riega, frena las crecidas y da luz con su usina. Al fondo, la torre de toma de piedra.')
+cartel_xy(19, 51, 'La pasarela blanca lleva a la torre de toma: desde ahí se abren las compuertas.')
 cartel_xy(24, 49, 'Embalse Las Maderas: se conecta con La Ciénaga por canales y riega el Valle de los Pericos.')
 cartel_xy(40, 53, 'Ruta 62: bordea el embalse Las Maderas, con el Club de Pesca y Náutica Inti Sumaj.')
 cartel_xy(7, 65, 'El Carmen, a unos 30 km de San Salvador: el pueblo de los diques.')
@@ -675,7 +678,7 @@ CUEVAS  = [(16, 67), (97, 61), (134, 51), (183, 68), (225, 68), (305, 22)]
 PEDIDOS = [
     # región, bioma, nombre, legendarios, zona preferida (centro temático)
     ('kanto', 'N',  'Cumbre Nevada del Chañi', ['Articuno'],                  (19, 72)),
-    ('kanto', 'e',  'Usina del Dique',     ['Zapdos'],                          (20, 48)),
+    ('kanto', 'e',  'Usina del Dique',     ['Zapdos'],                          (27, 48)),
     ('kanto', 'F',  'Cerro Colorado',      ['Moltres'],                         (45, 76)),
     ('kanto', '"',  'Parque San Martín',   ['Mew'],                             (9, 7)),
     ('johto', 'F',  'Altos Hornos de Zapla', ['Entei', 'Ho-Oh'],                (80, 30)),
