@@ -4939,6 +4939,9 @@ const REGALOS = [
       {id:483, f:100, s:true, m:['Cabeza de Hierro', 'Cañón Resplandor', 'Distorsión']},
       {id:484, f:100, s:true, m:['Hidroariete', 'Pulso Dragón', 'Corte Vacío']}],
     ajustar: [{id:150, m:[null, null, 'Onda Mental']}] },
+  /* 26/10/2026: Zeta pidió entrar a jugar con su equipo ya armado en los favoritos de la Arena (el primero sale primero):
+     Arceus, Dialga, Mewtwo, Rayquaza, Lucario y Gengar. */
+  { id: 'zeta-favoritos-20261026', para: 'zeta centeno', monedas: 0, favoritos: [493, 483, 150, 384, 448, 94] },
   { id: 'zeta-quitar-mewtwo-shiny-20261022', para: 'zeta centeno', monedas: 0,
     quitar: [{id:150, f:100, s:true}], siCobro: 'zeta-mewtwo-acorazado-20261022' },
   { id: 'zeta-acorazado-especial-20261022', para: 'zeta centeno', monedas: 0, especiales: [{id:10150, f:100}] },
@@ -5111,6 +5114,9 @@ function aplicarRegalos(){
       const pull = regalarEjemplar(x.id, x.f, x.s, x.m);
       if(pull) ejPulls.push(pull);
     });
+    if(Array.isArray(r.favoritos)){       // equipo favorito de la Arena (un regalo lo puede dejar armado)
+      try{ localStorage.setItem('arena-favoritos', JSON.stringify(r.favoritos.filter(Number.isInteger).slice(0, 6))); }catch(e){}
+    }
     (r.ajustar || []).forEach(x => {       // cambia los ataques del ejemplar más fuerte que ya tenía
       if(!state[x.id] || !state[x.id].got || !movsOk(x.m)) return;
       const mejor = ejemplares(x.id).reduce((m, e) => (!m || e.f > m.f || (e.f === m.f && e.s)) ? e : m, null);

@@ -37,6 +37,10 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   igual(484, 'Hidroariete · Pulso Dragón · Corte Vacío');
   check('el Mewtwo termina con Onda Mental de ataque largo', /Onda Mental$/.test(movs[150]));
   const efectos = await p.evaluate(() => { const d = window.__arenaMovs; return d.nombreAtaque ? 'ok' : 'sin'; });
+  const favs = await p.evaluate(() => JSON.parse(localStorage.getItem('arena-favoritos') || '[]'));
+  check('el regalo deja el equipo favorito armado (Arceus primero)', JSON.stringify(favs) === '[493,483,150,384,448,94]');
+  const orden = await p.$$eval('.ar-sel.on', els => els.map(e => [Number(e.querySelector('.ar-n').textContent), Number(e.dataset.id)]).sort((a, b) => a[0] - b[0]).map(x => x[1]));
+  check('al abrir la Arena ya viene el equipo, en ese orden', JSON.stringify(orden) === '[493,483,150,384,448,94]');
   check('sin errores de JS', errores.length === 0);
   if(errores.length) console.log(errores);
   console.log(`\n${ok} ok · ${fail} fallan`);

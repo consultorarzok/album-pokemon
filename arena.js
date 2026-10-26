@@ -2669,8 +2669,11 @@ function abrirArena(){
     grid.querySelectorAll('.ar-sel').forEach(b => {
       b.onclick = () => {
         const id = Number(b.dataset.id), i = sel.indexOf(id);
-        if(i >= 0) sel.splice(i, 1); else if(sel.length < EQUIPO_MAX) sel.push(id);
-        aviso = ''; pintarLista();
+        aviso = '';
+        if(i >= 0) sel.splice(i, 1);
+        else if(sel.length < EQUIPO_MAX) sel.push(id);
+        else aviso = `Ya elegiste ${EQUIPO_MAX}: tocá uno de tu equipo para sacarlo y poder elegir a ${(DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id] || {}).name || 'éste'}.`;
+        pintarLista();
       };
     });
     grid.querySelectorAll('.ar-fav').forEach(st => {

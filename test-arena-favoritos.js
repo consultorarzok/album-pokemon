@@ -63,6 +63,17 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   const f0 = (await favs())[0];
   await p.fill('#arBuscar', '#' + f0); await p.tap(`.ar-fav[data-fav="${f0}"]`); await p.fill('#arBuscar', '');
   check('sacar la ★ lo borra de favoritos al instante', !(await favs()).includes(f0));
+  await p.fill('#arBuscar', '');
+  await p.evaluate(() => document.querySelector('#arGrid').scrollTop = 0);
+  const llenos = (await p.$$('.ar-sel.on')).length;
+  // si el equipo está completo, tocar otro avisa en vez de no hacer nada
+  while((await p.$$('.ar-sel.on')).length < 6){ await p.tap('.ar-sel:not(.on)'); await p.waitForTimeout(60); }
+  const fuera = await p.$eval('.ar-sel:not(.on)', e => Number(e.dataset.id));
+  await p.tap(`.ar-sel[data-id="${fuera}"]`); await p.waitForTimeout(100);
+  check('con 6 elegidos, tocar otro avisa y no cambia el equipo', (await p.$$('.ar-sel.on')).length === 6 && /Ya elegiste 6/.test(await p.textContent('#arFavInfo')));
+  await p.tap('.ar-sel.on'); await p.waitForTimeout(80);
+  await p.tap(`.ar-sel[data-id="${fuera}"]`); await p.waitForTimeout(100);
+  check('sacando uno ya se puede elegir el otro', await p.$eval(`.ar-sel[data-id="${fuera}"]`, e => e.classList.contains('on')));
   await p.tap('#arPickGo'); await p.waitForSelector('#arStage', {timeout: 8000});
   check('con el equipo de favoritos se puede pelear', await p.isVisible('#arStage'));
   check('sin errores de JS', errores.length === 0);

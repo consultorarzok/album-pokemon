@@ -521,6 +521,9 @@ function cobrarRegalosServidor(){
     if(res.progreso) aplicarProgreso(res.progreso);
     const out = res.resultado;
     if(!out) return;
+    if(Array.isArray(out.favoritos)){       // un regalo dejó armado el equipo favorito de la Arena
+      try{ localStorage.setItem('arena-favoritos', JSON.stringify(out.favoritos)); }catch(e){}
+    }
     const regaladas = out.pulls.map(aPull), ejPulls = out.ejemplares.map(aPull);
     const espPulls = out.especiales.map(x => ({p: ESPECIAL_POR_ID[x.id], isNew: x.isNew})).filter(x => x.p);
     if(!out.monedas && !regaladas.length && !ejPulls.length && !espPulls.length && !Object.keys(out.bolas).length) return;
