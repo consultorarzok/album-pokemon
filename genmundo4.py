@@ -398,11 +398,10 @@ salpicar(60, 103, 2, 80, '#', .06, 2)
 # ============================ REGIÓN 3 · QUEBRADA · TILCARA Y PURMAMARCA (x 112..158) ============================
 mancha(127, 21, 12, 8, '"', 10)                    # monte de churquis
 mancha(116, 16, 7, 5, 'u', 27)                     # Pucará de Tilcara
-R(148, 5, 157, 78, '~')                            # Río Grande de la Quebrada
+R(148, 5, 157, 116, '~')                            # Río Grande de la Quebrada
 mancha(140, 28, 5, 3, '~', 11)                     # remanso
 mancha(153, 27, 3, 2, ',', 12)
 mancha(119, 46, 7, 6, 'm', 28)                     # vega de Maimará
-mancha(139, 78, 6, 3, 'N', 34)                     # Salinas Grandes (costra blanca)
 mancha(135, 35, 6, 5, 'e', 29)                     # parque solar
 mancha(127, 77, 9, 4, 'F', 13)                     # Paseo de los Colorados (al sur de Purmamarca)
 R(114, 3, 126, 10, '.')
@@ -484,7 +483,7 @@ mancha(250, 60, 9, 6, 'm', 64)                     # vegas
 mancha(258, 70, 7, 5, 'F', 65)
 mancha(258, 70, 3, 2, 'V', 66)                     # volcán
 R(222, 66, 244, 78, 'Z')
-mancha(240, 98, 18, 12, 'N', 67)                   # Salinas Grandes (costra blanca, al sur)
+mancha(240, 98, 18, 12, 'N', 67)                   # Salar de Cauchari (costra blanca, al sur)
 R(232, 3, 244, 10, '.')
 R(233, 5, 243, 9, '.')
 centro_pokemon(236, 7)
@@ -605,7 +604,6 @@ cartel_en(119, 18, 'Pucará de Tilcara: ciudadela preincaica de piedra sobre la 
 cartel_en(131, 63, 'Cerro de los Siete Colores, Purmamarca. Las franjas son millones de años de historia.')
 cerro(127, 45, 5, 5, 'M', 12)                      # La Paleta del Pintor (Maimará)
 cartel_en(124, 49, 'La Paleta del Pintor, Maimará: la montaña pintada de mil colores.')
-cartel_en(141, 72, 'Salinas Grandes: un desierto de sal a más de 3.400 m de altura.')
 
 # (el Tren Solar con su vía este-oeste se coloca más abajo, después de las fronteras)
 # --- Alta Quebrada ---
@@ -654,6 +652,9 @@ def region2_detalle():
         for x in range(x0, x1 + 1, 5):
             for y in range(y0, y1 + 1):
                 _poner(x, y, '.')
+    for y in range(44, 50):                              # pastizal de la Yunga baja: hierba alta continua
+        for x in range(69, 91):
+            g[y][x] = '"'
     cartel_xy(63, 41, 'Cañaverales de Ledesma: acá nace el azúcar jujeño.')
     # --- Calilegua: río de selva con playa de canto rodado, senderos y ruinas ---
     for y in range(1, 41):
@@ -723,7 +724,7 @@ def region5_detalle():
     mancha(241, 57, 4, 8, 'N', 69)                       # salar en la orilla este de Pozuelos
     cartel_xy(231, 49, 'Laguna de los Pozuelos: reserva de flamencos rosados en plena Puna.')
     _camino(248, 42, 248, 96)                            # camino a las Salinas Grandes
-    cartel_xy(247, 90, 'Salinas Grandes: un mar blanco de sal.')
+    cartel_xy(247, 90, 'Salar de Cauchari: una costra blanca de sal que brilla bajo el sol de la Puna.')
 
 
 region5_detalle()
@@ -783,6 +784,79 @@ def region6_detalle():
 
 
 region6_detalle()
+
+
+def region1_sur():
+    """Valles, parte sur: el cordón del Chañi se alarga hacia el sur, bosque de cerros y el Dique Los Alisos (agua
+    potable de San Salvador) con su camino."""
+    for y in range(84, 118):
+        for x in range(2, 50):
+            if g[y][x] == ',':
+                r = ruido(x, y, 190)
+                g[y][x] = '#' if r < .34 else ('"' if r < .56 else ',')
+    mancha(14, 98, 16, 13, 'Z', 29)
+    mancha(14, 88, 12, 4, 'N', 191)
+    mancha(36, 98, 7, 4, '~', 192)
+    _camino(46, 75, 46, 98); _camino(43, 98, 46, 98)
+    cartel_xy(44, 96, 'Dique Los Alisos: de ahí sale el agua que toma San Salvador de Jujuy.')
+
+
+region1_sur()
+
+
+def region3_detalle():
+    """Quebrada: Tilcara (plaza, iglesia, chacras junto al río y el Pucará en su loma), Maimará con la Paleta del Pintor,
+    el Paseo de los Colorados y las Salinas Grandes, un salar enorme al sur al que se llega por el camino de Purmamarca."""
+    for y in range(84, 118):                              # quebrada seca del sur: cardones y lomas coloradas
+        for x in range(113, 147):
+            if g[y][x] == ',' and ruido(x, y, 170) > .93:
+                g[y][x] = '#'
+    # --- Tilcara ---
+    for y in range(11, 31):
+        for x in range(121, 141):
+            if g[y][x] in ',"#':
+                g[y][x] = 'h' if ruido(x, y, 171) > .72 else ','
+    for x in range(121, 141):
+        for y in (11, 17, 23, 29):
+            _poner(x, y, '.')
+    for y in range(11, 30):
+        for x in (121, 127, 133, 139):
+            _poner(x, y, '.')
+    for y in range(12, 17):                               # plaza 5x5 con algarrobos
+        for x in range(128, 133):
+            g[y][x] = 's' if (x + y) % 2 == 0 and ruido(x, y, 172) > .3 else ','
+    for k in range(128, 133):
+        g[14][k] = '.'
+    for k in range(12, 17):
+        g[k][130] = '.'
+    g[14][130] = '*'
+    g[14][134] = 'I'
+    for y in range(3, 41):                                # chacras de la ribera
+        for x in range(141, 148):
+            if g[y][x] in ',#':
+                g[y][x] = '"'
+    cartel_xy(126, 12, 'Tilcara: pueblo de la Quebrada de Humahuaca, Patrimonio de la Humanidad.')
+    cartel_xy(118, 19, 'Pucará de Tilcara: ciudadela preincaica de piedra sobre la Quebrada.')
+    # --- Maimará, al pie de la Paleta del Pintor ---
+    for y in range(49, 58):
+        for x in range(113, 120):
+            if g[y][x] in ',"#':
+                g[y][x] = 'h' if ruido(x, y, 173) > .7 else ','
+    for y in range(49, 58):
+        _poner(116, y, '.')
+    g[53][116] = '.'
+    g[52][118] = 'I'
+    cartel_xy(114, 48, 'Maimará: el pueblo de la Paleta del Pintor, con su cementerio colgado de la loma.')
+    # --- Paseo de los Colorados: lomas rojizas al sur de Purmamarca ---
+    for (cx, cy, rx, ry, n) in ((118, 76, 4, 4, 180), (136, 81, 5, 4, 181), (124, 84, 3, 3, 182)):
+        cerro(cx, cy, rx, ry, 'M', n)
+    # --- Salinas Grandes: salar blanco enorme, con camino desde Purmamarca ---
+    mancha(134, 104, 14, 10, 'N', 183)
+    _camino(134, 72, 134, 94)
+    cartel_xy(136, 93, 'Salinas Grandes: un mar blanco de sal a más de 3.400 m de altura.')
+
+
+region3_detalle()
 
 
 def region4_detalle():
@@ -926,7 +1000,7 @@ PEDIDOS = [
     ('unova', ',"a', 'Laguna de los Pozuelos', ['Keldeo'],                      (230, 55)),
     ('unova', 'e',  'Parque Solar Cauchari', ['Tornadus', 'Thundurus', 'Landorus'], (255, 30)),
     ('unova', 'F',  'Volcán de la Puna',   ['Reshiram', 'Zekrom', 'Kyurem'],    (258, 70)),
-    ('unova', 'N',  'Salinas Grandes',     ['Cobalion', 'Terrakion', 'Virizion'], (240, 98)),
+    ('unova', 'N',  'Salar de Cauchari',   ['Cobalion', 'Terrakion', 'Virizion'], (240, 98)),
     ('unova', '"',  'Pajonales de Abra Pampa', ['Meloetta'],                    (243, 20)),
     ('kalos', '"',  'Altos de Yavi',       ['Xerneas'],                         (280, 20)),
     ('kalos', 'u',  'Iglesia y ruinas de Yavi', ['Hoopa'],                      (283, 42)),
@@ -1171,6 +1245,7 @@ zonas = [
     {'n': 'Valles · Dique La Ciénaga y El Carmen', 'x0': 1, 'y0': 45, 'x1': 30, 'y1': 66},
     {'n': 'Valles · Bañado del Río Grande', 'x0': 31, 'y0': 59, 'x1': 50, 'y1': 68},
     {'n': 'Valles · Cordón del Chañi', 'x0': 1, 'y0': 67, 'x1': 30, 'y1': H - 2},
+    {'n': 'Valles · Dique Los Alisos', 'x0': 31, 'y0': 90, 'x1': 50, 'y1': H - 2},
     {'n': 'Valles · Cerro Colorado', 'x0': 31, 'y0': 69, 'x1': 50, 'y1': H - 2},
     {'n': 'Yungas · Libertador General San Martín', 'x0': 58, 'y0': 1, 'x1': 88, 'y1': 31},
     {'n': 'Yungas · Selva de Calilegua', 'x0': 84, 'y0': 1, 'x1': 104, 'y1': 41},
@@ -1179,12 +1254,13 @@ zonas = [
     {'n': 'Yungas · Lagunas de Yala', 'x0': 58, 'y0': 51, 'x1': 83, 'y1': 90},
     {'n': 'Yungas · Bañados', 'x0': 84, 'y0': 59, 'x1': 104, 'y1': H - 2},
     {'n': 'Yungas · Selva nublada', 'x0': 58, 'y0': 91, 'x1': 83, 'y1': H - 2},
-    {'n': 'Quebrada · Tilcara',      'x0': 112, 'y0': 1, 'x1': 158, 'y1': 16},
-    {'n': 'Quebrada · Monte de Churquis', 'x0': 112, 'y0': 17, 'x1': 145, 'y1': 30},
-    {'n': 'Quebrada · Río Grande',   'x0': 146, 'y0': 17, 'x1': 158, 'y1': H - 2},
+    {'n': 'Quebrada · Río Grande',   'x0': 146, 'y0': 1, 'x1': 158, 'y1': H - 2},
+    {'n': 'Quebrada · Tilcara',      'x0': 112, 'y0': 1, 'x1': 145, 'y1': 30},
     {'n': 'Quebrada · Vega de Maimará', 'x0': 112, 'y0': 31, 'x1': 129, 'y1': 55},
-    {'n': 'Quebrada · Parque Solar', 'x0': 130, 'y0': 31, 'x1': 145, 'y1': 55},
-    {'n': 'Quebrada · Purmamarca y los Siete Colores', 'x0': 112, 'y0': 56, 'x1': 145, 'y1': H - 2},
+    {'n': 'Quebrada · Parque Solar', 'x0': 130, 'y0': 31, 'x1': 145, 'y1': 52},
+    {'n': 'Quebrada · Purmamarca y los Siete Colores', 'x0': 112, 'y0': 53, 'x1': 145, 'y1': 74},
+    {'n': 'Quebrada · Paseo de los Colorados', 'x0': 112, 'y0': 75, 'x1': 145, 'y1': 90},
+    {'n': 'Quebrada · Salinas Grandes', 'x0': 112, 'y0': 91, 'x1': 145, 'y1': H - 2},
     {'n': 'Alta Quebrada · Humahuaca', 'x0': 166, 'y0': 1, 'x1': 194, 'y1': 30},
     {'n': 'Alta Quebrada · Río Grande de Humahuaca', 'x0': 195, 'y0': 1, 'x1': 201, 'y1': 90},
     {'n': 'Alta Quebrada · Ruinas de Coctaca', 'x0': 166, 'y0': 38, 'x1': 194, 'y1': 54},
@@ -1198,7 +1274,7 @@ zonas = [
     {'n': 'Puna · Laguna de los Pozuelos', 'x0': 220, 'y0': 49, 'x1': 247, 'y1': 66},
     {'n': 'Puna · Vegas',            'x0': 248, 'y0': 42, 'x1': 266, 'y1': 65},
     {'n': 'Puna · Sierra de la Puna', 'x0': 220, 'y0': 67, 'x1': 266, 'y1': 84},
-    {'n': 'Puna · Salinas Grandes',  'x0': 220, 'y0': 85, 'x1': 266, 'y1': H - 2},
+    {'n': 'Puna · Salar de Cauchari',  'x0': 220, 'y0': 85, 'x1': 266, 'y1': H - 2},
     {'n': 'Puna norte · La Quiaca',  'x0': 274, 'y0': 1, 'x1': 320, 'y1': 41},
     {'n': 'Puna norte · Yavi',       'x0': 274, 'y0': 42, 'x1': 291, 'y1': 62},
     {'n': 'Puna norte · Vegas',      'x0': 292, 'y0': 42, 'x1': 320, 'y1': 58},
