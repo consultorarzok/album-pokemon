@@ -146,6 +146,71 @@ def _fuentes():
                     _poner(x, y, 'X')
 
 
+def _dist_seg(px, py, ax, ay, bx, by):
+    dx, dy = bx - ax, by - ay
+    t = max(0, min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
+    return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+
+
+def dique_el_carmen():
+    """El Carmen y sus dos diques (Maps de Zeta): La Ciénaga, con la presa en diagonal, la usina, la pasarela blanca
+    y la torre de toma de piedra dentro del agua; y el Embalse Las Maderas, enorme, con brazos y penínsulas; la ruta
+    62 bordea la orilla este; el pueblo de El Carmen al oeste, con plaza e iglesia."""
+    # --- cerros verdes alrededor ---
+    for y in range(44, 74):
+        for x in range(2, 50):
+            if g[y][x] == ',':
+                r = ruido(x, y, 91)
+                g[y][x] = '#' if r < .30 else ('"' if r < .52 else ',')
+    # --- Embalse Las Maderas ---
+    brazos = [(34, 58, 21, 53, 1.3), (34, 61, 19, 60, 1.6), (34, 64, 20, 67, 1.5), (34, 67, 24, 72, 1.3), (32, 56, 26, 50, 1.0), (36, 70, 30, 73, 1.0)]
+    for y in range(49, 75):
+        for x in range(19, 42):
+            cuerpo = ((x - 35) / 6.2) ** 2 + ((y - 62) / 6.5) ** 2 < 1 + (ruido(x, y, 93) - .5) * .25
+            if cuerpo or any(_dist_seg(x, y, *b[:4]) < b[4] + (ruido(x, y, 94) - .5) * .5 for b in brazos):
+                g[y][x] = '~'
+    for (x, y) in ((28, 52), (29, 52), (30, 52)):         # muelle del Club de Pesca y Náutica Inti Sumaj
+        pass
+    # --- Dique La Ciénaga: presa en diagonal (de arriba-derecha a abajo-izquierda), el agua queda al oeste ---
+    def cresta(y):
+        return 16 - 9 * (y - 44) / 13
+    for y in range(44, 58):
+        for x in range(2, 20):
+            cx = cresta(y)
+            if x < cx - 1.2 and x >= 3 and y >= 46 and y <= 56:
+                g[y][x] = '~'
+            elif abs(x - cx) <= 1.2:
+                g[y][x] = '.'                              # coronamiento de la presa (se camina)
+            elif x > cx + 1.2 and x < cx + 4:
+                g[y][x] = '"' if ruido(x, y, 95) > .4 else '#'
+    for x in range(8, 12):                                 # pasarela blanca hacia la torre de toma
+        g[50][x] = 'w'
+    g[50][7] = 'U'
+    g[45][17] = 'R'                                        # Usina Eléctrica La Ciénaga
+    mancha(20, 48, 3, 3, 'e', 24)                          # campo eléctrico junto a la usina
+    # --- El Carmen: plaza, iglesia y casas ---
+    for y in range(60, 69):
+        for x in range(4, 13):
+            g[y][x] = ','
+    for y in range(62, 67):
+        for x in range(6, 11):
+            g[y][x] = '.'
+    g[64][8] = '*'
+    for (x, y) in ((6, 62), (10, 62), (6, 66), (10, 66)):
+        g[y][x] = '#'
+    g[60][8] = 'I'
+    for (x, y) in ((5, 61), (11, 61), (4, 64), (12, 64), (5, 68), (8, 68), (11, 68), (4, 67)):
+        g[y][x] = 'h'
+    for x in range(9, 15):                                 # calle a la ruta
+        g[64][x] = '.'
+        g[63][x] = '.'
+    # --- Ruta 62 en la orilla este de Las Maderas (curvas) ---
+    for y in range(50, 74):
+        x = 42 + int(round(1.2 * math.sin(y * .7)))
+        g[y][x] = '.'
+
+
+
 def plaza_belgrano():
     """Plaza Belgrano, la manzana de 15x15 (sacada de las fotos): senderos en cruz y en diagonal que convergen en la
     rotonda con el monumento ecuestre a Belgrano, cedros, palmeras, bancos y canteros. Alrededor, calles; al norte
@@ -290,15 +355,14 @@ for _y in range(1, 42):
 rio_grande_y_xibi_xibi()
 parque_san_martin()
 plaza_belgrano()
-mancha(45, 52, 5, 4, 'e', 21)                      # Usina del dique
-mancha(28, 56, 8, 5, '~', 4)                       # laguna
-mancha(42, 66, 7, 5, 'm', 22)                      # bañado del Río Grande
+dique_el_carmen()
+mancha(46, 62, 3, 5, 'm', 22)                      # bañado del Río Grande
 mancha(25, 44, 5, 4, 'u', 30)                      # viejo cementerio
 mancha(46, 76, 6, 4, 'F', 31)                      # Cerro Colorado
 mancha(14, 76, 15, 5, 'Z', 29)                     # cordón nevado del Chañi (al fondo)
 mancha(14, 72, 11, 3, 'N', 23)
 camino([(24, 3), (24, 42), (58, 42)])             # avenida principal: cruza el Xibi Xibi por un puente y sigue hasta el Río Grande
-camino([(24, 52), (45, 52)])                       # a la usina
+camino([(24, 46), (19, 46)])                       # a la presa y la usina de La Ciénaga
 camino([(14, 42), (14, 72)])                       # bajada al cordón nevado
 camino([(25, 42), (25, 46)])                       # al cementerio
 camino([(42, 42), (42, 66)])                       # bajada al bañado
@@ -526,7 +590,11 @@ cartel_xy(21, 12, 'Centro Pokémon de la Plaza Belgrano ➜ ahí venden pokébol
 cartel_xy(22, 8, 'Parque San Martín: el gran pulmón verde de San Salvador de Jujuy.')
 cartel_xy(36, 31, 'Río Xibi Xibi y su Paseo Lineal: el lugar favorito de los jujeños para caminar.')
 cartel_xy(44, 12, 'Río Grande: rodea la capital por el norte y el este. Acá empiezan las Yungas.')
-cartel_en(46, 50, 'Dique La Ciénaga: de acá viene el agua y la luz de los Valles.')
+cartel_xy(16, 45, 'Dique La Ciénaga, en El Carmen: el más antiguo de Jujuy. Riega, frena las crecidas y da luz con su usina. Al fondo, la torre de toma de piedra.')
+cartel_xy(12, 50, 'La pasarela blanca lleva a la torre de toma: desde ahí se abren las compuertas.')
+cartel_xy(24, 49, 'Embalse Las Maderas: se conecta con La Ciénaga por canales y riega el Valle de los Pericos.')
+cartel_xy(40, 53, 'Ruta 62: bordea el embalse Las Maderas, con el Club de Pesca y Náutica Inti Sumaj.')
+cartel_xy(7, 65, 'El Carmen, a unos 30 km de San Salvador: el pueblo de los diques.')
 cartel_en(18, 70, 'Nevado del Chañi (6.200 m): la cumbre más alta de Jujuy.')
 # --- Yungas ---
 lugar(74, 6, 'W', 'Ingenio Ledesma: el azúcar de Libertador General San Martín, corazón de las Yungas.')
@@ -607,7 +675,7 @@ CUEVAS  = [(16, 67), (97, 61), (134, 51), (183, 68), (225, 68), (305, 22)]
 PEDIDOS = [
     # región, bioma, nombre, legendarios, zona preferida (centro temático)
     ('kanto', 'N',  'Cumbre Nevada del Chañi', ['Articuno'],                  (19, 72)),
-    ('kanto', 'e',  'Usina del Dique',     ['Zapdos'],                          (45, 52)),
+    ('kanto', 'e',  'Usina del Dique',     ['Zapdos'],                          (20, 48)),
     ('kanto', 'F',  'Cerro Colorado',      ['Moltres'],                         (45, 76)),
     ('kanto', '"',  'Parque San Martín',   ['Mew'],                             (9, 7)),
     ('johto', 'F',  'Altos Hornos de Zapla', ['Entei', 'Ho-Oh'],                (80, 30)),
@@ -866,8 +934,8 @@ zonas = [
     {'n': 'Valles · Plaza Belgrano', 'x0': 1, 'y0': 1, 'x1': 50, 'y1': 12},
     {'n': 'Valles · San Salvador',   'x0': 1, 'y0': 13, 'x1': 30, 'y1': 44},
     {'n': 'Valles · Parque San Martín', 'x0': 31, 'y0': 13, 'x1': 50, 'y1': 44},
-    {'n': 'Valles · Usina del Dique', 'x0': 31, 'y0': 45, 'x1': 50, 'y1': 58},
-    {'n': 'Valles · Cerros del Oeste', 'x0': 1, 'y0': 45, 'x1': 30, 'y1': 66},
+    {'n': 'Valles · Embalse Las Maderas', 'x0': 31, 'y0': 45, 'x1': 50, 'y1': 58},
+    {'n': 'Valles · Dique La Ciénaga y El Carmen', 'x0': 1, 'y0': 45, 'x1': 30, 'y1': 66},
     {'n': 'Valles · Bañado del Río Grande', 'x0': 31, 'y0': 59, 'x1': 50, 'y1': 68},
     {'n': 'Valles · Cordón del Chañi', 'x0': 1, 'y0': 67, 'x1': 30, 'y1': H - 2},
     {'n': 'Valles · Cerro Colorado', 'x0': 31, 'y0': 69, 'x1': 50, 'y1': H - 2},
