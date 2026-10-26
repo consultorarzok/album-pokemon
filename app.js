@@ -1421,6 +1421,8 @@ const ADV_TILE = {
   'd': {walk:false, label:'Cabildo',           pinta:'cabildoArcos'},
   'J': {walk:false, label:'Catedral',          pinta:'catedralNave'},
   'v': {walk:true,  label:'Vía del Tren Solar', pinta:'via'},
+  'A': {walk:false, label:'Algarrobo Histórico', pinta:'algarroboHistorico'},
+  's': {walk:false, label:'Algarrobo',         pinta:'algarrobo'},
   'Y': {walk:false, label:'Estación del Tren Solar', pinta:'estacionSolar'},
   'h': {walk:false, label:'Casa de adobe',     pinta:'casaAdobe'},
   'y': {walk:false, label:'Puesto de artesanías', pinta:'puestoArtesanias'},
@@ -1486,20 +1488,20 @@ const ADV_MAPS = {
       "#,,,,,,,,,,#,,..#,,,,aa~aa,,,......,,..,,,..eeeee,a~~~~~~~a##\"\"\"\"\"\"\"\"\"aaaaaaa,,,,,,#,,N..NNNNNNeeeeeee,e,^^^^^^^#mmmmmmmmmmmmm,,,,#,,,..,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"c\"b#####uu,,,,,,,,,,,,,,#,,,,,,,,,,,,,,,,^^^^^^^,,,,,,fa~iaaaaaf,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,#,,,,,,,,,,,,,a~~~~~~~~~~~~~~~a,,,,#,,,,,,,#",
       "#,,,,#,,,,,,b,..##,,,,aa~a,,#,,,.......,,#..eeeeeea~~~~~~~a##\"\"\"\"\"\"\"\"\"\",,,,,##,,,#,,,,N..NNNNNNeeeeeeeee,^^^^^^^,,,mmmmmmmmmm,,,,,,,,,..,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"#####u,,,#,,,,,,,,,,,,,,,,,,j,,,,,,#,,^^^^^^^,,a#aja~~~~~~~~aa,,,,,,,,,,,,,,,,b,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,.BBBBBBB.B~~~~~~a,,,,,,,,,,,,#",
       "###aa,,,,,,,,,..###,,,aaaa,,,,,,,,......,e..eeeeeea~~~~~~~a###\"\"\"\"\"\"\"\"\",,,,,,,,,,,,,NNN..NNNNNNNeeeeeeeee^^^^^^^,,,,,mmmmmMM,,,,,,,,,,C.,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"#####,,,,,#,,,,,,,#,,,,,,,,,,,#,,,,,,^^^^^^^,,a~~~~~~~~~~~~~aaa,,,j,#,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,.BBBBBBBB~~~~~~~a,,,,,,,,,,#,#",
-      "###~########,,..#####aa~BBBBBBBBBB.............Leea~~~~~~~a######\"\",.............b...................eeee^^^^^^^,,,,,m,mm,MMM,,,,,,,,,..,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"####,,,,,#,,,,,,,,,,,,,,,,#,,,,,,,,,^^^^^^^,,f~~~~~~~~~~~~~~~aa,,,,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,#a~~~~~~~~~~~~~~~a,,,,,,,,,,,,#",
-      "###~##########..######~~BBBBBBBBBB.B..........eeeea~~~~~~~a######,,,................................eeeee^^^^^^^,,,,,,,,,,MMM,,,,,#,hh..hh,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"#####,,,,,,,,,c,,,,,,,,,,,,,,,,,,,,,^^^^^^^,aa~~~~~~~~~~~~~~~~fa,L,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,a~~~~~~~~~~~~~~aa,,,,,,,,,,,,#",
-      "###~##########..#####~~~~~~~~~~~~~~~a,,,,e..eeeeeea~~~~~~~a#####,,,,,,,,,,,,,,,,,,#,,,N..NNNNNNNeeeeeeeee^^^^^^^,,,,,,,,,MMMMM,,,,,,,h.,,,,,.hh,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"####,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^aa~~~~~~~~~~~~~~~~~~a,,,,,,#,,,,m,,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,aaa~~~~~~~~~~~aa,,,,,,,,,,,,,#",
-      "###~~#########..#####~~~~~~~~~~~~~~~a,,,,,..eeeee,a~~~~~~~a######,\"\"\",,,,,,,,,,,,,,,,,,..NNNNNeeeeeeLeee,^^^^^^^,,,,,,,,,MMMMMM,,,,,,h.,,,h,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"........,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^a~~~~~~~~~..BBBBBBB~a,,,,mmmmmmmmmmm,,,,,,,b,,a~~~~~~~a,,,#,,,,,,,,,,,,,,,aaa~~~~~~~~aa,,,,,,,,,,,,,,#",
+      "###~########,,..#####aa~BBBBBBBBBB.............Leea~~~~~~~a######\"\",.............b...................eeee^^^^^^^,,,,,m,mm,MMM,,,,,,,,,.AAAA,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"####,,,,,#,,,,,,,,,,,,,,,,#,,,,,,,,,^^^^^^^,,f~~~~~~~~~~~~~~~aa,,,,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,#a~~~~~~~~~~~~~~~a,,,,,,,,,,,,#",
+      "###~##########..######~~BBBBBBBBBB.B..........eeeea~~~~~~~a######,,,................................eeeee^^^^^^^,,,,,,,,,,MMM,,,,,#,hh.AAAA,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"#####,,,,,,,,,c,,,,,,,,,,,,,,,,,,,,,^^^^^^^,aa~~~~~~~~~~~~~~~~fa,L,,,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,a~~~~~~~~~~~~~~aa,,,,,,,,,,,,#",
+      "###~##########..#####~~~~~~~~~~~~~~~a,,,,e..eeeeeea~~~~~~~a#####,,,,,,,,,,,,,,,,,,#,,,N..NNNNNNNeeeeeeeee^^^^^^^,,,,,,,,,MMMMM,,,,,,,h.AAAAi.hh,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"####,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^aa~~~~~~~~~~~~~~~~~~a,,,,,,#,,,,m,,,,,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,aaa~~~~~~~~~~~aa,,,,,,,,,,,,,#",
+      "###~~#########..#####~~~~~~~~~~~~~~~a,,,,,..eeeee,a~~~~~~~a######,\"\"\",,,,,,,,,,,,,,,,,,..NNNNNeeeeeeLeee,^^^^^^^,,,,,,,,,MMMMMM,,,,,,h.AAAA,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"........,,,,,,,,,,,,,,,,,,,,,,,,,,,,^^^^^^^a~~~~~~~~~..BBBBBBB~a,,,,mmmmmmmmmmm,,,,,,,b,,a~~~~~~~a,,,#,,,,,,,,,,,,,,,aaa~~~~~~~~aa,,,,,,,,,,,,,,#",
       "####~~########..#####~~~~~~~~~~~~~~~a,,,,,..ee...,a~~~~~~~a###\"\"\"\"\"\"\"\"\"\",,,,,,,#,,,,,,,..,NN,,ceeeeeeeee,^^^^^^^,,,,#,,,MMMMMMM,,,,,,i.,i,,,.,,h,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"........,,,,,j,,,mm,,,,,,,,,,,,,,,,,^^^^^^^a#~~~~~~~~BBBBBBBBBfa,,,mmmmmmmmmmmmmm,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,,,,,aa#~~aaaaa,,,,,,,,,,,,,,,#",
       "#####~~#######..#####~~~~~~~~~~~~~~~a,,,,,..,,,,..a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,#,,,,,,,,,,..,,,,,,e,eeeeee,,^^^^^^^,,,,,,MMMMMMMMMM,,,,,,.D,I,,.,hh,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"##,,,,,,,,,,mmmmmmmmmm,,,,,,,,#,,,,^^^^^^^,a~~~~~~~~~~~~~~~~~a,,,,mmmmmmmmmmmmmm,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,#,,,,,,,,,aaaa,,,,,,,,,,,,,,,,#,,#",
       "######~#######..######~~~~~~~~~~~~~~a,,,,,..,,,,,.a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,#,,,,,..,#,,,,,,,,#,,,,,^^^^^^^,,,,,MMMMMMMMMMMM,,.............,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"####,,,,,,#,#mmmmmmmmmmmm,m,,##,,,,,,^^^^^^^,a#~~~~~~~~~~~~~~~fa,,mmmmmmmmmmmmmmmm,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,eeeeeee,,,#,,,,,,,,,j,,,,,,,,#",
-      "######~~######..#######~~~~~~~~~~~~aa,,,,,..,,,,,,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",\",,#,,,,,..,,,#,,,,C,#,,,#,^^^^^^^,,,,MMMMMMMMMMMMM,,,,,.#...#.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"######,,,,,,,mmmmmmmmmmmmmmm,#,,,,,,,,^^^^^^^,,aa~~~~~~~~~~~~aaa,,,mmmmmmmmmmmmmmmmm,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,eeeeeeeeeee,,,,,,,,,,,,,,,,,,,,#",
-      "#######~~#####..########~~~~~~~~a~aa,,,,,,..,#,,,,a~~~~~~~a\"\"\"\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\",,,,,,,,..,,,,^^^^^^^^^^^,^^^^^^^##,,MMMMMMMMMMMMM,,h,h.y...y.,h,,,,a~~~~~~~~~~a~~~~~~~ac\"\"\"\"\"\"\"####,,,,,,,,mmmmmmmmmmmmmmmm,,,,,,,,,,^^^^^^^,,,af~~~~~~~~~aaa,..............mmmmmmm,,,,,,,a~~~~~~~a,#,,,,,,,,c,,,,eeeeeeeeeee,,,,,,,,,,,,,,,,,,,,#",
-      "########~~####..#############~#aaaa,,b,,,m..,,,,,,a~~~~~~~a\"\"\"\"\"\"\"\"\"..\"\"L\"\"\"\"\"\"\"#,,,,,,..,,,,^^^^,^^^^^^,^^^^^^^,,,MMMMMMMMMMMMMMM,,,h.......,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"######,,,,,,mmmmmmmmmmmmmmmmmm,,,,,,,,,^^^^^^^#,,,aaaaf~~~aaf,,,.............mmmmmmmm,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,eeeeeeeeeee,,,,,,,,,,,,,,,,,,,,#",
-      "#########~~~~~..###############,,,,,,,,mmm..mm,,,,a~~~~~~~a\"\"\"\"\"\"\"i\"..\"\"\"\"\"\"\"\",\",,,,,,,..,,,,^^^^^^^^^^^,^^^^^^^,,,MMMMMMMMMMMMMMM,....y.*.y.hh,,,,a~~~~~~~~~~a~~~~~~~a####\"#######,,,,,.............mmmmmmmm,,#,,,,,^^^^^^^,,,,,,,,aaaaa,,,,,#,,,,mmmmmmmmmmmmmmm,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,eec....eeeee,,,,,,,,,,,,,,,,,,,#",
-      "#############~BB~~##############,,,,,mmmmm..mmmm,,a~~~~~~~a\"\"\"\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\",,,,,,,..,,,,^^^^^^^^^^^,^^^^^^^,,MMMMMMMMMMMMMMMMMi,,.......,,h,,,a~~~~~~~~~~a~~~~~~~a#########,,,,,,,,............mmmmmmmm,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,,,,,,,mmmmmmmmmmmmm,m,,,,,,,a~~~~~~~a,,,,,,j,,,,,,,,ee....eeeee,,,,F,#,,,,,,,,,,,,,#",
-      "##############..~~~~~~~~~~~######,,,mmmmmm..mmmmm,a~~~~~~~a\"\"\"\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\",,,,,,,,..,,,,^^^^^^^^^^^,^^^^^^^,,MMMMMMMMMMMMMMMMMhh,.y...y.,h,,,,a~~~~~~~~~~a~~~~~~~a,#######,,,,,,,,,,,,,mmmmmmmmmmmmmmm,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,,,,,,,mmmmmmmmmmmmm,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,eeeeeeeeeeFFFFFFFFFF,,,,,,,,,,,#",
-      "##############..####~~####~~######,mmmmmmm..mmmmm,a~~~~~~~a\"\"\"\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\",,c,#,,..,,##^^^^^^^^^^^,^^^^^^^##MMMMMMMMMMMMMMMMM,h,.#...#.,,,,,,a~~~~~~~~~~a~~~~~~~a,,,,#,#,#,,,,,,,#,,#,mmmmmmmmmmmmmmmm,#,,,,,,,^^^^^^^,,,b,,,,,,,,,#,,,,,,,,,,,#mmmmmmmmmm,FF,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,eeeeeeeeFFFFFVFFFFFF,,,,,,,,,,#",
+      "######~~######..#######~~~~~~~~~~~~aa,,,,,..,,,,,,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",\",,#,,,,,..,,,#,,,,C,#,,,#,^^^^^^^,,,,MMMMMMMMMMMMM,,,,,.s,.ss.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"######,,,,,,,mmmmmmmmmmmmmmm,#,,,,,,,,^^^^^^^,,aa~~~~~~~~~~~~aaa,,,mmmmmmmmmmmmmmmmm,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,eeeeeeeeeee,,,,,,,,,,,,,,,,,,,,#",
+      "#######~~#####..########~~~~~~~~a~aa,,,,,,..,#,,,,a~~~~~~~a\"\"\"\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\",,,,,,,,..,,,,^^^^^^^^^^^,^^^^^^^##,,MMMMMMMMMMMMM,,h,h.s,.sy.,h,,,,a~~~~~~~~~~a~~~~~~~ac\"\"\"\"\"\"\"####,,,,,,,,mmmmmmmmmmmmmmmm,,,,,,,,,,^^^^^^^,,,af~~~~~~~~~aaa,..............mmmmmmm,,,,,,,a~~~~~~~a,#,,,,,,,,c,,,,eeeeeeeeeee,,,,,,,,,,,,,,,,,,,,#",
+      "########~~####..#############~#aaaa,,b,,,m..,,,,,,a~~~~~~~a\"\"\"\"\"\"\"\"\"..\"\"L\"\"\"\"\"\"\"#,,,,,,..,,,,^^^^,^^^^^^,^^^^^^^,,,MMMMMMMMMMMMMMM,,,h.ss.,s.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"######,,,,,,mmmmmmmmmmmmmmmmmm,,,,,,,,,^^^^^^^#,,,aaaaf~~~aaf,,,.............mmmmmmmm,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,eeeeeeeeeee,,,,,,,,,,,,,,,,,,,,#",
+      "#########~~~~~..###############,,,,,,,,mmm..mm,,,,a~~~~~~~a\"\"\"\"\"\"\"i\"..\"\"\"\"\"\"\"\",\",,,,,,,..,,,,^^^^^^^^^^^,^^^^^^^,,,MMMMMMMMMMMMMMM,........y.hh,,,,a~~~~~~~~~~a~~~~~~~a####\"#######,,,,,.............mmmmmmmm,,#,,,,,^^^^^^^,,,,,,,,aaaaa,,,,,#,,,,mmmmmmmmmmmmmmm,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,eec....eeeee,,,,,,,,,,,,,,,,,,,#",
+      "#############~BB~~##############,,,,,mmmmm..mmmm,,a~~~~~~~a\"\"\"\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\",,,,,,,..,,,,^^^^^^^^^^^,^^^^^^^,,MMMMMMMMMMMMMMMMMi,,.s,.ss.,,h,,,a~~~~~~~~~~a~~~~~~~a#########,,,,,,,,............mmmmmmmm,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,,,,,,,mmmmmmmmmmmmm,m,,,,,,,a~~~~~~~a,,,,,,j,,,,,,,,ee....eeeee,,,,F,#,,,,,,,,,,,,,#",
+      "##############..~~~~~~~~~~~######,,,mmmmmm..mmmmm,a~~~~~~~a\"\"\"\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\",,,,,,,,..,,,,^^^^^^^^^^^,^^^^^^^,,MMMMMMMMMMMMMMMMMhh,.,s.sy.,h,,,,a~~~~~~~~~~a~~~~~~~a,#######,,,,,,,,,,,,,mmmmmmmmmmmmmmm,,,,,,,,,,^^^^^^^,,,,,,,,,,,,,,,,,,,,,,,,mmmmmmmmmmmmm,,,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,eeeeeeeeeeFFFFFFFFFF,,,,,,,,,,,#",
+      "##############..####~~####~~######,mmmmmmm..mmmmm,a~~~~~~~a\"\"\"\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\"\",,c,#,,..,,##^^^^^^^^^^^,^^^^^^^##MMMMMMMMMMMMMMMMM,h,.ss.s,.,,,,,,a~~~~~~~~~~a~~~~~~~a,,,,#,#,#,,,,,,,#,,#,mmmmmmmmmmmmmmmm,#,,,,,,,^^^^^^^,,,b,,,,,,,,,#,,,,,,,,,,,#mmmmmmmmmm,FF,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,eeeeeeeeFFFFFVFFFFFF,,,,,,,,,,#",
       "##############.C###########~~~####,mmmmmmm......mma~~~~~~~a\"\"\"\"\"\"\"\"\"..\"\"\"\"\"\"\"\"\",,,,,,,,..,,,,^^^^^^^^^^^,^^^^^^^,,,,,#,,,,,,,,,,,,,.............#,,a~~~~~~~~~~a~~~~~~~a,,,,,,,c,,,,,,,,,................i......,,,,,,^^^^^^^,,ZZZZZZ................................F,F,,,a~~~~~~~a,,,,,,,,,,,,,,,,,,eeeeeFFFFVVVVVVFFFFF,,,,,,,,#",
       "##############.i,############~~##,,,mmmmmm......mma~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,mmmmm..mmm,^^^^^^^^^^^,^^^^^^^,,#,,,,,,,,,,,,,,,,,,,.,,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a,#,,,,,,,,,,,,,,,.......................MM,,,,^^^^^^^,,ZZZZZZ...i............................FFFFF,a~~~~~~~a,,,,,,,,,,,,,,,,,,,ee,FFFFFVVVVVVVFFFF,,,,,,,,#",
       "##############..##############~~#aa,mmmmaaaaa~BBaaa~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",,,,mmmmmm..mmmm^^^^^^^^^^^,^^^^^^^,,,,,,,,,,,,,,,,,,,hh,.,h,,h.,h,,,#a~~~~~~~~~~a~~~~~~~a,,,,,,,,,,,,,,,NC,,NN,,,,,mmmm,#,,MMMM..MM,,,,^^^^^^^,,ZZZ,ZZ..NZZZZZZZZZZZZZZ,,,,,,,,FFFFF..FFFF,,a~~~~~~~a,#,,,,,,,,,,,,,,,...............VVVLFFF,,,,,,,#",
@@ -1592,7 +1594,8 @@ const ADV_MAPS = {
       '83,13': 'Parque Nacional Calilegua: selva de yungas con tucanes, tapires y yaguaretés.',
       '66,62': 'Cañaverales de Ledesma: acá nace el azúcar jujeño.',
       '136,56': 'Iglesia de Santa Rosa de Lima, Purmamarca (1648), frente a la plaza. Al fondo, el Cerro de los Siete Colores.',
-      '133,56': 'Cabildo de Purmamarca, sobre la plaza. Alrededor, el mercado de artesanías.',
+      '133,56': 'Cabildo de Purmamarca, sobre la plaza 9 de Julio. Alrededor, el mercado de artesanías.',
+      '139,54': 'El Algarrobo Histórico de Purmamarca: un gigante de tronco retorcido que vio pasar la historia del pueblo. Lo cuida una reja de hierro forjado.',
       '121,9': 'Tilcara: pueblo de la Quebrada de Humahuaca, Patrimonio de la Humanidad.',
       '118,17': 'Pucará de Tilcara: ciudadela preincaica de piedra sobre la Quebrada.',
       '131,63': 'Cerro de los Siete Colores, Purmamarca. Las franjas son millones de años de historia.',
@@ -3389,6 +3392,40 @@ function dibujarTren(ctx, camX, camY, vw, vh){          // visto desde arriba, c
     pinta(ctx, adelante ? '#FFFFFF' : '#BFD2F2', cx - 1, lado === 0 ? top + 1 : top + L - 3, 2, 2);
   }
   ctx.restore();
+};
+/* ---------- Algarrobos de Purmamarca ----------
+   ALGARROBOS = [centro x, centro y, media anchura de la reja en casilleros] (igual que genmundo4.py). El Algarrobo
+   Histórico se dibuja pixel a pixel sobre sus casilleros 'A': copa irregular, ramas retorcidas, tronco grueso y la reja. */
+const ALGARROBOS = [[137.0, 54.0, 2.0]];
+PINTORES.algarrobo = (ctx, ox, oy, x, y) => {           // algarrobo común de la plaza: copa ancha y verde grisácea
+  PINTORES.pasto(ctx, ox, oy, x, y);
+  pinta(ctx, 'rgba(0,0,0,.2)', ox + 2, oy + 12, 13, 4);
+  pinta(ctx, '#5B3F26', ox + 7, oy + 8, 2, 7); pinta(ctx, '#3E2A18', ox + 8, oy + 9, 1, 6);
+  pinta(ctx, '#3F6B3A', ox + 1, oy + 3, 14, 7); pinta(ctx, '#4F8144', ox + 3, oy + 1, 10, 5);
+  pinta(ctx, '#2F5230', ox + 2, oy + 7, 12, 3); pinta(ctx, '#6A9A58', ox + 5, oy + 2, 3, 1); pinta(ctx, '#6A9A58', ox + 10, oy + 5, 3, 1);
+  pinta(ctx, '#6B4A2B', ox + 4, oy + 5, 1, 2); pinta(ctx, '#6B4A2B', ox + 11, oy + 4, 1, 3);
+};
+PINTORES.algarroboHistorico = (ctx, ox, oy, x, y) => {
+  PINTORES.pasto(ctx, ox, oy, x, y);                                                     // jardín cercado: pasto y tierra
+  const A = ALGARROBOS.reduce((m, c) => Math.hypot(x + .5 - c[0], y + .5 - c[1]) < Math.hypot(x + .5 - m[0], y + .5 - m[1]) ? c : m);
+  const cxp = A[0] * 16, cyp = A[1] * 16, H = A[2] * 16, Rc = H * .9;
+  const hash = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); };
+  for(let py = 0; py < 16; py++) for(let px = 0; px < 16; px++){
+    const wx = x * 16 + px, wy = y * 16 + py, dx = wx + .5 - cxp, dy = wy + .5 - cyp, d = Math.hypot(dx, dy);
+    const ang = Math.atan2(dy, dx), borde = Rc * (.8 + .2 * Math.sin(ang * 4 + 1.3) + .1 * Math.sin(ang * 9));
+    const h = hash(wx, wy);
+    let col = null;
+    if(Math.max(Math.abs(dx), Math.abs(dy)) > H - 1.2){                                 // reja de hierro forjado negra
+      col = ((wx + wy) % 4 === 0) ? '#5A5F6B' : '#1E2026';
+    } else if(d < 6.5 + 1.5 * Math.sin(ang * 3)){ col = d < 3.5 ? '#3E2A18' : (h > .5 ? '#6B4A2B' : '#523820'); }   // tronco ancho y retorcido
+    else if(d < borde){
+      const giro = Math.sin(ang * 6 + d * .085 + Math.sin(ang * 2) * 2);                // ramas que se enroscan al salir del tronco
+      if(giro > .8 && d < borde * .95) col = giro > .93 ? '#6B4A2B' : '#523820';
+      else if(h < .62) col = h < .12 ? '#2A4A2B' : (h < .36 ? '#3F6B3A' : (h < .55 ? '#4F8144' : '#6A9A58'));   // hojas
+    }
+    if(!col && d < borde + 3 && d >= borde * .55 && Math.max(Math.abs(dx), Math.abs(dy)) <= H - 3.2) col = 'rgba(0,0,0,.18)';   // sombra de la copa
+    if(col) pinta(ctx, col, ox + px, oy + py, 1, 1);
+  }
 };
 PINTORES.iglesia = (ctx, ox, oy, x, y) => {           // iglesia: adobe encalado (Quebrada) o blanca (Puna)
   PINTORES.camino(ctx, ox, oy, x, y);

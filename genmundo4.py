@@ -369,11 +369,20 @@ for _y in range(47, 73):
 for _y in range(59, 66):                            # plaza empedrada con algarrobos y puestos de artesanías
     for _x in range(135, 140):
         g[_y][_x] = '.'
-for (_x, _y) in ((135, 59), (139, 59), (135, 65), (139, 65)):
-    g[_y][_x] = '#'
-g[62][137] = '*'
-for _y in (60, 62, 64):
-    g[_y][135] = 'y'; g[_y][139] = 'y'
+# Plaza 9 de Julio: llena de algarrobos (como en el satélite), con senderos en cruz y unos puestos del lado de la calle
+for _y in range(59, 66):
+    for _x in range(135, 140):
+        if _x != 137 and _y != 62:
+            g[_y][_x] = 's' if ruido(_x, _y, 230) > .22 else ','
+for _y in (60, 64):
+    g[_y][139] = 'y'
+g[62][139] = 'y'
+# Algarrobo Histórico: árbol gigante de tronco retorcido con reja de hierro forjado (4x4 casilleros, se dibuja en app.js)
+ALGARROBOS = [(137.0, 54.0, 2.0)]
+for (_ax, _ay, _h) in ALGARROBOS:
+    for _y in range(int(_ay - _h), int(_ay + _h)):
+        for _x in range(int(_ax - _h), int(_ax + _h)):
+            g[_y][_x] = 'A'
 for _x in range(135, 140):
     g[57][_x] = ','
 g[57][135] = 'D'; g[57][137] = 'I'
@@ -526,7 +535,8 @@ cartel_en(84, 14, 'Parque Nacional Calilegua: selva de yungas con tucanes, tapir
 cartel_en(66, 62, 'Cañaverales de Ledesma: acá nace el azúcar jujeño.')
 # --- Quebrada ---
 cartel_xy(136, 56, 'Iglesia de Santa Rosa de Lima, Purmamarca (1648), frente a la plaza. Al fondo, el Cerro de los Siete Colores.')
-cartel_xy(133, 56, 'Cabildo de Purmamarca, sobre la plaza. Alrededor, el mercado de artesanías.')
+cartel_xy(133, 56, 'Cabildo de Purmamarca, sobre la plaza 9 de Julio. Alrededor, el mercado de artesanías.')
+cartel_xy(139, 54, 'El Algarrobo Histórico de Purmamarca: un gigante de tronco retorcido que vio pasar la historia del pueblo. Lo cuida una reja de hierro forjado.')
 cartel_en(121, 9, 'Tilcara: pueblo de la Quebrada de Humahuaca, Patrimonio de la Humanidad.')
 cartel_en(119, 18, 'Pucará de Tilcara: ciudadela preincaica de piedra sobre la Quebrada.')
 cartel_en(131, 63, 'Cerro de los Siete Colores, Purmamarca. Las franjas son millones de años de historia.')
