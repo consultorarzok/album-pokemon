@@ -46,8 +46,10 @@ const CAMBIO_CD = 3, INVUL_ENTRADA = 1;
 const EQUIPO_MAX = 6, EQUIPO_MIN = PELEA_MIN;
 /* Premio según cómo fue la pelea: base + cada rival que tumbaste + los tuyos que quedaron
    en pie + el tiempo peleado (con tope, para que no convenga estirarla). */
-const PREMIO = {ganar:80, perder:15, porKO:20, porVivo:15, segPorMoneda:3, topeTiempo:60};
-const TOPE_MONEDAS_PELEA = 100;
+const PREMIO = {ganar:100, bonoVivos:40, bonoRapidez:20, rapidezMin:30, rapidezMax:90, perder:15, porKO:20, segPorMoneda:3, topeTiempo:60};
+/* Ganar paga de 100 a 160 según la destreza: 100 de base + hasta 40 por los tuyos que quedaron en pie + hasta 20 por la rapidez
+   (todo el bono si ganás en 30 s o menos, nada si tardás 90 s o más). Perder paga menos que ganar (tope 90). */
+const TOPE_DERROTA = 90;
 /* Tamaño de los sprites respecto del píxel del fondo: más chicos que 1:1 para
    que la arena se vea grande y quede en escala con el público y los entrenadores. */
 const ESCALA_POKE = {yo:.66, riv:.6};
@@ -2562,12 +2564,18 @@ function pintarFin(gane, pr, subidas, aviso){
 }
 
 function calcularPremio(gane){
-  const kos = AR.riv.mons.filter(m => !m.vivo).length, vivos = AR.yo.mons.filter(m => m.vivo).length;
-  const tiempo = Math.min(PREMIO.topeTiempo, Math.floor(AR.tLucha / PREMIO.segPorMoneda));
+  const kos = AR.riv.mons.filter(m => !m.vivo).length, vivos = AR.yo.mons.filter(m => m.vivo).length, n = AR.yo.mons.length;
   const lineas = [[gane ? 'Victoria' : 'Por pelear', gane ? PREMIO.ganar : PREMIO.perder]];
-  if(kos) lineas.push([`${kos} rival${kos > 1 ? 'es' : ''} derrotado${kos > 1 ? 's' : ''}`, kos * PREMIO.porKO]);
-  if(gane && vivos) lineas.push([`${vivos} de los tuyos en pie`, vivos * PREMIO.porVivo]);
-  if(tiempo) lineas.push([`${Math.round(AR.tLucha)} s de pelea`, tiempo]);
+  if(gane){
+    const bv = n ? Math.round(PREMIO.bonoVivos * vivos / n) : 0;
+    const bonoR = Math.round(PREMIO.bonoRapidez * Math.max(0, Math.min(1, (PREMIO.rapidezMax - AR.tLucha) / (PREMIO.rapidezMax - PREMIO.rapidezMin))));
+    if(bv) lineas.push([`${vivos} de ${n} de los tuyos en pie`, bv]);
+    if(bonoR) lineas.push([`Rapidez (${Math.round(AR.tLucha)} s)`, bonoR]);
+  }else{
+    const tiempo = Math.min(PREMIO.topeTiempo, Math.floor(AR.tLucha / PREMIO.segPorMoneda));
+    if(kos) lineas.push([`${kos} rival${kos > 1 ? 'es' : ''} derrotado${kos > 1 ? 's' : ''}`, kos * PREMIO.porKO]);
+    if(tiempo) lineas.push([`${Math.round(AR.tLucha)} s de pelea`, tiempo]);
+  }
   /* pokébolas: ganar da rojas; equipo completo suma una Súper y ganar sin perder a nadie, una Ultra */
   const b = {};
   if(gane){
@@ -2579,11 +2587,11 @@ function calcularPremio(gane){
   const bolasTxt = Object.keys(b).map(t => `+${b[t]} ${nombres[t]}`).join(' · ');
   /* Puntos de Maestro: sólo ganando; suman los rivales tumbados y no perder a ninguno */
   const pts = gane ? 10 + kos * 2 + (vivos === AR.yo.mons.length ? 5 : 0) : 0;
-  /* tope de 100 monedas por pelea sumando todo (mismo cálculo que el servidor) */
+  /* perder tiene tope (mismo cálculo que el servidor); ganar ya está acotado entre 100 y 160 */
   const total = lineas.reduce((a, l) => a + l[1], 0);
-  if(total > TOPE_MONEDAS_PELEA){
-    lineas.forEach(l => { l[1] = Math.floor(l[1] * TOPE_MONEDAS_PELEA / total); });
-    lineas[0][1] += TOPE_MONEDAS_PELEA - lineas.reduce((a, l) => a + l[1], 0);
+  if(!gane && total > TOPE_DERROTA){
+    lineas.forEach(l => { l[1] = Math.floor(l[1] * TOPE_DERROTA / total); });
+    lineas[0][1] += TOPE_DERROTA - lineas.reduce((a, l) => a + l[1], 0);
   }
   return {monedas:lineas.reduce((a, l) => a + l[1], 0), lineas, bolas:b, bolasTxt, pts};
 }

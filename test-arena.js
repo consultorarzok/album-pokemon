@@ -157,7 +157,7 @@ const TAMANOS = [['celular parado', 390, 844, true], ['celular acostado', 844, 3
     check('Esc pregunta si abandonar', await p.isVisible('#arAbandonar'));
     await tocar('#arAbandonar');
     check('abandonar cierra sin dar monedas', !(await p.isVisible('#arenaOverlay')) && (await p.evaluate(() => Number(document.getElementById('coinAmount').textContent))) === coins);
-    check('sin errores de JS', errores.length === 0);
+    check('sin errores de JS', errores.length === 0); if(errores.length) console.log('    errores:', errores.slice(0, 3));
     if(errores.length) console.log(errores);
     await ctx.close();
   }
