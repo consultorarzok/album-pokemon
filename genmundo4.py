@@ -359,7 +359,7 @@ salpicar(112, 147, 2, 80, '#', .05, 3)             # cardones
 for _y in range(53, 72):
     for _x in range(131, 144):
         if g[_y][_x] in ',"#':
-            g[_y][_x] = 'h' if ruido(_x, _y, 210) > .28 else ','
+            g[_y][_x] = 'h' if ruido(_x, _y, 210) > .8 else ','
 for _x in range(131, 144):
     for _y in (58, 66, 70):
         g[_y][_x] = '.'
