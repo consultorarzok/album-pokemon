@@ -4927,6 +4927,18 @@ const REGALOS = [
   /* 22/10/2026: Zeta pidió otro Charizard y otro Gengar shiny, poderosos. */
   { id: 'zeta-charizard-gengar-shiny-20261022', para: 'zeta centeno', monedas: 0,
     ejemplares: [{id:6, f:100, s:true}, {id:94, f:100, s:true}] },
+  /* 26/10/2026: Zeta pidió 6 Pokémon nuevos para pelear (los más fuertes de la Arena, shiny, fuerza 100) con ataques puestos a mano
+     [corto, medio, largo; 'Nombre|efecto' fuerza el efecto]: Lucario de lucha con los tres puños (fuego, trueno y hielo), Gengar con
+     Meteoros, y a su Mewtwo le cambia el ataque largo por Onda Mental (rayo en línea). */
+  { id: 'zeta-equipo-cheto-20261026', para: 'zeta centeno', monedas: 0,
+    ejemplares: [
+      {id:448, f:100, s:true, m:['Puño Fuego', 'Puño Trueno|rayito', 'Puño Hielo|embestida|cristal']},
+      {id:94,  f:100, s:true, m:['Puño Sombra', 'Meteoros', 'Comesueños']},
+      {id:493, f:100, s:true, m:['Velocidad Extrema', 'Tierra Viva', 'Hiperrayo']},
+      {id:384, f:100, s:true, m:['Garra Dragón', 'Pulso Dragón', 'Ascenso Draco']},
+      {id:483, f:100, s:true, m:['Cabeza de Hierro', 'Cañón Resplandor', 'Distorsión']},
+      {id:484, f:100, s:true, m:['Hidroariete', 'Pulso Dragón', 'Corte Vacío']}],
+    ajustar: [{id:150, m:[null, null, 'Onda Mental']}] },
   { id: 'zeta-quitar-mewtwo-shiny-20261022', para: 'zeta centeno', monedas: 0,
     quitar: [{id:150, f:100, s:true}], siCobro: 'zeta-mewtwo-acorazado-20261022' },
   { id: 'zeta-acorazado-especial-20261022', para: 'zeta centeno', monedas: 0, especiales: [{id:10150, f:100}] },
@@ -5012,7 +5024,9 @@ function regalarEspecie(id){
 }
 
 /* Regala UN ejemplar concreto (fuerza y shiny a medida), no uno al azar. */
-function regalarEjemplar(id, f, shiny){
+/* Ataques fijos de un ejemplar: [corto, medio, largo], cada uno 'Nombre', 'Nombre|efecto' o null (null = el de siempre). */
+const movsOk = m => Array.isArray(m) && m.length === 3 && m.every(x => x == null || (typeof x === 'string' && x.length <= 40));
+function regalarEjemplar(id, f, shiny, movs){
   const p = DATA.find(d => d.id === id);
   if(!p) return null;
   ejemplares(id);   // completa lo que ya tenía antes de sumar éste
@@ -5020,6 +5034,7 @@ function regalarEjemplar(id, f, shiny){
   if(isNew) state[id].got = true; else state[id].dup++;
   const e = nuevoEjemplar(f);
   if(shiny) e.s = true;
+  if(movsOk(movs)) e.m = movs;
   state[id].ej.push(e);
   return {p, isNew};
 }
@@ -5093,8 +5108,13 @@ function aplicarRegalos(){
       espPulls.push({p:e, isNew:nueva});
     });
     (r.ejemplares || []).forEach(x => {
-      const pull = regalarEjemplar(x.id, x.f, x.s);
+      const pull = regalarEjemplar(x.id, x.f, x.s, x.m);
       if(pull) ejPulls.push(pull);
+    });
+    (r.ajustar || []).forEach(x => {       // cambia los ataques del ejemplar más fuerte que ya tenía
+      if(!state[x.id] || !state[x.id].got || !movsOk(x.m)) return;
+      const mejor = ejemplares(x.id).reduce((m, e) => (!m || e.f > m.f || (e.f === m.f && e.s)) ? e : m, null);
+      if(mejor) mejor.m = x.m;
     });
     for(let i = 0; i < (r.faltantes || 0); i++){
       const pull = regalarFaltante();

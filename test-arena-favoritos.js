@@ -25,7 +25,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   console.log('\n— Buscador —');
   await abrir();
   const total = (await p.$$('.ar-sel')).length;
-  check('hay buscador y botones de favoritos', await p.isVisible('#arBuscar') && await p.isVisible('#arFavUsar') && await p.isVisible('#arFavGuardar'));
+  check('hay buscador y no hay botones de más', await p.isVisible('#arBuscar') && !(await p.$('#arFavUsar')) && !(await p.$('#arFavGuardar')));
   await p.fill('#arBuscar', 'pika');
   check('"pika" deja sólo a Pikachu', JSON.stringify(await ids('.ar-sel')) === '[25]');
   await p.fill('#arBuscar', '#4');
@@ -47,6 +47,8 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   check('quedan 6 favoritos guardados en el celular', JSON.stringify(await favs()) === '[1,4,7,10,25,150]');
   await marcar(12);
   check('un 7º favorito se rechaza y avisa', (await favs()).length === 6 && /Ya ten[ée]s 6/.test(await p.textContent('#arFavInfo')));
+  await p.tap('.ar-sel'); await p.waitForTimeout(100);
+  check('el aviso desaparece solo en la próxima acción', await p.$eval('#arFavInfo', e => e.hidden));
   const primeros = await ids('.ar-sel');
   check('los favoritos aparecen arriba en la lista', JSON.stringify(primeros.slice(0, 6).sort((a, b) => a - b)) === '[1,4,7,10,25,150]');
   check('la ★ de un favorito está encendida', await p.$eval('.ar-fav[data-fav="25"]', e => e.classList.contains('on')));
@@ -58,14 +60,9 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   check('al reabrir el equipo son los 6 favoritos, en orden', JSON.stringify(sel) === '[1,4,7,10,25,150]');
   await p.tap('.ar-sel.on'); await p.waitForTimeout(100);
   check('se puede cambiar el equipo (queda con 5)', (await p.$$('.ar-sel.on')).length === 5);
-  await p.tap('#arFavUsar'); await p.waitForTimeout(100);
-  check('"Usar mis favoritos" vuelve a los 6', (await p.$$('.ar-sel.on')).length === 6);
-  await p.tap('.ar-sel.on'); await p.tap('.ar-sel.on'); await p.waitForTimeout(100);
-  await p.tap('#arFavGuardar'); await p.waitForTimeout(100);
-  check('"Guardar este equipo" reemplaza los favoritos (' + (await favs()).length + ')', (await favs()).length === 4);
   const f0 = (await favs())[0];
   await p.fill('#arBuscar', '#' + f0); await p.tap(`.ar-fav[data-fav="${f0}"]`); await p.fill('#arBuscar', '');
-  check('sacar la ★ lo borra de favoritos', !(await favs()).includes(f0));
+  check('sacar la ★ lo borra de favoritos al instante', !(await favs()).includes(f0));
   await p.tap('#arPickGo'); await p.waitForSelector('#arStage', {timeout: 8000});
   check('con el equipo de favoritos se puede pelear', await p.isVisible('#arStage'));
   check('sin errores de JS', errores.length === 0);

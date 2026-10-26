@@ -1195,13 +1195,27 @@ function festejo(fuerte){
 /* ---------------- entidades ---------------- */
 /* La fuerza del ejemplar (1-100) mueve vida y golpe un ±10%: el tuyo es tu mejor
    ejemplar; el del rival se sortea como cualquier figurita nueva. */
+/* Ataques puestos a mano en un ejemplar (regalos): ej.m = [corto, medio, largo]; cada uno 'Nombre' (del catálogo),
+   'Nombre|efecto' o 'Nombre|efecto|forma'. null = el que le tocaba por su serie. */
+function movsFijos(m, base){
+  const out = Object.assign({}, base);
+  ATAQUES.forEach((alc, k) => {
+    const e = m[k]; if(!e) return;
+    const [nom, fx, forma] = String(e).split('|');
+    const d = MOVS_CAT.find(x => x[0] === nom); if(!d) return;
+    const f = fx || d[2];
+    out[alc] = {n:d[0], tipo:d[1], fx:f, forma:forma || (!fx && d[4]) || FORMA_FX[f] || 'bola'};
+  });
+  return out;
+}
 function crearMon(p, rival, ejFijo){
   const ej = ejFijo || (rival ? null : mejorEjemplar(p.id));
   const fz = ejFijo ? ejFijo.f : rival ? fuerzaRival() : ((ej || {}).f || 50);
   const k = .9 + fz / 500, bst = bstDe(p), max = Math.round((60 + bst * .22) * k);
   /* los ataques salen del número de serie del ejemplar (siempre los mismos para esa figurita);
      el rival, como no tiene ejemplar guardado, saca unos al azar en cada pelea */
-  const movs = movsDe(p, ej ? (ej.c || '') + ':' + ej.f : Math.random());
+  let movs = movsDe(p, ej ? (ej.c || '') + ':' + ej.f : Math.random());
+  if(ej && Array.isArray(ej.m)) movs = movsFijos(ej.m, movs);
   return {p, bst, max, hp:max, en:EN_MAX, vivo:true, st:statsDe(p), fz, k, vario:!!(ej && ej.s), movs};
 }
 function crearEntidad(lado){
@@ -2638,7 +2652,7 @@ function abrirArena(){
     $('arPickN').textContent = `${sel.length} de ${EQUIPO_MAX}`;
     $('arPickGo').disabled = sel.length < EQUIPO_MIN;
     const bd = $('arPickDuelo'); if(bd) bd.disabled = sel.length < EQUIPO_MIN;
-    $('arFavInfo').textContent = aviso || `⭐ ${fav.length} de ${EQUIPO_MAX} favoritos · tocá la ★ de un Pokémon para guardarlo`;
+    const av = $('arFavInfo'); av.textContent = aviso; av.hidden = !aviso;
   };
   const alternarFav = id => {
     const i = fav.indexOf(id);
@@ -2668,8 +2682,8 @@ function abrirArena(){
     root.innerHTML = `<div class="ar-pick">
       <h2>Arena Pokémon · Kanto, Johto, Hoenn y Sinnoh</h2>
       <p>Elegí tu equipo: de ${EQUIPO_MIN} a ${EQUIPO_MAX}. Sale primero el que marcaste con el 1. Pelea tu ejemplar más fuerte (💪).</p>
-      <div class="ar-busca"><input id="arBuscar" type="search" inputmode="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="🔎 Buscar por nombre, número o tipo" aria-label="Buscar Pokémon"></div>
-      <div class="ar-favbar"><button class="ar-b ar-med" id="arFavUsar"><b>⭐ Usar mis favoritos</b></button><button class="ar-b ar-med" id="arFavGuardar"><b>💾 Guardar este equipo</b></button><span id="arFavInfo"></span></div>
+      <div class="ar-busca"><input id="arBuscar" type="search" inputmode="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="🔎 Buscar" aria-label="Buscar Pokémon"></div>
+      <div class="ar-favaviso" id="arFavInfo" hidden></div>
       <div class="ar-grid" id="arGrid"></div>
       <div class="ar-pick-pie"><span id="arPickN"></span>
         <button class="ar-b ar-med" id="arPickCerrar"><b>Cerrar</b></button>
@@ -2677,17 +2691,6 @@ function abrirArena(){
       ${MODO_SERVIDOR ? `<button class="ar-b ar-duelo-btn" id="arPickDuelo"><b>👥 Duelo con un amigo${dueloPendiente ? ' · código ' + dueloPendiente : ''}</b><small>En vivo, contra su equipo real</small></button>` : ''}</div>`;
     const bq = $('arBuscar'); bq.value = q;
     bq.oninput = () => { q = bq.value; pintarLista(); };       // sólo se repinta la lista: el teclado no se cierra
-    $('arFavUsar').onclick = () => {
-      const f = fav.filter(id => mios_ids.has(id));
-      if(!f.length){ aviso = 'Todavía no tenés favoritos: tocá la ★ de un Pokémon.'; }
-      else { sel = f.slice(0, EQUIPO_MAX); aviso = ''; }
-      pintarLista();
-    };
-    $('arFavGuardar').onclick = () => {
-      if(!sel.length){ aviso = 'Elegí al menos un Pokémon para guardarlo.'; }
-      else { fav = sel.slice(0, EQUIPO_MAX); guardarFav(fav); aviso = `Listo: tu equipo quedó guardado como favoritos (${fav.length}).`; }
-      pintarLista();
-    };
     $('arPickCerrar').onclick = cerrarArena;
     $('arPickGo').onclick = () => luchar(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]));
     const bd = $('arPickDuelo');
