@@ -1,4 +1,4 @@
-/* ====================== ARENA DE BATALLA (Kanto y Johto) · tiempo real ======================
+/* ====================== ARENA DE BATALLA (Kanto, Johto, Hoenn y Sinnoh) · tiempo real ======================
    Cada uno maneja a su Pokémon por la arena (joystick o WASD) y ataca con botones:
      · Corto  = embestida con garra (pega fuerte pero hay que estar encima)
      · Medio  = proyectil con forma según el tipo (se esquiva moviéndose)
@@ -89,366 +89,603 @@ function statsDe(p){
 const MOVS_CAT = [
   ['A Bocajarro','fighting','embestida','l'],['Abrecaminos','grass','golpe','c'],['Absorber','grass','semillas','m'],['Ácido','poison','lodo','m'],
   ['Acoso','bug','bola','m'],['Acróbata','flying','golpe','c'],['Acua Cola','water','embestida','l'],['Acua Jet','water','golpe','c'],
-  ['Aerochorro','flying','rayo','l'],['Agarre','normal','garra','c'],['Agua Fría','water','chorro','m'],['Agua Lodosa','water','propia','l'],
-  ['Aguijón Letal','bug','aguijon','c'],['Aire Afilado','flying','tornado','m','medialuna'],['Ala Bis','flying','golpe','c'],
-  ['Ala de Acero','steel','golpe','c'],['Alarido','dark','onda','m'],['Alboroto','normal','propia','l'],['Allanador Férreo','steel','embestida','l'],
-  ['Alto Voltaje','electric','bola','m'],['Alud','ice','golpe','c'],['Anillo Ígneo','fire','zona','l'],['Antiaéreo','rock','piedra','m'],
-  ['Arañazo','normal','garra','c'],['Arenas Ardientes','ground','tornado','m'],['Aria Burbuja','water','propia','l'],['Arrumaco','psychic','golpe','c'],
-  ['Asalto Barrera','psychic','golpe','c'],['Ascuas','fire','bola','m','llama'],['Atadura','normal','latigo','c'],
-  ['Ataque Aéreo','flying','embestida','l'],['Ataque Ala','flying','golpe','c'],['Ataque Arena','ground','polvo','m'],
-  ['Ataque Furia','normal','picotazo','c'],['Ataque Óseo','ground','hueso','m'],['Ataque Rápido','normal','golpe','c'],['Atizar','normal','cuerpo','c'],
-  ['Autodestrucción','normal','propia','l'],['Avalancha','rock','lluvia','l','roca'],['Azote','normal','golpe','c'],
-  ['Beso Amoroso','normal','onda','m','corazon'],['Beso Drenaje','fairy','bola','m','corazon'],['Beso Dulce','fairy','onda','m','corazon'],
-  ['Bofetón Lodo','ground','lodo','m'],['Bola de Polen','bug','zona','l'],['Bola Hielo','ice','piedra','m','cristal'],
-  ['Bola Sombra','ghost','bola','m','bola'],['Bola Voltio','electric','bola','m','voltio'],['Bomba Ácida','poison','lodo','m'],
-  ['Bomba Fango','ground','lodo','m','lodo'],['Bomba Germen','grass','semillas','m'],['Bomba Huevo','normal','bola','m','huevo'],
-  ['Bomba Imán','steel','estrella','m','estrella'],['Bomba Lodo','poison','lodo','m'],['Bomba Sónica','normal','onda','m','anillo'],
-  ['Bombardeo','normal','bola','m','huevo'],['Bote','flying','cuerpo','c'],['Brillo Mágico','fairy','estrella','m','estrella'],
+  ['Aerochorro','flying','rayo','l'],['Agarre','normal','garra','c'],['Agarrón','normal','golpe','c'],['Agua Fría','water','chorro','m'],
+  ['Agua Lodosa','water','propia','l'],['Aguijón Letal','bug','aguijon','c'],['Aire Afilado','flying','tornado','m','medialuna'],['Al Ataque','bug','embestida','l'],
+  ['Ala Bis','flying','golpe','c'],['Ala de Acero','steel','golpe','c'],['Alarido','dark','onda','m'],['Alboroto','normal','propia','l'],
+  ['Allanador Férreo','steel','embestida','l'],['Alto Voltaje','electric','bola','m'],['Alud','ice','golpe','c'],['Anillo Ígneo','fire','zona','l'],
+  ['Antiaéreo','rock','piedra','m'],['Arañazo','normal','garra','c'],['Arenas Ardientes','ground','tornado','m'],['Aria Burbuja','water','propia','l'],
+  ['Arremetida','ground','embestida','l'],['Arrumaco','psychic','golpe','c'],['Asalto Barrera','psychic','golpe','c'],['Ascenso Draco','flying','embestida','l'],
+  ['Ascuas','fire','bola','m','llama'],['Atadura','normal','latigo','c'],['Ataque Aéreo','flying','embestida','l'],['Ataque Ala','flying','golpe','c'],
+  ['Ataque Arena','ground','polvo','m'],['Ataque Furia','normal','picotazo','c'],['Ataque Óseo','ground','hueso','m'],['Ataque Rápido','normal','golpe','c'],
+  ['Atizar','normal','cuerpo','c'],['Autodestrucción','normal','propia','l'],['Avalancha','rock','lluvia','l','roca'],['Azote','normal','golpe','c'],
+  ['Beso Amoroso','normal','onda','m','corazon'],['Beso Drenaje','fairy','bola','m','corazon'],['Beso Dulce','fairy','onda','m','corazon'],['Bofetón Lodo','ground','lodo','m'],
+  ['Bola de Polen','bug','zona','l'],['Bola Hielo','ice','piedra','m','cristal'],['Bola Neblina','psychic','rayo','l'],['Bola Sombra','ghost','bola','m','bola'],
+  ['Bola Voltio','electric','bola','m','voltio'],['Bomba Ácida','poison','lodo','m'],['Bomba Fango','ground','lodo','m','lodo'],['Bomba Germen','grass','semillas','m'],
+  ['Bomba Huevo','normal','bola','m','huevo'],['Bomba Imán','steel','estrella','m','estrella'],['Bomba Lodo','poison','lodo','m'],['Bomba Sónica','normal','onda','m','anillo'],
+  ['Bombardeo','normal','bola','m','huevo'],['Bote','flying','cuerpo','c'],['Brazo Pincho','grass','golpe','c'],['Brillo Mágico','fairy','estrella','m','estrella'],
   ['Brinco','bug','cuerpo','c'],['Bruma Explosiva','fairy','propia','l'],['Buceo','water','golpe','c'],['Bucle Arena','ground','tornado','m'],
-  ['Burbuja','water','burbujas','m'],['Cabeza de Hierro','steel','golpe','c'],['Cabezazo','normal','embestida','l'],
-  ['Cabezazo Zen','psychic','golpe','c'],['Canto','normal','onda','m','nota'],['Canto Encantador','fairy','onda','m','nota'],
-  ['Cañón Resplandor','steel','onda','m'],['Cara Susto','normal','onda','m'],['Carámbano','ice','agujas','m','cristal'],
-  ['Carantoña','fairy','embestida','l'],['Carga Dragón','dragon','embestida','l'],['Carga Parábola','electric','rayito','m'],
-  ['Cascada','water','golpe','c'],['Chispa','electric','golpe','c'],['Chispazo','electric','propia','l'],['Chulería','dark','golpe','c'],
-  ['Chupavidas','bug','mordisco','c'],['Chuzos','ice','lluvia','l','cristal'],['Ciclón','dragon','tornado','m'],
-  ['Ciclón de Hojas','grass','tornado','m'],['Clavo Cañón','normal','agujas','m'],['Cola Dragón','dragon','latigo','c'],
-  ['Cola Férrea','steel','embestida','l'],['Cola Veneno','poison','latigo','c'],['Cólera Ardiente','fire','golpe','c'],
-  ['Colmillo Hielo','ice','mordisco','c'],['Colmillo Ígneo','fire','mordisco','c'],['Colmillo Rayo','electric','mordisco','c'],
-  ['Colmillo Veneno','poison','mordisco','c'],['Comesueños','psychic','zona','l'],['Cometa Draco','dragon','lluvia','l','estrella'],
+  ['Burbuja','water','burbujas','m'],['Cabeza de Hierro','steel','golpe','c'],['Cabezazo','normal','embestida','l'],['Cabezazo Zen','psychic','golpe','c'],
+  ['Canto','normal','onda','m','nota'],['Canto Encantador','fairy','onda','m','nota'],['Cañón Resplandor','steel','onda','m'],['Cara Susto','normal','onda','m'],
+  ['Carámbano','ice','agujas','m','cristal'],['Carantoña','fairy','embestida','l'],['Carga Dragón','dragon','embestida','l'],['Carga Parábola','electric','rayito','m'],
+  ['Cascada','water','golpe','c'],['Cháchara','flying','bola','m'],['Chispa','electric','golpe','c'],['Chispazo','electric','propia','l'],
+  ['Chulería','dark','golpe','c'],['Chupavidas','bug','mordisco','c'],['Chuzos','ice','lluvia','l','cristal'],['Ciclón','dragon','tornado','m'],
+  ['Ciclón de Hojas','grass','tornado','m'],['Clavo Cañón','normal','agujas','m'],['Cola Dragón','dragon','latigo','c'],['Cola Férrea','steel','embestida','l'],
+  ['Cola Veneno','poison','latigo','c'],['Cólera Ardiente','fire','golpe','c'],['Colmillo Hielo','ice','mordisco','c'],['Colmillo Ígneo','fire','mordisco','c'],
+  ['Colmillo Rayo','electric','mordisco','c'],['Colmillo Veneno','poison','mordisco','c'],['Comesueños','psychic','zona','l'],['Cometa Draco','dragon','lluvia','l','estrella'],
   ['Concha Filo','water','garra','c'],['Confusión','psychic','onda','m'],['Constricción','normal','latigo','c'],['Contraataque','fighting','golpe','c'],
-  ['Cornada','normal','picotazo','c'],['Corte','normal','garra','c'],['Corte Furia','bug','garra','c'],['Cuchilla Solar','grass','embestida','l'],
-  ['Cuchillada','normal','garra','c'],['Cuerno Certero','steel','picotazo','c'],['Cuerpo Pesado','steel','cuerpo','c'],
-  ['Danza Pétalo','grass','lluvia','l','hoja'],['Demolición','fighting','golpe','c'],['Derribo','normal','embestida','l'],
-  ['Desahogo','dark','golpe','c'],['Desarme','dark','golpe','c'],['Desquite','fighting','golpe','c'],['Destructor','normal','golpe','c'],
-  ['Día de Pago','normal','monedas','m','moneda'],['Disparo Demora','bug','polvo','m'],['Disparo Espejo','steel','onda','m'],
-  ['Disparo Lodo','ground','lodo','m'],['Doble Ataque','bug','aguijon','c'],['Doble Bofetón','normal','golpe','c'],
-  ['Doble Filo','normal','embestida','l'],['Doble Golpe','normal','golpe','c'],['Doble Patada','fighting','patada','c'],
-  ['Dragoaliento','dragon','onda','m','llama'],['Dulce Aroma','normal','polvo','m'],['Electrocañón','electric','rayo','l'],
-  ['Electrotela','electric','polvo','m'],['Empujón','fighting','golpe','c'],['Energibola','grass','bola','m'],['Enfado','dragon','embestida','l'],
-  ['Envidia Ardiente','fire','bola','m','llama'],['Envite Acuático','water','embestida','l'],['Envite Ígneo','fire','embestida','l'],
-  ['Erupción de Ira','fire','embestida','l'],['Escaldar','water','chorro','m'],['Esfera Aural','fighting','bola','m','bola'],
-  ['Esfuerzo','normal','golpe','c'],['Espora','grass','polvo','m'],['Esporagodón','grass','polvo','m'],['Esquirla Helada','ice','piedra','m','cristal'],
-  ['Estallido','fire','zona','l'],['Estoicismo','bug','bola','m'],['Estrujón','normal','bola','m'],['Excavar','ground','golpe','c'],
-  ['Explosión','normal','propia','l'],['Fachada','normal','golpe','c'],['Falso Tortazo','normal','garra','c'],['Finta','dark','garra','c'],
-  ['Fisura','ground','propia','l'],['Fitoimpulso','grass','golpe','c'],['Frío Polar','ice','zona','l'],['Fuego Fatuo','fire','bola','m','llama'],
-  ['Fuego Sagrado','fire','zona','l'],['Fuerza','normal','golpe','c'],['Fuerza Bruta','fighting','embestida','l'],
-  ['Fuerza Equina','ground','embestida','l'],['Fuerza Lunar','fairy','rayo','l'],['Furia','normal','golpe','c'],
-  ['Furia Dragón','dragon','bola','m','llama'],['Furia Taurina','normal','embestida','l'],['Gancho Alto','fighting','golpe','c'],
-  ['Garra Brutal','normal','garra','c'],['Garra Dragón','dragon','garra','c'],['Garra Metal','steel','garra','c'],['Garra Umbría','ghost','garra','c'],
-  ['Gas Venenoso','poison','polvo','m'],['Gigadrenado','grass','semillas','m'],['Gigaimpacto','normal','embestida','l'],
+  ['Cornada','normal','picotazo','c'],['Corte','normal','garra','c'],['Corte Furia','bug','garra','c'],['Corte Vacío','dragon','rayo','l'],
+  ['Cuchilla Solar','grass','embestida','l'],['Cuchillada','normal','garra','c'],['Cuerno Certero','steel','picotazo','c'],['Cuerpo Pesado','steel','cuerpo','c'],
+  ['Danza Pétalo','grass','lluvia','l','hoja'],['Demolición','fighting','golpe','c'],['Derribo','normal','embestida','l'],['Desahogo','dark','golpe','c'],
+  ['Desarme','dark','golpe','c'],['Deseo Oculto','steel','rayo','l'],['Desquite','fighting','golpe','c'],['Destructor','normal','golpe','c'],
+  ['Día de Pago','normal','monedas','m','moneda'],['Disparo Demora','bug','polvo','m'],['Disparo Espejo','steel','onda','m'],['Disparo Lodo','ground','lodo','m'],
+  ['Distorsión','dragon','rayo','l'],['Doble Ataque','bug','aguijon','c'],['Doble Bofetón','normal','golpe','c'],['Doble Filo','normal','embestida','l'],
+  ['Doble Golpe','normal','golpe','c'],['Doble Patada','fighting','patada','c'],['Dragoaliento','dragon','onda','m','llama'],['Dulce Aroma','normal','polvo','m'],
+  ['Electrocañón','electric','rayo','l'],['Electrotela','electric','polvo','m'],['Empujón','fighting','golpe','c'],['Energibola','grass','bola','m'],
+  ['Enfado','dragon','embestida','l'],['Envidia Ardiente','fire','bola','m','llama'],['Envite Acuático','water','embestida','l'],['Envite Ígneo','fire','embestida','l'],
+  ['Erupción de Ira','fire','embestida','l'],['Escaldar','water','chorro','m'],['Esfera Aural','fighting','bola','m','bola'],['Esfuerzo','normal','golpe','c'],
+  ['Espada Santa','fighting','embestida','l'],['Espora','grass','polvo','m'],['Esporagodón','grass','polvo','m'],['Esquirla Helada','ice','piedra','m','cristal'],
+  ['Estallido','fire','zona','l'],['Estoicismo','bug','bola','m'],['Estruendo','normal','propia','l'],['Estrujón','normal','bola','m'],
+  ['Excavar','ground','golpe','c'],['Explosión','normal','propia','l'],['Fachada','normal','golpe','c'],['Falso Tortazo','normal','garra','c'],
+  ['Filo del Abismo','ground','embestida','l'],['Finta','dark','garra','c'],['Fisura','ground','propia','l'],['Fitoimpulso','grass','golpe','c'],
+  ['Follaje','grass','golpe','c'],['Frío Polar','ice','zona','l'],['Fuego Fatuo','fire','bola','m','llama'],['Fuego Sagrado','fire','zona','l'],
+  ['Fuerza','normal','golpe','c'],['Fuerza Bruta','fighting','embestida','l'],['Fuerza Equina','ground','embestida','l'],['Fuerza Lunar','fairy','rayo','l'],
+  ['Fulgor Semilla','grass','rayo','l'],['Furia','normal','golpe','c'],['Furia Dragón','dragon','bola','m','llama'],['Furia Taurina','normal','embestida','l'],
+  ['Gancho Alto','fighting','golpe','c'],['Garra Brutal','normal','garra','c'],['Garra Dragón','dragon','garra','c'],['Garra Metal','steel','garra','c'],
+  ['Garra Umbría','ghost','garra','c'],['Gas Venenoso','poison','polvo','m'],['Gigadrenado','grass','semillas','m'],['Gigaimpacto','normal','embestida','l'],
   ['Giro Bola','steel','cuerpo','c'],['Giro Fuego','fire','bola','m','llama'],['Giro Rápido','normal','cuerpo','c'],['Giro Vil','dark','golpe','c'],
   ['Golpe Aéreo','flying','garra','c'],['Golpe Bis','dragon','golpe','c'],['Golpe Cabeza','normal','golpe','c'],['Golpe Calor','fire','cuerpo','c'],
-  ['Golpe Cuerpo','normal','cuerpo','c'],['Golpe Fantasma','ghost','embestida','l'],['Golpe Kárate','fighting','golpe','c'],
-  ['Golpe Mordaza','dark','mordisco','c'],['Golpe Rastrero','bug','golpe','c'],['Golpe Roca','fighting','golpe','c'],
-  ['Golpes Furia','normal','garra','c'],['Guardia Baja','normal','golpe','c'],['Guillotina','normal','embestida','l'],
-  ['Hidroariete','water','golpe','c'],['Hidrobomba','water','rayo','l'],['Hidrocañón','water','rayo','l'],['Hidropulso','water','onda','m'],
-  ['Hierba Lazo','grass','latigo','c'],['Hipercolmillo','normal','mordisco','c'],['Hiperrayo','normal','rayo','l'],
-  ['Hipertaladro','normal','embestida','l'],['Hipnosis','psychic','onda','m'],['Hoja Afilada','grass','hojas','m'],['Hoja Aguda','grass','garra','c'],
-  ['Hoja Mágica','grass','hojas','m'],['Hueso Palo','ground','hueso','m'],['Huesomerang','ground','hueso','m'],['Humareda','fire','propia','l'],
-  ['Ida y Vuelta','bug','golpe','c'],['Impactrueno','electric','rayito','m'],['Impresionar','ghost','golpe','c'],['Infierno','fire','rayo','l'],
-  ['Infortunio','ghost','bola','m'],['Inversión','fighting','golpe','c'],['Joya de Luz','rock','estrella','m','estrella'],
+  ['Golpe Cuerpo','normal','cuerpo','c'],['Golpe Fantasma','ghost','embestida','l'],['Golpe Kárate','fighting','golpe','c'],['Golpe Mordaza','dark','mordisco','c'],
+  ['Golpe Rastrero','bug','golpe','c'],['Golpe Roca','fighting','golpe','c'],['Golpe Umbrío','ghost','embestida','l'],['Golpes Furia','normal','garra','c'],
+  ['Guardia Baja','normal','golpe','c'],['Guillotina','normal','embestida','l'],['Hidroariete','water','golpe','c'],['Hidrobomba','water','rayo','l'],
+  ['Hidrocañón','water','rayo','l'],['Hidropulso','water','onda','m'],['Hierba Lazo','grass','latigo','c'],['Hipercolmillo','normal','mordisco','c'],
+  ['Hiperrayo','normal','rayo','l'],['Hipertaladro','normal','embestida','l'],['Hipnosis','psychic','onda','m'],['Hoja Afilada','grass','hojas','m'],
+  ['Hoja Aguda','grass','garra','c'],['Hoja Mágica','grass','hojas','m'],['Hueso Palo','ground','hueso','m'],['Huesomerang','ground','hueso','m'],
+  ['Humareda','fire','propia','l'],['Ida y Vuelta','bug','golpe','c'],['Impactrueno','electric','rayito','m'],['Impresionar','ghost','golpe','c'],
+  ['Infierno','fire','rayo','l'],['Infortunio','ghost','bola','m'],['Inversión','fighting','golpe','c'],['Joya de Luz','rock','estrella','m','estrella'],
   ['Juego Sucio','dark','zona','l'],['Ladrón','dark','garra','c'],['Lanzallamas','fire','rayo','l'],['Lanzamugre','poison','zona','l'],
   ['Lanzarrocas','rock','piedra','m'],['Lariat Oscuro','dark','golpe','c'],['Láser Doble','psychic','rayito','m'],['Latigazo','grass','embestida','l'],
-  ['Látigo Cepa','grass','latigo','c'],['Lengüetazo','ghost','latigo','c'],['Liofilización','ice','piedra','m','cristal'],
-  ['Llama Embrujada','fire','bola','m','llama'],['Llama Final','fire','rayo','l'],['Llamarada','fire','zona','l'],['Llave Corsé','fighting','golpe','c'],
-  ['Llave Giro','fighting','cuerpo','c'],['Llave Vital','fighting','golpe','c'],['Lluevehojas','grass','lluvia','l','hoja'],
-  ['Machada','fighting','embestida','l'],['Magnitud','ground','propia','l'],['Manto Espejo','psychic','onda','m'],['Martillazo','water','zona','l'],
-  ['Mazazo','grass','embestida','l'],['Megaagotar','grass','semillas','m'],['Megacuerno','bug','embestida','l'],['Megapatada','normal','embestida','l'],
-  ['Megapuño','normal','golpe','c'],['Metaláser','steel','rayo','l'],['Meteoros','normal','estrella','m','estrella'],
-  ['Metrónomo','normal','estrella','m'],['Mil Púas Tóxicas','poison','cuerpo','c'],['Mismo Destino','ghost','zona','l'],
-  ['Moflete Estático','electric','golpe','c'],['Mordisco','dark','mordisco','c'],['Nieve Polvo','ice','tornado','m'],['Nitrocarga','fire','golpe','c'],
-  ['Onda Certera','fighting','zona','l','bola'],['Onda Ígnea','fire','propia','l'],['Onda Mental','psychic','rayo','l'],
-  ['Onda Tóxica','poison','propia','l'],['Onda Trueno','electric','rayito','m'],['Onda Vacío','fighting','onda','m','medialuna'],
-  ['Onda Voltio','electric','rayito','m'],['Pájaro Osado','flying','embestida','l'],['Palma Rauda','fighting','golpe','c'],
-  ['Pantalla de Humo','normal','polvo','m'],['Paralizador','grass','polvo','m'],['Paranormal','psychic','onda','m'],
-  ['Patada Baja','fighting','patada','c'],['Patada Giro','fighting','patada','c'],['Patada Hacha','fighting','embestida','l'],
-  ['Patada Ígnea','fire','patada','c'],['Patada Salto','fighting','embestida','l'],['Patada Salto Alta','fighting','embestida','l'],
-  ['Pataleta','ground','golpe','c'],['Pedrada','rock','piedra','m'],['Perforador','normal','embestida','l'],['Persecución','dark','golpe','c'],
-  ['Picadura','bug','mordisco','c'],['Pico Taladro','flying','picotazo','c'],['Picotazo','flying','picotazo','c'],
-  ['Picotazo Veneno','poison','aguijon','c'],['Pin Misil','bug','agujas','m'],['Pirotecnia','fire','bola','m','llama'],
+  ['Látigo Cepa','grass','latigo','c'],['Lengüetazo','ghost','latigo','c'],['Liofilización','ice','piedra','m','cristal'],['Llama Embrujada','fire','bola','m','llama'],
+  ['Llama Final','fire','rayo','l'],['Llamarada','fire','zona','l'],['Llave Corsé','fighting','golpe','c'],['Llave Giro','fighting','cuerpo','c'],
+  ['Llave Vital','fighting','golpe','c'],['Lluevehojas','grass','lluvia','l','hoja'],['Lluvia Ígnea','fire','rayo','l'],['Machada','fighting','embestida','l'],
+  ['Magnitud','ground','propia','l'],['Manto Espejo','psychic','onda','m'],['Martillazo','water','zona','l'],['Martillo Dragón','dragon','embestida','l'],
+  ['Martillo Hielo','ice','embestida','l'],['Mazazo','grass','embestida','l'],['Megaagotar','grass','semillas','m'],['Megacuerno','bug','embestida','l'],
+  ['Megapatada','normal','embestida','l'],['Megapuño','normal','golpe','c'],['Metaláser','steel','rayo','l'],['Meteoros','normal','estrella','m','estrella'],
+  ['Metrónomo','normal','estrella','m'],['Mil Púas Tóxicas','poison','cuerpo','c'],['Mismo Destino','ghost','zona','l'],['Moflete Estático','electric','golpe','c'],
+  ['Mordisco','dark','mordisco','c'],['Nieve Polvo','ice','tornado','m'],['Nitrocarga','fire','golpe','c'],['Onda Certera','fighting','zona','l','bola'],
+  ['Onda Ígnea','fire','propia','l'],['Onda Mental','psychic','rayo','l'],['Onda Tóxica','poison','propia','l'],['Onda Trueno','electric','rayito','m'],
+  ['Onda Vacío','fighting','onda','m','medialuna'],['Onda Voltio','electric','rayito','m'],['Pájaro Osado','flying','embestida','l'],['Palma Rauda','fighting','golpe','c'],
+  ['Palmeo','fighting','golpe','c'],['Pantalla de Humo','normal','polvo','m'],['Paralizador','grass','polvo','m'],['Paranormal','psychic','onda','m'],
+  ['Patada Baja','fighting','patada','c'],['Patada Giro','fighting','patada','c'],['Patada Hacha','fighting','embestida','l'],['Patada Ígnea','fire','patada','c'],
+  ['Patada Salto','fighting','embestida','l'],['Patada Salto Alta','fighting','embestida','l'],['Pataleta','ground','golpe','c'],['Pedrada','rock','piedra','m'],
+  ['Perforador','normal','embestida','l'],['Persecución','dark','golpe','c'],['Picadura','bug','mordisco','c'],['Pico Taladro','flying','picotazo','c'],
+  ['Picotazo','flying','picotazo','c'],['Picotazo Veneno','poison','aguijon','c'],['Pin Misil','bug','agujas','m'],['Pirotecnia','fire','bola','m','llama'],
   ['Pirueta Helada','ice','patada','c'],['Pisotón','normal','cuerpo','c'],['Pistola Agua','water','chorro','m'],['Placaje','normal','golpe','c'],
-  ['Placaje Eléctrico','electric','embestida','l'],['Plancha','bug','cuerpo','c'],['Plancha Corporal','fighting','cuerpo','c'],
-  ['Plancha Voltaica','electric','embestida','l'],['Planta Feroz','grass','zona','l'],['Plumerazo','normal','latigo','c'],
-  ['Poder Oculto','normal','estrella','m','estrella'],['Poder Pasado','rock','piedra','m'],['Poder Reserva','psychic','bola','m'],
-  ['Poltergeist','ghost','embestida','l'],['Polución','poison','polvo','m'],['Polvo Veneno','poison','polvo','m'],
-  ['Premonición','psychic','lluvia','l','estrella'],['Prensa Metálica','steel','golpe','c'],['Presente','normal','bola','m','huevo'],
-  ['Psicoataque','psychic','zona','l'],['Psicocarga','psychic','onda','m'],['Psicocolmillo','psychic','mordisco','c'],
-  ['Psicocorte','psychic','garra','c'],['Psicoonda','psychic','onda','m'],['Psicorrayo','psychic','onda','m','arcoiris'],
-  ['Psicorruido','psychic','onda','m'],['Psíquico','psychic','zona','l'],['Pulpocañón','water','chorro','m'],['Pulso de Campo','normal','bola','m'],
-  ['Pulso Dragón','dragon','bola','m','llama'],['Pulso Umbrío','dark','bola','m'],['Puntapié','fighting','patada','c'],['Puño Bala','steel','golpe','c'],
-  ['Puño Cometa','normal','golpe','c'],['Puño Dinámico','fighting','embestida','l'],['Puño Drenaje','fighting','golpe','c'],
-  ['Puño Fuego','fire','golpe','c'],['Puño Furia','ghost','golpe','c'],['Puño Hielo','ice','golpe','c'],['Puño Incremento','fighting','golpe','c'],
-  ['Puño Mareo','normal','golpe','c'],['Puño Meteoro','steel','embestida','l'],['Puño Sombra','ghost','golpe','c'],
-  ['Puño Trueno','electric','golpe','c'],['Puya Nociva','poison','aguijon','c'],['Ráfaga Escamas','dragon','golpe','c'],['Rayo','electric','rayo','l'],
-  ['Rayo Aurora','ice','onda','m','arcoiris'],['Rayo Burbuja','water','burbujas','m'],['Rayo Carga','electric','rayito','m'],
+  ['Placaje Eléctrico','electric','embestida','l'],['Plancha','bug','cuerpo','c'],['Plancha Corporal','fighting','cuerpo','c'],['Plancha Voltaica','electric','embestida','l'],
+  ['Planta Feroz','grass','zona','l'],['Plumerazo','normal','latigo','c'],['Poder Místico','psychic','bola','m'],['Poder Oculto','normal','estrella','m','estrella'],
+  ['Poder Pasado','rock','piedra','m'],['Poder Reserva','psychic','bola','m'],['Poltergeist','ghost','embestida','l'],['Polución','poison','polvo','m'],
+  ['Polvo Veneno','poison','polvo','m'],['Premonición','psychic','lluvia','l','estrella'],['Prensa Metálica','steel','golpe','c'],['Presente','normal','bola','m','huevo'],
+  ['Psicoataque','psychic','zona','l'],['Psicocarga','psychic','onda','m'],['Psicocolmillo','psychic','mordisco','c'],['Psicocorte','psychic','garra','c'],
+  ['Psicoonda','psychic','onda','m'],['Psicorrayo','psychic','onda','m','arcoiris'],['Psicorruido','psychic','onda','m'],['Psíquico','psychic','zona','l'],
+  ['Pulpocañón','water','chorro','m'],['Pulso de Campo','normal','bola','m'],['Pulso Dragón','dragon','bola','m','llama'],['Pulso Primigenio','water','rayo','l'],
+  ['Pulso Umbrío','dark','bola','m'],['Puntapié','fighting','patada','c'],['Puño Bala','steel','golpe','c'],['Puño Cometa','normal','golpe','c'],
+  ['Puño Dinámico','fighting','embestida','l'],['Puño Drenaje','fighting','golpe','c'],['Puño Fuego','fire','golpe','c'],['Puño Furia','ghost','golpe','c'],
+  ['Puño Hielo','ice','golpe','c'],['Puño Incremento','fighting','golpe','c'],['Puño Mareo','normal','golpe','c'],['Puño Meteoro','steel','embestida','l'],
+  ['Puño Sombra','ghost','golpe','c'],['Puño Trueno','electric','golpe','c'],['Puya Nociva','poison','aguijon','c'],['Ráfaga Escamas','dragon','golpe','c'],
+  ['Rayo','electric','rayo','l'],['Rayo Aurora','ice','onda','m','arcoiris'],['Rayo Burbuja','water','burbujas','m'],['Rayo Carga','electric','rayito','m'],
   ['Rayo Confuso','ghost','onda','m'],['Rayo Hielo','ice','rayo','l'],['Rayo Meteórico','rock','rayo','l'],['Rayo Señal','bug','onda','m'],
   ['Rayo Solar','grass','rayo','l'],['Represalia','normal','golpe','c'],['Resarcimiento','dark','golpe','c'],['Residuos','poison','lodo','m'],
-  ['Restricción','normal','latigo','c'],['Retribución','normal','golpe','c'],['Roca Afilada','rock','lluvia','l','roca'],['Rodar','rock','cuerpo','c'],
-  ['Rodillo de Púas','bug','golpe','c'],['Rueda Fuego','fire','cuerpo','c'],['Salmuera','water','chorro','m'],['Salpicadura','normal','burbujas','m'],
-  ['Salpicar','water','propia','l'],['Saña','normal','embestida','l'],['Semilladora','grass','semillas','m'],['Sísmico','fighting','zona','l'],
-  ['Sofoco','fire','zona','l'],['Sombra Vil','ghost','bola','m'],['Somnífero','grass','polvo','m'],['Sumisión','fighting','cuerpo','c'],
-  ['Superdiente','normal','mordisco','c'],['Supersónico','normal','onda','m'],['Surf','water','propia','l'],
-  ['Tajo Aéreo','flying','tornado','m','medialuna'],['Tajo Cruzado','fighting','embestida','l'],['Tajo Umbrío','dark','garra','c'],
-  ['Taladradora','ground','picotazo','c'],['Telaraña','bug','polvo','m'],['Tenaza','water','garra','c'],['Teraexplosión','normal','estrella','m'],
-  ['Terratemblor','ground','suelo','m'],['Terremoto','ground','propia','l'],['Testarazo','rock','embestida','l'],['Tierra Viva','ground','suelo','m'],
-  ['Tijera X','bug','garra','c'],['Tinieblas','ghost','onda','m'],['Torbellino','water','tornado','m'],['Tormenta Floral','grass','lluvia','l','hoja'],
-  ['Tornado','flying','tornado','m'],['Transformación','normal','estrella','m'],['Treparrocas','normal','embestida','l'],
-  ['Triataque','normal','estrella','m','estrella'],['Triple Axel','ice','golpe','c'],['Triple Patada','fighting','patada','c'],
+  ['Resplandor','psychic','rayo','l'],['Restricción','normal','latigo','c'],['Retribución','normal','golpe','c'],['Roca Afilada','rock','lluvia','l','roca'],
+  ['Rodar','rock','cuerpo','c'],['Rodillo de Púas','bug','golpe','c'],['Romperrocas','rock','rayo','l'],['Rueda Fuego','fire','cuerpo','c'],
+  ['Salmuera','water','chorro','m'],['Salpicadura','normal','burbujas','m'],['Salpicar','water','propia','l'],['Saña','normal','embestida','l'],
+  ['Semilladora','grass','semillas','m'],['Sentencia','normal','rayo','l'],['Sísmico','fighting','zona','l'],['Sofoco','fire','zona','l'],
+  ['Sombra Vil','ghost','bola','m'],['Somnífero','grass','polvo','m'],['Sumisión','fighting','cuerpo','c'],['Superdiente','normal','mordisco','c'],
+  ['Supersónico','normal','onda','m'],['Surf','water','propia','l'],['Tajo Acuático','water','golpe','c'],['Tajo Aéreo','flying','tornado','m','medialuna'],
+  ['Tajo Cruzado','fighting','embestida','l'],['Tajo Umbrío','dark','garra','c'],['Taladradora','ground','picotazo','c'],['Telaraña','bug','polvo','m'],
+  ['Tenaza','water','garra','c'],['Teraexplosión','normal','estrella','m'],['Terratemblor','ground','suelo','m'],['Terremoto','ground','propia','l'],
+  ['Testarazo','rock','embestida','l'],['Tierra Viva','ground','suelo','m'],['Tijera X','bug','garra','c'],['Tinieblas','ghost','onda','m'],
+  ['Torbellino','water','tornado','m'],['Tormenta Floral','grass','lluvia','l','hoja'],['Tornado','flying','tornado','m'],['Transformación','normal','estrella','m'],
+  ['Treparrocas','normal','embestida','l'],['Triataque','normal','estrella','m','estrella'],['Triple Axel','ice','golpe','c'],['Triple Patada','fighting','patada','c'],
   ['Triturar','dark','mordisco','c'],['Trueno','electric','trueno','l'],['Tumba Rocas','rock','piedra','m'],['Ultrapuño','fighting','golpe','c'],
-  ['Vaho Gélido','ice','tornado','m'],['Vasta Fuerza','psychic','bola','m'],['Vasto Impacto','dragon','golpe','c'],
-  ['Velocidad Extrema','normal','golpe','c'],['Vendaval','flying','lluvia','l','pluma'],['Vendetta','dark','golpe','c'],
-  ['Veneno X','poison','garra','c'],['Ventisca','ice','lluvia','l','cristal'],['Viento Aciago','ghost','tornado','m'],
-  ['Viento Cortante','normal','lluvia','l'],['Viento Feérico','fairy','tornado','m'],['Viento Hielo','ice','tornado','m'],
+  ['Vaho Gélido','ice','tornado','m'],['Vasta Fuerza','psychic','bola','m'],['Vasto Impacto','dragon','golpe','c'],['Velocidad Extrema','normal','golpe','c'],
+  ['Vendaval','flying','lluvia','l','pluma'],['Vendetta','dark','golpe','c'],['Veneno X','poison','garra','c'],['Ventisca','ice','lluvia','l','cristal'],
+  ['Viento Aciago','ghost','tornado','m'],['Viento Cortante','normal','lluvia','l'],['Viento Feérico','fairy','tornado','m'],['Viento Hielo','ice','tornado','m'],
   ['Viento Plata','bug','tornado','m'],['Viraje','water','golpe','c'],['Voltio Cruel','electric','embestida','l'],['Voto Agua','water','chorro','m'],
   ['Voto Fuego','fire','bola','m','llama'],['Voto Planta','grass','bola','m'],['Voz Cautivadora','fairy','onda','m'],['Vozarrón','normal','propia','l'],
   ['Vuelo','flying','embestida','l'],['Zumbido','bug','rayo','l']
 ];
-const MOVS_APR = `1 212,271,186.2,146.2,1.2,98.3,29.3,171.3/191,50,325.1,163.1,193.1,227.2,53.2,336.2/322,211,106,117,104.1,221.1,379.1,64.1;
-2 212,271,186.2,146.2,1.2,98.3,29.3,171.3/191,50,227.2,53.2,163.2,336.2,193.2,125.2/322,211,106,117,104.1,221.2,126.3;
-3 212,271,312.2,186.2,146.2,1.2,98.3,29.3/191,50,227.2,53.2,163.2,336.2,193.2,125.2/322,104,211,359,106,117,276.2,221.2;
-4 88,23,154,179,101,160,31.1,237.1/28,166,267,155,120,279.1,13.1,297.1/206,129,200,38.1,126.1,84.1,72.1,217.2;
-5 88,23,154,179,101,160,237.1,96.1/28,166,267,155,120,279.1,386.2,232.3/206,129,200,84.1,72.1,217.2,241.2,338.2;
-6 31,88,23,96,154,179,101,160/28,166,345,267,155,120,279.1,13.2/206,241,129,200,84.1,72.1,390.2,217.2;
-7 171,271,237,167,7.1,39.1,74.2,60.2/270,316,62,185,332.1,94.1,224.1,132.1/183,6,128,64,334.1,11.1,344.2,229.3;
-8 171,271,237,167,7.1,39.1,74.2,60.2/270,316,62,185,224.1,358.2,332.2,131.2/183,6,128,64,334.1,344.2,11.2,229.3;
-9 7,171,271,237,167,39.1,74.2,60.2/270,316,62,185,68,224.1,358.2,332.2/183,6,128,64,334.1,344.2,184.2,11.2;
-10 262,271/123.3/262!embestida,123.3!embestida,271!embestida;11 262.2/123.3/262.2!embestida,123.3!embestida;
-12 262,271,169.2,197.2,5.2,14.2,171.3,154.3/360,382,345,292,94,13.2,321.2,138.2/391,374.2,44.2,379.3,106.3,117.3,188.3,322.3;
-13 265,262/123.3/262!embestida,123.3!embestida,265!embestida;14 262.2/123.3/262.2!embestida,123.3!embestida;
-15 265,115,99,312,262,12,33,264/266,53.2,382.2,138.2,4.2,227.3,232.3,163.3/126,106.3,117.3,188.3,322.3,64.3,164.3;
-16 31,271,35,169,144.1,15.1,261.1,171.2/360,345,80,13.1,232.2,278.2,43.3,378.3/379,374,17.1,247.1,390.2,106.2,117.2,30.2;
-17 31,271,35,169,171.2,154.2,327.2,142.2/360,345,80,232.2,278.2,13.2,43.3,378.3/379,374,390.2,106.2,117.2,30.2,17.2,241.3;
-18 31,271,35,169,171.2,154.2,327.2,142.2/360,345,80,232.2,278.2,13.2,43.3,378.3/379,30,374,241,390.2,106.2,117.2,188.2;
-19 271,35,187,342,133,237,261,366/232.2,278.2,270.3,316.3,53.3,43.3,381.3,46.3/106,117,17.1,64.2,319.3,377.3,314.3,367.3;
-20 271,35,179,187,342,133,237,96/232.2,278.2,270.3,316.3,53.3,43.3,381.3,46.3/106,117,188.2,64.2,17.2,164.2,319.3,377.3;
-21 31,33,264,263,169,261,35.1,143.1/363.1,232.2,278.2,13.2,43.3,80.3,378.3/106,379.1,30.1,17.1,390.2,117.2,241.3;
-22 31,33,264,263,35,169,261,348/232.2,363.2,278.2,13.2,43.3,80.3,378.3/106,30,379.2,390.2,117.2,188.2,17.2,164.2;
-23 265,312,36,95,237,90.1,85.1,261.1/3,53,48,49,227.3,43.3,163.3,278.3/207,84.1,243.2,106.3,117.3,353.3,145.3,64.3;
-24 265,312,36,95,237,366,89,87/3,53,48,49,227.3,43.3,163.3,278.3/207,243.2,106.3,117.3,188.3,353.3,145.3,64.3;
-25 75,236,36,119,35,311.2,230.3,171.3/198,47,232,246.2,317.2,123.2,19.2,111.3/314,367,76,384,84,122.2,272.2,229.3;
-26 311,75,236,36,35,230.3,171.3,173.3/198,47,232,246.2,317.2,123.2,19.2,111.3/314,367,76,84,122.2,384.2,229.3,106.3;
-27 140,23,265,179,101,329,99,167/61,352,232,43.1,114.1,355.2,24.2,278.3/353,223,38.1,362.1,145.2,152.2,106.3,117.3;
-28 140,23,265,96,179,101,329,99/61,352,232,43.1,114.2,355.2,24.2,266.3/353,223,145.2,152.2,106.3,117.3,188.3,337.3;
-29 265,90,23,119,271,237,179,342/355,53.2,43.3,278.3,246.3,185.3/106.1,64.1,84.1,117.3,319.3,377.3,314.3,367.3;
-30 265,90,23,119,271,237,179,342/355,53.2,270.3,316.3,43.3,278.3,246.3,185.3/260.3,106.3,117.3,319.3,377.3,314.3,367.3,64.3;
-31 265,23,119,271,173,237,96,179/355,53.2,43.2,61.2,114.2,352.2,24.2,111.3/243,151,353.2,145.2,152.2,229.3,260.3,106.3;
-32 265,312,119,97,33,271,264,85.1/355,94.1,53.2,43.3,278.3,246.3,185.3/260,106.1,335.1,84.1,354.1,117.3,319.3,377.3;
-33 265,312,119,97,33,271,264,98.3/355,53.2,270.3,316.3,43.3,278.3,246.3,185.3/260,106.3,117.3,319.3,377.3,314.3,367.3,64.3;
-34 265,312,119,97,33,271,264,96/355,53.2,43.2,61.2,114.2,352.2,24.2,111.3/243,335,228,353.2,145.2,152.2,229.3,260.3;
-35 110,116,271,173,230.3,304.3,306.3,311.3/388,41,380,280,286.1,57.2,67.2,270.3/153,117,294,309,71.2,59.2,229.3,106.3;
-36 110,116,271,230.3,304.3,306.3,311.3,171.3/388,41,380,280,286.1,57.2,67.2,270.3/153,117,294,309,71.2,59.2,229.3,106.3;
-37 331,271,35,144,375,239.1,39.1,277.1/28,166,267,251,201,125.1,215.2,127.2/206,217,200,241.1,129.1,338.2,106.3,117.3;
-38 331,271,35,239.1,39.1,171.3,173.3,140.3/28,166,251,201,215.2,127.2,357.3,232.3/206,217,200,241.2,338.2,129.2,106.3,117.3;
-39 110,116,173,329,165,230.2,171.2,150.2/388,232.2,363.2,278.2,41.2,57.2,351.2,67.2/117,389,71,229.2,106.2,37.2,64.2,17.2;
-40 110,116,173,165,230.2,171.2,150.2,154.2/388,232.2,363.2,278.2,41.2,57.2,351.2,67.2/117,389,71,229.2,106.2,188.2,37.2,64.2;
-41 31,90,376,5,237,78,199,35.1/360,13,345,2,232,163.1,53.2,227.3/247.1,390.2,379.3,106.3,117.3,17.3,241.3;
-42 31,90,376,5,237,35,78,366/360,13,345,2,232,53.2,227.3,163.3/390.2,247.2,379.3,106.3,117.3,188.3,17.3,241.3;
-43 39.1,186.2,146.2,1.2,98.3,171.3,154.3,327.3/3,2,227,191,163,53.2,336.2,193.2/322,104,153,221.2,106.3,117.3;
-44 39.1,186.2,146.2,1.2,98.3,171.3,154.3,327.3/3,2,227,191,163,53.2,336.2,193.2/322,104,359,153,221.2,106.3,117.3,44.3;
-45 39.1,186.2,146.2,1.2,98.3,171.3,173.3,154.3/3,2,227,163,191.1,53.2,336.2,193.2/322,104,359,153,221.2,243.2,100.2,106.3;
-46 78,99,356,23,179,101,262.1,12.1/2,163,125,292.1,227.2,336.2,50.2,138.2/322.2,106.3,117.3,64.3;
-47 78,99,356,23,179,101,376,186.2/2,163,125,227.2,336.2,50.2,138.2,53.3/322.2,106.3,117.3,188.3,64.3,164.3;
-48 78,90,271,65,262.1,273.2,177.2,58.2/321,138,292,227,94,163.1,53.2,48.2/391,294,106.3,117.3,322.3;
-49 78,90,271,65,197.2,262.2,273.2,177.2/382,321,138,360,292,227,94,345/391,294,243.2,379.3,106.3,117.3,188.3,322.3;
-50 140,23,179,101,199,171.1,202.1,144.1/43,355,49,352,279.1,61.2,114.2,24.2/353,145,223,38.1,17.1,106.3,117.3,328.3;
-51 140,23,179,101,199,347,258.2,98.3/43,61,355,49,352,363,114.2,24.2/353,145,223,152.2,106.3,117.3,188.3,38.3;
-52 23,179,101,237,144,347,39.1,98.2/111,232.2,278.2,351.2,270.3,316.3,43.3,381.3/71,84.1,204.1,106.2,117.2,64.2,17.2,389.2;
-53 23,179,101,237,144,347,98.2,171.2/111,232,203,278.2,351.2,270.3,316.3,43.3/71,106.2,117.2,188.2,64.2,17.2,389.2,164.2;
-54 23,179,65,74.2,60.2,182.2,383.2,230.3/270,62,185,292,94,49.1,316.2,358.2/183,344,6,319.1,294.1,346.1,284.1,11.2;
-55 7,23,179,65,74.2,60.2,182.2,383.2/270,62,185,292,94,316.2,358.2,332.2/183,344,6,11.2,229.3,106.3,117.3,319.3;
-56 175,252,23,179,261,197,323,258/43,245.2,111.3,232.3,278.3,368.3,50.3,22.3/337,346,0,335,64,126,38.1,302.2;
-57 175,252,96,23,154,179,261,197/43,245.2,111.3,232.3,278.3,368.3,50.3,22.3/337,346,0,335,64,126,302.2,240.2;
-58 331,88,237,202,366,323,119.1,173.1/28,267,166.1,155.3,232.3,43.3,120.3,278.3/206,241,129,106,126,71,216.1,130.1;
-59 331,88,237,202,366,373,89,323/28,166.2,155.3,232.3,43.3,120.3,278.3,297.3/206,129,216,106,117,71,217.2,241.2;
-60 110,116,173,252,133.1,74.2,60.2,182.2/270,316,62,114,355,49,185.1,45.1/183,117,11.1,344.2,106.3,319.3,377.3,294.3;
-61 110,116,173,252,133.1,74.2,60.2,182.2/270,316,62,114,355,49,185.1,358.2/183,117,11.1,344.2,229.3,106.3,319.3,377.3;
-62 341,219,110,116,173,133.1,252.2,96.2/270,316,62,114,355,185.1,358.2,245.2/183,302,151,117,11.1,344.2,337.2,0.2;
-63 304.1,306.1,311.1,108.1,65.2,230.3,171.3,173.3/94.1,291.2,288.2,232.3,363.3,278.3,46.3,321.3/294.2,91.2,229.3,106.3,117.3,337.3,64.3,122.3;
-64 290,65,230.3,304.3,306.3,311.3,171.3,173.3/292,94,288,357,291.2,371.2,232.3,363.3/294,284,91.2,229.3,106.3,117.3,337.3,64.3;
-65 290,65,230.3,304.3,306.3,311.3,171.3,173.3/292,94,288,357,291.2,280.2,371.2,232.3/294,284,91.2,229.3,106.3,117.3,188.3,337.3;
-66 175,341,252,369,220,178,109,105/245.2,43.3,278.3,368.3,22.3,352.3/337,302,346,151,0,117,38.1,240.2;
-67 175,341,252,369,220,178,109,105/245.2,43.3,278.3,368.3,22.3,352.3/337,302,346,151,0,117,240.2,229.3;
-68 175,341,252,96,369,220,178,109/245.2,43.3,278.3,368.3,259.3,22.3,352.3/337,302,346,151,0,117,240.2,229.3;
-69 212,312,36,95,108,78.1,186.2,146.2/3,191,139,163.1,336.1,193.1,48.1,227.2/211,322.2,221.2,243.2,106.3,117.3;
-70 212,312,36,95,108,186.2,146.2,1.2/3,191,139,227.2,53.2,163.2,336.2,193.2/211,322.2,221.2,243.2,106.3,117.3;
-71 212,192,312,36,95,78,108,186.2/3,191,81,227.2,53.2,163.2,336.2,193.2/221,211,322.2,243.2,106.3,117.3,188.3,164.3;
-72 265,312,95,326,167.1,108.1,74.2,60.2/3,270,316,62,185,332,48,139/183,344,243,11.1,207.2,106.3,117.3,319.3;
-73 265,312,95,326,167.1,108.1,74.2,60.2/3,270,316,62,185,332,48,224/183,344,243,11.2,207.2,106.3,117.3,319.3;
-74 329,271,230.1,39.1,140.2,258.2,304.3,311.3/208,43,259,22,352,279.2,368.2,114.2/353,38,223,328,106,117,37,141;
-75 329,271,230.1,39.1,140.2,258.2,304.3,311.3/208,43,259,22,352,279.2,368.2,114.2/353,38,223,328,106,117,37,141;
-76 329,230,271,103,330,39.1,140.2,258.2/208,43,259,22,352,279.2,368.2,114.2/353,38,223,328,106,117,37,141;
-77 331,239,269,119,271,35,56,118/28,166,215.2,232.3,278.3/217,129,200,106,117,260.1,335.1,152.1;
-78 331,239,269,119,33,271,35,56/28,166,215.2,111.3,232.3,278.3,24.3/217,129,200,260,106,117,228,206.2;
-79 65,171,271,269.1,74.2,60.2,182.2,173.3/270,94,185,292.2,316.2,291.2,358.2,332.2/344,294,284.1,183.2,91.2,6.2,106.3,117.3;
-80 65,269,171,271,74.2,60.2,93.2,182.2/270,94,185,292.2,316.2,291.2,358.2,332.2/344,294,284.1,183.2,91.2,11.2,6.2,229.3;
-81 75,165,271,63.2,103.2,171.3,154.3,329.3/198,113,68,52,47,54,232,123.1/314,367,122,76,141.1,384.2,231.2,106.3;
-82 75,165,271,63.2,103.2,171.3,154.3,329.3/198,113,68,52,47,54,232,363/314,367,122,76,384.2,231.2,106.3,117.3;
-83 98,33,264,35,101,143,169,5/13,345,191,360.1,43.1,232.2,278.2,80.3/30,247,379.2,390.2,106.2,117.2,64.2,17.2;
-84 31,33,264,263,35,154,133,118/363,232.2,278.2,13.2,351.2,43.3/335,17,256,30.1,247.1,390.2,106.2,117.2;
-85 31,33,264,263,35,154,133,118/363,232.2,278.2,13.2,351.2,43.3/335,17,256,30.1,390.2,106.2,117.2,188.2;
-86 74,60,7,171,36.1,264.1,213.1,383.2/270,332,315,381,136,185.1,321.1,70.1/6,106,117,319,260.1,84.1,183.2,344.2;
-87 74,60,7,171,213.1,20.2,182.2,383.2/270,316,315,381,332,136,321,358.2/319,147,6,260,106,117,183.2,344.2;
-88 110,213.1,310.1,307.1,312.2,304.3,306.3,311.3/282,325,53,43,114,49,48.1,339.1/207,243,141.1,106.3,206.3,314.3,367.3,37.3;
-89 110,312.2,304.3,306.3,311.3,171.3,173.3,150.3/282,325,53,43,114,49,48.2,227.3/207,243,153,106.3,206.3,188.3,314.3,367.3;
-90 350,93,271,115.1,167.1,20.1,74.2,60.2/270,358,332,315,70,136,316.1,185.1/183,319,106.1,344.2,117.3,377.3,37.3,141.3;
-91 350,93,271,115,74.2,60.2,20.2,182.2/270,315,358,70,136,82,316.2,381.2/183,319,79,344.2,377.2,106.3,117.3,188.3;
-92 213,199,375,304.1,306.1,311.1,312.2,171.3/357,282,46,201,298,291.1,53.2,378.2/91,141.1,207.2,243.2,281.2,314.3,367.3,294.3;
-93 213,199,310,375,312.2,161.2,304.3,306.3/357,282,46,201,298,53.2,378.2,48.2/91,207.2,243.2,174.2,281.2,314.3,367.3,294.3;
-94 213,199,310,375,312.2,161.2,230.3,304.3/357,282,46,201,298,53.2,378.2,48.2/91,207.2,243.2,174.2,281.2,229.3,106.3,117.3;
-95 140,329,29,36,271,154,165,39.1/208,368,61,22,352,120,259.1,43.2/353,38,328,152,117,84,354.1,141.1;
-96 65,110,171,290.1,304.1,306.1,311.1,230.3/292,94,288,291.2,280.2,371.2,293.2,357.3/294,91,284,229.3,106.3,117.3,337.3,64.3;
-97 65,110,171,230.3,304.3,306.3,311.3,173.3/292,94,288,291.2,280.2,371.2,293.2,357.3/294,91,284,229.3,106.3,117.3,188.3,337.3;
-98 93,9,36,269,39,160,140.1,101.1/270,316,62,332,114,279.1,358.2,185.2/225,181,222.1,344.2,106.3,117.3,319.3,377.3;
-99 93,9,36,269,39,160,60.2,182.2/270,316,62,332,114,358.2,185.2,131.2/225,181,222,183.2,344.2,106.3,117.3,319.3;
-100 75,271,329,165,171.3,154.3,205.3,327.3/198,317,47,54,232,224,246.2,123.2/314,76,37,141,367.2,122.2,384.2,106.3;
-101 75,271,329,165,171.3,154.3,205.3,327.3/198,317,47,54,232,224,246.2,123.2/314,76,37,141,367.2,122.2,384.2,275.2;
-102 65.2,186.2,146.2,171.3,150.3,154.3,205.3,329.3/292,2,227,94,163,251,336,55/322,294,17,221.1,91.2,106.3,117.3,37.3;
-103 269,290.2,65.2,186.2,146.2,171.3,173.3,252.3/2,227,94,163,251,336,50,288/322,221,211,226,17,294.2,91.2,284.2;
-104 258,171,154,143,133,323,119.1,63.1/194,195,43,34,279.1,355.2,352.2,24.2/335,117,64.1,38.1,353.2,145.2,229.3,106.3;
-105 258,171,154,143,133,323,140.2,230.3/194,195,43,34,355.2,352.2,24.2,270.3/335,117,353.2,145.2,229.3,106.3,206.3,319.3;
-106 119,253,252,202,109,105,299,271/245.1,132.2,232.3,43.3,278.3,368.3,352.3,351.3/256,257,0,254,229,337.2,302.2,151.2;
-107 96,369,109,157,303,307,301,230/245,232,132.2,43.3,278.3,368.3,352.3,351.3/0,257.1,337.2,302.2,240.2,229.3,106.3,117.3;
-108 29,36,269,271,95,180,213,329/139,3,352,278.2,296.2,270.3,316.3,43.3/335,117,164,211,223.1,11.1,222.1,229.2;
-109 271,165,171.3,173.3,154.3,205.3,329.3,327.3/282,325,53,292.1,291.1,48.2,278.3,46.3/37,141,207.2,243.2,106.3,206.3,314.3,367.3;
-110 271,165,118,171.3,173.3,154.3,205.3,329.3/282,325,53,292,48.2,278.3,46.3,246.3/37,141,241,207.2,243.2,106.3,206.3,188.3;
-111 348,269,97,33,271,178,180,96.1/208,259,22,352,43.2,279.2,368.2,114.2/353,38,328,152,260,106,117,228;
-112 348,269,97,33,271,96,366,178/208,259,22,352,43.2,279.2,368.2,114.2/353,38,328,152,260,106,117,228;
-113 110,116,271,96.1,230.2,171.2,173.2,150.2/51,388,41,380,286.1,49.1,232.2,363.2/106,117,337.1,229.2,188.2,64.2,17.2,389.2;
-114 212,29,36,326,108,118,39.1,133.1/2,227,163,125,94,279,139,48/211,221.1,322.2,106.3,117.3,188.3,64.3,164.3;
-115 110,301,230,269,171,154,308,118/278.2,296.2,270.3,316.3,43.3,381.3,46.3,358.3/126,117.1,17.1,222.1,229.2,106.2,188.2,64.2;
-116 74,39.1,60.2,182.2,383.2,171.3,154.3,327.3/270,316,62,185,332,120,80,297/183,11.1,379.1,126.1,344.2,106.3,117.3,319.3;
-117 74,39.1,60.2,182.2,383.2,171.3,154.3,327.3/270,316,62,185,332,120,80,297/183,344.2,11.2,106.3,117.3,319.3,377.3,188.3;
-118 74,97,33,264,35,39,173.1,60.2/185,292.1,43.1,321.1,114.1,270.2,316.2,358.2/260,228,183.1,6.1,64.1,344.2,11.2,106.3;
-119 74,97,33,264,35,39,312,60.2/185,292,270.2,316.2,358.2,131.2,232.3,43.3/260,64,228,183.2,344.2,11.2,6.2,106.3;
-120 271,167,165,74.2,60.2,383.2,171.3,154.3/270,316,332,292,232,291,203,315.1/183,344,294,106.3,117.3,319.3,377.3,314.3;
-121 271,167,74.2,60.2,290.2,383.2,171.3,154.3/270,292,316,291,332,232,203,358.2/183,344,294,91.2,106.3,117.3,319.3,377.3;
-122 65,110,116,230.3,304.3,306.3,311.3,171.3/292,94,291,57,193,381.1,288.2,280.2/294,284.1,91.2,229.3,106.3,117.3,188.3,337.3;
-123 31,99,169,356,35,101,143,261/382,345,245,13.2,138.2,232.3,278.3,378.3/379,0,391.1,106.3,117.3,188.3,64.3,164.3;
-124 306,20,26,110,116,173,213,290.2/94,238,139,41,291.2,381.2,70.2,288.2/377,294,335,319.2,91.2,284.2,229.3,106.3;
-125 311,75,252,35,230.3,304.3,306.3,171.3/198,246,47,232,317.2,123.2,19.2,291.3/314,367,76,164,302.1,346.1,222.1,122.2;
-126 304,331,271,252,144,369.1,239.2,172.2/28,166,267,282,127.2,291.3,43.3,278.3/206,217,196,188,302.1,346.1,241.2,338.2;
-127 356,262,9,29,341,150,101,220/138.2,278.3,368.3,22.3,352.3/181,335,337,151,0.1,106.3,117.3,188.3;
-128 269,97,271,154,261,375,65,133.1/278.2,351.2,381.3,46.3,358.3,368.3,246.3,185.3/106,335,117,164,156,126,260.2,188.2;129 271,39,56.3/333.5/183.2;
-130 74,29,271,237,154,39,366,87/358,185,332,155,80,270.2,316.2,131.2/183,6,374,335,188,126,344.2,11.2;
-131 173,20.1,74.2,60.2,182.2,171.3,150.3,154.3/270,185,332,136,297,315.1,358.1,214.1/183,344,319,377,147,25.1,260.1,145.1;
-132 361.5!golpe/361.5/361.5!embestida,361.5!embestida;
-133 271,35,119,237,39.1,171.2,173.2,154.2/232,43.1,280.1,111.2,278.2,351.2,46.3,67.3/106,117,64.2,389.2,84.3;
-134 119,271,237,35,74.2,60.2,182.2,383.2/270,62,185,315,232,316.2,358.2,332.2/183,11,6,106,117,344.2,319.3,377.3;
-135 89,119,271,237,35,171.3,173.3,150.3/198,266,232,246.2,317.2,47.2,123.2,19.2/314,367,76,106,117,122.2,384.2,188.3;
-136 88,119,271,237,35,154,239.2,86.2/28,166,282,232,215.2,127.2,111.3,43.3/206,217,129,196,106,117,241.2,338.2;
-137 271,75,171.2,154.2,327.2,142.2,205.3,169.3/363,292,198,321,232.2,278.2,351.2,291.3/117,188,314,122,76,106.2,64.2,164.2;
-138 329,29,97,237,326,36.1,108.1,74.2/270,208,279,259,332,82,114,316.1/183,344,38,11.1,320.2,106.3,117.3,319.3;
-139 329,29,97,237,326,366,74.2,60.2/270,208,279,259,332,82,114,316.2/183,344,38,11.2,328.2,320.2,260.3,106.3;
-140 7,182,23,78,101,140.1,39.1,167.1/208,279,332,2,227,114,139,316.1/183,38,328,106.1,344.2,320.2,117.3,319.3;
-141 7,182,23,78,101,99,347,74.2/208,279,332,2,227,114,139,270.2/183,38,328,344.2,6.2,320.2,379.3,229.3;
-142 31,237,366,89,87,88,63,15.1/208,279,120.1,13.2,368.2,259.2,22.2,155.3/390,38,328,106,188,164,30.2,374.2;
-143 171,271,173,39,180,237,213,329/352,111.2,278.2,296.2,351.2,270.3,316.3,291.3/117,188,164,151,222,152,145.1,229.2;
-144 264,169.2,20.2,364.2,14.2,268.2,171.3,154.3/360,238,136,214,224,279,381.2,13.2/319,377,30,147,374,390.2,247.2,379.3;
-145 264,263,169.2,5.2,14.2,171.3,154.3,15.3/198,279,13.2,246.2,317.2,47.2,19.2,232.3/314,367,30,122,76,390.2,247.2,384.2;
-146 31,264,169.2,239.2,5.2,14.2,86.2,171.3/360,28,166,345,279,13.2,215.2,127.2/206,30,241,338,374,216,322,390.2;
-147 83,36,95,373.1,7.1,372.2,313.2,29.3/155,80,120.1,297.1,185.1,270.3,316.3,166.3/126,72,188,6,84.1,92.2,106.3,117.3;
-148 83,36,95,372.2,313.2,29.3,171.3,173.3/155,80,120.2,297.2,270.3,316.3,166.3,232.3/126,72,188,6,92.2,260.3,106.3,117.3;
-149 31,83,304,311,36,95,373,7/155,80,120.2,13.2,345.2,297.2,270.3,316.3/126,72,374,188,6,390.2,92.2,379.3;
-150 290,65.2,230.3,304.3,306.3,311.3,171.3,173.3/292,94,291,232,279,132,288.2,280.2/294,284,242,91.2,229.3,106.3,117.3,206.3;
-151 110,230,290.2,65.2,289.2,304.3,306.3,311.3/94,291,232,279,132,292.2,288.2,280.2/294,91.2,284.2,379.3,390.3,229.3,260.3,106.3;
-152 271,173,212.1,96.1,39.1,186.2,146.2,1.2/191,163,193,279.1,139.1,336.2,50.2,125.2/322,221.1,100.2,106.3,117.3,84.3;
-153 271,173,212.1,96.1,39.1,186.2,146.2,1.2/191,163,193,279.1,336.2,50.2,125.2,387.2/322,221.2,100.2,106.3,117.3,84.3;
-154 271,173,212.1,96.1,39.1,186.2,146.2,1.2/191,163,193,279.1,336.2,50.2,125.2,387.2/322,104,359,276.2,221.2,100.2,106.3,117.3;
-155 331,239,271,35,329,119.1,341.1,179.1/28,232,267.1,251.1,166.2,386.2,127.2,43.3/206,137,338,196,200,216,117,129.1;
-156 331,239,271,35,329,119.1,202.1,88.2/28,232,251.1,166.2,386.2,127.2,43.3,278.3/206,137,338,196,200,216,117,217.2;
-157 331,239,271,35,329,165,119.1,202.1/28,232,251.1,166.2,386.2,127.2,357.3,43.3/206,137,338,196,200,216,117,217.2;
-158 23,237,252,154,101,39,366,87/270,43,185.1,279.1,358.2,131.2,385.2,10.2/183,6,335,151,379.1,38.1,344.2,11.2;
-159 23,237,252,154,101,39,366,87/270,43,279.1,358.2,185.2,131.2,385.2,10.2/183,6,335,151,344.2,11.2,229.3,106.3;
-160 23,237,252,154,101,39,366,87/270,43,279.1,358.2,185.2,131.2,385.2,10.2/183,6,335,151,344.2,184.2,11.2,229.3;
-161 23,36,271,35,179,202,101.1,261.1/232.2,278.2,351.2,43.3,46.3,358.3,246.3,185.3/117,389,84.1,106.2,17.2,206.3,344.3,319.3;
-162 23,36,35,179,202,101.1,98.2,171.2/232.2,278.2,351.2,43.3,46.3,358.3,246.3,185.3/117,389,106.2,188.2,17.2,164.2,206.3,344.3;
-163 271,264,65,31.1,144.1,327.2,142.2,169.2/345,94,251,357.1,232.2,278.2,13.2,351.2/106,17,91,153,30.1,374.1,390.2,117.2;
-164 271,264,65,31.1,173.2,327.2,142.2,169.2/345,94,251,357.1,232.2,278.2,13.2,351.2/106,30,17,91,153,390.2,117.2,188.2;
-165 301,271,369,262.1,96.1,308.1,108.1,303.1/382,345,138,232,292.1,13.2,4.2,163.3/391,117,322.3,302.3,17.3;
-166 301,271,369,169.2,197.2,262.2,5.2,230.3/382,345,138,232,13.2,4.2,163.3,278.3/391,117,188.3,322.3,302.3,17.3,240.3,164.3;
-167 265,78,312,376,326,179,115.1,273.1/266,4,2,357,339,321.1,54.1,292.1/294,228.1,391.2,243.2,117.3,322.3,204.3;
-168 265,78,312,376,262,12,326,179/266,4,2,357,339,53.2,321.2,48.2/294,228.1,391.2,243.2,117.3,188.3,322.3,164.3;
-169 31,90,376,5,237,78,199,169.2/360,13,345,2,232,53.2,163.3,278.3/390.2,30.2,247.2,374.2,117.3,188.3,17.3,241.3;
-170 75,39,74.2,60.2,182.2,383.2,327.3,142.3/270,316,62,47,321,358.1,246.1,185.1/183,76,106,344.2,314.2,367.2,122.2,11.2;
-171 75,39,74.2,60.2,182.2,383.2,327.3,142.3/270,316,62,47,321,185.1,292.1,358.2/183,76,106,344.2,314.2,367.2,122.2,11.2;
-172 75,236,35,311.1,116.1,39.1,202.1,230.3/198,232,286.1,388.1,246.2,317.2,47.2,123.2/314,367,84,272.1,122.2,384.2,229.3,106.3;
-173 110,271,230.3,171.3,173.3,96.3,140.3,329.3/388,41,380,193,286.1,280.1,57.2,67.2/153,117,294,71.2,229.3,206.3,337.3,322.3;
-174 110,144.1,329.1,230.2,171.2,173.2,327.2,142.2/388,286.1,232.2,278.2,41.2,57.2,351.2,67.2/229.2,106.2,117.2,17.2,389.2,71.2,206.3,337.3;
-175 110,271,264.1,169.1,230.3,171.3,173.3,96.3/41,380,279,251,286.1,280.1,57.2,232.3/153,117,284.1,71.2,229.3,206.3,337.3,322.3;
-176 110,271,169.2,14.2,230.3,171.3,173.3,96.3/13,345,41,380,279,251,193,57.2/153,117,390.2,30.2,71.2,229.3,206.3,188.3;
-177 264,263.1,65.1,35.1,144.1,15.1,169.2,14.2/280,357,378,13.2,345.2,288.2,371.2,232.3/294,284,91.2,30.2,117.3,322.3,241.3;
-178 264,169.2,65.2,14.2,205.3,15.3,327.3,142.3/345,280,357,378,13.2,288.2,371.2,232.3/294,284,390.2,91.2,30.2,117.3,188.3,322.3;
-179 271,173.1,171.3,140.3,327.3,142.3,133.3,1.3/198,317,47,321,203,57,123.1,246.2/367,76,106,314.1,84.1,122.2,384.2,117.3;
-180 271,311.2,230.3,304.3,306.3,171.3,173.3,252.3/198,317,47,321,203,57,246.2,123.2/367,76,106,314.2,122.2,384.2,229.3,117.3;
-181 311,304,271,230.3,306.3,171.3,173.3,252.3/198,317,47,321,297,203,57,246.2/367,122,76,106,314.2,384.2,275.2,229.3;
-182 192,39.1,186.2,146.2,1.2,98.3,327.3,142.3/2,227,163,193,3,191.1,336.2,50.2/322,104,221,359,153,100.2,117.3,188.3;
-183 36,271,329,56,7.1,173.1,74.2,60.2/270,316,62,286.1,358.2,185.2,131.2,388.2/183,6,71,117,151,11.1,284.1,344.2;
-184 36,271,329,56,74.2,60.2,182.2,230.3/270,316,62,358.2,185.2,131.2,388.2,41.2/183,6,71,117,151,344.2,11.2,59.2;
-185 329,36,271,252,96,39,144,171.1/208,368,61.1,259.2,203.2,22.2,43.3,278.3/38,328,354,117,222,226,37.1,320.2;
-186 110,116,173,56,133.1,74.2,60.2,182.2/270,316,114,355,185.1,358.2,131.2,10.2/183,117,389,11.1,344.2,229.3,106.3,319.3;
-187 56,5,271,197,169.2,186.2,1.2,171.3/2,227,163,336,380,50.1,111.1,94.1/117.1,322.2,221.2,106.3,44.3;
-188 56,5,271,197,169.2,186.2,1.2,171.3/2,227,163,336,380,193.2,50.2,125.2/322.2,221.2,106.3,117.3,44.3;
-189 56,5,271,197,169.2,186.2,1.2,171.3/2,227,163,336,380,193.2,50.2,125.2/322.2,221.2,106.3,117.3,188.3,164.3,44.3;
-190 23,35,179,118,199,116.1,36.1,277.1/232,49,278.2,351.2,43.3,46.3,114.3,246.3/117,84,229.2,106.2,17.2,337.3,322.3,314.3;
-191 271,133,186.2,1.2,98.3,327.3,142.3/2,227,191,163,50,336.2,193.2,125.2/322,117,221.2,106.3,17.3;
-192 110,271,133,186.2,146.2,1.2,98.3,327.3/2,227,191,163,336,50,193.2,125.2/322,104,221,359,117,106.3,188.3,17.3;
-193 31,169,197,262,271,35,261,78.1/360,13,382,345,54,232,279,321.1/391,17,117.1,106.3,322.3,294.3,91.3;
-194 36,119.1,173.1,96.1,307.1,140.2,74.2,60.2/270,114,49,279.1,48.1,43.2,358.2,185.2/353,11,6,183.2,344.2,106.3,117.3,319.3;
-195 36,140.2,74.2,60.2,258.2,182.2,230.3,306.3/270,114,49,43.2,358.2,185.2,355.2,131.2/353,11,6,183.2,344.2,152.2,229.3,106.3;
-196 271,237,35,65.2,289.2,98.3,171.3,173.3/292,94,232,288.2,280.2,371.2,293.2,111.3/294,284,106,117,91.2,188.3,122.3,84.3;
-197 237,144,261,271,35,205.2,366.2,375.2/298,16,232,111.3,43.3,278.3,46.3,280.3/204,106,117,188.3,294.3,91.3,122.3,84.3;
-198 31,264,144,261,169,347,199,263.1/360,13,298,345,16,357,232.3,43.3/204,30.1,247.1,390.2,374.2,106.3,117.3,188.3;
-199 65,171,271,74.2,60.2,93.2,182.2,230.3/270,94,185,278,203,292.2,358.2,332.2/344,294,284.1,183.2,91.2,11.2,6.2,229.3;
-200 199,375,171.3,205.3,327.3,142.3,169.3,186.3/46,339,201,292,94,291,251,203/174.2,281.2,117.3,188.3,314.3,367.3,294.3,91.3;
-201 278!golpe/278/278!embestida,278!embestida;202 96/224/235.5;
-203 269,271,65,118,366,199,289.1,119.1/292,94,210,224.1,232.2,278.2,288.2,280.2/294,379.1,106.1,284.1,17.1,117.2,188.2,91.2;
-204 262,271,329,167,165,375,96.1,39.1/266.1,232.1,61.1,138.2,163.3,278.3,368.3,259.3/106,117,37,141,391.2,322.3,353.3,38.3;
-205 165,262,103,271,329,167,375,63.2/113,321.2,68.2,138.2,232.3,163.3,278.3,368.3/106,117,37,141,122,391.2,231.2,188.3;
-206 173,154,39,133,140,329,261,348/43,279,345,201.1,278.2,296.2,351.2,46.3/106,117,189,72,38.1,6.1,188.2,17.2;
-207 169,5,265,35,101,144,99,108/43,49,61.1,114.2,355.2,352.2,232.3,53.3/353,181,225,379.1,117.1,362.1,152.2,106.3;
-208 140,165,29,36,271,154,329,366/61,352,208,120,368,22,43.2,355.2/84,152,117,38,328,353.2,231.2,18.2;
-209 171,271,237,154,213,366,375,89/286.1,57.2,53.3,43.3,278.3,46.3,246.3,185.3/71,106,117.1,0.1,229.3,206.3,337.3,322.3;
-210 171,271,237,154,213,366,375,89/286.1,57.2,53.3,43.3,278.3,46.3,368.3,246.3/71,106,126,229.3,117.3,206.3,188.3,337.3;
-211 265,312,271,329,109,12,7.1,234.1/270,62,332,266,316.1,185.1,48.1,321.1/183,6,106,37.1,344.2,207.2,243.2,117.3;
-212 99,160,356,300,63,31,35,101/382,345,68.2,138.2,232.3,278.3,13.3,61.3/379,0,391.2,231.2,106.3,117.3,188.3,151.3;
-213 329,262,95,326,108.1,177.2,29.3,171.3/208,138,259.1,4.1,3.1,43.1,61.1,279.2/38,328,320.2,117.3,353.3,243.3,18.3;
-214 96,202,178,105,124,97,33,271/266,336,259.1,245.2,138.2,278.3,368.3,22.3/228,0,106,335,117,337.1,391.2,240.2;
-215 144,23,35,179,101,160,312,306.1/381,136,232,70.2,298.2,16.2,43.3,278.3/377,79.1,319.2,204.2,229.3,106.3,117.3,344.3;
-216 23,271,179,101,213,144,375,180.1/352,232.2,278.2,351.2,43.3,368.3,50.3,22.3/335,117,71,152,106.1,337.1,346.1,0.1;
-217 23,271,179,101,213,144,375,230.2/352,232.2,278.2,351.2,43.3,368.3,50.3,22.3/335,117,222,71,152,229.2,106.2,188.2;
-218 173,329.1,239.2,172.2,86.2,327.3,178.3,142.3/28,267,208,282,279,355,166.2,43.3/206,196,38,241.1,200.1,217.2,338.2,106.3;
-219 173,329.1,239.2,172.2,86.2,150.3,327.3,178.3/28,208,279,267,282,355,166.2,368.2/206,38,196,200.1,217.2,241.2,338.2,129.2;
-220 271,39,20.1,173.1,237.1,140.2,87.2,258.2/238,43,381,136,49,352,279,70.1/377,353,79,152,106,117,145.1,38.1;
-221 87,97,33,271,264,39,237.1,140.2/238,43,381,136,49,352,279,214.1/377,353,79,152,106,335,117,145.1;
-222 271,39,182.1,329.2,171.3,173.3,150.3,140.3/270,316,62,279,259,332,203,82/38.1,354.1,183.2,344.2,328.2,320.2,117.3,319.3;
-223 39.1,74.2,60.2,205.3,327.3,142.3,56.3/270,316,62,185,292,315,321,336/183,319,188,334.1,344.2,117.3,206.3,377.3;
-224 95,326,74.2,60.2,182.2,29.3,205.3,327.3/270,316,62,295,185,292,315,321/183,319,188,207,344.2,117.3,206.3,377.3;
-225 263,306.1,96.1,35.1,167.1,169.2,56.2,20.2/286,315.1,381.1,45.1,136.1,214.1,13.2,70.2/284.1,390.2,319.2,377.2,30.2,247.2,229.3,106.3;
-226 31,169,56,171,271,36.1,74.2,60.2/270,316,62,185,345,292,321,336/183,106,117,38.1,344.2,6.2,374.2,319.3;
-227 31,264,263,15,160,33,101,375/13,345,232,68.2,43.3,381.3,278.3,80.3/247,30.1,390.2,374.2,231.2,106.3,117.3,188.3;
-228 237,144,366,375,88,239,324,261.1/28,282,166.1,298.2,16.2,127.2,232.3,53.3/206,204,200,217.2,241.2,338.2,129.2,106.3;
-229 237,144,366,375,88,239,324,89/28,282,166.2,298.2,16.2,127.2,232.3,53.3/206,204,200,217.2,241.2,338.2,129.2,106.3;
-230 39.1,74.2,60.2,182.2,372.2,313.2,383.2,171.3/270,316,62,120,80,358,185,332/183,128,344.2,126.2,11.2,92.2,106.3,117.3;
-231 36,271,39,329,173.1,96.1,133.1,103.1/352,43.1,270.1,279.1,136.1,61.2,114.2,355.2/106,117,145.1,152.1,354.1,71.1,353.2,38.3;
-232 258,36,97,33,271,39,329,167/352,368,43.2,61.2,114.2,355.2,278.3,279.3/353,223,106,117,164,152.2,188.3,38.3;
-233 271,327.2,142.2,205.3,169.3,65.3/363,292,198,321,232.2,278.2,351.2,381.3/188,122,76,106.2,117.2,164.2,319.3,377.3;
-234 269,271,199,65,273,27,154.1,119.1/94,251,232.2,278.2,351.2,292.3,43.3,46.3/106,117,256,335.1,228.1,188.2,17.2,164.2;235 //;
-236 271,96.1,369.1,261.1,167.1,300.1,252.2,178.2/245.1,232.3,43.3,278.3,352.3,351.3/257.1,337.2,229.3,106.3,117.3,353.3,38.3,17.3;
-237 253,96,365,109,271,140,35,261/245.1,232.3,43.3,278.3,80.3,352.3,351.3/0,257.1,337.2,240.2,229.3,106.3,117.3,353.3;
-238 306,20,26,110,213,65.2,230.3,173.3/94,238,381.2,288.2,280.2,370.2,43.3,278.3/377,294,319.2,91.2,229.3,117.3,337.3,302.3;
-239 311,75,252,35,175.1,304.1,306.1,253.1/198,246,47,232,317.2,123.2,43.3,278.3/314,367,76,302.1,346.1,222.1,122.2,384.2;
-240 304,331,271,252,144,175.1,230.1,311.1/28,166,267,282,127.2,43.3,278.3,48.3/206,217,196,129.1,302.1,84.1,346.1,241.2;
-241 269,171,271,173,329,165,65,308.1/286.1,278.2,43.3,381.3,46.3,358.3,368.3,246.3/71,152,117.1,337.1,222.1,229.2,188.2,164.2;
-242 110,116,271,230.2,171.2,173.2,150.2,327.2/51,388,41,380,286.1,232.2,363.2,278.2/106,117,337.1,229.2,188.2,17.2,389.2,164.2;
-243 75,89,237,35,366,373,98.3,171.3/198,251,246.2,317.2,47.2,123.2,19.2,232.3/367,122,76,314.2,384.2,275.2,106.3,117.3;
-244 331,88,269,237,366,373,239.2,98.3/28,166,251,232.3,43.3,278.3,46.3,352.3/206,217,149,137,196,241.2,338.2,129.2;
-245 237,366,373,87,74.2,60.2,182.2,98.3/270,316,185,360,315,224,251,358.2/183,344,377,147,106.3,117.3,319.3,188.3;
-246 258,271,237,366,375,180,269.1,261.1/208,22,298,279.1,43.2,368.2,61.2,114.2/353,38,328,335,188,126.1,84.1,106.3;
-247 258,271,237,366,375,180,140.2,171.3/208,22,298,43.2,279.2,368.2,61.2,114.2/353,38,328,335,188,152.2,106.3,117.3;
-248 237,366,375,271,89,87,88,180/208,298,22,279.2,368.2,259.2,203.2,16.2/38,328,335,188,353,164,204.2,229.3;
-249 169.2,65.2,5.2,14.2,171.3,173.3,150.3,74.3/360,251,232,279,13.2,345.2,288.2,293.2/30,8,284,183,72,390.2,294.2,91.2;
-250 169.2,239.2,14.2,173.3,150.3,15.3,327.3,178.3/360,232,279,251,166.2,13.2,345.2,215.2/217,30,149,338,247,216,284,390.2;
-251 192.2,290.2,65.2,186.2,146.2,98.3,327.3,142.3/94,193,279,163.2,50.2,125.2,371.2,232.3/284,221,322.2,294.2,91.2,100.2,117.3,188.3`;
+const MOVS_APR = `1 228,291,202.2,159.2,1.2,105.3,33.3,186.3/207,55,347.1,178.1,209.1,246.2,58.2,360.2/344,227,114,127,112.1,237.1,405.1,70.1;
+2 228,291,202.2,159.2,1.2,105.3,33.3,186.3/207,55,246.2,58.2,178.2,360.2,209.2,135.2/344,227,114,127,112.1,237.2,136.3;
+3 228,291,334.2,202.2,159.2,1.2,105.3,33.3/207,55,246.2,58.2,178.2,360.2,209.2,135.2/344,112,227,385,114,127,296.2,237.2;
+4 95,25,169,195,109,175,35.1,256.1/32,181,287,170,130,300.1,14.1,318.1/222,139,216,42.1,136.1,91.1,78.1,233.2;
+5 95,25,169,195,109,175,256.1,103.1/32,181,287,170,130,300.1,412.2,251.3/222,139,216,91.1,78.1,233.2,260.2,363.2;
+6 35,95,25,103,169,195,109,175/32,181,371,287,170,130,300.1,14.2/222,260,139,216,91.1,78.1,416.2,233.2;
+7 186,291,256,182,7.1,43.1,80.2,66.2/290,338,68,201,356.1,101.1,241.1,142.1/199,6,138,70,358.1,12.1,369.2,248.3;
+8 186,291,256,182,7.1,43.1,80.2,66.2/290,338,68,201,241.1,384.2,356.2,141.2/199,6,138,70,358.1,369.2,12.2,248.3;
+9 7,186,291,256,182,43.1,80.2,66.2/290,338,68,201,74,241.1,384.2,356.2/199,6,138,70,358.1,369.2,200.2,12.2;
+10 282,291/133.3/282!embestida,133.3!embestida,291!embestida;
+11 282.2/133.3/282.2!embestida,133.3!embestida;
+12 282,291,184.2,213.2,5.2,16.2,186.3,169.3/386,408,371,313,101,14.2,343.2,149.2/417,400.2,48.2,405.3,114.3,127.3,204.3,344.3;
+13 285,282/133.3/282!embestida,133.3!embestida,285!embestida;
+14 282.2/133.3/282.2!embestida,133.3!embestida;
+15 285,125,106,334,282,13,37,284/286,58.2,408.2,149.2,4.2,246.3,251.3,178.3/136,114.3,127.3,204.3,344.3,70.3,179.3;
+16 35,291,39,184,157.1,17.1,281.1,186.2/386,371,87,14.1,251.2,299.2,47.3,404.3/405,400,19.1,266.1,416.2,114.2,127.2,34.2;
+17 35,291,39,184,186.2,169.2,350.2,154.2/386,371,87,251.2,299.2,14.2,47.3,404.3/405,400,416.2,114.2,127.2,34.2,19.2,260.3;
+18 35,291,39,184,186.2,169.2,350.2,154.2/386,371,87,251.2,299.2,14.2,47.3,404.3/405,34,400,260,416.2,114.2,127.2,204.2;
+19 291,39,203,367,143,256,281,392/251.2,299.2,290.3,338.3,58.3,47.3,407.3,51.3/114,127,19.1,70.2,341.3,403.3,336.3,393.3;
+20 291,39,195,203,367,143,256,103/251.2,299.2,290.3,338.3,58.3,47.3,407.3,51.3/114,127,204.2,70.2,19.2,179.2,341.3,403.3;
+21 35,37,284,283,184,281,39.1,155.1/389.1,251.2,299.2,14.2,47.3,87.3,404.3/114,405.1,34.1,19.1,416.2,127.2,260.3;
+22 35,37,284,283,39,184,281,374/251.2,389.2,299.2,14.2,47.3,87.3,404.3/114,34,405.2,416.2,127.2,204.2,19.2,179.2;
+23 285,334,40,102,256,97.1,92.1,281.1/3,58,53,54,246.3,47.3,178.3,299.3/223,91.1,262.2,114.3,127.3,379.3,158.3,70.3;
+24 285,334,40,102,256,392,96,94/3,58,53,54,246.3,47.3,178.3,299.3/223,262.2,114.3,127.3,204.3,379.3,158.3,70.3;
+25 82,255,40,129,39,333.2,249.3,186.3/214,52,251,265.2,339.2,133.2,21.2,120.3/336,393,83,410,91,132.2,292.2,248.3;
+26 333,82,255,40,39,249.3,186.3,188.3/214,52,251,265.2,339.2,133.2,21.2,120.3/336,393,83,91,132.2,410.2,248.3,114.3;
+27 152,25,285,195,109,352,106,182/67,378,251,47.1,123.1,381.2,26.2,299.3/379,240,42.1,388.1,158.2,166.2,114.3,127.3;
+28 152,25,285,103,195,109,352,106/67,378,251,47.1,123.2,381.2,26.2,286.3/379,240,158.2,166.2,114.3,127.3,204.3,362.3;
+29 285,97,25,129,291,256,195,367/381,58.2,47.3,299.3,265.3,201.3/114.1,70.1,91.1,127.3,341.3,403.3,336.3,393.3;
+30 285,97,25,129,291,256,195,367/381,58.2,290.3,338.3,47.3,299.3,265.3,201.3/280.3,114.3,127.3,341.3,403.3,336.3,393.3,70.3;
+31 285,25,129,291,188,256,103,195/381,58.2,47.2,67.2,123.2,378.2,26.2,120.3/262,165,379.2,158.2,166.2,248.3,280.3,114.3;
+32 285,334,129,104,37,291,284,92.1/381,101.1,58.2,47.3,299.3,265.3,201.3/280,114.1,359.1,91.1,380.1,127.3,341.3,403.3;
+33 285,334,129,104,37,291,284,105.3/381,58.2,290.3,338.3,47.3,299.3,265.3,201.3/280,114.3,127.3,341.3,403.3,336.3,393.3,70.3;
+34 285,334,129,104,37,291,284,103/381,58.2,47.2,67.2,123.2,378.2,26.2,120.3/262,359,247,379.2,158.2,166.2,248.3,280.3;
+35 119,126,291,188,249.3,326.3,328.3,333.3/414,45,406,301,307.1,63.2,73.2,290.3/167,127,315,331,77.2,65.2,248.3,114.3;
+36 119,126,291,249.3,326.3,328.3,333.3,186.3/414,45,406,301,307.1,63.2,73.2,290.3/167,127,315,331,77.2,65.2,248.3,114.3;
+37 355,291,39,157,401,258.1,43.1,297.1/32,181,287,271,217,135.1,231.2,137.2/222,233,216,260.1,139.1,363.2,114.3,127.3;
+38 355,291,39,258.1,43.1,186.3,188.3,152.3/32,181,271,217,231.2,137.2,383.3,251.3/222,233,216,260.2,363.2,139.2,114.3,127.3;
+39 119,126,188,352,180,249.2,186.2,164.2/414,251.2,389.2,299.2,45.2,63.2,377.2,73.2/127,415,77,248.2,114.2,41.2,70.2,19.2;
+40 119,126,188,180,249.2,186.2,164.2,169.2/414,251.2,389.2,299.2,45.2,63.2,377.2,73.2/127,415,77,248.2,114.2,204.2,41.2,70.2;
+41 35,97,402,5,256,85,215,39.1/386,14,371,2,251,178.1,58.2,246.3/266.1,416.2,405.3,114.3,127.3,19.3,260.3;
+42 35,97,402,5,256,39,85,392/386,14,371,2,251,58.2,246.3,178.3/416.2,266.2,405.3,114.3,127.3,204.3,19.3,260.3;
+43 43.1,202.2,159.2,1.2,105.3,186.3,169.3,350.3/3,2,246,207,178,58.2,360.2,209.2/344,112,167,237.2,114.3,127.3;
+44 43.1,202.2,159.2,1.2,105.3,186.3,169.3,350.3/3,2,246,207,178,58.2,360.2,209.2/344,112,385,167,237.2,114.3,127.3,48.3;
+45 43.1,202.2,159.2,1.2,105.3,186.3,188.3,169.3/3,2,246,178,207.1,58.2,360.2,209.2/344,112,385,167,237.2,262.2,108.2,114.3;
+46 85,106,382,25,195,109,282.1,13.1/2,178,135,313.1,246.2,360.2,55.2,149.2/344.2,114.3,127.3,70.3;
+47 85,106,382,25,195,109,402,202.2/2,178,135,246.2,360.2,55.2,149.2,58.3/344.2,114.3,127.3,204.3,70.3,179.3;
+48 85,97,291,71,282.1,293.2,192.2,64.2/343,149,313,246,101,178.1,58.2,53.2/417,315,114.3,127.3,344.3;
+49 85,97,291,71,213.2,282.2,293.2,192.2/408,343,149,386,313,246,101,371/417,315,262.2,405.3,114.3,127.3,204.3,344.3;
+50 152,25,195,109,215,186.1,218.1,157.1/47,381,54,378,300.1,67.2,123.2,26.2/379,158,240,42.1,19.1,114.3,127.3,351.3;
+51 152,25,195,109,215,373,278.2,105.3/47,67,381,54,378,389,123.2,26.2/379,158,240,166.2,114.3,127.3,204.3,42.3;
+52 25,195,109,256,157,373,43.1,105.2/120,251.2,299.2,377.2,290.3,338.3,47.3,407.3/77,91.1,220.1,114.2,127.2,70.2,19.2,415.2;
+53 25,195,109,256,157,373,105.2,186.2/120,251,219,299.2,377.2,290.3,338.3,47.3/77,114.2,127.2,204.2,70.2,19.2,415.2,179.2;
+54 25,195,71,80.2,66.2,198.2,409.2,249.3/290,68,201,313,101,54.1,338.2,384.2/199,369,6,341.1,315.1,372.1,305.1,12.2;
+55 7,25,195,71,80.2,66.2,198.2,409.2/290,68,201,313,101,338.2,384.2,356.2/199,369,6,12.2,248.3,114.3,127.3,341.3;
+56 190,272,25,195,281,213,345,278/47,264.2,120.3,251.3,299.3,394.3,55.3,24.3/362,372,0,359,70,136,42.1,324.2;
+57 190,272,103,25,169,195,281,213/47,264.2,120.3,251.3,299.3,394.3,55.3,24.3/362,372,0,359,70,136,324.2,259.2;
+58 355,95,256,218,392,345,129.1,188.1/32,287,181.1,170.3,251.3,47.3,130.3,299.3/222,260,139,114,136,77,232.1,140.1;
+59 355,95,256,218,392,399,96,345/32,181.2,170.3,251.3,47.3,130.3,299.3,318.3/222,139,232,114,127,77,233.2,260.2;
+60 119,126,188,272,143.1,80.2,66.2,198.2/290,338,68,123,381,54,201.1,49.1/199,127,12.1,369.2,114.3,341.3,403.3,315.3;
+61 119,126,188,272,143.1,80.2,66.2,198.2/290,338,68,123,381,54,201.1,384.2/199,127,12.1,369.2,248.3,114.3,341.3,403.3;
+62 366,235,119,126,188,143.1,272.2,103.2/290,338,68,123,381,201.1,384.2,264.2/199,324,165,127,12.1,369.2,362.2,0.2;
+63 326.1,328.1,333.1,116.1,71.2,249.3,186.3,188.3/101.1,312.2,309.2,251.3,389.3,299.3,51.3,343.3/315.2,98.2,248.3,114.3,127.3,362.3,70.3,132.3;
+64 311,71,249.3,326.3,328.3,333.3,186.3,188.3/313,101,309,383,312.2,397.2,251.3,389.3/315,305,98.2,248.3,114.3,127.3,362.3,70.3;
+65 311,71,249.3,326.3,328.3,333.3,186.3,188.3/313,101,309,383,312.2,301.2,397.2,251.3/315,305,98.2,248.3,114.3,127.3,204.3,362.3;
+66 190,366,272,395,236,193,118,113/264.2,47.3,299.3,394.3,24.3,378.3/362,324,372,165,0,127,42.1,259.2;
+67 190,366,272,395,236,193,118,113/264.2,47.3,299.3,394.3,24.3,378.3/362,324,372,165,0,127,259.2,248.3;
+68 190,366,272,103,395,236,193,118/264.2,47.3,299.3,394.3,279.3,24.3,378.3/362,324,372,165,0,127,259.2,248.3;
+69 228,334,40,102,116,85.1,202.2,159.2/3,207,151,178.1,360.1,209.1,53.1,246.2/227,344.2,237.2,262.2,114.3,127.3;
+70 228,334,40,102,116,202.2,159.2,1.2/3,207,151,246.2,58.2,178.2,360.2,209.2/227,344.2,237.2,262.2,114.3,127.3;
+71 228,208,334,40,102,85,116,202.2/3,207,88,246.2,58.2,178.2,360.2,209.2/237,227,344.2,262.2,114.3,127.3,204.3,179.3;
+72 285,334,102,349,182.1,116.1,80.2,66.2/3,290,338,68,201,356,53,151/199,369,262,12.1,223.2,114.3,127.3,341.3;
+73 285,334,102,349,182.1,116.1,80.2,66.2/3,290,338,68,201,356,53,241/199,369,262,12.2,223.2,114.3,127.3,341.3;
+74 352,291,249.1,43.1,152.2,278.2,326.3,333.3/224,47,279,24,378,300.2,394.2,123.2/379,42,240,351,114,127,41,153;
+75 352,291,249.1,43.1,152.2,278.2,326.3,333.3/224,47,279,24,378,300.2,394.2,123.2/379,42,240,351,114,127,41,153;
+76 352,249,291,111,353,43.1,152.2,278.2/224,47,279,24,378,300.2,394.2,123.2/379,42,240,351,114,127,41,153;
+77 355,258,289,129,291,39,61,128/32,181,231.2,251.3,299.3/233,139,216,114,127,280.1,359.1,166.1;
+78 355,258,289,129,37,291,39,61/32,181,231.2,120.3,251.3,299.3,26.3/233,139,216,280,114,127,247,222.2;
+79 71,186,291,289.1,80.2,66.2,198.2,188.3/290,101,201,313.2,338.2,312.2,384.2,356.2/369,315,305.1,199.2,98.2,6.2,114.3,127.3;
+80 71,289,186,291,80.2,66.2,100.2,198.2/290,101,201,313.2,338.2,312.2,384.2,356.2/369,315,305.1,199.2,98.2,12.2,6.2,248.3;
+81 82,180,291,69.2,111.2,186.3,169.3,352.3/214,122,74,57,52,59,251,133.1/336,393,132,83,153.1,410.2,250.2,114.3;
+82 82,180,291,69.2,111.2,186.3,169.3,352.3/214,122,74,57,52,59,251,389/336,393,132,83,410.2,250.2,114.3,127.3;
+83 105,37,284,39,109,155,184,5/14,371,207,386.1,47.1,251.2,299.2,87.3/34,266,405.2,416.2,114.2,127.2,70.2,19.2;
+84 35,37,284,283,39,169,143,128/389,251.2,299.2,14.2,377.2,47.3/359,19,276,34.1,266.1,416.2,114.2,127.2;
+85 35,37,284,283,39,169,143,128/389,251.2,299.2,14.2,377.2,47.3/359,19,276,34.1,416.2,114.2,127.2,204.2;
+86 80,66,7,186,40.1,284.1,229.1,409.2/290,356,337,407,147,201.1,343.1,76.1/6,114,127,341,280.1,91.1,199.2,369.2;
+87 80,66,7,186,229.1,22.2,198.2,409.2/290,338,337,407,356,147,343,384.2/341,161,6,280,114,127,199.2,369.2;
+88 119,229.1,332.1,329.1,334.2,326.3,328.3,333.3/303,347,58,47,123,54,53.1,364.1/223,262,153.1,114.3,222.3,336.3,393.3,41.3;
+89 119,334.2,326.3,328.3,333.3,186.3,188.3,164.3/303,347,58,47,123,54,53.2,246.3/223,262,167,114.3,222.3,204.3,336.3,393.3;
+90 376,100,291,125.1,182.1,22.1,80.2,66.2/290,384,356,337,76,147,338.1,201.1/199,341,114.1,369.2,127.3,403.3,41.3,153.3;
+91 376,100,291,125,80.2,66.2,22.2,198.2/290,337,384,76,147,89,338.2,407.2/199,341,86,369.2,403.2,114.3,127.3,204.3;
+92 229,215,401,326.1,328.1,333.1,334.2,186.3/383,303,51,217,320,312.1,58.2,404.2/98,153.1,223.2,262.2,302.2,336.3,393.3,315.3;
+93 229,215,332,401,334.2,176.2,326.3,328.3/383,303,51,217,320,58.2,404.2,53.2/98,223.2,262.2,189.2,302.2,336.3,393.3,315.3;
+94 229,215,332,401,334.2,176.2,249.3,326.3/383,303,51,217,320,58.2,404.2,53.2/98,223.2,262.2,189.2,302.2,248.3,114.3,127.3;
+95 152,352,33,40,291,169,180,43.1/224,394,67,24,378,130,279.1,47.2/379,42,351,166,127,91,380.1,153.1;
+96 71,119,186,311.1,326.1,328.1,333.1,249.3/313,101,309,312.2,301.2,397.2,314.2,383.3/315,98,305,248.3,114.3,127.3,362.3,70.3;
+97 71,119,186,249.3,326.3,328.3,333.3,188.3/313,101,309,312.2,301.2,397.2,314.2,383.3/315,98,305,248.3,114.3,127.3,204.3,362.3;
+98 100,9,40,289,43,175,152.1,109.1/290,338,68,356,123,300.1,384.2,201.2/242,197,239.1,369.2,114.3,127.3,341.3,403.3;
+99 100,9,40,289,43,175,66.2,198.2/290,338,68,356,123,384.2,201.2,141.2/242,197,239,199.2,369.2,114.3,127.3,341.3;
+100 82,291,352,180,186.3,169.3,221.3,350.3/214,339,52,59,251,241,265.2,133.2/336,83,41,153,393.2,132.2,410.2,114.3;
+101 82,291,352,180,186.3,169.3,221.3,350.3/214,339,52,59,251,241,265.2,133.2/336,83,41,153,393.2,132.2,410.2,295.2;
+102 71.2,202.2,159.2,186.3,164.3,169.3,221.3,352.3/313,2,246,101,178,271,360,60/344,315,19,237.1,98.2,114.3,127.3,41.3;
+103 289,311.2,71.2,202.2,159.2,186.3,188.3,272.3/2,246,101,178,271,360,55,309/344,237,227,245,19,315.2,98.2,305.2;
+104 278,186,169,155,143,345,129.1,69.1/210,211,47,38,300.1,381.2,378.2,26.2/359,127,70.1,42.1,379.2,158.2,248.3,114.3;
+105 278,186,169,155,143,345,152.2,249.3/210,211,47,38,381.2,378.2,26.2,290.3/359,127,379.2,158.2,248.3,114.3,222.3,341.3;
+106 129,273,272,218,118,113,321,291/264.1,142.2,251.3,47.3,299.3,394.3,378.3,377.3/276,277,0,274,248,362.2,324.2,165.2;
+107 103,395,118,172,325,329,323,249/264,251,142.2,47.3,299.3,394.3,378.3,377.3/0,277.1,362.2,324.2,259.2,248.3,114.3,127.3;
+108 33,40,289,291,102,196,229,352/151,3,378,299.2,317.2,290.3,338.3,47.3/359,127,179,227,240.1,12.1,239.1,248.2;
+109 291,180,186.3,188.3,169.3,221.3,352.3,350.3/303,347,58,313.1,312.1,53.2,299.3,51.3/41,153,223.2,262.2,114.3,222.3,336.3,393.3;
+110 291,180,128,186.3,188.3,169.3,221.3,352.3/303,347,58,313,53.2,299.3,51.3,265.3/41,153,260,223.2,262.2,114.3,222.3,204.3;
+111 374,289,104,37,291,193,196,103.1/224,279,24,378,47.2,300.2,394.2,123.2/379,42,351,166,280,114,127,247;
+112 374,289,104,37,291,103,392,193/224,279,24,378,47.2,300.2,394.2,123.2/379,42,351,166,280,114,127,247;
+113 119,126,291,103.1,249.2,186.2,188.2,164.2/56,414,45,406,307.1,54.1,251.2,389.2/114,127,362.1,248.2,204.2,70.2,19.2,415.2;
+114 228,33,40,349,116,128,43.1,143.1/2,246,178,135,101,300,151,53/227,237.1,344.2,114.3,127.3,204.3,70.3,179.3;
+115 119,323,249,289,186,169,330,128/299.2,317.2,290.3,338.3,47.3,407.3,51.3,384.3/136,127.1,19.1,239.1,248.2,114.2,204.2,70.2;
+116 80,43.1,66.2,198.2,409.2,186.3,169.3,350.3/290,338,68,201,356,130,87,318/199,12.1,405.1,136.1,369.2,114.3,127.3,341.3;
+117 80,43.1,66.2,198.2,409.2,186.3,169.3,350.3/290,338,68,201,356,130,87,318/199,369.2,12.2,114.3,127.3,341.3,403.3,204.3;
+118 80,104,37,284,39,43,188.1,66.2/201,313.1,47.1,343.1,123.1,290.2,338.2,384.2/280,247,199.1,6.1,70.1,369.2,12.2,114.3;
+119 80,104,37,284,39,43,334,66.2/201,313,290.2,338.2,384.2,141.2,251.3,47.3/280,70,247,199.2,369.2,12.2,6.2,114.3;
+120 291,182,180,80.2,66.2,409.2,186.3,169.3/290,338,356,313,251,312,219,337.1/199,369,315,114.3,127.3,341.3,403.3,336.3;
+121 291,182,80.2,66.2,311.2,409.2,186.3,169.3/290,313,338,312,356,251,219,384.2/199,369,315,98.2,114.3,127.3,341.3,403.3;
+122 71,119,126,249.3,326.3,328.3,333.3,186.3/313,101,312,63,209,407.1,309.2,301.2/315,305.1,98.2,248.3,114.3,127.3,204.3,362.3;
+123 35,106,184,382,39,109,155,281/408,371,264,14.2,149.2,251.3,299.3,404.3/405,0,417.1,114.3,127.3,204.3,70.3,179.3;
+124 328,22,29,119,126,188,229,311.2/101,257,151,45,312.2,407.2,76.2,309.2/403,315,359,341.2,98.2,305.2,248.3,114.3;
+125 333,82,272,39,249.3,326.3,328.3,186.3/214,265,52,251,339.2,133.2,21.2,312.3/336,393,83,179,324.1,372.1,239.1,132.2;
+126 326,355,291,272,157,395.1,258.2,187.2/32,181,287,303,137.2,312.3,47.3,299.3/222,233,212,204,324.1,372.1,260.2,363.2;
+127 382,282,9,33,366,164,109,236/149.2,299.3,394.3,24.3,378.3/197,359,362,165,0.1,114.3,127.3,204.3;
+128 289,104,291,169,281,401,71,143.1/299.2,377.2,407.3,51.3,384.3,394.3,265.3,201.3/114,359,127,179,171,136,280.2,204.2;
+129 291,43,61.3/357.5/199.2;
+130 80,33,291,256,169,43,392,94/384,201,356,170,87,290.2,338.2,141.2/199,6,400,359,204,136,369.2,12.2;
+131 188,22.1,80.2,66.2,198.2,186.3,164.3,169.3/290,201,356,147,318,337.1,384.1,230.1/199,369,341,403,161,27.1,280.1,158.1;
+132 387.5!golpe/387.5/387.5!embestida,387.5!embestida;
+133 291,39,129,256,43.1,186.2,188.2,169.2/251,47.1,301.1,120.2,299.2,377.2,51.3,73.3/114,127,70.2,415.2,91.3;
+134 129,291,256,39,80.2,66.2,198.2,409.2/290,68,201,337,251,338.2,384.2,356.2/199,12,6,114,127,369.2,341.3,403.3;
+135 96,129,291,256,39,186.3,188.3,164.3/214,286,251,265.2,339.2,52.2,133.2,21.2/336,393,83,114,127,132.2,410.2,204.3;
+136 95,129,291,256,39,169,258.2,93.2/32,181,303,251,231.2,137.2,120.3,47.3/222,233,139,212,114,127,260.2,363.2;
+137 291,82,186.2,169.2,350.2,154.2,221.3,184.3/389,313,214,343,251.2,299.2,377.2,312.3/127,204,336,132,83,114.2,70.2,179.2;
+138 352,33,104,256,349,40.1,116.1,80.2/290,224,300,279,356,89,123,338.1/199,369,42,12.1,342.2,114.3,127.3,341.3;
+139 352,33,104,256,349,392,80.2,66.2/290,224,300,279,356,89,123,338.2/199,369,42,12.2,351.2,342.2,280.3,114.3;
+140 7,198,25,85,109,152.1,43.1,182.1/224,300,356,2,246,123,151,338.1/199,42,351,114.1,369.2,342.2,127.3,341.3;
+141 7,198,25,85,109,106,373,80.2/224,300,356,2,246,123,151,290.2/199,42,351,369.2,6.2,342.2,405.3,248.3;
+142 35,256,392,96,94,95,69,17.1/224,300,130.1,14.2,394.2,279.2,24.2,170.3/416,42,351,114,204,179,34.2,400.2;
+143 186,291,188,43,196,256,229,352/378,120.2,299.2,317.2,377.2,290.3,338.3,312.3/127,204,179,165,239,166,158.1,248.2;
+144 284,184.2,22.2,390.2,16.2,288.2,186.3,169.3/386,257,147,230,241,300,407.2,14.2/341,403,34,161,400,416.2,266.2,405.3;
+145 284,283,184.2,5.2,16.2,186.3,169.3,17.3/214,300,14.2,265.2,339.2,52.2,21.2,251.3/336,393,34,132,83,416.2,266.2,410.2;
+146 35,284,184.2,258.2,5.2,16.2,93.2,186.3/386,32,181,371,300,14.2,231.2,137.2/222,34,260,363,400,232,344,416.2;
+147 90,40,102,399.1,7.1,398.2,335.2,33.3/170,87,130.1,318.1,201.1,290.3,338.3,181.3/136,78,204,6,91.1,99.2,114.3,127.3;
+148 90,40,102,398.2,335.2,33.3,186.3,188.3/170,87,130.2,318.2,290.3,338.3,181.3,251.3/136,78,204,6,99.2,280.3,114.3,127.3;
+149 35,90,326,333,40,102,399,7/170,87,130.2,14.2,371.2,318.2,290.3,338.3/136,78,400,204,6,416.2,99.2,405.3;
+150 311,71.2,249.3,326.3,328.3,333.3,186.3,188.3/313,101,312,251,300,142,309.2,301.2/315,305,261,98.2,248.3,114.3,127.3,222.3;
+151 119,249,311.2,71.2,310.2,326.3,328.3,333.3/101,312,251,300,142,313.2,309.2,301.2/315,98.2,305.2,405.3,416.3,248.3,280.3,114.3;
+152 291,188,228.1,103.1,43.1,202.2,159.2,1.2/207,178,209,300.1,151.1,360.2,55.2,135.2/344,237.1,108.2,114.3,127.3,91.3;
+153 291,188,228.1,103.1,43.1,202.2,159.2,1.2/207,178,209,300.1,360.2,55.2,135.2,413.2/344,237.2,108.2,114.3,127.3,91.3;
+154 291,188,228.1,103.1,43.1,202.2,159.2,1.2/207,178,209,300.1,360.2,55.2,135.2,413.2/344,112,385,296.2,237.2,108.2,114.3,127.3;
+155 355,258,291,39,352,129.1,366.1,195.1/32,251,287.1,271.1,181.2,412.2,137.2,47.3/222,148,363,212,216,232,127,139.1;
+156 355,258,291,39,352,129.1,218.1,95.2/32,251,271.1,181.2,412.2,137.2,47.3,299.3/222,148,363,212,216,232,127,233.2;
+157 355,258,291,39,352,180,129.1,218.1/32,251,271.1,181.2,412.2,137.2,383.3,47.3/222,148,363,212,216,232,127,233.2;
+158 25,256,272,169,109,43,392,94/290,47,201.1,300.1,384.2,141.2,411.2,11.2/199,6,359,165,405.1,42.1,369.2,12.2;
+159 25,256,272,169,109,43,392,94/290,47,300.1,384.2,201.2,141.2,411.2,11.2/199,6,359,165,369.2,12.2,248.3,114.3;
+160 25,256,272,169,109,43,392,94/290,47,300.1,384.2,201.2,141.2,411.2,11.2/199,6,359,165,369.2,200.2,12.2,248.3;
+161 25,40,291,39,195,218,109.1,281.1/251.2,299.2,377.2,47.3,51.3,384.3,265.3,201.3/127,415,91.1,114.2,19.2,222.3,369.3,341.3;
+162 25,40,39,195,218,109.1,105.2,186.2/251.2,299.2,377.2,47.3,51.3,384.3,265.3,201.3/127,415,114.2,204.2,19.2,179.2,222.3,369.3;
+163 291,284,71,35.1,157.1,350.2,154.2,184.2/371,101,271,383.1,251.2,299.2,14.2,377.2/114,19,98,167,34.1,400.1,416.2,127.2;
+164 291,284,71,35.1,188.2,350.2,154.2,184.2/371,101,271,383.1,251.2,299.2,14.2,377.2/114,34,19,98,167,416.2,127.2,204.2;
+165 323,291,395,282.1,103.1,330.1,116.1,325.1/408,371,149,251,313.1,14.2,4.2,178.3/417,127,344.3,324.3,19.3;
+166 323,291,395,184.2,213.2,282.2,5.2,249.3/408,371,149,251,14.2,4.2,178.3,299.3/417,127,204.3,344.3,324.3,19.3,259.3,179.3;
+167 285,85,334,402,349,195,125.1,293.1/286,4,2,383,364,343.1,59.1,313.1/315,247.1,417.2,262.2,127.3,344.3,220.3;
+168 285,85,334,402,282,13,349,195/286,4,2,383,364,58.2,343.2,53.2/315,247.1,417.2,262.2,127.3,204.3,344.3,179.3;
+169 35,97,402,5,256,85,215,184.2/386,14,371,2,251,58.2,178.3,299.3/416.2,34.2,266.2,400.2,127.3,204.3,19.3,260.3;
+170 82,43,80.2,66.2,198.2,409.2,350.3,154.3/290,338,68,52,343,384.1,265.1,201.1/199,83,114,369.2,336.2,393.2,132.2,12.2;
+171 82,43,80.2,66.2,198.2,409.2,350.3,154.3/290,338,68,52,343,201.1,313.1,384.2/199,83,114,369.2,336.2,393.2,132.2,12.2;
+172 82,255,39,333.1,126.1,43.1,218.1,249.3/214,251,307.1,414.1,265.2,339.2,52.2,133.2/336,393,91,292.1,132.2,410.2,248.3,114.3;
+173 119,291,249.3,186.3,188.3,103.3,152.3,352.3/414,45,406,209,307.1,301.1,63.2,73.2/167,127,315,77.2,248.3,222.3,362.3,344.3;
+174 119,157.1,352.1,249.2,186.2,188.2,350.2,154.2/414,307.1,251.2,299.2,45.2,63.2,377.2,73.2/248.2,114.2,127.2,19.2,415.2,77.2,222.3,362.3;
+175 119,291,284.1,184.1,249.3,186.3,188.3,103.3/45,406,300,271,307.1,301.1,63.2,251.3/167,127,305.1,77.2,248.3,222.3,362.3,344.3;
+176 119,291,184.2,16.2,249.3,186.3,188.3,103.3/14,371,45,406,300,271,209,63.2/167,127,416.2,34.2,77.2,248.3,222.3,204.3;
+177 284,283.1,71.1,39.1,157.1,17.1,184.2,16.2/301,383,404,14.2,371.2,309.2,397.2,251.3/315,305,98.2,34.2,127.3,344.3,260.3;
+178 284,184.2,71.2,16.2,221.3,17.3,350.3,154.3/371,301,383,404,14.2,309.2,397.2,251.3/315,305,416.2,98.2,34.2,127.3,204.3,344.3;
+179 291,188.1,186.3,152.3,350.3,154.3,143.3,1.3/214,339,52,343,219,63,133.1,265.2/393,83,114,336.1,91.1,132.2,410.2,127.3;
+180 291,333.2,249.3,326.3,328.3,186.3,188.3,272.3/214,339,52,343,219,63,265.2,133.2/393,83,114,336.2,132.2,410.2,248.3,127.3;
+181 333,326,291,249.3,328.3,186.3,188.3,272.3/214,339,52,343,318,219,63,265.2/393,132,83,114,336.2,410.2,295.2,248.3;
+182 208,43.1,202.2,159.2,1.2,105.3,350.3,154.3/2,246,178,209,3,207.1,360.2,55.2/344,112,237,385,167,108.2,127.3,204.3;
+183 40,291,352,61,7.1,188.1,80.2,66.2/290,338,68,307.1,384.2,201.2,141.2,414.2/199,6,77,127,165,12.1,305.1,369.2;
+184 40,291,352,61,80.2,66.2,198.2,249.3/290,338,68,384.2,201.2,141.2,414.2,45.2/199,6,77,127,165,369.2,12.2,65.2;
+185 352,40,291,272,103,43,157,186.1/224,394,67.1,279.2,219.2,24.2,47.3,299.3/42,351,380,127,239,245,41.1,342.2;
+186 119,126,188,61,143.1,80.2,66.2,198.2/290,338,123,381,201.1,384.2,141.2,11.2/199,127,415,12.1,369.2,248.3,114.3,341.3;
+187 61,5,291,213,184.2,202.2,1.2,186.3/2,246,178,360,406,55.1,120.1,101.1/127.1,344.2,237.2,114.3,48.3;
+188 61,5,291,213,184.2,202.2,1.2,186.3/2,246,178,360,406,209.2,55.2,135.2/344.2,237.2,114.3,127.3,48.3;
+189 61,5,291,213,184.2,202.2,1.2,186.3/2,246,178,360,406,209.2,55.2,135.2/344.2,237.2,114.3,127.3,204.3,179.3,48.3;
+190 25,39,195,128,215,126.1,40.1,297.1/251,54,299.2,377.2,47.3,51.3,123.3,265.3/127,91,248.2,114.2,19.2,362.3,344.3,336.3;
+191 291,143,202.2,1.2,105.3,350.3,154.3/2,246,207,178,55,360.2,209.2,135.2/344,127,237.2,114.3,19.3;
+192 119,291,143,202.2,159.2,1.2,105.3,350.3/2,246,207,178,360,55,209.2,135.2/344,112,237,385,127,114.3,204.3,19.3;
+193 35,184,213,282,291,39,281,85.1/386,14,408,371,59,251,300,343.1/417,19,127.1,114.3,344.3,315.3,98.3;
+194 40,129.1,188.1,103.1,329.1,152.2,80.2,66.2/290,123,54,300.1,53.1,47.2,384.2,201.2/379,12,6,199.2,369.2,114.3,127.3,341.3;
+195 40,152.2,80.2,66.2,278.2,198.2,249.3,328.3/290,123,54,47.2,384.2,201.2,381.2,141.2/379,12,6,199.2,369.2,166.2,248.3,114.3;
+196 291,256,39,71.2,310.2,105.3,186.3,188.3/313,101,251,309.2,301.2,397.2,314.2,120.3/315,305,114,127,98.2,204.3,132.3,91.3;
+197 256,157,281,291,39,221.2,392.2,401.2/320,18,251,120.3,47.3,299.3,51.3,301.3/220,114,127,204.3,315.3,98.3,132.3,91.3;
+198 35,284,157,281,184,373,215,283.1/386,14,320,371,18,383,251.3,47.3/220,34.1,266.1,416.2,400.2,114.3,127.3,204.3;
+199 71,186,291,80.2,66.2,100.2,198.2,249.3/290,101,201,299,219,313.2,384.2,356.2/369,315,305.1,199.2,98.2,12.2,6.2,248.3;
+200 215,401,186.3,221.3,350.3,154.3,184.3,202.3/51,364,217,313,101,312,271,219/189.2,302.2,127.3,204.3,336.3,393.3,315.3,98.3;
+201 299!golpe/299/299!embestida,299!embestida;
+202 103/241/254.5;
+203 289,291,71,128,392,215,310.1,129.1/313,101,226,241.1,251.2,299.2,309.2,301.2/315,405.1,114.1,305.1,19.1,127.2,204.2,98.2;
+204 282,291,352,182,180,401,103.1,43.1/286.1,251.1,67.1,149.2,178.3,299.3,394.3,279.3/114,127,41,153,417.2,344.3,379.3,42.3;
+205 180,282,111,291,352,182,401,69.2/122,343.2,74.2,149.2,251.3,178.3,299.3,394.3/114,127,41,153,132,417.2,250.2,204.3;
+206 188,169,43,143,152,352,281,374/47,300,371,217.1,299.2,317.2,377.2,51.3/114,127,205,78,42.1,6.1,204.2,19.2;
+207 184,5,285,39,109,157,106,116/47,54,67.1,123.2,381.2,378.2,251.3,58.3/379,197,242,405.1,127.1,388.1,166.2,114.3;
+208 152,180,33,40,291,169,352,392/67,378,224,130,394,24,47.2,381.2/91,166,127,42,351,379.2,250.2,20.2;
+209 186,291,256,169,229,392,401,96/307.1,63.2,58.3,47.3,299.3,51.3,265.3,201.3/77,114,127.1,0.1,248.3,222.3,362.3,344.3;
+210 186,291,256,169,229,392,401,96/307.1,63.2,58.3,47.3,299.3,51.3,394.3,265.3/77,114,136,248.3,127.3,222.3,204.3,362.3;
+211 285,334,291,352,118,13,7.1,253.1/290,68,356,286,338.1,201.1,53.1,343.1/199,6,114,41.1,369.2,223.2,262.2,127.3;
+212 106,175,382,322,69,35,39,109/408,371,74.2,149.2,251.3,299.3,14.3,67.3/405,0,417.2,250.2,114.3,127.3,204.3,165.3;
+213 352,282,102,349,116.1,192.2,33.3,186.3/224,149,279.1,4.1,3.1,47.1,67.1,300.2/42,351,342.2,127.3,379.3,262.3,20.3;
+214 103,218,193,113,134,104,37,291/286,360,279.1,264.2,149.2,299.3,394.3,24.3/247,0,114,359,127,362.1,417.2,259.2;
+215 157,25,39,195,109,175,334,328.1/407,147,251,76.2,320.2,18.2,47.3,299.3/403,86.1,341.2,220.2,248.3,114.3,127.3,369.3;
+216 25,291,195,109,229,157,401,196.1/378,251.2,299.2,377.2,47.3,394.3,55.3,24.3/359,127,77,166,114.1,362.1,372.1,0.1;
+217 25,291,195,109,229,157,401,249.2/378,251.2,299.2,377.2,47.3,394.3,55.3,24.3/359,127,239,77,166,248.2,114.2,204.2;
+218 188,352.1,258.2,187.2,93.2,350.3,193.3,154.3/32,287,224,303,300,381,181.2,47.3/222,212,42,260.1,216.1,233.2,363.2,114.3;
+219 188,352.1,258.2,187.2,93.2,164.3,350.3,193.3/32,224,300,287,303,381,181.2,394.2/222,42,212,216.1,233.2,260.2,363.2,139.2;
+220 291,43,22.1,188.1,256.1,152.2,94.2,278.2/257,47,407,147,54,378,300,76.1/403,379,86,166,114,127,158.1,42.1;
+221 94,104,37,291,284,43,256.1,152.2/257,47,407,147,54,378,300,230.1/403,379,86,166,114,359,127,158.1;
+222 291,43,198.1,352.2,186.3,188.3,164.3,152.3/290,338,68,300,279,356,219,89/42.1,380.1,199.2,369.2,351.2,342.2,127.3,341.3;
+223 43.1,80.2,66.2,221.3,350.3,154.3,61.3/290,338,68,201,313,337,343,360/199,341,204,358.1,369.2,127.3,222.3,403.3;
+224 102,349,80.2,66.2,198.2,33.3,221.3,350.3/290,338,68,316,201,313,337,343/199,341,204,223,369.2,127.3,222.3,403.3;
+225 283,328.1,103.1,39.1,182.1,184.2,61.2,22.2/307,337.1,407.1,49.1,147.1,230.1,14.2,76.2/305.1,416.2,341.2,403.2,34.2,266.2,248.3,114.3;
+226 35,184,61,186,291,40.1,80.2,66.2/290,338,68,201,371,313,343,360/199,114,127,42.1,369.2,6.2,400.2,341.3;
+227 35,284,283,17,175,37,109,401/14,371,251,74.2,47.3,407.3,299.3,87.3/266,34.1,416.2,400.2,250.2,114.3,127.3,204.3;
+228 256,157,392,401,95,258,346,281.1/32,303,181.1,320.2,18.2,137.2,251.3,58.3/222,220,216,233.2,260.2,363.2,139.2,114.3;
+229 256,157,392,401,95,258,346,96/32,303,181.2,320.2,18.2,137.2,251.3,58.3/222,220,216,233.2,260.2,363.2,139.2,114.3;
+230 43.1,80.2,66.2,198.2,398.2,335.2,409.2,186.3/290,338,68,130,87,384,201,356/199,138,369.2,136.2,12.2,99.2,114.3,127.3;
+231 40,291,43,352,188.1,103.1,143.1,111.1/378,47.1,290.1,300.1,147.1,67.2,123.2,381.2/114,127,158.1,166.1,380.1,77.1,379.2,42.3;
+232 278,40,104,37,291,43,352,182/378,394,47.2,67.2,123.2,381.2,299.3,300.3/379,240,114,127,179,166.2,204.3,42.3;
+233 291,350.2,154.2,221.3,184.3,71.3/389,313,214,343,251.2,299.2,377.2,407.3/204,132,83,114.2,127.2,179.2,341.3,403.3;
+234 289,291,215,71,293,30,169.1,129.1/101,271,251.2,299.2,377.2,313.3,47.3,51.3/114,127,276,359.1,247.1,204.2,19.2,179.2;
+235 //;
+236 291,103.1,395.1,281.1,182.1,322.1,272.2,193.2/264.1,251.3,47.3,299.3,378.3,377.3/277.1,362.2,248.3,114.3,127.3,379.3,42.3,19.3;
+237 273,103,391,118,291,152,39,281/264.1,251.3,47.3,299.3,87.3,378.3,377.3/0,277.1,362.2,259.2,248.3,114.3,127.3,379.3;
+238 328,22,29,119,229,71.2,249.3,188.3/101,257,407.2,309.2,301.2,396.2,47.3,299.3/403,315,341.2,98.2,248.3,127.3,362.3,324.3;
+239 333,82,272,39,190.1,326.1,328.1,273.1/214,265,52,251,339.2,133.2,47.3,299.3/336,393,83,324.1,372.1,239.1,132.2,410.2;
+240 326,355,291,272,157,190.1,249.1,333.1/32,181,287,303,137.2,47.3,299.3,53.3/222,233,212,139.1,324.1,91.1,372.1,260.2;
+241 289,186,291,188,352,180,71,330.1/307.1,299.2,47.3,407.3,51.3,384.3,394.3,265.3/77,166,127.1,362.1,239.1,248.2,204.2,179.2;
+242 119,126,291,249.2,186.2,188.2,164.2,350.2/56,414,45,406,307.1,251.2,389.2,299.2/114,127,362.1,248.2,204.2,19.2,415.2,179.2;
+243 82,96,256,39,392,399,105.3,186.3/214,271,265.2,339.2,52.2,133.2,21.2,251.3/393,132,83,336.2,410.2,295.2,114.3,127.3;
+244 355,95,289,256,392,399,258.2,105.3/32,181,271,251.3,47.3,299.3,51.3,378.3/222,233,163,148,212,260.2,363.2,139.2;
+245 256,392,399,94,80.2,66.2,198.2,105.3/290,338,201,386,337,241,271,384.2/199,369,403,161,114.3,127.3,341.3,204.3;
+246 278,291,256,392,401,196,289.1,281.1/224,24,320,300.1,47.2,394.2,67.2,123.2/379,42,351,359,204,136.1,91.1,114.3;
+247 278,291,256,392,401,196,152.2,186.3/224,24,320,47.2,300.2,394.2,67.2,123.2/379,42,351,359,204,166.2,114.3,127.3;
+248 256,392,401,291,96,94,95,196/224,320,24,300.2,394.2,279.2,219.2,18.2/42,351,359,204,379,179,220.2,248.3;
+249 184.2,71.2,5.2,16.2,186.3,188.3,164.3,80.3/386,271,251,300,14.2,371.2,309.2,314.2/34,8,305,199,78,416.2,315.2,98.2;
+250 184.2,258.2,16.2,188.3,164.3,17.3,350.3,193.3/386,251,300,271,181.2,14.2,371.2,231.2/233,34,163,363,266,232,305,416.2;
+251 208.2,311.2,71.2,202.2,159.2,105.3,350.3,154.3/101,209,300,178.2,55.2,135.2,397.2,251.3/305,237,344.2,315.2,98.2,108.2,127.3,204.3;
+252 160,119,40,39,281,143,129.1,109.1/2,246,178,135,360.1,209.1,130.1,55.2/237,405.1,344.2,248.3,114.3,127.3,362.3,42.3;
+253 208,160,119,40,39,155,106,281/2,246,178,135,130.1,360.2,209.2,55.2/237,344.2,108.2,248.3,114.3,127.3,362.3,42.3;
+254 208,160,119,40,39,155,106,281/2,246,178,135,130.1,360.2,209.2,55.2/237,344.2,296.2,108.2,248.3,114.3,127.3,204.3;
+255 258,25,284,39,109,218,184,61/32,181,287,412.2,251.3,47.3,299.3,394.3/222,139,42.1,233.2,260.2,363.2,248.3,114.3;
+256 129,218,275,172,258,25,284,39/32,181.2,264.2,412.2,251.3,47.3,299.3,394.3/222,139,362.2,233.2,324.2,260.2,363.2,0.2;
+257 326,129,218,275,172,258,25,284/32,181.2,142.2,264.2,412.2,251.3,47.3,299.3/222,277,0,139,266,362.2,233.2,324.2;
+258 291,193,143,289.1,256.1,103.1,22.1,80.2/290,384,201,224,47,347.1,241.1,300.1/199,369,114,42,127.1,19.1,12.2,6.2;
+259 291,193,143,289.1,256.1,103.1,152.2,80.2/290,47,123,201,54,224,347.1,241.1/199,369,379,12,114,42,127.1,6.2;
+260 291,193,143,289.1,256.1,103.1,152.2,80.2/290,47,123,201,54,224,347.1,241.1/199,369,379,12,114,42,239,127.1;
+261 256,221,392,186,291,97.1,215.1,96.1/47,320.2,18.2,299.3,51.3,377.3/114,77,220.2,127.3,91.3,19.3,415.3;
+262 256,221,392,186,291,96,94,95/18,47,320.2,299.3,51.3,377.3/114,77,220.2,127.3,204.3,91.3,19.3,415.3;
+263 186,291,43,399.1,281.1,105.2,188.2,367.2/286,47.1,251.2,299.2,407.3,51.3,384.3,123.3/114,127,388.1,415.2,369.3,341.3,403.3,336.3;
+264 186,291,195,109,43,105.2,188.2,164.2/286,251.2,299.2,47.3,407.3,51.3,384.3,123.3/114,127,77,204.2,415.2,179.2,369.3,341.3;
+265 282,291,285/133.3/282!embestida,133.3!embestida,291!embestida;
+266 291,285,282.2/133.3/282.2!embestida,133.3!embestida,291!embestida;
+267 85,282,291,285,169,184.2,213.2,5.2/386,14,408,371,2,246,178,343.2/417,127.3,204.3,344.3,315.3,179.3;
+268 291,285,282.2/133.3/282.2!embestida,133.3!embestida,291!embestida;
+269 285,85,282,291,213.2,221.3,350.3,154.3/408,386,313,101,271,58.2,343.2,149.2/417,127.3,204.3,344.3,315.3,179.3;
+270 43,215,71,103.1,202.2,159.2,1.2,186.3/290,338,2,246,68,178,135,207.1/369.2,344.2,12.2,114.3,127.3,341.3,403.3,19.3;
+271 195,221,43,116,215,71,103.1,80.2/290,338,2,246,68,178,135,207.1/199,19,369.2,344.2,12.2,248.3,114.3,127.3;
+272 195,43,116,215,71,103.1,80.2,66.2/290,338,2,246,178,135,207.1,384.2/199,369.2,344.2,12.2,237.2,248.3,114.3,127.3;
+273 186,291,352,215,401,39.1,155.1,373.1/2,246,360.1,178.2,209.2,55.2,135.2,299.3/153,405.1,114.1,220.1,344.2,237.2,127.3,41.3;
+274 157,208,401,119,291,352,215,373.1/2,246,207,14,271,178.2,360.2,209.2/405,153,114.1,344.2,237.2,220.2,108.2,248.3;
+275 157,208,401,119,291,352,215,373.1/2,246,207,88,14,271,178.2,360.2/237,153,400,114.1,344.2,220.2,385.2,108.2;
+276 35,284,39,143,184,218,169.1,17.1/371,251.2,299.2,14.2,47.3,87.3,404.3/266,34.1,400.1,150.1,416.2,127.2,260.3;
+277 35,284,39,143,184,218,350.2,154.2/371,251.2,299.2,14.2,47.3,87.3,404.3/266,416.2,127.2,204.2,34.2,179.2,260.3;
+278 35,184,39,281,116.1,80.2,5.2,198.2/290,14,201,371,386.1,356.1,87.1,384.2/400,416.2,199.2,369.2,34.2,12.2,266.2,114.3;
+279 35,39,401,80.2,184.2,5.2,198.2,16.2/290,201,356,371,384.2,14.2,141.2,11.2/199,400,416.2,369.2,34.2,12.2,266.2,114.3;
+280 116.1,71.2,249.3,326.3,328.3,333.3,186.3,188.3/313,101,301,414,45,209,364.1,231.1/315,98,305,248.3,127.3,336.3,415.3;
+281 71.2,249.3,326.3,328.3,333.3,186.3,188.3,221.3/313,101,301,414,45,209,309.2,63.2/315,98,305,248.3,127.3,204.3,336.3,415.3;
+282 71.2,249.3,326.3,328.3,333.3,186.3,188.3,221.3/313,101,301,414,45,63,209,142/315,98,305,167,65.2,248.3,127.3,204.3;
+283 7,39,282.1,13.1,293.1,80.2,85.2,198.2/290,338,68,343.1,313.1,123.1,201.2,141.2/199.1,369.2,417.2,114.3,127.3,341.3,403.3,344.3;
+284 39,7,85.2,184.2,213.2,282.2,5.2,293.2/386,14,408,371,290,338,68,178/417,400.2,114.3,127.3,199.3,369.3,341.3,403.3;
+285 186,291,155.1,325.1,202.2,188.3,350.3,154.3/2,246,178,55,360.1,209.2,135.2,251.3/344.2,114.3,127.3,223.3;
+286 103,395,113,172,268,325,186,291/2,246,178,55,360.2,209.2,264.2,135.2/324,362.2,344.2,165.2,0.2,259.2,237.2,248.3;
+287 25,186,43,196,103,157,191,188.1/299.2,377.2,47.3,407.3,51.3,394.3,123.3,265.3/77,239.1,248.2,114.2,127.2,222.3,341.3,403.3;
+288 25,186,195,109,43,196,103,218/299.2,377.2,47.3,407.3,51.3,394.3,123.3,265.3/19,77,248.2,114.2,127.2,415.2,388.2,222.3;
+289 25,186,195,109,43,196,103,218/299.2,377.2,47.3,407.3,51.3,394.3,123.3,265.3/248,19,239,77,114.2,127.2,204.2,415.2;
+290 152,85,25,195,155,175,282.1,43.1/47,2,408.1,386.1,149.2,178.3,299.3,51.3/417.1,127.3,344.3;
+291 85,106,184,382,282,25,152,195/2,47,14.2,408.2,371.2,149.2,251.3,178.3/417.2,127.3,204.3,344.3,19.3,179.3;
+292 85,176,25,152,195,155,175,106.2/51,364,2,47,217.2,149.2,178.3,299.3/189,417.2,302.2,127.3,204.3,344.3,98.3,179.3;
+293 119,289,215,143.1,235.1,249.2,186.2,188.2/271.1,414.1,299.2,47.3,407.3,51.3,265.3,201.3/19,415,114.1,239.1,248.2,127.2,222.3,341.3;
+294 119,289,256,215,249.2,186.2,188.2,164.2/299.2,47.3,407.3,51.3,394.3,265.3,201.3,24.3/19,415,248.2,127.2,222.3,341.3,403.3,362.3;
+295 119,289,256,392,215,96,94,95/299.2,317.2,47.3,407.3,51.3,384.3,394.3,265.3/204,19,415,150,248.2,127.2,179.2,388.2;
+296 218,236,134,268,291,116,111,103.1/264.2,251.3,47.3,299.3,384.3,394.3,123.3,24.3/362,0,324.1,372.1,165.2,259.2,248.3,114.3;
+297 218,236,134,268,291,116,111,272.2/356,264.2,251.3,47.3,299.3,384.3,394.3,123.3/362,0,28,324.2,165.2,259.2,248.3,114.3;
+298 40,61,188.1,7.1,186.2,350.2,154.2,80.3/290,338,68,307.1,251.2,299.2,45.2,377.2/12.1,114.2,127.2,19.2,415.2,369.3,341.3,403.3;
+299 291,82,352.1,326.3,328.3,333.3,186.3,188.3/224,279,219,381,300.2,394.2,24.2,47.3/42,351,132,83,380.1,127.1,153.1,240.1;
+300 126,291,195,154,157,401,71.1,186.2/414,54.1,251.2,299.2,47.3,407.3,51.3,265.3/127,77,19.1,415.2,341.3,403.3,344.3,336.3;
+301 126,291,195,154,401,186.2,188.2,164.2/414,251.2,299.2,47.3,407.3,51.3,265.3,201.3/127,77,204.2,19.2,415.2,179.2,341.3,403.3;
+302 157,116,215,176,25,195,71,221.2/383,51,364,219,320.2,404.2,217.2,18.2/220,189.2,302.2,248.3,114.3,127.3,204.3,362.3;
+303 69,9,256,157,392,215,40.1,155.1/406,300.1,74.2,45.2,58.3,47.3,407.3,299.3/77,362.1,250.2,248.3,127.3,222.3,341.3,204.3;
+304 175,69,111,186,291,289.1,188.1,218.1/394,47,300.2,299.3,265.3,201.3,381.3,378.3/42,91,114,127,380.1,165.1,78.1,250.2;
+305 175,69,111,186,291,352.2,105.3,188.3/394,47,300.2,279.2,299.3,67.3,265.3,201.3/42,91,114,127,351.2,250.2,20.2,379.3;
+306 175,69,111,186,291,352.2,110.2,249.3/394,47,300.2,279.2,74.2,24.2,407.3,299.3/42,91,114,127,351.2,250.2,20.2,342.2;
+307 272,103,218,268,71,119,325.1,311.1/313,101,299,264.2,309.2,301.2,397.2,383.3/277,324.1,362.2,315.2,98.2,0.2,259.2,248.3;
+308 272,103,218,268,71,119,326,328/313,101,299,142.2,264.2,309.2,301.2,397.2/277,274,362.2,315.2,98.2,324.2,0.2,259.2;
+309 82,96,291,256,39,186.1,392.1,94.1/265,52.1,251.1,287.1,339.2,21.2,47.3,299.3/393,83,410,19.1,336.2,127.3,222.3,91.3;
+310 82,96,291,256,39,95,186.3,188.3/265,339.2,52.2,21.2,251.3,47.3,299.3,343.3/393,83,410,336.2,127.3,222.3,204.3,91.3;
+311 82,255,39,333.2,249.3,186.3,188.3,103.3/52,251,265.2,339.2,133.2,47.3,299.3,343.3/393,83,336.2,410.2,248.3,127.3,362.3,324.3;
+312 82,255,39,333.2,249.3,186.3,188.3,103.3/52,251,265.2,339.2,133.2,47.3,299.3,343.3/393,83,336.2,410.2,248.3,127.3,362.3,324.3;
+313 291,39,71,293.1,103.1,330.1,213.2,282.2/343,149,4,408.1,251.3,47.3,178.3,299.3/417,127,77,362.1,248.3,114.3,344.3,336.3;
+314 291,39,71,213.2,282.2,192.2,64.2,249.3/149,4,408.1,251.3,47.3,178.3,299.3,51.3/417,77,248.3,114.3,127.3,362.3,344.3,336.3;
+315 285,334,202.2,159.2,105.3,188.3,106.3,350.3/2,246,178,209,135,207.1,360.1,55.1/112,385,237.1,227.1,344.2,127.3,19.3;
+316 119,334.2,326.3,328.3,333.3,186.3,188.3,103.3/347,58,53,151,303.1,47.1,178.3,299.3/223,98.1,262.2,114.3,127.3,341.3,344.3,41.3;
+317 119,188,334.2,326.3,328.3,333.3,186.3,103.3/347,58,53,151,47.3,178.3,299.3,51.3/223,262.2,114.3,127.3,341.3,204.3,344.3,379.3;
+318 256,392,7,198,169,97,94,310.1/201.1,356.1,251.1,300.1,384.2,320.2,141.2,18.2/114,199.1,359.1,127.1,369.2,341.3,403.3,19.3;
+319 256,392,373,7,198,169,109,97/384.2,201.2,356.2,320.2,141.2,18.2,251.3,47.3/114,70,199.2,369.2,127.3,341.3,403.3,204.3;
+320 66,188,352,215,61,111,71.1,80.2/290,384,201,356,141.2,407.3,299.3,394.3/199,358,359.1,127.1,158.1,369.2,341.3,403.3;
+321 66,188,352,215,61,111,80.2,198.2/290,384,201,356,141.2,407.3,299.3,394.3/199,358,369.2,127.3,341.3,403.3,204.3,379.3;
+322 355,291,289.1,188.1,352.1,69.1,111.1,152.2/32,381,287,378,54.1,300.1,181.2,47.2/222,379,240,212,114,127,260.1,233.2;
+323 355,291,152.2,258.2,187.2,278.2,93.2,186.3/32,381,287,378,181.2,47.2,123.2,26.2/222,379,158,240,148,212,114,127;
+324 355,188,43,182,258.2,187.2,93.2,186.3/32,181,303,287.1,300.1,137.2,58.3,47.3/222,260,148,212,216,379.1,158.1,70.1;
+325 71,61,401,186.3,188.3,221.3,350.3,154.3/313,101,312,309,219,241.1,271.1,301.2/315,305.1,98.2,114.3,127.3,91.3,19.3;
+326 71,61,401,249.3,326.3,328.3,333.3,186.3/313,101,312,309,219,301.2,397.2,314.2/315,98.2,305.2,248.3,114.3,127.3,204.3,362.3;
+327 291,188,330,43,157,182.1,311.1,249.2/313,407.1,201.1,251.2,299.2,47.3,51.3,394.3/359,127,19,42.1,248.2,415.2,362.3,315.3;
+328 152,256,157,392,215,39.1,43.1,106.1/47,67,381,378,123.1,386.1,343.1,26.2/379,158,204,42,165,114.3,127.3,344.3;
+329 152,90,256,157,392,215,39.1,43.1/47,130,67,381,378,59,386.1,87.2/379,158,78,204,42,19,165,417;
+330 152,174,90,256,157,392,215,39.1/47,130,67,381,378,59,386.1,87.2/379,158,136,78,204,42,19,165;
+331 62,285,157,401,334,84,272.1,103.1/2,360,135,286,209.1,55.1,3.1,178.2/324.1,344.2,237.2,114.3,127.3,362.3,220.3;
+332 157,62,401,84,285,118,334,221.2/2,360,135,286,178.2,209.2,320.2,55.2/344.2,237.2,220.2,248.3,114.3,127.3,204.3,362.3;
+333 37,284,215,169.1,17.1,281.1,188.2,155.2/130,318,414,251.2,299.2,14.2,377.2,47.3/114,167,415.1,78.1,77.1,416.2,127.2,34.2;
+334 284,37,215,184.2,174.2,5.2,398.2,16.2/130,318,414,87.2,14.2,181.3,251.3,47.3/34,400,114,167,416.2,136.2,266.2,99.2;
+335 25,39,109,155,154,173,106,281/251.2,299.2,377.2,47.3,407.3,178.3,51.3,394.3/0,405.1,91.1,248.2,114.2,127.2,204.2,179.2;
+336 97,92,334,102,256,229,392,373/58,151,53.2,251.3,47.3,178.3,299.3,320.3/91.1,223.2,262.2,114.3,127.3,222.3,204.3,379.3;
+337 291,352.2,71.2,188.3,350.3,154.3,180.3,69.3/224,101,312,219,309,300.2,394.2,279.2/315,42,305,351,153,167,98.2,342.2;
+338 71,291,352.2,188.3,350.3,154.3,180.3,69.3/224,101,312,181,300.2,394.2,279.2,309.2/315,42,351,344,153,139,98.2,342.2;
+339 71,43.1,82.1,80.2,66.2,278.2,198.2,186.3/290,47,201,381,54,384.1,123.1,141.2/379,158,240,12,6,305,199.1,114.1;
+340 71,80.2,66.2,278.2,198.2,186.3,188.3,164.3/290,47,201,381,54,384.2,67.2,123.2/379,158,240,12,6,359,305,199.2;
+341 100,9,392,116,143,373,128,7.1/290,338,68,300.1,384.2,201.2,141.2,11.2/242,197,127.1,165.1,199.2,369.2,12.2,114.3;
+342 392,116,373,100,9,143,128,7.1/290,338,68,251,300.1,384.2,201.2,320.2/242,197,127.1,199.2,369.2,12.2,114.3,341.3;
+343 182,152.2,71.2,374.2,186.3,350.3,154.3,180.3/313,101,47,271,381,300,394,67.2/41,153,379.2,315.2,98.2,127.3,341.3,344.3;
+344 182,152.2,71.2,374.2,186.3,164.3,350.3,193.3/313,101,47,271,381,300,394,67.2/204,41,153,379.2,315.2,98.2,305.2,127.3;
+345 102,349,215,33.1,202.2,188.3,350.3,154.3/246,178,300,135,3,356,151,241.1/42.1,344.2,342.2,127.3;
+346 102,349,215,202.2,33.3,186.3,188.3,164.3/246,178,300,135,3,356,151,394.2/344.2,42.2,227.2,351.2,342.2,127.3,204.3,379.3;
+347 106,382,282,25,109,175,173,182.1/300,279,24,290,356,201.1,394.2,149.2/42.1,342.2,127.3;
+348 106,382,282,25,109,175,173,105.3/300,279,24,290,356,394.2,149.2,47.3/42.2,351.2,342.2,127.3,204.3,362.3,379.3,91.3;
+349 291,43,80.2,66.2,350.3,154.3,335.3/356.1,130.1,241.1,318.1,384.2,201.2,141.2,11.2/91.1,369.2,12.2,127.3,341.3,403.3;
+350 291,102,43,90,80.2,66.2,409.2,33.3/290,201,87,414,130.1,241.1,384.2,356.2/199,369,6,12.2,114.3,127.3,341.3,403.3;
+351 186,291,188.2,350.2,154.2,345.2,221.3,22.3/32,290,257,404.1,217.1,251.2,299.2,407.3/199,403,233,400,305.1,127.2,222.3,341.3;
+352 25,33,195,109,229,221,157,215/313,300,364,251.2,299.2,47.3,407.3,51.3/220,248.2,127.2,222.3,341.3,403.3,362.3,344.3;
+353 215,157,116,281.1,401.1,186.3,188.3,221.3/383,51,364,217,404.1,313.3,407.3,299.3/189,223.1,302.2,127.3,336.3,393.3,315.3,98.3;
+354 157,116,176.2,186.3,188.3,221.3,350.3,154.3/383,51,364,217,404.2,313.3,47.3,407.3/189,302.2,127.3,204.3,336.3,393.3,315.3,98.3;
+355 215,85,281,401,157.1,186.3,188.3,221.3/383,51,364,217,2,320,404.1,407.3/315,305,189.2,302.2,127.3,341.3,403.3,98.3;
+356 215,332,326,328,333,33,85,281/383,51,364,217,2,320,404.2,47.3/315,305,189.2,302.2,248.3,127.3,341.3,403.3;
+357 289,188,208.1,40.1,186.1,184.2,202.2,16.2/386,207,209,371,88,360.1,178.2,14.2/344,237,136,243,405.1,416.2,400.2,385.2;
+358 291,102,215,71.2,33.3,352.3,350.3,154.3/101,312,271,301,404,313.2,309.2,397.2/315,114,127,19,98.1,305.1,415.3;
+359 256,281,116,373,25,39,109,311/217.1,320.2,18.2,251.3,47.3,407.3,299.3,51.3/405,305,127.1,247.1,77.1,220.2,222.3,341.3;
+360 103/241/254.5;
+361 94,186,256,392,215,22.1,352.1,288.2/257,407,147,396,217.1,76.2,299.3,51.3/341,403,86,114.3,127.3;
+362 94,186,256,392,215,22.2,288.2,188.3/257,407,49,147,396,230,76.2,299.3/341,403,161,86,114.3,127.3,204.3,379.3;
+363 198,188,352,80.2,66.2,186.3,164.3,367.3/290,337,257,49,201,356,343.1,407.2/369,341,403,161,158.1,42.1,6.2,127.3;
+364 198,188,352,80.2,66.2,186.3,164.3,367.3/290,337,257,49,201,356,407.2,384.2/369,341,403,161,6.2,127.3,379.3,42.3;
+365 94,198,188,352,392,80.2,66.2,22.2/290,337,257,49,201,356,407.2,384.2/369,341,403,161,199.2,6.2,127.3,204.3;
+366 376,188.1,80.2,66.2,350.3,154.3/290,384,201.1,356.1,141.2,407.3,299.3/12.1,369.2,127.3,341.3,403.3;
+367 66,256,157,392,94,80.2,33.3,188.3/290,384,201,356,141.2,251.3,47.3,407.3/199,6,369.2,127.3,341.3,403.3,204.3,179.3;
+368 66,80.2,33.3,188.3,350.3,154.3,61.3/290,384,201,101,45,356.2,141.2,251.3/199,6,315,369.2,127.3,341.3,403.3,204.3;
+369 66,291,43,71.1,80.2,198.2,186.3,188.3/290,300,394,356.1,47.1,123.1,384.2,279.2/199,6,380,114,127,42.1,12.1,70.1;
+370 291,43,29,7.1,80.2,66.2,198.2,409.2/290,201,356,45,384.2,141.2,251.3,407.3/199,114,369.2,127.3,341.3,403.3;
+371 174,186,256,169,392,71,176.1,95.1/130,32,170.1,87.1,318.1,181.3,47.3,299.3/136,127,222,78.1,359.1,199.1,99.2,114.3;
+372 174,186,256,169,392,71,90.2,105.3/130,32,87.2,318.2,181.3,47.3,299.3,394.3/136,127,222,99.2,114.3,199.3,233.3,42.3;
+373 174,90,16,186,256,169,392,96/130,32,87.2,14.2,371.2,318.2,181.3,251.3/416,136,127,222,99.2,400.2,114.3,199.3;
+374 291,71.2,69.2,186.3/377.3/114,250.2;
+375 175,322,71,291,281,180.2,311.2,69.2/101,74,309.2,397.2,314.2,251.3,58.3,47.3/315,331,114,204,305.2,250.2,20.2,127.3;
+376 175,322,71,291,281,180.2,311.2,69.2/101,74,309.2,397.2,314.2,251.3,58.3,47.3/315,331,114,204,239,153.1,305.2,250.2;
+377 289,352.2,249.3,326.3,328.3,333.3,186.3,188.3/224,300,339,378,394.2,279.2,219.2,24.2/42,351,204,153,132,165,239,342.2;
+378 289,328.2,22.2,288.2,249.3,333.3,186.3,188.3/407,300,339,378,76.2,396.2,47.3,299.3/341,403,204,153,132,165,239,248.3;
+379 175,69,111,289,306.2,249.3,328.3,333.3/74,300,339,378,47.3,299.3,394.3,67.3/204,153,132,165,239,250.2,20.2,248.3;
+380 71,174.2,311.2,398.2,335.2,105.3,188.3,80.3/101,312,130,318,301,87.2,309.2,251.3/315,50,98.2,136.2,305.2,99.2,416.3,114.3;
+381 71,174.2,311.2,398.2,335.2,105.3,188.3,80.3/101,312,130,318,301,87.2,309.2,314.2/315,348,98.2,136.2,305.2,99.2,416.3,114.3;
+382 188,80.2,66.2,198.2,186.3,164.3,350.3,193.3/201,300,384.2,356.2,141.2,11.2,251.3,47.3/199,358,12,6,319,127,341,161;
+383 109,152.2,278.2,249.3,326.3,333.3,105.3,186.3/123,381,300,47.2,67.2,378.2,26.2,251.3/379,158,156,344,233,148,239,212;
+384 174,392,399,184.2,90.2,398.2,335.2,33.3/87,371,318,300,251.3,47.3,407.3,299.3/416,136,400,31,204,415,99.2,114.3;
+385 71,69.2,249.3,326.3,328.3,333.3,186.3,188.3/101,251,313.2,74.2,309.2,301.2,397.2,314.2/315,305,331,117,127,98.2,250.2,248.3;
+386 71,102,281,116,326.3,328.3,333.3,105.3/309,383,313.2,301.2,397.2,314.2,251.3,47.3/315,308,204,98.2,305.2,114.3,127.3,341.3;
+387 208,160,291,256,392,188.1,111.1,202.2/2,246,207,178,378,55.1,67.1,381.1/237,127,359.1,165.1,344.2,114.3,91.3,388.3;
+388 208,160,291,256,392,202.2,159.2,1.2/2,246,207,178,378,360.2,209.2,55.2/237,127,359.1,165.1,344.2,114.3,91.3,388.3;
+389 208,160,291,256,392,202.2,278.2,159.2/2,246,207,178,378,47.2,67.2,360.2/379,237,245,28,127,359.1,165.1,344.2;
+390 355,25,291,195,154,5,329,326.1/32,181,251,412.2,137.2,47.3,299.3,394.3/222,127,260.1,233.2,363.2,139.2,114.3,42.3;
+391 355,395,329,25,291,195,154,5/32,181,251,264.2,412.2,137.2,47.3,299.3/222,0,139,127,260.1,233.2,363.2,259.2;
+392 355,395,329,25,291,195,154,213/32,181,251,142.2,264.2,412.2,137.2,47.3/222,0,139,140,127,260.1,233.2,23.2;
+393 198,119,37,291,284,283,184,43.1/290,338,68,384,201,356,47.1,407.1/199,127,369.2,341.3,403.3;
+394 198,119,37,291,284,283,175,184/290,338,68,384,201,356,141.2,411.2/199,127,369.2,114.3,341.3,403.3;
+395 175,7,198,119,37,291,284,283/290,338,68,384,201,356,74,141.2/199,138,127,369.2,200.2,250.2,114.3,341.3;
+396 35,291,39,143,184,37.1,17.1,281.1/386,371,251.2,299.2,14.2,377.2,47.3,87.3/114,127,266,179,19.1,416.2,400.2,260.3;
+397 35,291,39,143,184,350.2,154.2,5.2/386,371,251.2,299.2,14.2,377.2,47.3,87.3/114,127,266,179,416.2,19.2,400.2,260.3;
+398 35,291,39,143,184,350.2,154.2,5.2/386,371,251.2,299.2,14.2,377.2,47.3,87.3/114,127,266,179,0,416.2,204.2,34.2;
+399 186,291,203,367,256,352,392,39.1/251.2,299.2,47.3,407.3,51.3,265.3,339.3/114,127,165,70.1,388.1,6.1,341.3,403.3;
+400 186,291,203,367,7,256,352,392/290,201,251.2,299.2,384.2,141.2,47.3,407.3/114,127,6,165,369.2,204.2,179.2,388.2;
+401 282,119,291,293.2,192.2,143.3/149,2,47.3,377.3/19.3;
+402 85,106,382,282,13,119,291,109/149,2,408.2,4.2,47.3,178.3,299.3,377.3/417,114.3,204.3,19.3,415.3,179.3;
+403 82,96,291,256,39,392,129.1,373.1/214,265.1,251.1,343.1,339.2,52.2,133.2,21.2/393,83,410,114.1,336.2,127.3,91.3,77.3;
+404 82,96,291,256,39,392,186.3,164.3/214,265.2,339.2,52.2,133.2,21.2,251.3,47.3/393,83,410,336.2,114.3,127.3,91.3,77.3;
+405 82,96,291,256,39,392,186.3,188.3/214,265.2,339.2,52.2,133.2,21.2,251.3,47.3/393,83,410,336.2,295.2,114.3,127.3,204.3;
+406 285,334,202.2,159.2,105.3,350.3,154.3/2,246,135,207.1,178.1,55.1,286.1,271.1/112,237.1,344.2,19.3;
+407 285,334,202.2,159.2,105.3,188.3,106.3,350.3/2,246,178,209,135,58.2,360.2,55.2/112,385,344.2,237.2,227.2,204.3,19.3,179.3;
+408 40,186,291,256,281,392,193,71/300,394.2,279.2,24.2,47.3,299.3,265.3,318.3/42,380,114,127,359.1,91.1,239.1,351.2;
+409 40,186,291,256,281,392,193,143/300,394.2,279.2,24.2,47.3,299.3,384.3,265.3/42,380,114,127,359.1,239.1,351.2,222.3;
+410 69,111,291,186.1,188.1,103.1,306.2,164.3/300,381,279.1,394.2,219.2,74.2,24.2,47.3/42,114,127,158.1,91.2,351.2,250.2,222.3;
+411 69,111,291,186.1,103.1,306.2,188.3,164.3/300,381,394.2,279.2,219.2,74.2,24.2,47.3/42,114,127,158.1,91.2,351.2,250.2,342.2;
+412 282,291/149,299,133.3/282!embestida,299!embestida,133.3!embestida;
+413 282,291,43,202.2,152.3,221.3,350.3,154.3/207,408,135,149,4,386,313,101/417,237,315,344.2,204.3,98.3,19.3,179.3;
+414 282,293,291,184.2,213.2,5.2,221.3,350.3/386,408,371,149,313,101,299,14.2/417,315,204.3,344.3,98.3,179.3;
+415 282,293.2,192.2,16.2,143.3/386,149,14.2,251.3,47.3,404.3,377.3/417;
+416 106,282,13,285,195,109,281,184.2/386,286,408,371,149,219,14.2,343.2/417,15,400.2,48.2,114.3,204.3,19.3,179.3;
+417 82,255,256,39,203,367,392,43.1/214,52,251,265.2,339.2,133.2,47.3,299.3/393,83,91.1,336.2,410.2,114.3,204.3,19.3;
+418 80,7,198,291,256,39,281,128/290,384,201,59,251,47.1,356.2,141.2/199,6,138,405,369.2,114.3,341.3,403.3;
+419 80,7,198,291,256,39,281,392/290,384,201,59,251,356.2,141.2,11.2/199,6,138,405,369.2,12.2,114.3,127.3;
+420 160,291,352.1,202.2,159.2,350.3,154.3/2,209,135,45,207.1,55.1,178.2,360.2/344,112,385,114,127,48.3;
+421 160,291,202.2,159.2,352.3,350.3,154.3/2,209,135,45,178.2,360.2,55.2,299.3/344,112,385,114,127,108.2,204.3,179.3;
+422 291,188,103.1,80.2,66.2,198.2,186.3,350.3/290,201,47,299,300,381,54,356.1/199,12,158.1,369.2,114.3,341.3,403.3,42.3;
+423 291,188,152.2,80.2,66.2,278.2,198.2,186.3/290,47,201,381,54,299,300,384.2/199,12,369.2,379.2,114.3,341.3,403.3,204.3;
+424 25,39,195,128,215,185,40.1,103.1/251,54,299.2,377.2,47.3,51.3,123.3,265.3/127,91,114.2,204.2,19.2,179.2,344.3,336.3;
+425 215,349,401,188.1,184.2,5.2,105.3,33.3/386,51,404,217,101,271,231,383.2/41,153,416.2,189.2,336.3,393.3,315.3,98.3;
+426 215,349,401,184.2,5.2,105.3,33.3,188.3/386,51,404,217,101,271,231,383.2/189,41,153,416.2,204.3,336.3,393.3,315.3;
+427 119,186,39,330,128,129,61,43.1/251,45,299.2,47.3,51.3,265.3,201.3,339.3/127,276,77,248.2,19.2,415.2,341.3,344.3;
+428 119,186,39,330,350,128,129,395/251,241,45,299.2,47.3,51.3,265.3,201.3/127,276,277,0,77,248.2,204.2,19.2;
+429 215,401,186.3,221.3,350.3,154.3,184.3,202.3/51,364,217,313,101,312,271,209/189,302.2,204.3,336.3,393.3,315.3,98.3,305.3;
+430 35,284,281,184,373,346,215,221.2/386,14,320,371,18,383,251.3,47.3/266,220,416.2,34.2,400.2,114.3,127.3,204.3;
+431 25,291,195,109,345,157,184,373/251.2,299.2,47.3,51.3,265.3,201.3/127,77,415.2,336.3,393.3,98.3,91.3,220.3;
+432 25,291,188,195,109,345,157,184/251.2,299.2,47.3,51.3,265.3,201.3,378.3/127,77,204.2,415.2,179.2,336.3,393.3,98.3;
+433 291,102,215,71.2,33.3,352.3,350.3,154.3/101,271,404,301.1,309.2,314.2,251.3,407.3/127,19,98.1,305.1,315.2,415.3;
+434 256,334,373,25,291,195,109,281.1/53,303.1,287.1,58.2,320.2,18.2,251.3,47.3/127,153,220.1,91.1,77.1,223.2,262.2,114.3;
+435 256,334,373,25,291,195,109,221.2/53,58.2,320.2,18.2,181.3,251.3,47.3,299.3/127,222,153,223.2,262.2,220.2,114.3,204.3;
+436 180,111,291,157,401,71.2,69.2,188.3/101,312,271,74,217,309.2,301.2,397.2/305,315.2,98.2,250.2,20.2,114.3,344.3,379.3;
+437 180,111,291,157,401,71.2,69.2,306.2/101,312,271,74,217,313.2,309.2,301.2/305,315.2,98.2,250.2,20.2,114.3,204.3,344.3;
+438 352,40,291,272,103,43,157,186.1/224,394,67.1,279.2,219.2,24.2,47.3,299.3/42,380,127,41.1,351.2,114.3,379.3,153.3;
+439 71,119,126,186.3,221.3,350.3,154.3,113.3/313,101,63,407.1,309.2,301.2,47.3,299.3/315,305.1,98.2,344.3,336.3,393.3,19.3;
+440 119,291,103.1,186.2,350.2,154.2,143.2,352.3/414,45,406,307.1,54.1,299.2,377.2,47.3/127,362.1,114.2,19.2,415.2,222.3,344.3,315.3;
+441 37,284,17.1,350.2,154.2,184.2,221.3,213.3/386,251,14,371,81,383.1,299.2,47.3/19,415,400,77,150.1,416.2,34.2,260.3;
+442 157,281,401,221.2,115.2,188.3,350.3,154.3/383,51,320,364,404,217,271,18.2/98,220.1,189.2,302.2,204.3,315.3,19.3,179.3;
+443 152,174,291,256,109,188.1,175.1,69.1/170,130,87,67,381,378,123.1,47.2/136,78,114,127,359.1,91.1,388.1,379.2;
+444 152,174,185,291,256,109,90.2,398.2/170,130,87,67,381,378,47.2,123.2/136,78,114,127,379.2,99.2,222.3,233.3;
+445 152,174,185,291,256,109,392,95/170,130,87,67,381,378,47.2,123.2/136,78,114,127,379.2,99.2,222.3,369.3;
+446 291,188,43,196,256,229,352,71/378,120.2,299.2,377.2,47.3,407.3,51.3,384.3/127,179,166,41.1,158.1,248.2,114.2,19.2;
+447 103,218,193,268,256,39,175,392/142,264,251.3,47.3,299.3,394.3,378.3,377.3/0,277.1,372.1,331.1,259.2,248.3,114.3,379.3;
+448 103,218,395,175,193,268,322,329/142,264,38,320,318,74.2,251.3,47.3/331,0,91.2,259.2,250.2,248.3,114.3,204.3;
+449 152,291,256,392,188.1,118.1,278.2,186.3/67,54,47.2,123.2,381.2,378.2,26.2,299.3/379,158,166,114,127,42.3,91.3,165.3;
+450 152,291,256,392,96,94,95,278.2/67,54,47.2,123.2,381.2,378.2,26.2,299.3/379,158,166,114,127,204.3,42.3,91.3;
+451 285,97,382,402,282,13,256,281/286,58.2,149.2,4.2,47.3,299.3,51.3,394.3/91.1,417.2,6.3;
+452 285,256,281,392,116,97,373,402/286,58.2,320.2,18.2,47.3,299.3,51.3,394.3/204.3,379.3,42.3,91.3,6.3,417.3,179.3,388.3;
+453 285,272,193,118,334,157,281,215/58,47,381,54,264.1,53.2,407.3,299.3/0,324.1,372.1,259.2,223.2,262.2,248.3,114.3;
+454 285,272,193,118,334,157,281,215/58,47,381,54,264.2,53.2,407.3,299.3/0,259.2,223.2,262.2,248.3,114.3,204.3,379.3;
+455 228,202,33,256,157,392,40.1,105.3/2,55,135,88,151,53,207.1,178.1/227,344.2,204.3,179.3;
+456 119,43,61,213,80.2,66.2,409.2,221.3/290,68,384,201,386,408,371,356.1/199,6.1,369.2,114.3,341.3,403.3;
+457 119,43,61,213,80.2,66.2,409.2,221.3/290,68,384,201,386,408,371,356.2/199,369.2,6.2,114.3,341.3,403.3,204.3,179.3;
+458 35,184,61,186,291,40.1,80.2,66.2/290,338,68,201,371,87.1,241.1,343.1/199,114,127,42.1,369.2,341.3,403.3,379.3;
+459 160,22.1,289.1,328.2,202.2,159.2,288.2,1.2/207,257,407,135,147,360.1,209.1,55.1/403,161,245,86,127.1,70.1,341.2,344.2;
+460 328,160,22.2,202.2,159.2,288.2,1.2,249.3/207,257,407,135,147,178.2,360.2,76.2/403,161,245,86,341.2,344.2,237.2,248.3;
+461 157,373,25,39,195,109,175,118/407,320,147,251,76.2,18.2,47.3,299.3/403,341.2,220.2,248.3,114.3,369.3,204.3,98.3;
+462 82,180,291,69.2,111.2,306.2,188.3,352.3/214,122,74,57,52,59,389,241/336,393,132,83,410.2,250.2,20.2,295.2;
+463 40,289,291,102,196,229,352,116/151,378,299.2,317.2,47.3,407.3,51.3,384.3/127,179,227,248.2,204.2,41.2,153.2,388.2;
+464 374,289,104,37,291,193,334,196/279,24,378,47.2,300.2,394.2,123.2,381.2/379,42,354,351,166,280,114,127;
+465 228,33,40,349,116,128,202.2,159.2/2,246,178,135,58,300,151,53/227,344.2,237.2,108.2,204.3,379.3,42.3,259.3;
+466 333,82,326,272,39,249.3,328.3,186.3/214,265,52,251,339.2,133.2,21.2,47.3/336,393,83,410,179,324.1,372.1,239.1;
+467 326,355,333,291,272,157,395.1,258.2/32,181,287,303,231.2,137.2,47.3,299.3/222,233,212,204,324.1,372.1,260.2,363.2;
+468 119,291,399,184.2,16.2,249.3,186.3,188.3/14,371,45,406,389,300,271,142/34,167,127,416.2,77.2,248.3,222.3,204.3;
+469 35,184,213,282,291,39,109,281/386,408,371,59,300,14.2,343.2,149.2/417,19,127.1,114.3,204.3,344.3,315.3,98.3;
+470 208,160,291,256,39,202.2,159.2,1.2/207,178,209,251,360.2,55.2,135.2,120.3/114,127,344.2,237.2,108.2,204.3,91.3,415.3;
+471 94,291,256,39,22.2,390.2,186.3,188.3/257,407,147,230,251,241,76.2,396.2/341,403,114,127,204.3,91.3,415.3,6.3;
+472 184,5,285,39,109,157,106,116/47,381,54,286,67.2,123.2,378.2,251.3/379,197,242,127.1,34.2,166.2,114.3,204.3;
+473 94,37,291,284,43,128,256.1,152.2/257,47,407,147,54,378,300,230.1/403,379,86,166,114,359,127,158.1;
+474 291,82,350.2,154.2,221.3,184.3,71.3/389,313,214,343,251.2,299.2,377.2,407.3/127,204,336,132,83,114.2,19.2,179.2;
+475 311,109,155,106,184,208,373,370/313,101,301,414,45,142.2,264.2,309.2/315,98,305,0,144,259.2,248.3,114.3;
+476 291,82,294,352.1,69.2,111.2,306.2,326.3/224,279,219,74,57,24,389,381/42,351,132,83,380.1,127.1,250.2,342.2;
+477 215,332,326,328,333,33,85,281/383,51,364,217,2,320,404.2,251.3/315,305,189.2,302.2,248.3,341.3,403.3,204.3;
+478 215,94,186,256,392,328.2,22.2,390.2/257,407,51,147,404,217,396,45/403,86,341.2,302.2,114.3,204.3,336.3,393.3;
+479 215,221.3,350.3,154.3/214,51,265,339,404,52,217,383.2/336,393,83,19,302.2,98.3,415.3,220.3;
+480 43,128,311.2,71.2,326.3,328.3,333.3,186.3/313,101,271,298,251,389,309.2,301.2/315,305,98.2,204.3,344.3,336.3,393.3,91.3;
+481 128,311.2,71.2,326.3,328.3,333.3,186.3,350.3/313,101,271,298,251,389,309.2,301.2/315,305,98.2,127.3,341.3,403.3,204.3,336.3;
+482 128,311.2,71.2,326.3,328.3,333.3,186.3,350.3/313,101,271,298,251,389,309.2,301.2/315,305,41,153,19,98.2,127.3,222.3;
+483 175,174,109,69.2,111.2,90.2,398.2,335.2/130,87,318,74,300,142,219,381/91,124,136.2,99.2,250.2,114.3,222.3,341.3;
+484 174,109,80.2,66.2,90.2,198.2,398.2,335.2/130,87,201,318,300,142,219,381/199,6,107,369.2,136.2,99.2,114.3,222.3;
+485 175,95,69,392,111.2,258.2,187.2,306.2/32,181,300,381,74.2,137.2,47.3,299.3/260,212,238,351,222.2,233.2,363.2,139.2;
+486 119,249,289,291,330,154,10,326/300,378,299.2,317.2,377.2,47.3,407.3,394.3/179,165,239,248.2,127.2,204.2,388.2,336.3;
+487 174,176,109,90.2,398.2,105.3,186.3,188.3/130,364,404,217,300,142,381,87.2/194,136.2,99.2,189.2,302.2,416.3,114.3,204.3;
+488 311,291,109,71.2,188.3,106.3,350.3,154.3/313,101,337,309.2,301.2,397.2,251.3,47.3/315,305,167,98.2,341.3,204.3,344.3,336.3;
+489 66,71,80.2,198.2,409.2,350.3,154.3,116.3/290,338,68,384,201,101,356.2,141.2/199,167,369.2,341.3,403.3,19.3;
+490 66,71,80.2,198.2,409.2,350.3,154.3,116.3/290,338,68,384,201,101,356.2,141.2/199,167,369.2,341.3,403.3,204.3,315.3,19.3;
+491 157,281,39,221.2,116.2,401.2,191.2,115.2/320,383,51,364,404,217,18.2,251.3/315,98,220.2,341.3,403.3,204.3,336.3,393.3;
+492 160,39,202.2,159.2,1.2,186.3,350.3,154.3/209,135,371,381,178.2,360.2,55.2,251.3/168,77,344.2,237.2,385.2,114.3,127.3,204.3;
+493 39,399,105.2,186.2,188.2,164.2,350.2,154.2/101,300,271,381,251.2,299.2,377.2,58.3/204,415,361,362,305,114.2,127.2,179.2`;
 
 const APRENDE = {};
 MOVS_APR.split(';').forEach(l => {
@@ -2353,51 +2590,109 @@ function armarRival(mios){
 }
 
 /* ---------------- elegir equipo ---------------- */
+/* Favoritos: hasta 6 Pokémon marcados con la ★ que se guardan en el celular. Al abrir la Arena el equipo ya viene
+   armado con ellos (los que todavía tengas), así no hay que buscarlos de cero cada vez. */
+const FAV_KEY = 'arena-favoritos';
+function cargarFav(){
+  try{ const a = JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); return Array.isArray(a) ? a.filter(n => Number.isInteger(n)).slice(0, EQUIPO_MAX) : []; }
+  catch(e){ return []; }
+}
+function guardarFav(a){ try{ localStorage.setItem(FAV_KEY, JSON.stringify(a.slice(0, EQUIPO_MAX))); }catch(e){} }
+const sinTildes = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
 function abrirArena(){
   const ov = $('arenaOverlay');
   const mios = kantoMios().concat(especialesMios());   // las especiales (Mewtwo Acorazado) pelean aparte
   if(mios.length < EQUIPO_MIN){
     if(typeof avisoBatalla === 'function')
-      avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto o Johto para pelear en la arena. Abrí un sobre primero.`);
+      avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto, Johto, Hoenn o Sinnoh para pelear en la arena. Abrí un sobre primero.`);
     return;
   }
   limpiar();
   if(!ultimoTopMaestro) cargarTopMaestro();   // más nombres de entrenadores para los rivales
   ov.classList.add('show');
   const orden = mios.slice().sort((a, b) => bstDe(b) - bstDe(a));
-  const sel = orden.slice(0, EQUIPO_MAX).map(p => p.id);
+  const mios_ids = new Set(orden.map(p => p.id));
+  let fav = cargarFav();
+  let sel = fav.filter(id => mios_ids.has(id));            // el equipo arranca con tus favoritos
+  if(!sel.length) sel = orden.slice(0, EQUIPO_MAX).map(p => p.id);
+  let q = '', aviso = '';
   const root = $('arRoot');
-  const pintar = () => {
-    root.innerHTML = `<div class="ar-pick">
-      <h2>Arena Pokémon · Kanto y Johto</h2>
-      <p>Elegí tu equipo: de ${EQUIPO_MIN} a ${EQUIPO_MAX}. Sale primero el que marcaste con el 1. Pelea tu ejemplar más fuerte (💪).</p>
-      <div class="ar-grid">${orden.map(p => {
-        const n = sel.indexOf(p.id) + 1, s = statsDe(p);
-        return `<button class="ar-sel${n ? ' on' : ''}" data-id="${p.id}" aria-pressed="${n ? 'true' : 'false'}" style="border-color:${n ? TYPE_COLORS[p.type] : '#34407a'}">
-          ${n ? `<span class="ar-n">${n}</span>` : ''}
-          <img src="${spIcono(p.id, (mejorEjemplar(p.id) || {}).s)}" alt="" width="64" height="64" loading="lazy">
-          <b>${(mejorEjemplar(p.id) || {}).s ? '✨ ' : ''}${p.name}</b><small>${TYPE_LABEL[p.type]} · ${bstDe(p)} · 💪${(mejorEjemplar(p.id) || {}).f || 50}</small>
-          <small class="ar-st">Crít. ${Math.round(s.crit * 100)}% ×${s.critMult.toFixed(1)}</small>
-          <small class="ar-st">Veloc. ${'★'.repeat(Math.max(1, Math.round((s.vel - .65) / .14)))}</small>
-          <small class="ar-movs">${(id => id === 132 ? 'Transformación: copia al rival' : (mv => ATAQUES.map(a => mv[a] ? mv[a].n : '').filter(Boolean).join(' · '))(crearMon(p).movs))(p.base || p.id)}</small></button>`;
-      }).join('')}</div>
-      <div class="ar-pick-pie"><span>${sel.length} de ${EQUIPO_MAX}</span>
-        <button class="ar-b ar-med" id="arPickCerrar"><b>Cerrar</b></button>
-        <button class="ar-b ar-med ar-go" id="arPickGo"${sel.length < EQUIPO_MIN ? ' disabled' : ''}><b>¡A pelear!</b></button></div>
-      ${MODO_SERVIDOR ? `<button class="ar-b ar-duelo-btn" id="arPickDuelo"${sel.length < EQUIPO_MIN ? ' disabled' : ''}><b>👥 Duelo con un amigo${dueloPendiente ? ' · código ' + dueloPendiente : ''}</b><small>En vivo, contra su equipo real</small></button>` : ''}</div>`;
-    root.querySelectorAll('.ar-sel').forEach(b => {
+
+  const lista = () => {
+    const t = sinTildes(q).trim().replace(/^#/, '');
+    const coincide = p => !t || sinTildes(p.name).includes(t) || String(p.id) === t || sinTildes(TYPE_LABEL[p.type] || '').includes(t);
+    return orden.filter(coincide).sort((a, b) => (fav.includes(b.id) ? 1 : 0) - (fav.includes(a.id) ? 1 : 0));   // favoritos arriba
+  };
+  const tarjeta = p => {
+    const n = sel.indexOf(p.id) + 1, s = statsDe(p), esFav = fav.includes(p.id);
+    return `<button class="ar-sel${n ? ' on' : ''}" data-id="${p.id}" aria-pressed="${n ? 'true' : 'false'}" style="border-color:${n ? TYPE_COLORS[p.type] : '#34407a'}">
+      ${n ? `<span class="ar-n">${n}</span>` : ''}<span class="ar-fav${esFav ? ' on' : ''}" data-fav="${p.id}" role="button" aria-label="${esFav ? 'Sacar de favoritos' : 'Marcar como favorito'}">★</span>
+      <img src="${spIcono(p.id, (mejorEjemplar(p.id) || {}).s)}" alt="" width="64" height="64" loading="lazy">
+      <b>${(mejorEjemplar(p.id) || {}).s ? '✨ ' : ''}${p.name}</b><small>${TYPE_LABEL[p.type]} · ${bstDe(p)} · 💪${(mejorEjemplar(p.id) || {}).f || 50}</small>
+      <small class="ar-st">Crít. ${Math.round(s.crit * 100)}% ×${s.critMult.toFixed(1)}</small>
+      <small class="ar-st">Veloc. ${'★'.repeat(Math.max(1, Math.round((s.vel - .65) / .14)))}</small>
+      <small class="ar-movs">${(id => id === 132 ? 'Transformación: copia al rival' : (mv => ATAQUES.map(a => mv[a] ? mv[a].n : '').filter(Boolean).join(' · '))(crearMon(p).movs))(p.base || p.id)}</small></button>`;
+  };
+  const actualizarPie = () => {
+    $('arPickN').textContent = `${sel.length} de ${EQUIPO_MAX}`;
+    $('arPickGo').disabled = sel.length < EQUIPO_MIN;
+    const bd = $('arPickDuelo'); if(bd) bd.disabled = sel.length < EQUIPO_MIN;
+    $('arFavInfo').textContent = aviso || `⭐ ${fav.length} de ${EQUIPO_MAX} favoritos · tocá la ★ de un Pokémon para guardarlo`;
+  };
+  const alternarFav = id => {
+    const i = fav.indexOf(id);
+    if(i >= 0){ fav.splice(i, 1); aviso = ''; }
+    else if(fav.length >= EQUIPO_MAX){ aviso = `Ya tenés ${EQUIPO_MAX} favoritos: sacá uno con la ★ para poner otro.`; }
+    else { fav.push(id); aviso = ''; }
+    guardarFav(fav); pintarLista();
+  };
+  const pintarLista = () => {
+    const grid = $('arGrid'), top = grid.scrollTop;
+    const l = lista();
+    grid.innerHTML = l.length ? l.map(tarjeta).join('') : '<p class="ar-vacio">Ninguno de tus Pokémon se llama así.</p>';
+    grid.scrollTop = top;
+    grid.querySelectorAll('.ar-sel').forEach(b => {
       b.onclick = () => {
         const id = Number(b.dataset.id), i = sel.indexOf(id);
         if(i >= 0) sel.splice(i, 1); else if(sel.length < EQUIPO_MAX) sel.push(id);
-        const g = root.querySelector('.ar-grid').scrollTop;
-        pintar();
-        root.querySelector('.ar-grid').scrollTop = g;
+        aviso = ''; pintarLista();
       };
     });
+    grid.querySelectorAll('.ar-fav').forEach(st => {
+      st.onclick = ev => { ev.stopPropagation(); alternarFav(Number(st.dataset.fav)); };
+    });
+    actualizarPie();
+  };
+  const pintar = () => {
+    root.innerHTML = `<div class="ar-pick">
+      <h2>Arena Pokémon · Kanto, Johto, Hoenn y Sinnoh</h2>
+      <p>Elegí tu equipo: de ${EQUIPO_MIN} a ${EQUIPO_MAX}. Sale primero el que marcaste con el 1. Pelea tu ejemplar más fuerte (💪).</p>
+      <div class="ar-busca"><input id="arBuscar" type="search" inputmode="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="🔎 Buscar por nombre, número o tipo" aria-label="Buscar Pokémon"></div>
+      <div class="ar-favbar"><button class="ar-b ar-med" id="arFavUsar"><b>⭐ Usar mis favoritos</b></button><button class="ar-b ar-med" id="arFavGuardar"><b>💾 Guardar este equipo</b></button><span id="arFavInfo"></span></div>
+      <div class="ar-grid" id="arGrid"></div>
+      <div class="ar-pick-pie"><span id="arPickN"></span>
+        <button class="ar-b ar-med" id="arPickCerrar"><b>Cerrar</b></button>
+        <button class="ar-b ar-med ar-go" id="arPickGo"><b>¡A pelear!</b></button></div>
+      ${MODO_SERVIDOR ? `<button class="ar-b ar-duelo-btn" id="arPickDuelo"><b>👥 Duelo con un amigo${dueloPendiente ? ' · código ' + dueloPendiente : ''}</b><small>En vivo, contra su equipo real</small></button>` : ''}</div>`;
+    const bq = $('arBuscar'); bq.value = q;
+    bq.oninput = () => { q = bq.value; pintarLista(); };       // sólo se repinta la lista: el teclado no se cierra
+    $('arFavUsar').onclick = () => {
+      const f = fav.filter(id => mios_ids.has(id));
+      if(!f.length){ aviso = 'Todavía no tenés favoritos: tocá la ★ de un Pokémon.'; }
+      else { sel = f.slice(0, EQUIPO_MAX); aviso = ''; }
+      pintarLista();
+    };
+    $('arFavGuardar').onclick = () => {
+      if(!sel.length){ aviso = 'Elegí al menos un Pokémon para guardarlo.'; }
+      else { fav = sel.slice(0, EQUIPO_MAX); guardarFav(fav); aviso = `Listo: tu equipo quedó guardado como favoritos (${fav.length}).`; }
+      pintarLista();
+    };
     $('arPickCerrar').onclick = cerrarArena;
     $('arPickGo').onclick = () => luchar(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]));
     const bd = $('arPickDuelo');
     if(bd) bd.onclick = () => pintarDuelo(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]), pintar);
+    pintarLista();
   };
   pintar();
 }

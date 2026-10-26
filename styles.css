@@ -585,6 +585,13 @@
   .ar-sel.on{background:#1c2658;}
   .ar-sel img{image-rendering:pixelated;} .ar-sel b{font-size:12px;} .ar-sel small{font-size:10px;color:#aab3d9;} .ar-sel .ar-st{color:#ffd9a0;}
   .ar-n{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#FFD54A;color:#111;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;}
+  .ar-busca input{width:100%;min-height:44px;box-sizing:border-box;border-radius:10px;border:2px solid #34407a;background:#0d1330;color:#f2f4ff;padding:8px 12px;font-family:'Baloo 2',sans-serif;font-weight:600;font-size:16px;}
+  .ar-busca input:focus{outline:none;border-color:#FFD54A;}
+  .ar-favbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;} .ar-favbar .ar-b{flex:1 1 130px;min-width:0;min-height:40px;padding:6px 8px;font-size:12px;}
+  #arFavInfo{flex-basis:100%;text-align:center;font-size:11px;color:#ffd9a0;}
+  .ar-fav{position:absolute;top:1px;right:3px;min-width:30px;min-height:30px;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;color:#5b6699;cursor:pointer;}
+  .ar-fav.on{color:#FFD54A;text-shadow:0 0 6px rgba(255,213,74,.7);}
+  .ar-vacio{grid-column:1/-1;text-align:center;color:#aab3d9;font-size:13px;padding:20px 0;}
   .ar-pick-pie{display:flex;gap:8px;align-items:center;} .ar-pick-pie span{font-size:12px;color:#aab3d9;flex:1;}
   .ar-pick-pie .ar-b{flex:0 0 auto;min-width:110px;} .ar-go{background:#C81F1F;border-color:#ff6a60;}
   .ar-duelo-btn{width:100%;flex:0 0 auto;background:#123a5c;border-color:#4fb3ff;}
