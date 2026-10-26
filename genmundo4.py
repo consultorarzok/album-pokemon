@@ -378,9 +378,6 @@ mancha(76, 12, 10, 4, '"', 7)
 mancha(100, 9, 6, 8, '#', 16)
 mancha(61, 52, 3, 11, '#', 17)
 mancha(92, 23, 8, 6, 'u', 24)                      # ruinas entre el follaje
-mancha(73, 41, 12, 7, '~', 8)                      # Lagunas de Yala
-mancha(67, 63, 12, 8, '"', 9)                      # cañaverales de Ledesma
-mancha(66, 49, 5, 3, '"', 18)                      # orilla alta de las lagunas
 mancha(99, 53, 6, 5, 'e', 25)                      # usina del ingenio
 mancha(87, 71, 9, 5, 'm', 26)                      # bañados
 mancha(90, 52, 6, 4, 'N', 32)                      # cumbres altas con nieve
@@ -394,7 +391,6 @@ camino([(68, 10), (68, 42), (104, 42)])
 camino([(58, 42), (68, 42)])
 camino([(68, 22), (92, 22)])
 camino([(68, 52), (99, 52)])
-camino([(68, 60), (68, 66)])
 camino([(87, 42), (87, 70)])
 camino([(80, 22), (80, 31)])
 salpicar(60, 103, 2, 80, '#', .06, 2)
@@ -482,13 +478,13 @@ salpicar(166, 211, 2, 80, '#', .045, 4)
 # ============================ REGIÓN 5 · PUNA · ABRA PAMPA Y LAS SALINAS (x 220..266) ============================
 mancha(243, 20, 13, 8, '"', 60)                    # pajonales de ichu
 mancha(228, 40, 9, 7, 'u', 61)                     # pucará
-mancha(230, 55, 9, 6, '~', 62)                     # Laguna de los Pozuelos
+mancha(231, 57, 12, 8, '~', 62)                    # Laguna de los Pozuelos
 mancha(255, 30, 7, 6, 'e', 63)                     # parque solar Cauchari
 mancha(250, 60, 9, 6, 'm', 64)                     # vegas
 mancha(258, 70, 7, 5, 'F', 65)
 mancha(258, 70, 3, 2, 'V', 66)                     # volcán
 R(222, 66, 244, 78, 'Z')
-mancha(232, 73, 12, 5, 'N', 67)                    # Salinas Grandes
+mancha(240, 98, 18, 12, 'N', 67)                   # Salinas Grandes (costra blanca, al sur)
 R(232, 3, 244, 10, '.')
 R(233, 5, 243, 9, '.')
 centro_pokemon(236, 7)
@@ -599,9 +595,7 @@ cartel_xy(7, 65, 'El Carmen, a unos 30 km de San Salvador: el pueblo de los diqu
 cartel_en(18, 70, 'Nevado del Chañi (6.200 m): la cumbre más alta de Jujuy.')
 # --- Yungas ---
 lugar(74, 6, 'W', 'Ingenio Ledesma: el azúcar de Libertador General San Martín, corazón de las Yungas.')
-cartel_en(68, 44, 'Lagunas de Yala: lagos de montaña en plena Yunga, a 40 minutos de la capital.')
 cartel_en(84, 14, 'Parque Nacional Calilegua: selva de yungas con tucanes, tapires y yaguaretés.')
-cartel_en(66, 62, 'Cañaverales de Ledesma: acá nace el azúcar jujeño.')
 # --- Quebrada ---
 cartel_xy(136, 56, 'Iglesia de Santa Rosa de Lima, Purmamarca (1648), frente a la plaza. Al fondo, el Cerro de los Siete Colores.')
 cartel_xy(133, 56, 'Cabildo de Purmamarca, sobre la plaza 9 de Julio. Alrededor, el mercado de artesanías.')
@@ -617,13 +611,179 @@ cartel_en(141, 72, 'Salinas Grandes: un desierto de sal a más de 3.400 m de alt
 # --- Alta Quebrada ---
 # (Humahuaca, Coctaca, Iruya y el Hornocal se arman en region4_detalle())
 # --- Puna ---
-cartel_en(240, 8, 'Abra Pampa: la ciudad más alta de Jujuy, entre llamas y vicuñas.')
-cartel_en(231, 51, 'Laguna de los Pozuelos: reserva de flamencos rosados en plena Puna.')
-cartel_en(232, 68, 'Salinas Grandes: un mar blanco de sal.')
-cartel_en(253, 33, 'Parque Solar Cauchari: uno de los más grandes de Sudamérica, a 4.000 m.')
 # --- Puna norte ---
-lugar(283, 38, 'I', 'Iglesia de San Francisco de Yavi (1690): capilla colonial con altar de pan de oro.', 286, 38)
-cartel_en(294, 8, 'La Quiaca: el último pueblo de Argentina, frente a Villazón (Bolivia).')
+
+def region2_detalle():
+    """Yungas: Libertador General San Martín con el Ingenio Ledesma y sus cañaverales, la selva del Parque Nacional
+    Calilegua con su río, la usina del ingenio y las Lagunas de Yala rodeadas de montaña y bosque nublado."""
+    # --- selva nublada: monte denso en todo el este y el sur ---
+    for y in range(2, 118):
+        for x in range(60, 104):
+            if g[y][x] == ',' and (x > 84 or y > 44):
+                r = ruido(x, y, 120)
+                g[y][x] = '#' if r < .42 else ('"' if r < .66 else ',')
+    # --- Libertador General San Martín: trama de calles, plaza con iglesia, y el Ingenio ---
+    for y in range(13, 31):
+        for x in range(67, 87):
+            if g[y][x] in ',"#':
+                g[y][x] = 'h' if ruido(x, y, 121) > .72 else ','
+    for x in range(67, 87):
+        for y in (13, 19, 25, 31):
+            _poner(x, y, '.')
+    for y in range(13, 32):
+        for x in (67, 73, 79, 85):
+            _poner(x, y, '.')
+    for y in range(14, 19):                             # plaza 5x5
+        for x in range(74, 79):
+            g[y][x] = 's' if (x + y) % 2 == 0 and ruido(x, y, 122) > .3 else ','
+    for k in range(74, 79):
+        g[16][k] = '.'
+    for k in range(14, 19):
+        g[k][76] = '.'
+    g[16][76] = '*'
+    g[16][80] = 'I'                                     # iglesia
+    for (x, y) in ((78, 4), (79, 4), (80, 4)):          # el Ingenio: galpones y la chimenea de ladrillo
+        g[y][x] = 'W'
+    cartel_xy(76, 12, 'Libertador General San Martín: la ciudad del azúcar, a la sombra del Ingenio Ledesma.')
+    # --- cañaverales: chacras de hierba alta con caminos de tierra ---
+    for (x0, y0, x1, y1) in ((60, 14, 66, 40), (67, 33, 86, 41)):
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                if g[y][x] in ',#"hs':
+                    g[y][x] = '"'
+        for x in range(x0, x1 + 1, 5):
+            for y in range(y0, y1 + 1):
+                _poner(x, y, '.')
+    cartel_xy(63, 41, 'Cañaverales de Ledesma: acá nace el azúcar jujeño.')
+    # --- Calilegua: río de selva con playa de canto rodado, senderos y ruinas ---
+    for y in range(1, 41):
+        xr = 95 + int(round(2 * math.sin(y * .35)))
+        for x in range(xr, xr + 2):
+            _poner(x, y, '~')
+        for x in (xr - 1, xr + 2):
+            if g[y][x] != '~':
+                _poner(x, y, 'a')
+    cartel_xy(88, 15, 'Parque Nacional Calilegua: selva de yungas con tucanes, tapires y yaguaretés.')
+    _camino(84, 22, 100, 22)
+    _camino(92, 22, 92, 26)
+    # --- Lagunas de Yala: tres lagos de montaña entre cerros y bosque nublado ---
+    for (cx, cy, rx, ry, n) in ((72, 62, 8, 5, 130), (84, 70, 7, 4, 131), (74, 78, 6, 3, 132)):
+        for y in range(cy - ry - 1, cy + ry + 2):
+            for x in range(cx - rx - 1, cx + rx + 2):
+                if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 1 + (ruido(x, y, n) - .5) * .35:
+                    _poner(x, y, '~')
+    for y in range(52, 100):                              # cerros de borde (la montaña no se camina)
+        for x in range(60, 64):
+            if ruido(x, y, 133) > .15:
+                g[y][x] = '^'
+    _camino(68, 42, 68, 58)
+    _camino(68, 58, 78, 58)
+    _camino(78, 58, 78, 90)
+    cartel_xy(70, 56, 'Lagunas de Yala: lagos de montaña en plena Yunga, a 40 minutos de la capital.')
+    cartel_xy(80, 76, 'Yala: ahí empieza la selva nublada, donde el aire se llena de neblina.')
+    # --- espejos de agua y pasto alrededor de la usina del ingenio ---
+    mancha(99, 53, 6, 5, 'e', 25)
+
+
+region2_detalle()
+
+
+def region5_detalle():
+    """Puna: Abra Pampa (la ciudad más alta de Jujuy, en cuadrícula), el Parque Solar Cauchari con sus paneles, la gran
+    Laguna de los Pozuelos con su salar y las Salinas Grandes al sur, junto a un camino por la orilla este."""
+    for y in range(2, 118):                              # estepa de altura: pastos duros, ichu y arbustos
+        for x in range(221, 266):
+            if g[y][x] == ',':
+                r = ruido(x, y, 150)
+                g[y][x] = '"' if r < .18 else (',' if r < .93 else '#')
+    for y in range(12, 36):                              # Abra Pampa: cuadrícula con plaza e iglesia blanca
+        for x in range(226, 252):
+            if g[y][x] in ',"#':
+                g[y][x] = 'h' if ruido(x, y, 151) > .74 else ','
+    for x in range(226, 252):
+        for y in (12, 18, 24, 30, 35):
+            _poner(x, y, '.')
+    for y in range(12, 36):
+        for x in (226, 232, 238, 244, 250):
+            _poner(x, y, '.')
+    for y in range(19, 24):
+        for x in range(233, 238):
+            g[y][x] = ',' if (x + y) % 3 else '*'
+    for k in range(233, 238):
+        g[21][k] = '.'
+    for k in range(19, 24):
+        g[k][235] = '.'
+    g[18][235] = 'I'
+    cartel_xy(238, 11, 'Abra Pampa: la ciudad más alta de Jujuy, entre llamas y vicuñas.')
+    for y in (24, 26, 28, 36, 38, 40):                   # Parque Solar Cauchari: hileras de paneles con pasillos
+        for x in range(246, 266):
+            if x % 5 != 0 and g[y][x] in ',"#':
+                g[y][x] = 'x'
+    cartel_xy(255, 33, 'Parque Solar Cauchari: uno de los más grandes de Sudamérica, a 4.000 m.')
+    mancha(241, 57, 4, 8, 'N', 69)                       # salar en la orilla este de Pozuelos
+    cartel_xy(231, 49, 'Laguna de los Pozuelos: reserva de flamencos rosados en plena Puna.')
+    _camino(248, 42, 248, 96)                            # camino a las Salinas Grandes
+    cartel_xy(247, 90, 'Salinas Grandes: un mar blanco de sal.')
+
+
+region5_detalle()
+
+
+def region6_detalle():
+    """Puna norte: La Quiaca, el último pueblo de Argentina (cuadrícula, plaza, río y puente a Villazón), Yavi con su
+    iglesia colonial, una laguna de altura y la sierra del sur."""
+    for y in range(2, 118):
+        for x in range(275, 320):
+            if g[y][x] == ',':
+                r = ruido(x, y, 160)
+                g[y][x] = '"' if r < .16 else (',' if r < .94 else '#')
+    for y in range(12, 41):                              # La Quiaca
+        for x in range(278, 307):
+            if g[y][x] in ',"#':
+                g[y][x] = 'h' if ruido(x, y, 161) > .66 else ','
+    for x in range(278, 307):
+        for y in (12, 18, 24, 30, 36, 40):
+            _poner(x, y, '.')
+    for y in range(12, 41):
+        for x in (278, 284, 290, 296, 302, 306):
+            _poner(x, y, '.')
+    for y in range(25, 30):
+        for x in range(291, 296):
+            g[y][x] = ',' if (x + y) % 3 else '*'
+    for k in range(291, 296):
+        g[27][k] = '.'
+    for k in range(25, 30):
+        g[k][293] = '.'
+    g[24][293] = 'I'
+    for y in range(3, 41):                               # río de la frontera con Bolivia (Villazón)
+        for x in range(309, 312):
+            _poner(x, y, '~')
+        _poner(308, y, 'a'); _poner(312, y, 'a')
+    _camino(306, 14, 313, 14)                            # puente internacional
+    cartel_xy(305, 15, 'La Quiaca: el último pueblo de Argentina, frente a Villazón (Bolivia).')
+    cartel_xy(313, 12, 'Puente Internacional: del otro lado empieza Bolivia (Villazón).')
+    for y in range(46, 60):                              # Yavi
+        for x in range(278, 292):
+            if g[y][x] in ',"#':
+                g[y][x] = 'h' if ruido(x, y, 162) > .72 else ','
+    for x in range(278, 292):
+        _poner(x, 52, '.')
+    for y in range(46, 60):
+        _poner(284, y, '.')
+    g[50][284] = 'I'
+    _camino(292, 42, 292, 52); _camino(284, 52, 292, 52)
+    cartel_xy(282, 49, 'Yavi: pueblito colonial de adobe a los pies de la sierra, con su iglesia de pan de oro.')
+    mancha(300, 98, 8, 5, '~', 79)                       # laguna de altura
+    cartel_xy(296, 94, 'Laguna de altura: acá viven los flamencos y las vicuñas de la Puna.')
+    _camino(292, 52, 292, 94)
+    for y in range(106, 118):                            # sierra del sur
+        for x in range(275, 320):
+            if ruido(x, y, 163) > .25:
+                g[y][x] = 'Z' if y > 110 else '^'
+
+
+region6_detalle()
+
 
 def region4_detalle():
     """Alta Quebrada: Humahuaca (plaza, Cabildo, iglesia de la Candelaria y Monumento a la Independencia sobre el cerro),
@@ -753,7 +913,7 @@ PEDIDOS = [
     ('kanto', '"',  'Parque San Martín',   ['Mew'],                             (9, 7)),
     ('johto', 'F',  'Altos Hornos de Zapla', ['Entei', 'Ho-Oh'],                (80, 30)),
     ('johto', 'e',  'Usina del Ingenio',   ['Raikou'],                          (99, 53)),
-    ('johto', '"',  'Lagunas de Yala',     ['Lugia', 'Suicune'],                (66, 49)),
+    ('johto', '"',  'Lagunas de Yala',     ['Lugia', 'Suicune'],                (66, 66)),
     ('hoenn', 'F',  'Cerro de los Siete Colores', ['Groudon'],                  (127, 77)),
     ('hoenn', 'u',  'Pucará de Tilcara',   ['Latios', 'Latias', 'Rayquaza'],    (116, 16)),
     ('hoenn', ',"', 'Costa del Río Grande', ['Kyogre'],                         (146, 28)),
@@ -766,7 +926,7 @@ PEDIDOS = [
     ('unova', ',"a', 'Laguna de los Pozuelos', ['Keldeo'],                      (230, 55)),
     ('unova', 'e',  'Parque Solar Cauchari', ['Tornadus', 'Thundurus', 'Landorus'], (255, 30)),
     ('unova', 'F',  'Volcán de la Puna',   ['Reshiram', 'Zekrom', 'Kyurem'],    (258, 70)),
-    ('unova', 'N',  'Salinas Grandes',     ['Cobalion', 'Terrakion', 'Virizion'], (232, 73)),
+    ('unova', 'N',  'Salinas Grandes',     ['Cobalion', 'Terrakion', 'Virizion'], (240, 98)),
     ('unova', '"',  'Pajonales de Abra Pampa', ['Meloetta'],                    (243, 20)),
     ('kalos', '"',  'Altos de Yavi',       ['Xerneas'],                         (280, 20)),
     ('kalos', 'u',  'Iglesia y ruinas de Yavi', ['Hoopa'],                      (283, 42)),
@@ -1012,12 +1172,13 @@ zonas = [
     {'n': 'Valles · Bañado del Río Grande', 'x0': 31, 'y0': 59, 'x1': 50, 'y1': 68},
     {'n': 'Valles · Cordón del Chañi', 'x0': 1, 'y0': 67, 'x1': 30, 'y1': H - 2},
     {'n': 'Valles · Cerro Colorado', 'x0': 31, 'y0': 69, 'x1': 50, 'y1': H - 2},
-    {'n': 'Yungas · Libertador General San Martín', 'x0': 58, 'y0': 1, 'x1': 104, 'y1': 16},
-    {'n': 'Yungas · Selva de Calilegua', 'x0': 84, 'y0': 17, 'x1': 104, 'y1': 34},
-    {'n': 'Yungas · Lagunas de Yala', 'x0': 58, 'y0': 17, 'x1': 83, 'y1': 55},
-    {'n': 'Yungas · Usina del Ingenio', 'x0': 84, 'y0': 35, 'x1': 104, 'y1': 58},
-    {'n': 'Yungas · Cañaverales de Ledesma', 'x0': 58, 'y0': 56, 'x1': 83, 'y1': H - 2},
+    {'n': 'Yungas · Libertador General San Martín', 'x0': 58, 'y0': 1, 'x1': 88, 'y1': 31},
+    {'n': 'Yungas · Selva de Calilegua', 'x0': 84, 'y0': 1, 'x1': 104, 'y1': 41},
+    {'n': 'Yungas · Cañaverales de Ledesma', 'x0': 58, 'y0': 32, 'x1': 83, 'y1': 50},
+    {'n': 'Yungas · Usina del Ingenio', 'x0': 84, 'y0': 42, 'x1': 104, 'y1': 58},
+    {'n': 'Yungas · Lagunas de Yala', 'x0': 58, 'y0': 51, 'x1': 83, 'y1': 90},
     {'n': 'Yungas · Bañados', 'x0': 84, 'y0': 59, 'x1': 104, 'y1': H - 2},
+    {'n': 'Yungas · Selva nublada', 'x0': 58, 'y0': 91, 'x1': 83, 'y1': H - 2},
     {'n': 'Quebrada · Tilcara',      'x0': 112, 'y0': 1, 'x1': 158, 'y1': 16},
     {'n': 'Quebrada · Monte de Churquis', 'x0': 112, 'y0': 17, 'x1': 145, 'y1': 30},
     {'n': 'Quebrada · Río Grande',   'x0': 146, 'y0': 17, 'x1': 158, 'y1': H - 2},
@@ -1031,18 +1192,18 @@ zonas = [
     {'n': 'Alta Quebrada · Cardonal', 'x0': 166, 'y0': 55, 'x1': 194, 'y1': 80},
     {'n': 'Alta Quebrada · Iruya', 'x0': 202, 'y0': 1, 'x1': 212, 'y1': 75},
     {'n': 'Alta Quebrada · Serranía del Hornocal', 'x0': 166, 'y0': 81, 'x1': 212, 'y1': H - 2},
-    {'n': 'Puna · Abra Pampa',       'x0': 220, 'y0': 1, 'x1': 266, 'y1': 12},
-    {'n': 'Puna · Pajonales',        'x0': 220, 'y0': 13, 'x1': 266, 'y1': 26},
-    {'n': 'Puna · Pucará',           'x0': 220, 'y0': 27, 'x1': 237, 'y1': 58},
-    {'n': 'Puna · Parque Solar Cauchari', 'x0': 238, 'y0': 27, 'x1': 266, 'y1': 40},
-    {'n': 'Puna · Vegas',            'x0': 238, 'y0': 41, 'x1': 266, 'y1': 65},
-    {'n': 'Puna · Salinas Grandes',  'x0': 220, 'y0': 66, 'x1': 266, 'y1': H - 2},
-    {'n': 'Puna norte · La Quiaca',  'x0': 274, 'y0': 1, 'x1': 320, 'y1': 12},
-    {'n': 'Puna norte · Altos de Yavi', 'x0': 274, 'y0': 13, 'x1': 320, 'y1': 26},
-    {'n': 'Puna norte · Yavi',       'x0': 274, 'y0': 27, 'x1': 291, 'y1': 58},
-    {'n': 'Puna norte · Parque Solar', 'x0': 292, 'y0': 27, 'x1': 320, 'y1': 45},
-    {'n': 'Puna norte · Vegas',      'x0': 292, 'y0': 46, 'x1': 320, 'y1': 58},
-    {'n': 'Puna norte · Cerro Colorado', 'x0': 274, 'y0': 59, 'x1': 320, 'y1': H - 2},
+    {'n': 'Puna · Abra Pampa',       'x0': 220, 'y0': 1, 'x1': 266, 'y1': 37},
+    {'n': 'Puna · Parque Solar Cauchari', 'x0': 244, 'y0': 38, 'x1': 266, 'y1': 41},
+    {'n': 'Puna · Pucará',           'x0': 220, 'y0': 38, 'x1': 237, 'y1': 48},
+    {'n': 'Puna · Laguna de los Pozuelos', 'x0': 220, 'y0': 49, 'x1': 247, 'y1': 66},
+    {'n': 'Puna · Vegas',            'x0': 248, 'y0': 42, 'x1': 266, 'y1': 65},
+    {'n': 'Puna · Sierra de la Puna', 'x0': 220, 'y0': 67, 'x1': 266, 'y1': 84},
+    {'n': 'Puna · Salinas Grandes',  'x0': 220, 'y0': 85, 'x1': 266, 'y1': H - 2},
+    {'n': 'Puna norte · La Quiaca',  'x0': 274, 'y0': 1, 'x1': 320, 'y1': 41},
+    {'n': 'Puna norte · Yavi',       'x0': 274, 'y0': 42, 'x1': 291, 'y1': 62},
+    {'n': 'Puna norte · Vegas',      'x0': 292, 'y0': 42, 'x1': 320, 'y1': 58},
+    {'n': 'Puna norte · Cerro Colorado', 'x0': 274, 'y0': 59, 'x1': 320, 'y1': 90},
+    {'n': 'Puna norte · Laguna de altura', 'x0': 274, 'y0': 91, 'x1': 320, 'y1': H - 2},
 ]
 
 carteles = {
