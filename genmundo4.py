@@ -440,7 +440,7 @@ for _y in (60, 64):
     g[_y][139] = 'y'
 g[62][139] = 'y'
 # Algarrobo Histórico: árbol gigante de tronco retorcido con reja de hierro forjado (4x4 casilleros, se dibuja en app.js)
-ALGARROBOS = [(137.0, 54.0, 2.0)]
+ALGARROBOS = [(138.0, 50.0, 2.0)]
 for (_ax, _ay, _h) in ALGARROBOS:
     for _y in range(int(_ay - _h), int(_ay + _h)):
         for _x in range(int(_ax - _h), int(_ax + _h)):
@@ -598,7 +598,7 @@ cartel_en(84, 14, 'Parque Nacional Calilegua: selva de yungas con tucanes, tapir
 # --- Quebrada ---
 cartel_xy(136, 56, 'Iglesia de Santa Rosa de Lima, Purmamarca (1648), frente a la plaza. Al fondo, el Cerro de los Siete Colores.')
 cartel_xy(133, 56, 'Cabildo de Purmamarca, sobre la plaza 9 de Julio. Alrededor, el mercado de artesanías.')
-cartel_xy(139, 54, 'El Algarrobo Histórico de Purmamarca: un gigante de tronco retorcido que vio pasar la historia del pueblo. Lo cuida una reja de hierro forjado.')
+cartel_xy(137, 52, 'El Algarrobo Histórico de Purmamarca: un gigante de tronco retorcido que vio pasar la historia del pueblo. Lo cuida una reja de hierro forjado.')
 cartel_en(121, 9, 'Tilcara: pueblo de la Quebrada de Humahuaca, Patrimonio de la Humanidad.')
 cartel_en(119, 18, 'Pucará de Tilcara: ciudadela preincaica de piedra sobre la Quebrada.')
 cartel_en(131, 63, 'Cerro de los Siete Colores, Purmamarca. Las franjas son millones de años de historia.')

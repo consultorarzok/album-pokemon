@@ -1488,14 +1488,14 @@ const ADV_MAPS = {
       "#,#aaaaaaa#aa#aa#aaa,..\"#\"\"#,#,\",uuuu..uuu..##,,..a~~~~~~~a#####,#\"#.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ZZZZ\"###,###\",^^^^^^^,mmmmmmm..MMMMMMMMMMM,,,##,,,,,,,c,a~~~~~~~~~~a~~~~~~~a,,#,,,,,,,,..,,,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^,#,uuuuuuuuuuu,\",,\",,,,,,,\",.,#,,,,,,,,,,,,,,,a~~~~~~~a,,,uuuuuuuuuuuu\",.aaa~~~~~~~~aaa,\",,#\"\",,,\",\",#",
       "#,a~~~~~~~~~~~~~~~~....i..eeee#,,uuuu..uuu..#,,\",.a~~~~~~~a######,,,.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ZZZZ\",,####\"#,^^^^^^^mmmmmmmm..MMMMMMMMMMM,,,,,#,,#,,,,,#~~~~~~~~~~a~~~~~~~a###uuuuuuuuuLuuuuuuu#i,,\"\"aaa~~~a.a,,,,,,#,,,,^^^^^^^,,,,uuuuuuuuu,,,,,\",\",,##,,#.,,,#,\",,,#,\",,,,,a~~~~~~~a,,\"uuuLuu.uuu,hh,.a~~~~~~~~~~~~aa,,,,,\",##,,,,#",
       "#,a~~~~~~~~~~~~~~~~......eeeLe.#,uuuuuuuuu..\"##,,.a~~~~~~~a#####,#\",.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ZZZZ#\"\",#,#,,,^^^^^^^,mmmmmmm..MMMMMMMMMMM...,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a###,,,,,,,c,,,,,,,,,,,,,\"\"aaa~~~a.a,,,,,,#,,,,^^^^^^^,\",,,,,#\",uu\"#,#,,\",,\",,,,,\".,,\"#,#,,#\",,,,#,,a~~~~~~~a\",,,uuuuu.u,,h,,,.a~~~~~~~~~~~~~aa,,\",\",,\",,,,#",
-      "#,a~~~~~~~~~~~~~~~~..#aaaaaaeee..,uuuuuuu,..,\",,#,a~~~~~~~a######,,\".\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ZZZZ#,#\"e#,\"\",^^^^^^^,mimmmmm...i............,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a##\",,,,,,,,,,,,,,,,,,,,,\"\"aaa~~~a.a,,,,,#,,,#,^^^^^^^,,,,\",,aaa,,,#aa,,,,\",,,,,,,.\"\",,,,,,\",,#,,,,#a~~~~~~~a,\"#h,,,,u.u,,h,,,.~~~~~~~~~~~~~~~a,,,,,,,#,,,,#",
-      "#,#~~~~~wwwwwwwww~..\"##~ia~aae.....,,..#,,..,#,,,#a~~~~~~~a######\"##.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"NNNNeeeeeee,e,^^^^^^^#mmm.mmmmmmmmm,,,,#,,,..,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"uuuuuuuuuuuuuuu,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^,,\",,,fa~faifa~faaa,,,,,,,,,.,,,,,,#,,\",,,#,,,a~~~~~~~a\",,,hh,i,.,h,,,,,.~~~~~~~~~~~~~~~a,,#,#,,,,,,,#",
-      "#,#~~~~~Uwwwwwwww...\"#aa~a~~aa,,.......,,...,,\"#,#a~~~~~~~a#####\"###.\"#\"\"##,###,####\"\"N..NNNNNNeeeeeeeee,^^^^^^^,,hm.mmmmmmmm,,,,,,,,,..,,,j.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\",,,,,,,,,,,,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,#,,^^^^^^^,,a#aja~~~~~~~~a~~aaNNNN#\",,.,,\",b,,,,\",,\",\",,a~~~~~~~a\",,,,,h,,I,h,,,,h.BBBBBBB.B~~~~~~a,,,,,#,,#,,,#",
-      "###~~~~~wwwwwwwww..iaaaa#a~~~aa#\",......,...\"\"\"\",\"a~~~~~~~a#########.#\"\"\",,,,,,#\"\"##NNN..NNNNNeeeeeeeeeee^^^^^^^,hh,.mmmmmMM,,,,,,,,,,C.,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\",,,,,,,,,,,,,#,,,,\"\"aaa~~~a.a,,,,#,,,,,,^^^^^^^,,a~~~~~~~~~~~~~~~f~NNNN#,,,.#,,,,,,,,,,\"\",#\",a~~~~~~~a,,,,hh,h,.hh,,h,,.BBBBBBBB~~~~~~~a,,,,,#,,\",#,#",
-      "###~~~~~~~~~~~~~..\"##~~aa##~~~#a\",#.........\",,,\"#a~~~~~~~a#^^^##\"\"#.............b............eeeeeeeeeee^^^^^^^,,,,.mImm,MMM,,,,,,,,,.AAAA,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"uuuuuuu,,,,#,,,,\"\"aaa~~~a.a,#,,,,,,,,,^^^^^^^aaf~~~~~~~~~~~~~~~~~NNNN#,\",.,,,,,\",,\",,\",,,,,a~~~~~~~a,,,...............~~~~~~~~~~~~~~~a,,,,,,,,,,\",#",
-      "###~~~~~~~~~~~~..\"\"a~~~~#~a#~~~a##,###..i....#,#b,a~~~~~~~a#^^^^##,,..........................eeeeeLeeeee^^^^^^^,,,h.,,,,,MMM,,,,,#,hh.AAAA,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"#####,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^~~~~~~~~~~~~~~~~~~~~~~NNN\",,.,,\"\",,,,,,,,,\",\"#a~~~~~~~a,,\",,,,hh.h,hh,,,.~~~~~~~~~~~~~~aa,,,,,,\",#,,,#",
-      "###~~~~~~~~~~~...\"\"a#~~~~~~~a~~~aa,,,,\",,.....,\",,a~~~~~~~a#^^^^,,,,.#,\",####,##,##\",,N..NNNNeeeeeeeeeeee^^^^^^^,,hh.,h,,MMMMM,,,,,,,h.AAAAi.hh,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"####,,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^f~~~~~~~~~~~~~~~~~~~~~NNN,,#.,#,m,,,,,,,,,,,,#a~~~~~~~a,,,hh,,,,.,hh,,,,.aa~~~~~~~~~~~aa,,,,,,,,,,,,,#",
-      "###~~~~~~~~~~~..\"#######~~~~~~~~~a###aa,\"#.....\"#,a~~~~~~~a#^^^^##\"#.#,,\"##\"\"#,\"###,##\"..NNNNNeeeeeeeeee,^^^^^^^,h,,.,h,,MMMMMM,,,,,,h.AAAA,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"........,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^~~~~~~~~~~..BBBBBBB~~~~NNmmm.mmmmmmm,,\"#,,,b,,a~~~~~~~a,,,hhh,,,.,,,,,,,.,aaa~~~~~~~~#a,#\",,,,,,,,#,,#",
+      "#,a~~~~~~~~~~~~~~~~..#aaaaaaeee..,uuuuuuu,..,\",,#,a~~~~~~~a######,,\".\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ZZZZ#,#\"e#,\"\",^^^^^^^,mimmmmm...i............AAAA.,,,,,,a~~~~~~~~~~a~~~~~~~a##\",,,,,,,,,,,,,,,,,,,,,\"\"aaa~~~a.a,,,,,#,,,#,^^^^^^^,,,,\",,aaa,,,#aa,,,,\",,,,,,,.\"\",,,,,,\",,#,,,,#a~~~~~~~a,\"#h,,,,u.u,,h,,,.~~~~~~~~~~~~~~~a,,,,,,,#,,,,#",
+      "#,#~~~~~wwwwwwwww~..\"##~ia~aae.....,,..#,,..,#,,,#a~~~~~~~a######\"##.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"NNNNeeeeeee,e,^^^^^^^#mmm.mmmmmmmmm,,,,#,,,..AAAA.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"uuuuuuuuuuuuuuu,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^,,\",,,fa~faifa~faaa,,,,,,,,,.,,,,,,#,,\",,,#,,,a~~~~~~~a\",,,hh,i,.,h,,,,,.~~~~~~~~~~~~~~~a,,#,#,,,,,,,#",
+      "#,#~~~~~Uwwwwwwww...\"#aa~a~~aa,,.......,,...,,\"#,#a~~~~~~~a#####\"###.\"#\"\"##,###,####\"\"N..NNNNNNeeeeeeeee,^^^^^^^,,hm.mmmmmmmm,,,,,,,,,..AAAA.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\",,,,,,,,,,,,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,#,,^^^^^^^,,a#aja~~~~~~~~a~~aaNNNN#\",,.,,\",b,,,,\",,\",\",,a~~~~~~~a\",,,,,h,,I,h,,,,h.BBBBBBB.B~~~~~~a,,,,,#,,#,,,#",
+      "###~~~~~wwwwwwwww..iaaaa#a~~~aa#\",......,...\"\"\"\",\"a~~~~~~~a#########.#\"\"\",,,,,,#\"\"##NNN..NNNNNeeeeeeeeeee^^^^^^^,hh,.mmmmmMM,,,,,,,,,,C.AAAA.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\",,,,,,,,,,,,,#,,,,\"\"aaa~~~a.a,,,,#,,,,,,^^^^^^^,,a~~~~~~~~~~~~~~~f~NNNN#,,,.#,,,,,,,,,,\"\",#\",a~~~~~~~a,,,,hh,h,.hh,,h,,.BBBBBBBB~~~~~~~a,,,,,#,,\",#,#",
+      "###~~~~~~~~~~~~~..\"##~~aa##~~~#a\",#.........\",,,\"#a~~~~~~~a#^^^##\"\"#.............b............eeeeeeeeeee^^^^^^^,,,,.mImm,MMM,,,,,,,,,.,,i,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"uuuuuuu,,,,#,,,,\"\"aaa~~~a.a,#,,,,,,,,,^^^^^^^aaf~~~~~~~~~~~~~~~~~NNNN#,\",.,,,,,\",,\",,\",,,,,a~~~~~~~a,,,...............~~~~~~~~~~~~~~~a,,,,,,,,,,\",#",
+      "###~~~~~~~~~~~~..\"\"a~~~~#~a#~~~a##,###..i....#,#b,a~~~~~~~a#^^^^##,,..........................eeeeeLeeeee^^^^^^^,,,h.,,,,,MMM,,,,,#,hh.,,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"#####,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^~~~~~~~~~~~~~~~~~~~~~~NNN\",,.,,\"\",,,,,,,,,\",\"#a~~~~~~~a,,\",,,,hh.h,hh,,,.~~~~~~~~~~~~~~aa,,,,,,\",#,,,#",
+      "###~~~~~~~~~~~...\"\"a#~~~~~~~a~~~aa,,,,\",,.....,\",,a~~~~~~~a#^^^^,,,,.#,\",####,##,##\",,N..NNNNeeeeeeeeeeee^^^^^^^,,hh.,h,,MMMMM,,,,,,,h.,,,,,.hh,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"####,,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^f~~~~~~~~~~~~~~~~~~~~~NNN,,#.,#,m,,,,,,,,,,,,#a~~~~~~~a,,,hh,,,,.,hh,,,,.aa~~~~~~~~~~~aa,,,,,,,,,,,,,#",
+      "###~~~~~~~~~~~..\"#######~~~~~~~~~a###aa,\"#.....\"#,a~~~~~~~a#^^^^##\"#.#,,\"##\"\"#,\"###,##\"..NNNNNeeeeeeeeee,^^^^^^^,h,,.,h,,MMMMMM,,,,,,h.,,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"........,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^~~~~~~~~~~..BBBBBBB~~~~NNmmm.mmmmmmm,,\"#,,,b,,a~~~~~~~a,,,hhh,,,.,,,,,,,.,aaa~~~~~~~~#a,#\",,,,,,,,#,,#",
       "###~~~~~~~~~~..\"\"########~~~~~~~~~~~~~aa##..#\"...\"a~~~~~~~a##^^^\",##.,ia#a\"#\"#,#\"##,,##..\"NN,#ceeeeeeeee,^^^^^^^,h,h.,,,MMMMMMM,,,,,,i.,i,,,.,,h,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"........,,,,,j\"\"aaa~~~a.a,,h,.,,,,,,^^^^^^^~~~~~~~~~~BBBBBBBBB~~~~NNNmm.mmmmmmmmm,,,,,,,,a~~~~~~~a,,,h,h,,,.hh,h,,,.,,,#a#~~aaaa#\",,,,#\",\"#,,,,,#",
       "#####~~#####...#\"##########aa~~~~~~~~~~~a,..,m,,..a~~~~~~~a#^^^^\"\"#a.###~aL##\"##,\",\",#,..#####,e,eeeeee,,^^^^^^^,,,,.,MMMMMMMMMM,,,,,,.D,I,,.,hh,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"##,,,,,,,,,,,\"\"aaa~~~a.a,,h,.,,h,,,^^^^^^^~~~~~~~~~~~~~~~~~~~~~~~NNmmm.mmmmmmmmm,,\",,,,,a~~~~~~~a\",,,,h,,,.,,h,,hh.,,,,,aa#a,,,\",\",\",,\",\",,,#,,#",
       "######~######.##############aaa~~~~~~~~~aa..,mmmm.a~~~~~~~a#^^^^aa#~.BBBBBBBB..,,##\"\"#,..,#\",\",,,,,#,\"\",,^^^^^^^,,,,,MMMMMMMMMMMM,,.............,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"####,,,,,,#,#,,\"\"aaa~~~a.a,hih.hh,,,,^^^^^^^a~~~~~~~~~~~~~~~~~~~~~~~NNmm.mmmmmmmmm,##\",,\",a~~~~~~~a\"\",,h,,,h.,,,,,,,.eeeeee,,,#,,,\",,\",,j\",,,\",,,#",
@@ -1640,7 +1640,7 @@ const ADV_MAPS = {
       '83,13': 'Parque Nacional Calilegua: selva de yungas con tucanes, tapires y yaguaretés.',
       '136,56': 'Iglesia de Santa Rosa de Lima, Purmamarca (1648), frente a la plaza. Al fondo, el Cerro de los Siete Colores.',
       '133,56': 'Cabildo de Purmamarca, sobre la plaza 9 de Julio. Alrededor, el mercado de artesanías.',
-      '139,54': 'El Algarrobo Histórico de Purmamarca: un gigante de tronco retorcido que vio pasar la historia del pueblo. Lo cuida una reja de hierro forjado.',
+      '137,52': 'El Algarrobo Histórico de Purmamarca: un gigante de tronco retorcido que vio pasar la historia del pueblo. Lo cuida una reja de hierro forjado.',
       '121,9': 'Tilcara: pueblo de la Quebrada de Humahuaca, Patrimonio de la Humanidad.',
       '118,17': 'Pucará de Tilcara: ciudadela preincaica de piedra sobre la Quebrada.',
       '131,63': 'Cerro de los Siete Colores, Purmamarca. Las franjas son millones de años de historia.',
@@ -3333,15 +3333,19 @@ PINTORES.fuente = (ctx, ox, oy, x, y) => {
     else if(reja && d > R - 1.6){ col = ((wx + wy) % 3 === 0) ? '#707683' : '#1E2026'; }     // reja de hierro negra
     else if(reja && d > R - 3.2) col = '#8A8F97';
     else if(d > R - 1.2) col = '#6F6C63';                                                    // contorno de piedra
-    else if(d > R - 3.4) col = '#E8E4D6';                                                    // borde claro
+    else if(d > R - 3.4){                                                                    // borde claro, armado con bloques de piedra
+      const bloque = Math.floor((Math.atan2(dy, dx) + Math.PI) * R / 5.2), junta = Math.abs(((Math.atan2(dy, dx) + Math.PI) * R / 5.2) % 1 - .5) > .46;
+      col = junta ? '#A8A496' : (dy < 0 ? (bloque % 2 ? '#F6F3E8' : '#EDEADD') : (bloque % 2 ? '#DAD6C7' : '#E3DFD0'));   // luz desde arriba
+    }
     else if(d > R - 4.6) col = '#B3AFA2';                                                    // cara interior del borde
-    else if(d < 2.4) col = '#8FA07C';                                                        // estatua de bronce verdoso
+    else if(d < 2.4) col = (dx + dy < -.5) ? '#B2C49B' : '#7E906C';                              // estatua de bronce verdoso, con luz
     else if(d < 4.2) col = '#EDEADF';                                                        // taza de arriba
     else if(d < 6.4) col = d > 5.4 ? '#9C998D' : '#CFCBBD';                                  // pedestal escalonado
     else if(gotas.has(wx + ',' + wy)) col = '#FFFFFF';                                       // chorros
     else {
       const h = hash(wx, wy), ring = Math.sin(d * 1.7);
-      col = h > .985 ? '#E3F4FF' : (h > .94 ? '#9ED3F3' : (h < .03 ? '#468CC6' : (ring > .72 ? '#79BCEA' : '#62AEE3')));   // agua con brillitos chicos
+      const hondo = Math.max(0, (d - R * .55) / (R * .45));                               // más oscura hacia el borde (profundidad)
+      col = h > .985 ? '#E3F4FF' : (h > .94 ? '#9ED3F3' : (h < .03 ? '#468CC6' : (ring > .72 ? '#79BCEA' : (hondo > .72 ? '#4C9AD2' : '#62AEE3'))));   // agua con brillitos chicos
       if(d > 12.5 && d < 14 && h > .55) col = '#EAF7FF';                                     // espuma donde cae el agua
     }
     pinta(ctx, col, ox + px, oy + py, 1, 1);
@@ -3515,7 +3519,7 @@ function dibujarTren(ctx, camX, camY, vw, vh){          // visto desde arriba, c
 /* ---------- Algarrobos de Purmamarca ----------
    ALGARROBOS = [centro x, centro y, media anchura de la reja en casilleros] (igual que genmundo4.py). El Algarrobo
    Histórico se dibuja pixel a pixel sobre sus casilleros 'A': copa irregular, ramas retorcidas, tronco grueso y la reja. */
-const ALGARROBOS = [[137.0, 54.0, 2.0]];
+const ALGARROBOS = [[138.0, 50.0, 2.0]];
 PINTORES.algarrobo = (ctx, ox, oy, x, y) => {           // algarrobo común de la plaza: copa ancha y verde grisácea
   PINTORES.pasto(ctx, ox, oy, x, y);
   pinta(ctx, 'rgba(0,0,0,.2)', ox + 2, oy + 12, 13, 4);
@@ -4313,6 +4317,55 @@ function follaje(g, W, H, cx, cy, rx, ry, pal, rng, n){
   }
   g.restore();
 }
+let COPA_HIST = null;
+/* Algarrobo Histórico (fotos de Zeta): tronco ancho y retorcido, ramas muy gruesas que se enroscan y se bifurcan,
+   y hojas finas y ralas en los extremos: se ven las ramas, el cielo y el piso entre medio. */
+function copaHistorica(){
+  if(COPA_HIST) return COPA_HIST;
+  const W = 124, H = 104, [c, g] = lienzoAlto(W, H), rng = rngSemilla(4242);
+  const cx = W / 2, cy = H / 2 + 6, puntas = [];
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  const rama = (x, y, ang, largo, ancho, prof) => {
+    const n = Math.max(3, Math.round(largo / 5)), pts = [[x, y]];
+    let a = ang, px = x, py = y;
+    for(let k = 1; k <= n; k++){
+      a += (rng() - .5) * .9 + Math.sin(k * 1.3 + ang * 3) * .22;          // se retuerce
+      px += Math.cos(a) * largo / n; py += Math.sin(a) * largo / n * .82;
+      pts.push([px, py]);
+    }
+    const trazo = (col, k, desvio) => {
+      g.strokeStyle = col; g.lineWidth = Math.max(.8, ancho * k); g.beginPath();
+      pts.forEach(([qx, qy], i) => { const w = ancho * (1 - i / pts.length * .55); i ? g.lineTo(qx + desvio, qy + desvio) : g.moveTo(qx + desvio, qy + desvio); });
+      g.stroke();
+    };
+    trazo('#2A1B10', 1.28, .8);       // sombra
+    trazo('#4F3722', 1, 0);           // corteza
+    trazo('#7A5A3A', .55, -.7);       // luz de arriba
+    if(ancho > 2.2){ g.strokeStyle = '#2E1F12'; g.lineWidth = .7; for(let i = 1; i < pts.length - 1; i += 2){ g.beginPath(); g.moveTo(pts[i][0] - ancho * .2, pts[i][1] - 1); g.lineTo(pts[i + 1][0] + ancho * .15, pts[i + 1][1] + 1); g.stroke(); } }   // grietas
+    const fin = pts[pts.length - 1];
+    if(prof > 0){
+      const hijas = prof > 1 ? 2 + (rng() < .5 ? 1 : 0) : 2;
+      for(let h = 0; h < hijas; h++){
+        const at = pts[Math.max(1, Math.floor(pts.length * (.45 + h * .25)))];
+        rama(at[0], at[1], a + (h % 2 ? 1 : -1) * (.5 + rng() * .6), largo * (.55 + rng() * .15), ancho * .6, prof - 1);
+      }
+    } else puntas.push(fin);
+  };
+  for(let i = 0; i < 7; i++) rama(cx + (rng() - .5) * 5, cy + (rng() - .5) * 3, (i / 7) * Math.PI * 2 + rng() * .5, 26 + rng() * 6, 9.5, 3);   // ramas madre muy gruesas
+  g.fillStyle = '#3E2A18'; g.beginPath(); g.ellipse(cx, cy, 9, 7.5, 0, 0, 6.3); g.fill();                                                   // cima del tronco
+  g.fillStyle = '#5E442B'; g.beginPath(); g.ellipse(cx - 1.5, cy - 1.5, 6.5, 5, 0, 0, 6.3); g.fill();
+  g.strokeStyle = '#2A1B10'; g.lineWidth = .8; for(let i = 0; i < 6; i++){ const a = i * 1.05; g.beginPath(); g.moveTo(cx + Math.cos(a) * 2, cy + Math.sin(a) * 2); g.lineTo(cx + Math.cos(a + .5) * 8, cy + Math.sin(a + .5) * 6.5); g.stroke(); }
+  const hoja = (x, y, r) => {                                                     // racimo ralo de hojitas finas
+    for(let i = 0; i < 5; i++){
+      const a = rng() * 6.28, d = rng() * r, lx = x + Math.cos(a) * d, ly = y + Math.sin(a) * d * .8;
+      g.fillStyle = ['#6E9A52', '#86B060', '#4F7A3E', '#9CC274'][i % 4]; g.globalAlpha = .9;
+      g.beginPath(); g.ellipse(lx, ly, 2.3 + rng() * 1.2, 1 + rng() * .5, rng() * 3.1, 0, 6.3); g.fill();
+    }
+    g.globalAlpha = 1;
+  };
+  puntas.forEach(([x, y]) => { if(rng() < .8) hoja(x, y, 5.5); });
+  return COPA_HIST = {c, w: W, h: H};
+}
 function copaAlta(tipo, variante){
   const k = tipo + variante;
   if(ALTA_CACHE[k]) return ALTA_CACHE[k];
@@ -4362,7 +4415,7 @@ function copaAlta(tipo, variante){
    Las construcciones del mapa son de 1 casillero de alto (una catedral = 1,7 m). Se dibujan como fachadas mucho más
    altas, hacia arriba, sin tocar el mapa ni la colisión (no se crea ningún espacio muerto). Si alguien camina detrás
    de la parte alta, el edificio se vuelve semitransparente, igual que los árboles. */
-const EDIF_FAMILIAS = [['gobierno', 'GQ', 2], ['catedral', 'KJ', 5], ['cabildo', 'Dd', 3], ['iglesia', 'I', 3], ['centro', 'pqrP', 1], ['adobe', 'h', 1], ['estacion', 'Y', 1]];
+const EDIF_FAMILIAS = [['gobierno', 'GQ', 1], ['catedral', 'KJ', 5], ['cabildo', 'Dd', 3], ['iglesia', 'I', 3], ['centro', 'pqrP', 1], ['adobe', 'h', 1], ['estacion', 'Y', 1]];
 const EDIF_CACHE = {};   // por mapa: lista de {tipo, x0, y0, w, h, extra}
 function edificiosDe(mapaId){
   if(EDIF_CACHE[mapaId]) return EDIF_CACHE[mapaId];
@@ -4498,7 +4551,7 @@ function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
     const fila = mapa.rows[y];
     for(let x = x0; x <= x1; x++){
       let tipo = ALTA_TIPOS[fila[x]];
-      if(!tipo) continue;
+      if(!tipo || tipo === 'historico') continue;   // el histórico se dibuja una sola vez, abajo
       const r = ruido(x, y, 91), v = Math.floor(ruido(x, y, 17) * 4);
       if(tipo === 'arbol' && r > .78) tipo = 'cerezo';
       const copa = copaAlta(tipo, v);
@@ -4513,6 +4566,17 @@ function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
       g.globalAlpha = a;
       g.drawImage(copa.c, dx, dy, copa.w, copa.h);
     }
+  }
+  for(const A of ALGARROBOS){                          // Algarrobo Histórico: UNA copa enorme sobre toda la reja
+    const copa = copaHistorica();
+    const dx = A[0] * ADV_PX - camX - copa.w / 2, dy = A[1] * ADV_PX - camY - copa.h / 2 - 8;
+    if(dx > vw + 8 || dx + copa.w < -8 || dy > vh + 8 || dy + copa.h < -8) continue;
+    let alvo = 1;
+    for(const t of tapa){ if(t.x1 > dx + 8 && t.x0 < dx + copa.w - 8 && t.y1 > dy + 8 && t.y0 < dy + copa.h - 14){ alvo = .38; break; } }
+    const key = 'h' + A[0] + ',' + A[1];
+    const a = altaAlfa[key] === undefined ? alvo : altaAlfa[key] + (alvo - altaAlfa[key]) * .3;
+    vistos[key] = a; g.globalAlpha = a;
+    g.drawImage(copa.c, dx, dy, copa.w, copa.h);
   }
   g.globalAlpha = 1;
   for(const k in altaAlfa) delete altaAlfa[k];
