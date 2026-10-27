@@ -2218,16 +2218,8 @@ function dibujarLegendario(ctx, p, ox, oy){
   ctx.beginPath(); ctx.ellipse(cx, oy + 4, 20 + latido * 2, 17 + latido, 0, 0, Math.PI * 2); ctx.fill();
   // sombra en el piso (más chica cuando flota más alto)
   const flota = Math.round(Math.sin(t * 2.4) * 1.5);
-  ctx.fillStyle = 'rgba(0,0,0,.38)';
-  const sw = 22 - (flota > 0 ? 0 : 2);
-  ctx.fillRect(cx - sw / 2, oy + 14, sw, 2);
-  ctx.fillRect(cx - sw / 2 + 2, oy + 16, sw - 4, 1);
-  const spr = spriteLegendario(p);
-  /* Se ancla por los pies (centro-abajo) sobre el altar y flota un poquito.
-     El sprite mide ~LEG_TAM px: bastante más que el tile (16) a propósito,
-     ahora hay una plataforma grande debajo que lo banca. */
-  if(spr) ctx.drawImage(spr, Math.round(cx - spr.width / 2), oy + 14 - spr.height - 2 - flota);
-  else{ ctx.fillStyle = '#FFD63A'; ctx.fillRect(ox + 6, oy + 5, 4, 4); }   // mientras carga
+  sombraSuave(ctx, cx, oy + 14.5, 13 - (flota > 0 ? 0 : 1.5), 3.6, .38);
+  /* el legendario es un sprite animado en el DOM (sincronizarSprites), anclado por los pies sobre el altar */
   // cuatro destellos girando alrededor
   for(let i = 0; i < 4; i++){
     const ang = t * 1.1 + i * Math.PI / 2;
@@ -2307,16 +2299,8 @@ function dibujarSalvaje(ctx, sv, ox, oy){
   const t = Date.now() / 1000;
   const flota = Math.round(Math.sin(t * 3 + sv.x) * 1);
   const cx = ox + 8;
-  ctx.fillStyle = 'rgba(0,0,0,.30)';
-  ctx.fillRect(cx - 7, oy + 13, 14, 2);
-  ctx.fillRect(cx - 5, oy + 15, 10, 1);
-  const spr = spriteDe(sv.p, SALVAJE_TAM, SALVAJE_SPRITE_CACHE);
-  if(spr) ctx.drawImage(spr, Math.round(cx - spr.width / 2), oy + 14 - spr.height - flota);
-  else{ ctx.fillStyle = '#FFD63A'; ctx.fillRect(cx - 2, oy + 5, 4, 4); }
-  // titila los últimos 5 segundos: están por irse
-  if(sv.hasta - Date.now() < 5000 && Math.floor(t * 4) % 2 === 0){
-    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(cx - 1, oy - 2, 2, 3);
-  }
+  sombraSuave(ctx, cx, oy + 14, 8.5, 2.8, .34);
+  /* el Pokémon en sí es un sprite animado en el DOM (sincronizarSprites); acá queda la sombra suave */
 }
 
 /* Regalo puntual: a Matías le suben las chances de que salgan en la Aventura
@@ -3861,12 +3845,46 @@ function spriteJugadorCacheado(dir, paso, av = avatarActual){
   return sprConBorde;
 }
 
+/* Personajes en alta resolución: se dibuja el cuadro de la hoja original (Red 48x72) sin achicarlo a 14x21.
+   May es de 16x21: se agranda con píxeles nítidos (nearest) y recién después se ajusta a la pantalla. */
+const HD_AVATAR = {red: {dw: 11.3, dh: 17, up: 1}, may: {dw: 12.4, dh: 16.4, up: 8}};   // ~1 casillero de alto (antes 1,5): el terreno pesa más
+const HD_CACHE = {};
+function spriteHD(av, dir, paso){
+  if(!HD_AVATAR[av]) av = 'red';
+  const k = av + '|' + dir + '|' + paso;
+  if(HD_CACHE[k]) return HD_CACHE[k];
+  const HOJA = HOJAS[av], A = AVATARES[av], H = HD_AVATAR[av];
+  if(!HOJA || !HOJA.complete || !HOJA.naturalWidth) return null;
+  const fila = RED_FILA[dir] ?? 0;
+  const c = document.createElement('canvas');
+  c.width = A.fw * H.up; c.height = A.fh * H.up;
+  const cc = c.getContext('2d');
+  cc.imageSmoothingEnabled = H.up === 1;   // Red ya es arte suave; May es pixel art
+  cc.drawImage(HOJA, paso * A.fw, fila * A.fh, A.fw, A.fh, 0, 0, c.width, c.height);
+  return HD_CACHE[k] = {c, dw: H.dw, dh: H.dh, av};
+}
+/* Sombra redonda y suave en el piso */
+function sombraSuave(ctx, cx, cy, rx, ry, a){
+  ctx.save();
+  ctx.translate(cx, cy); ctx.scale(1, ry / rx);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, `rgba(10,14,8,${a})`); g.addColorStop(.55, `rgba(10,14,8,${(a * .62).toFixed(3)})`); g.addColorStop(1, 'rgba(10,14,8,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, rx, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
 function dibujarEntrenador(ctx, ox, oy, dir, paso, av){
   ox = Math.round(ox); oy = Math.round(oy);
-  ctx.fillStyle = 'rgba(0,0,0,.28)';
-  ctx.fillRect(ox + 4, oy + 14, 8, 2);
+  sombraSuave(ctx, ox + 8, oy + 15, 5, 1.9, .40);
+  const h = spriteHD(av, dir, paso);
+  if(h){
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(h.c, ox + 8 - h.dw / 2, oy + 16 - h.dh, h.dw, h.dh);
+    ctx.imageSmoothingEnabled = false;
+    return;
+  }
   const spr = spriteJugadorCacheado(dir, paso, av);
-  if(spr) ctx.drawImage(spr, ox - (spr.width - 16) / 2, oy - 7);   // Red: 14+2 de contorno = 16, justo el ancho del tile; May (16+2) se centra
+  if(spr) ctx.drawImage(spr, ox - (spr.width - 16) / 2, oy - 7);   // mientras carga la hoja: el de siempre
 }
 function dibujarJugador(ctx, ox, oy){ dibujarEntrenador(ctx, ox, oy, advDir, advPaso, avatarActual); }
 
@@ -4100,7 +4118,7 @@ function avistamientoActivo(){
    pedazo del mapa y la cámara sigue al jugador). */
 function advEscala(ancho, alto){
   const chico = Math.min(ancho, alto);
-  let base = chico < 420 ? 3 : chico < 700 ? 3.4 : 4;
+  let base = chico < 420 ? 2.3 : chico < 700 ? 2.7 : 3.2;   // Zeta 27/10: con mejor gráfico se ve más terreno (antes 3 / 3,4 / 4)
   /* El avistamiento ya no pasa siempre pegado al altar (RADIO_AVISTAMIENTO):
      la cámara se aleja lo que haga falta para que jugador y altar-plataforma
      entren los dos en pantalla, con aire, en vez de un alejamiento fijo que
@@ -4116,17 +4134,109 @@ function advEscala(ancho, alto){
   return base;
 }
 
+/* ---------- Pokémon con sprite animado (los mismos de la Arena) ----------
+   Se dibujan como <img> sobre el mapa: un GIF animado no se mueve si se pinta en un canvas. Los de la
+   1ª a la 5ª generación tienen su versión animada; el resto cae al arte oficial (quieto, pero grande y nítido). */
+/* Altura real de cada especie en decímetros (PokeAPI), índice = número de Pokédex - 1 */
+const ALTURA_DM = [7,10,20,6,11,17,5,10,16,3,7,11,3,6,10,3,11,15,3,7,3,12,20,35,4,8,6,10,4,8,13,5,9,14,6,13,6,11,5,10,8,16,5,8,12,3,10,10,15,2,7,4,10,8,17,5,10,7,19,6,10,13,9,13,15,8,15,16,7,10,17,9,16,4,10,14,10,17,12,16,3,10,8,14,18,11,17,9,12,3,15,13,16,15,88,10,16,4,13,5,12,4,20,4,10,15,14,12,6,12,10,19,11,10,22,4,12,6,13,8,11,13,15,14,11,13,15,14,9,65,25,3,3,10,8,9,8,4,10,5,13,18,21,17,16,20,18,40,22,20,4,9,12,18,5,9,17,6,11,23,8,18,7,16,10,14,5,11,18,5,12,3,3,3,3,6,2,15,6,8,14,4,4,8,12,11,4,6,8,8,3,8,12,4,14,9,10,5,20,7,5,13,15,6,12,15,11,92,6,14,5,18,6,15,9,6,18,7,8,4,11,6,6,9,9,21,17,6,14,18,5,11,6,14,12,7,14,4,6,7,12,15,19,21,20,6,12,20,52,38,6,5,9,17,4,9,19,4,7,15,5,10,4,5,3,6,10,7,12,5,12,15,5,10,13,3,7,6,12,4,8,16,5,8,4,12,8,14,20,5,8,8,6,10,15,10,23,2,10,6,11,5,6,4,9,21,6,13,6,15,4,4,7,6,3,4,17,8,18,20,145,7,19,5,7,9,11,7,11,20,4,13,4,11,13,27,10,12,4,9,6,11,5,15,10,15,7,15,6,62,3,10,6,11,8,16,20,6,12,6,7,15,8,11,14,4,17,18,10,6,6,11,15,6,12,16,17,18,19,14,20,45,35,70,3,17,4,11,22,5,9,12,4,8,17,3,6,12,5,10,3,10,5,9,14,2,9,9,16,5,13,2,5,9,3,12,4,7,11,4,5,3,9,12,4,12,4,12,9,9,5,10,2,4,10,5,13,5,6,6,5,10,7,14,19,6,7,12,8,20,8,13,7,13,14,4,12,10,10,22,11,12,17,24,20,18,16,15,19,10,8,20,25,9,16,14,22,13,3,3,3,3,54,42,17,37,45,15,4,3,15,2,32,4,6,8,33,5,10,16,5,8,15,5,11,4,9,12,4,11,6,11,6,10,6,10,6,11,3,6,12,8,16,4,9,17,4,9,3,7,11,6,12,14,5,8,15,13,14,3,5,12,4,12,25,3,7,5,11,10,7,10,15,6,13,10,3,14,6,11,14,5,17,7,12,5,14,6,19,7,16,4,5,4,7,15,3,6,10,5,13,4,11,13,6,19,4,5,10,2,6,12,22,12,1,8,6,10,3,6,6,2,12,21,5,10,3,6,10,6,10,18,5,26,11,4,8,7,9,14,16,10,28,5,16,16,5,15,5,12,14,3,8,14,18,11,16,21,19,20,15,15,32,29,15,30,14,6,15,4,7,16,4,10,15,3,6,15,4,10,3,7,12,3,3,12,6,15,1,2,11,9,17,6,21,12,3,6,8,8,17,2,8,4,8,4,15,5,13,5,18,5,13,5,10,8,25,13,27,10,8,2,3,3,8,20,2,4,15,4,9,10,20,5,15,30,58,50,7,5,17,3,7,16,4,7,18,4,6,18,3,6,11,4,7,4,5,15,6,17,6,1,2,5,8,2,4,7,10,25,3,18,3,9,2,10,6,12,5,21,3,7,12,1,15,20,5,20,5,13,3,19,23,3,4,20,3,2,9,30,39,6,12,16,18,12,19,13,2,1,34,40,12,24,18,38,92,3,55,24,10,7,6,36,55,18,15,2,25,3,7,21,3,6,14,3,7,19,3,6,2,8,22,4,4,4,6,12,4,5,6,13,3,10,3,10,3,11,28,2,3,4,22,38,8,5,13,4,16,7,30,6,16,1,2,4,6,21,4,8,15,16,8,10,8,15,16,2,3,30,3,3,13,25,14,9,3,12,30,18,23,23,20,18,5,14,30,28,29,200,6,19,18,12,21,22,20,11,18,18,24,30,13,25,16,4,9,15,4,10,16,5,12,18,5,10,3,10,2,10,3,4,9,3,3,3,5,3,6,14,6,4,6,23,6,15,16,3,12,4,14,5,11,2,7,6,12,9,19,13,3,9,2,3,2,19,4,7,7,12,12,15,13,13,10,18,16,25,7,15,6,20,16,12,45,25,120,3,12,18,32,36,20,22,12,12,14,32,23,9,6,18,13,12,16,5,8,21,3,12,15,19,27,4,20,14,25,35,35,15,4,1,2,18,10,14,12,20,18,35,52,15,16,2,3];
+const GIF_ANIM = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/versions/generation-v/black-white/animated/';
+/* Rectángulo del dibujo sin el margen transparente (primer cuadro), para poder darle el tamaño real */
+function cuerpoDeSprite(im){
+  try{
+    const w = im.naturalWidth, h = im.naturalHeight;
+    if(!w || !h) return null;
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d', {willReadFrequently: true});
+    g.drawImage(im, 0, 0);
+    const d = g.getImageData(0, 0, w, h).data;
+    let x0 = w, x1 = -1, y0 = h, y1 = -1;
+    for(let y = 0; y < h; y++) for(let x = 0; x < w; x++) if(d[(y * w + x) * 4 + 3] > 24){ if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y; }
+    return x1 < 0 ? null : {l: x0, r: x1 + 1, t: y0, b: y1 + 1};
+  }catch(e){ return null; }
+}
+function sincronizarSprites(lista, escala){
+  const caja = document.getElementById('advSprites');
+  if(!caja) return;
+  while(caja.children.length < lista.length){
+    const im = document.createElement('img');
+    im.alt = ''; im.draggable = false;
+    im.crossOrigin = 'anonymous';   // el CDN lo permite: hace falta para medir el cuerpo real del sprite (sin el margen transparente)
+    im.onerror = () => { if(im.dataset.fallo !== '1'){ im.dataset.fallo = '1'; im._bb = null; im.style.imageRendering = 'auto'; im.src = im.dataset.arte; } };
+    im.onload = () => { im._bb = cuerpoDeSprite(im); };
+    caja.appendChild(im);
+  }
+  const t = Date.now() / 1000;
+  [...caja.children].forEach((im, i) => {
+    const o = lista[i];
+    if(!o){ im.style.display = 'none'; return; }
+    const clave = String(o.p.id);
+    if(im.dataset.id !== clave){
+      im.dataset.id = clave; im.dataset.fallo = ''; im.dataset.arte = o.p.img || '';
+      im.style.imageRendering = 'pixelated';
+      im.src = o.p.id <= 649 ? GIF_ANIM + o.p.id + '.gif' : (o.p.img || '');
+      if(o.p.id > 649) im.style.imageRendering = 'auto';
+    }
+    const nw = im.naturalWidth || 96, nh = im.naturalHeight || 96;
+    /* tamaño real: un entrenador mide 17 px de mundo (1,7 m); los demás salen de su altura (con curva suave: Pikachu
+       queda chico y los gigantes no se comen el mapa). Se mide el CUERPO del sprite, no el cuadro con márgenes. */
+    const m = ((ALTURA_DM[o.p.id - 1] || 12) / 10);
+    const hMundo = Math.max(6.5, Math.min(34 * (o.mult || 1), 17 * Math.pow(m / 1.7, .62) * (o.mult || 1)));
+    const bb = im._bb || {l: 0, r: nw, t: 0, b: nh};
+    const z = hMundo * escala / Math.max(1, bb.b - bb.t);
+    const flota = o.flota ? Math.sin(t * 2.4) * 1.6 * escala : 0;
+    im.style.display = 'block';
+    im.style.width = Math.round(nw * z) + 'px'; im.style.height = Math.round(nh * z) + 'px';
+    im.style.left = Math.round((o.px + 8) * escala + (nw / 2 - (bb.l + bb.r) / 2) * z) + 'px';
+    im.style.top = Math.round((o.py + 14.5) * escala + (nh - bb.b) * z - flota) + 'px';
+    im.style.opacity = o.parpadea && Math.floor(t * 4) % 2 === 0 ? '.45' : '1';
+  });
+}
+
+/* Realce del piso (cada cuadro, sólo lo que se ve): sombras suaves de árboles, montañas y edificios,
+   y brillos que se mueven en el agua. El mapa de fondo sigue siendo el de siempre. */
+const ALTO_SOMBRA = {'#': [9.5, 3.4, .30], 'H': [11, 3.4, .30], 'G': [11, 3.6, .30], 'K': [11, 3.6, .30], 'D': [11, 3.6, .30], 'I': [11, 3.6, .30],
+  'O': [9, 3, .28], '^': [11, 3.6, .30], 'Z': [11, 3.6, .30], 'V': [11, 3.6, .30], 'M': [10, 3.4, .26], 'T': [8, 2.6, .26], 'i': [5.5, 2, .24], 'p': [10, 3, .26], 'q': [10, 3, .26], 'r': [10, 3, .26]};
+function advRealce(ctx, mapa, camX, camY, vw, vh){
+  const t = Date.now() / 1000;
+  const x0 = Math.max(0, Math.floor(camX / ADV_PX) - 1), x1 = Math.min(mapa.cols - 1, Math.ceil((camX + vw) / ADV_PX) + 1);
+  const y0 = Math.max(0, Math.floor(camY / ADV_PX) - 1), y1 = Math.min(mapa.rows.length - 1, Math.ceil((camY + vh) / ADV_PX) + 1);
+  for(let y = y0; y <= y1; y++){
+    const fila = mapa.rows[y], abajo = mapa.rows[y + 1];
+    for(let x = x0; x <= x1; x++){
+      const ch = fila[x], ox = x * ADV_PX - camX, oy = y * ADV_PX - camY;
+      const sh = ALTO_SOMBRA[ch];
+      if(sh && !(abajo && ALTO_SOMBRA[abajo[x]])) sombraSuave(ctx, ox + 9, oy + ADV_PX + 1.5, sh[0], sh[1], sh[2]);   // cae hacia abajo y un poco a la derecha
+      else if(ch === '~'){
+        const f = (x * 7 + y * 13) % 5, ph = t * .9 + x * 1.3 + y * .7;
+        for(let k = 0; k < 2; k++){
+          const a = (Math.sin(ph + k * 2.4) + 1) / 2;
+          if(a < .35) continue;
+          ctx.fillStyle = `rgba(235,248,255,${(.10 + .26 * a).toFixed(3)})`;
+          ctx.beginPath(); ctx.ellipse(ox + 3 + ((f * 3 + k * 7) % 11), oy + 4 + ((f * 5 + k * 6) % 9), 2.3, .55, 0, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+    }
+  }
+}
+
 function advRender(){
   const cv = document.getElementById('advMap');
   const mapa = ADV_MAPS[advMapa];
   const anchoCss = cv.clientWidth  || window.innerWidth;
   const altoCss  = cv.clientHeight || window.innerHeight;
-  const escala = advEscala(anchoCss, altoCss);
+  const dprE = Math.min(window.devicePixelRatio || 1, 2.5);
+  /* cada píxel de mundo = un número ENTERO de píxeles del dispositivo: el piso queda parejo y nítido */
+  const escala = Math.max(1, Math.round(advEscala(anchoCss, altoCss) * dprE)) / dprE;
 
-  // el canvas interno mide lo que se ve en píxeles de mundo
+  /* Resolución real de pantalla: el canvas tiene los píxeles del dispositivo y el dibujo se hace en
+     "píxeles de mundo" con una transformación. Así los personajes y los Pokémon salen nítidos (no
+     achicados a 14 px) y las sombras y la luz son suaves; el piso sigue siendo pixel art. */
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
   const vw = Math.ceil(anchoCss / escala);
   const vh = Math.ceil(altoCss  / escala);
-  if(cv.width !== vw || cv.height !== vh){ cv.width = vw; cv.height = vh; }
+  const cw = Math.round(anchoCss * dpr), chh = Math.round(altoCss * dpr);
+  if(cv.width !== cw || cv.height !== chh){ cv.width = cw; cv.height = chh; }
+  const kk = escala * dpr;
 
   // durante el avistamiento la cámara no sigue solo al jugador: se centra
   // en el punto medio entre el jugador y el altar, para que entren los dos.
@@ -4141,10 +4251,12 @@ function advRender(){
   camY = mundoH <= vh ? Math.round((mundoH - vh) / 2) : Math.max(0, Math.min(mundoH - vh, camY));
 
   const ctx = cv.getContext('2d');
+  ctx.setTransform(kk, 0, 0, kk, 0, 0);
   ctx.imageSmoothingEnabled = false;
   ctx.fillStyle = '#0B1020';
-  ctx.fillRect(0, 0, vw, vh);
+  ctx.fillRect(0, 0, vw + 1, vh + 1);
   ctx.drawImage(advFondo(advMapa), -camX, -camY);
+  advRealce(ctx, mapa, camX, camY, vw, vh);   // sombras, brillos del agua y luz sobre el piso
 
   // pokébolas tiradas en el piso (las que todavía no levantó)
   const objetos = [];
@@ -4172,7 +4284,14 @@ function advRender(){
   }
 
   salvajesVencer();
-  salvajesActivos().forEach(sv => dibujarSalvaje(ctx, sv, sv.x * ADV_PX - camX, sv.y * ADV_PX - camY));
+  const sprites = [];
+  salvajesActivos().forEach(sv => {
+    dibujarSalvaje(ctx, sv, sv.x * ADV_PX - camX, sv.y * ADV_PX - camY);
+    sprites.push({p: sv.p, px: sv.x * ADV_PX - camX, py: sv.y * ADV_PX - camY, parpadea: sv.hasta - Date.now() < 5000});
+  });
+  if(legendarioVisible && legendarioVisible.mapa === advMapa && Date.now() < legendarioVisible.hasta)
+    sprites.push({p: legendarioVisible.p, px: legendarioVisible.x * ADV_PX - camX, py: legendarioVisible.y * ADV_PX - camY, mult: 1.3, flota: true});
+  sincronizarSprites(sprites, escala);
 
   if(advMapa === 'overworld') dibujarTren(ctx, camX, camY, vw, vh);
   if(typeof dibujarOtros === 'function') dibujarOtros(ctx, camX, camY, vw, vh, escala);   // Aventura en vivo (servidor.js)
@@ -4229,10 +4348,22 @@ function dibujarMini(){
   const px = (advPx / ADV_PX) * MINI_PX, py = (advPy / ADV_PX) * MINI_PX;
   const te = trenEstado(Date.now());
   ctx.fillStyle = '#E8631F'; ctx.fillRect(te.x * MINI_PX - 3, TREN_Y * MINI_PX - 1, 6, 3);        // el tren en el minimapa
-  ctx.fillStyle = '#141728';
-  ctx.fillRect(px - 3, py - 3, 7, 7);
-  ctx.fillStyle = '#F0B400';
-  ctx.fillRect(px - 2, py - 2, 5, 5);
+  /* los otros que están en la Aventura (personas y bots): puntos celestes; vos: punto rojo con aro blanco que late */
+  if(typeof MUNDO !== 'undefined' && MUNDO.otros){
+    for(const id in MUNDO.otros){
+      const o = MUNDO.otros[id];
+      if(o.m !== 'overworld') continue;
+      const ox = (o.x / ADV_PX) * MINI_PX, oy = (o.y / ADV_PX) * MINI_PX;
+      ctx.fillStyle = '#0B1020'; ctx.beginPath(); ctx.arc(ox, oy, 8.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#19E0FF'; ctx.beginPath(); ctx.arc(ox, oy, 6.2, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  const latido = (Math.sin(Date.now() / 260) + 1) / 2;
+  ctx.fillStyle = `rgba(255,255,255,${(.25 + .25 * latido).toFixed(2)})`;
+  ctx.beginPath(); ctx.arc(px, py, 16 + latido * 5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#0B1020'; ctx.beginPath(); ctx.arc(px, py, 11, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(px, py, 9.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#E5232B'; ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2); ctx.fill();
 }
 
 /* Hay una cueva por región y todas dan al mismo interior, así que se guarda

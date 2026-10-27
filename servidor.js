@@ -726,7 +726,7 @@ function sincronizarGlobos(lista, escala){
     if(el.textContent !== o.txt) el.textContent = o.txt;
     el.style.display = 'block';
     el.style.left = Math.round((o.px + 8) * escala) + 'px';
-    el.style.top  = Math.round((o.py - 22) * escala) + 'px';
+    el.style.top  = Math.round((o.py - 16) * escala) + 'px';
   });
 }
 /* Escribir: botón 💬 → barra abajo → el servidor revisa (teléfonos, links, insultos) y avisa si no pasó. */
@@ -802,7 +802,7 @@ function sincronizarBatGlobos(lista, escala){
     el.style.display = 'grid';
     el.classList.toggle('propio', o.id == null);
     el.style.left = Math.round((o.px + 8) * escala) + 'px';
-    el.style.top  = Math.round((o.py - 24) * escala) + 'px';
+    el.style.top  = Math.round((o.py - 17) * escala) + 'px';
   });
 }
 function batallaEmpezar(m){
@@ -840,6 +840,6 @@ function sincronizarNombres(lista, escala){
     if(el.textContent !== o.n) el.textContent = o.n;
     el.style.display = 'block';
     el.style.left = Math.round((o.px + 8) * escala) + 'px';
-    el.style.top  = Math.round((o.py - 9) * escala) + 'px';
+    el.style.top  = Math.round((o.py - 3) * escala) + 'px';
   });
 }
