@@ -5285,12 +5285,11 @@ function renderRankMaestro(lista, cont, done){
     }
     filas.forEach(f => {
       const row = document.createElement('div');
-      row.className = 'rank-row' + (f.jugador === jugador ? ' me' : '');
+      row.className = 'rank-row rank-row-ma' + (f.jugador === jugador ? ' me' : '');
       row.innerHTML =
-        '<div class="rank-pos">' + f.puesto + '</div>' +
+        '<div class="rank-pos">' + iconoPuesto(f.puesto) + '<span>' + f.puesto + '</span></div>' +
         '<div class="rank-name"><span></span><small class="rank-rango"></small></div>' +
-        iconoPuesto(f.puesto) +
-        '<div class="rank-score">' + f.pts + ' <span style="font-size:10px;color:var(--ink-dim);font-family:\'Space Mono\',monospace;">pts · ' + f.ganadas + ' ganadas</span></div>';
+        '<div class="rank-score">' + f.pts + ' <span class="rank-sub">pts · ' + f.ganadas + ' ganadas</span></div>';
       row.querySelector('.rank-name span').textContent = f.jugador;
       row.querySelector('.rank-rango').textContent = RANGOS_MAESTRO[rangoMaestro(f.pts)].nombre;
       lista.appendChild(row);

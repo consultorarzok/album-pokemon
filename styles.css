@@ -172,6 +172,14 @@
   .rank-pos{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;width:26px;flex:0 0 auto;color:var(--ink-dim);text-align:center;}
   .rank-row:nth-child(1) .rank-pos{color:var(--gold-ink);}
   .rank-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:var(--ink);}
+  /* Maestros: corona arriba del puesto, nombre completo en varias líneas, puntos y ganadas apilados */
+  .rank-row-ma{align-items:center;}
+  .rank-row-ma .rank-pos{display:flex;flex-direction:column;align-items:center;gap:2px;width:34px;}
+  .rank-row-ma .rank-medal{width:30px;height:auto;}
+  .rank-row-ma .rank-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.15;}
+  .rank-row-ma .rank-rango{display:block;white-space:normal;}
+  .rank-row-ma .rank-score{text-align:right;line-height:1.1;}
+  .rank-row-ma .rank-sub{display:block;font-size:10px;color:var(--ink-dim);font-family:'Space Mono',monospace;margin-top:2px;}
   .rank-score{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;color:var(--poke-blue);flex:0 0 auto;}
   .rank-medal{flex:0 0 auto;width:20px;height:20px;}
   .rank-empty{font-size:12px;color:var(--ink-dim);padding:10px 2px;line-height:1.6;}
