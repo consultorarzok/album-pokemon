@@ -5560,7 +5560,16 @@ function iconoPuesto(puesto){
   return '<img class="rank-medal" src="images/crown-' + nivel + '.svg" alt="Corona de ' + nivel + '">';
 }
 
+function pintarEnLinea(){
+  const el = document.getElementById('rankOnline');
+  if(!el) return;
+  const n = ultimoTop && Number.isFinite(ultimoTop.enLinea) ? ultimoTop.enLinea : null;
+  el.hidden = n === null;
+  if(n !== null) document.getElementById('rankOnlineNum').textContent = n;
+}
+
 function renderRank(){
+  pintarEnLinea();
   const lista = document.getElementById('rankList');
   const done  = document.getElementById('rankDone');
   const cont  = document.getElementById('rankCount');

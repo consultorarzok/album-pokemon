@@ -162,6 +162,10 @@
      no se puede clickear; sale del campo 'jugadores' que manda /pokemon-top. */
   .rank-count{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:12px;padding:8px 12px;border-radius:20px;border:1px dashed var(--border);background:var(--bg);color:var(--ink-dim);}
   .rank-count b{font-family:'Baloo 2',sans-serif;font-size:14px;font-weight:700;color:var(--ink);}
+  .rank-online{display:inline-flex;align-items:center;gap:5px;}
+  .rank-online[hidden]{display:none;}
+  .rank-dot{width:8px;height:8px;border-radius:50%;background:#2ecc71;box-shadow:0 0 0 0 rgba(46,204,113,.6);animation:rankPulso 2s infinite;display:inline-block;}
+  @keyframes rankPulso{70%{box-shadow:0 0 0 6px rgba(46,204,113,0);}100%{box-shadow:0 0 0 0 rgba(46,204,113,0);}}
   .rank-list{display:flex;flex-direction:column;gap:5px;}
   .rank-row{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;}
   .rank-row.me{border-color:var(--gold);background:#FFFBEE;}
