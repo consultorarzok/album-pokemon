@@ -48,11 +48,13 @@ async function chico(br, nombre, ids, regalos){
   console.log('1) A busca, B se entera');
   await A.p.click('#advBatBtn');
   check('A queda "buscando"', await espera(A.p, () => /Buscando rival/.test(document.getElementById('advBatAviso').textContent)));
-  check('B ve que A busca batalla', await espera(B.p, () => /busca batalla/.test(document.getElementById('advBatAviso').textContent)));
+  await A.p.waitForTimeout(700);   // que los dos se vean (posiciones)
+  check('B ve el logo ⚔️ sobre A', await espera(B.p, () => [...document.querySelectorAll('#advBatGlobos .adv-batglobo')].some(b => b.style.display !== 'none' && !b.classList.contains('propio'))));
+  check('A ve su propio logo (sin tocarlo)', await espera(A.p, () => [...document.querySelectorAll('#advBatGlobos .adv-batglobo.propio')].some(b => b.style.display !== 'none')));
   await B.p.screenshot({path: (process.env.SHOTS || '/tmp') + '/bat-B.png'});
 
-  console.log('2) B toca ⚔️: a los dos se les abre la Arena con cuenta de 15 s');
-  await B.p.click('#advBatBtn');
+  console.log('2) B toca el logo ⚔️ de A: a los dos se les abre la Arena con cuenta de 15 s');
+  await B.p.click('#advBatGlobos .adv-batglobo:not(.propio):not([style*="none"])');   // B acepta tocando el logo
   check('A ve la Arena para elegir equipo', await espera(A.p, () => document.getElementById('arCuenta') && document.getElementById('arenaOverlay').classList.contains('show')));
   check('B ve la Arena para elegir equipo', await espera(B.p, () => document.getElementById('arCuenta') && document.getElementById('arenaOverlay').classList.contains('show')));
   const c0 = Number(await A.p.textContent('#arCuenta'));

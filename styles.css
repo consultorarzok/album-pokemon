@@ -276,7 +276,10 @@
   .adv-batbtn{right:70px;}
   .adv-batbtn.buscando{background:#C81F1F;border-color:#ff9a90;animation:advBat 1s ease-in-out infinite;}
   @keyframes advBat{0%,100%{box-shadow:0 0 0 0 rgba(255,106,96,.7);}50%{box-shadow:0 0 0 10px rgba(255,106,96,0);}}
-  .adv-bataviso{bottom:132px;color:#fff;background:rgba(200,31,31,.94);}
+  .adv-batglobos{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;}
+  .adv-batglobo{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;width:44px;height:44px;border-radius:50%;border:2px solid #fff;background:#C81F1F;font-size:22px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 2px 6px rgba(0,0,0,.5);animation:advBat 1s ease-in-out infinite;}
+  .adv-batglobo.propio{pointer-events:none;}
+    .adv-bataviso{bottom:132px;color:#fff;background:rgba(200,31,31,.94);}
   .adv-chatbar input{flex:1;min-width:0;min-height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:#fff;color:#14182b;padding:0 12px;font-size:16px;font-family:'Baloo 2',sans-serif;}
   .adv-chatbar button{min-height:44px;padding:0 16px;border-radius:10px;border:0;background:var(--gold);color:#14182b;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;cursor:pointer;}
   .adv-chataviso{position:absolute;left:50%;bottom:76px;transform:translateX(-50%);z-index:6;max-width:88vw;background:rgba(16,20,38,.94);color:#ffd28a;border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:7px 12px;font-family:'Baloo 2',sans-serif;font-weight:600;font-size:13px;text-align:center;pointer-events:none;}
