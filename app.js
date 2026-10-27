@@ -3481,7 +3481,7 @@ function dibujarTren(ctx, camX, camY, vw, vh){          // visto desde arriba, c
   if(py < -20 || py > vh + 20 || px < -60 || px > vw + 60) return;
   ctx.save(); ctx.translate(px, py); ctx.rotate(-Math.PI / 2); ctx.scale(TREN_ANCHO, TREN_ESCALA);   // se arma parado, se gira hacia el este; más ancho (2,8 m reales frente a un personaje de 1,7 m)
   const cx = 0, cy = 0;
-  const L = 56, top = cy - L / 2, naranja = '#E8631F', crema = '#F1EADB';
+  const L = 64, top = cy - L / 2, naranja = '#E8631F', crema = '#F1EADB';
   pinta(ctx, 'rgba(0,0,0,.28)', cx - 5, top + 3, 12, L);
   pinta(ctx, naranja, cx - 6, top + 2, 12, L - 4);                                     // flancos naranjas
   for(let i = 4; i < L - 4; i += 6){                                                   // montañitas blancas de la librea
@@ -3490,6 +3490,7 @@ function dibujarTren(ctx, camX, camY, vw, vh){          // visto desde arriba, c
   }
   pinta(ctx, crema, cx - 4, top + 2, 8, L - 4);                                         // techo crema
   pinta(ctx, '#DDD5C2', cx - 1, top + 6, 2, L - 12);                                    // lomo del techo
+  for(const k of [0, 1]){ const y0 = top + 14 + k * (L / 2 - 4); pinta(ctx, '#243A5C', cx - 3, y0, 6, L / 2 - 12); pinta(ctx, '#3F63A0', cx - 3, y0, 1, L / 2 - 12); pinta(ctx, '#3F63A0', cx + 2, y0, 1, L / 2 - 12); }   // paneles solares del techo
   for(let i = 0; i < 2; i++){                                                           // rejillas de ventilación
     const y0 = top + 10 + i * (L / 2 - 4);
     for(let k = 0; k < 4; k++) pinta(ctx, '#B9B2A1', cx - 3, y0 + k * 2, 6, 1);
@@ -3586,12 +3587,23 @@ function trenAccion(){
 function trenPuedeSubir(e){
   return advMapa === 'overworld' && e.parado && Math.abs((advPx + 8) / ADV_PX - 0.5 - e.x) <= 3.4 && Math.abs(advY - TREN_Y) <= 1;
 }
+/* Entran 8 a la vez: 4 a lo largo del tren y 2 a lo ancho. Cada uno ocupa un lugar fijo según su nombre, así todos
+   se ven repartidos en el tren y no apilados en el mismo punto. */
+let trenPlazaN = null;
+function trenPlaza(){
+  if(trenPlazaN === null){
+    let h = 0; try{ const n = localStorage.getItem(NAME_KEY) || ''; for(let i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0; }catch(e){}
+    trenPlazaN = h % 8;
+  }
+  return {dx: ((trenPlazaN % 4) - 1.5) * 14, dy: (trenPlazaN >> 2) ? 4 : -4};
+}
 function trenActualizar(){                              // se llama en cada cuadro: mueve al viajero y muestra el botón que toque
   const b = trenBoton();
   if(advMapa !== 'overworld'){ advTrenAbordo = false; b.hidden = true; return; }
   const e = trenEstado(Date.now());
   if(advTrenAbordo){
-    advPx = e.x * ADV_PX; advPy = TREN_Y * ADV_PX - 3;
+    const pl = trenPlaza();
+    advPx = e.x * ADV_PX + pl.dx; advPy = TREN_Y * ADV_PX - 3 + pl.dy;
     advX = Math.floor((advPx + 8) / ADV_PX); advY = TREN_Y; advDir = e.dir > 0 ? 'der' : 'izq'; advPaso = 0;
     advRegion = regionDe(advX);
     if(advRegion !== advRegionAnterior){ advRegionAnterior = advRegion; advCartelRegion(advRegion); }
