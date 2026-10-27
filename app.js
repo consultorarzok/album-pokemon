@@ -1742,6 +1742,79 @@ const ADV_MAPS = {
   }
 };
 
+/* ---------- Mapa sin espacios muertos ----------
+   Zeta 27/10: "que no queden lugares sin poder entrar". Después de armar los mapas se revisa que TODO casillero
+   caminable se pueda alcanzar desde el punto de partida. Si quedó algún bolsón aislado (un claro rodeado de árboles,
+   una isla, un tramo de puente suelto) se abre el paso más corto: claro en el bosque, puente en el agua, paso en la
+   montaña. Es determinístico (todos los celulares arman el mismo mapa) y se vuelve a verificar solo si el mapa cambia. */
+const REPARA_COSTO = {'#': 1, 'n': 3, 'g': 3, 's': 3, '~': 3, '^': 3, 'Z': 3, 'V': 6, 'M': 4, 'x': 4, 'S': 3};
+const REPARA_CAMBIO = {'#': ',', 'n': ',', 'g': ',', 's': ',', '~': 'B', '^': '.', 'Z': 'N', 'V': 'F', 'M': '.', 'x': '.', 'S': 'o'};
+function repararMapa(mapa, inicioCh){
+  const W = mapa.cols, H = mapa.rows.length;
+  const g = mapa.rows.map(r => r.split(''));
+  const camina = ch => !!(ADV_TILE[ch] && ADV_TILE[ch].walk);
+  let ini = null;
+  for(let y = 0; y < H && !ini; y++) for(let x = 0; x < W; x++) if(g[y][x] === inicioCh){ ini = [x, y]; break; }
+  if(!ini) return {abiertos: 0, bolsones: 0};
+  const alcanzables = () => {
+    const vis = new Uint8Array(W * H), pila = [ini[1] * W + ini[0]]; vis[pila[0]] = 1;
+    while(pila.length){
+      const i = pila.pop(), x = i % W, y = (i / W) | 0;
+      for(const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){
+        const nx = x + dx, ny = y + dy;
+        if(nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+        const j = ny * W + nx;
+        if(!vis[j] && camina(g[ny][nx])){ vis[j] = 1; pila.push(j); }
+      }
+    }
+    return vis;
+  };
+  let vis = alcanzables(), abiertos = 0, bolsones = 0;
+  for(let guardia = 0; guardia < 600; guardia++){
+    // primer casillero caminable que no se alcanza
+    let obj = -1;
+    for(let y = 0; y < H && obj < 0; y++) for(let x = 0; x < W; x++) if(camina(g[y][x]) && !vis[y * W + x]){ obj = y * W + x; break; }
+    if(obj < 0) break;
+    bolsones++;
+    // todo el bolsón (se avanza desde él hacia afuera)
+    const bols = [obj], marca = new Uint8Array(W * H); marca[obj] = 1;
+    for(let k = 0; k < bols.length; k++){
+      const x = bols[k] % W, y = (bols[k] / W) | 0;
+      for(const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){
+        const nx = x + dx, ny = y + dy;
+        if(nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+        const j = ny * W + nx;
+        if(!marca[j] && camina(g[ny][nx]) && !vis[j]){ marca[j] = 1; bols.push(j); }
+      }
+    }
+    // camino más barato (Dijkstra) desde el bolsón hasta cualquier casillero alcanzable
+    const dist = new Float32Array(W * H).fill(1e9), prev = new Int32Array(W * H).fill(-1);
+    let cola = bols.map(i => { dist[i] = 0; return i; }), meta = -1;
+    const sacar = () => { let b = 0; for(let i = 1; i < cola.length; i++) if(dist[cola[i]] < dist[cola[b]]) b = i; const r = cola[b]; cola[b] = cola[cola.length - 1]; cola.pop(); return r; };
+    while(cola.length){
+      const i = sacar(), x = i % W, y = (i / W) | 0;
+      if(vis[i] && !marca[i]){ meta = i; break; }
+      for(const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){
+        const nx = x + dx, ny = y + dy;
+        if(nx < 1 || ny < 1 || nx >= W - 1 || ny >= H - 1) continue;   // el borde del mapa no se toca
+        const j = ny * W + nx, ch = g[ny][nx];
+        const c = camina(ch) ? 0 : (REPARA_COSTO[ch] !== undefined ? REPARA_COSTO[ch] : 60);
+        if(dist[i] + c + .01 < dist[j]){ dist[j] = dist[i] + c + .01; prev[j] = i; if(!cola.includes(j)) cola.push(j); }
+      }
+    }
+    if(meta < 0){ for(const i of bols) vis[i] = 1; continue; }   // no hay forma razonable de unirlo: se deja
+    for(let i = meta; i >= 0 && !marca[i]; i = prev[i]){
+      const x = i % W, y = (i / W) | 0, ch = g[y][x];
+      if(!camina(ch)){ g[y][x] = REPARA_CAMBIO[ch] || '.'; abiertos++; }
+    }
+    vis = alcanzables();
+  }
+  mapa.rows = g.map(r => r.join(''));
+  return {abiertos, bolsones};
+}
+const MAPA_REPARO = {overworld: repararMapa(ADV_MAPS.overworld, '@'), cueva: repararMapa(ADV_MAPS.cueva, 'E')};
+
+
 /* Qué tipos salen en cada bioma. Las legendarias NO entran en los biomas
    normales: se consiguen en el altar de la cueva o de casualidad (ver
    PROB_LEGENDARIA_SUELTA), para que sigan siendo difíciles de encontrar. */
@@ -4192,6 +4265,126 @@ function sincronizarSprites(lista, escala){
   });
 }
 
+/* ---------- Capa "alta": copas de árboles por ENCIMA de los personajes ----------
+   El mapa es una grilla de casilleros de 16 px, pero un árbol real es mucho más alto que una persona.
+   Los árboles siguen ocupando UN casillero (la colisión no cambia), pero su copa se dibuja grande, hacia
+   arriba, en un canvas aparte que va encima de los personajes: caminás "por detrás" de los árboles.
+   Si el jugador o un Pokémon quedan tapados, la copa se vuelve semitransparente. */
+const ALTA_S = 4;   // resolución con la que se pre-dibujan las copas (píxeles por píxel de mundo)
+const ALTA_CACHE = {};
+function rngSemilla(n){ let a = (n * 2654435761) >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function lienzoAlto(w, h){ const c = document.createElement('canvas'); c.width = Math.ceil(w * ALTA_S); c.height = Math.ceil(h * ALTA_S); const g = c.getContext('2d'); g.scale(ALTA_S, ALTA_S); return [c, g]; }
+/* nube de follaje: círculos con degradé (luz arriba a la izquierda), contorno oscuro y puntitos de hojas */
+function follaje(g, W, H, cx, cy, rx, ry, pal, rng, n){
+  const blobs = [];
+  for(let i = 0; i < n; i++){
+    const a = (i / n) * Math.PI * 2 + rng() * .6, d = .55 + rng() * .35;
+    blobs.push([cx + Math.cos(a) * rx * d, cy + Math.sin(a) * ry * d * .9, Math.min(rx, ry) * (.42 + rng() * .22)]);
+  }
+  blobs.push([cx, cy - ry * .12, Math.min(rx, ry) * .8]);
+  g.fillStyle = pal.oscuro;
+  blobs.forEach(([x, y, r]) => { g.beginPath(); g.arc(x, y, r + .9, 0, Math.PI * 2); g.fill(); });
+  blobs.forEach(([x, y, r]) => {
+    const gr = g.createRadialGradient(x - r * .35, y - r * .45, r * .08, x, y, r);
+    gr.addColorStop(0, pal.claro); gr.addColorStop(.5, pal.hoja); gr.addColorStop(1, pal.medio);
+    g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  });
+  g.save(); g.globalCompositeOperation = 'source-atop';
+  const sombra = g.createLinearGradient(0, cy - ry * .1, 0, cy + ry);
+  sombra.addColorStop(0, 'rgba(0,25,0,0)'); sombra.addColorStop(1, 'rgba(0,25,0,.38)');
+  g.fillStyle = sombra; g.fillRect(0, 0, W, H);
+  for(let i = 0; i < n * 9; i++){
+    const x = cx + (rng() * 2 - 1) * rx * .85, y = cy + (rng() * 2 - 1) * ry * .8;
+    const arriba = y < cy;
+    g.fillStyle = arriba ? pal.claro : pal.oscuro; g.globalAlpha = .35 + rng() * .3;
+    g.beginPath(); g.ellipse(x, y, .8 + rng() * 1.2, .5 + rng() * .6, rng() * 3, 0, Math.PI * 2); g.fill();
+  }
+  g.restore();
+}
+function copaAlta(tipo, variante){
+  const k = tipo + variante;
+  if(ALTA_CACHE[k]) return ALTA_CACHE[k];
+  const rng = rngSemilla(variante * 977 + tipo.charCodeAt(0) * 31 + 7);
+  let W, H, c, g, ancla;   // ancla = y (en el lienzo) donde la copa toca el casillero
+  if(tipo === 'arbol' || tipo === 'cerezo'){
+    W = 28; H = 30; [c, g] = lienzoAlto(W, H);
+    const pal = tipo === 'cerezo' ? {hoja: '#D9578A', claro: '#F9B6CC', medio: '#B84673', oscuro: '#8E2F57'} : {hoja: '#2F7C2C', claro: '#62BE52', medio: '#256B24', oscuro: '#164A18'};
+    follaje(g, W, H, W / 2, 14.5, 12.6, 13.4, pal, rng, 9);
+    if(tipo === 'cerezo'){ g.fillStyle = '#FFFFFF'; for(let i = 0; i < 9; i++){ g.globalAlpha = .75; g.beginPath(); g.arc(5 + rng() * 18, 4 + rng() * 18, .8 + rng() * .6, 0, 6.3); g.fill(); } g.globalAlpha = 1; }
+    ancla = 28.5;
+  } else if(tipo === 'algarrobo' || tipo === 'historico'){
+    const gr = tipo === 'historico';
+    W = gr ? 46 : 38; H = gr ? 44 : 36; [c, g] = lienzoAlto(W, H);
+    const pal = {hoja: '#5F8A4A', claro: '#9CBF76', medio: '#4A7240', oscuro: '#2F4D2C'};
+    g.fillStyle = '#4E3520'; g.fillRect(W / 2 - (gr ? 3 : 2), H - 16, gr ? 6 : 4, 16);   // tronco
+    follaje(g, W, H, W / 2, H * .44, W * .46, H * .4, pal, rng, gr ? 12 : 10);
+    ancla = H;
+  } else if(tipo === 'cedro'){
+    W = 22; H = 46; [c, g] = lienzoAlto(W, H);
+    g.fillStyle = '#4E3520'; g.fillRect(W / 2 - 1.5, H - 9, 3, 9);
+    const cols = ['#1B4D2A', '#22603A', '#2A7447', '#33885A'];
+    for(let t = 0; t < 5; t++){                                 // pisos de la conífera, de abajo hacia arriba
+      const y1 = H - 8 - t * 7.4, y0 = y1 - 11, w = 10.5 - t * 1.6;
+      const gr = g.createLinearGradient(W / 2 - w, 0, W / 2 + w, 0);
+      gr.addColorStop(0, cols[Math.min(3, t)]); gr.addColorStop(.45, '#3E9966'); gr.addColorStop(1, '#14402A');
+      g.fillStyle = '#0F3320'; g.beginPath(); g.moveTo(W / 2, y0 - .8); g.lineTo(W / 2 + w + .9, y1 + .5); g.lineTo(W / 2 - w - .9, y1 + .5); g.closePath(); g.fill();
+      g.fillStyle = gr; g.beginPath(); g.moveTo(W / 2, y0); g.lineTo(W / 2 + w, y1); g.lineTo(W / 2 - w, y1); g.closePath(); g.fill();
+    }
+    ancla = H;
+  } else {   // palmera
+    W = 34; H = 48; [c, g] = lienzoAlto(W, H);
+    g.strokeStyle = '#8A6A44'; g.lineWidth = 3; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(W / 2 - 1, H); g.quadraticCurveTo(W / 2 + 4, H * .55, W / 2 + 1, 15); g.stroke();
+    g.strokeStyle = '#5E4528'; g.lineWidth = 1; for(let y = H - 4; y > 18; y -= 4){ g.beginPath(); g.moveTo(W / 2 - 1 + (H - y) * .05, y); g.lineTo(W / 2 + 2 + (H - y) * .05, y - 1); g.stroke(); }
+    for(let i = 0; i < 8; i++){                                  // hojas largas y caídas
+      const a = (i / 8) * Math.PI * 2 + .2, lx = Math.cos(a) * 14, ly = Math.sin(a) * 6;
+      g.strokeStyle = i % 2 ? '#2E8B3A' : '#3EA64B'; g.lineWidth = 2.4;
+      g.beginPath(); g.moveTo(W / 2 + 1, 15); g.quadraticCurveTo(W / 2 + 1 + lx * .6, 15 - 7 + ly * .3, W / 2 + 1 + lx, 15 + 3 + Math.abs(ly) * .8); g.stroke();
+    }
+    g.fillStyle = '#6B4A2A'; g.beginPath(); g.arc(W / 2 + 1, 16, 2.2, 0, 6.3); g.fill();
+    ancla = H;
+  }
+  return ALTA_CACHE[k] = {c, w: W, h: H, ancla};
+}
+const ALTA_TIPOS = {'#': 'arbol', 'n': 'palmera', 'g': 'cedro', 's': 'algarrobo', 'A': 'historico'};
+const altaAlfa = {};
+function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
+  const cv = document.getElementById('advAlto');
+  if(!cv) return;
+  if(cv.width !== cw || cv.height !== chh){ cv.width = cw; cv.height = chh; }
+  const g = cv.getContext('2d');
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height);
+  if(advMapa !== 'overworld') return;   // las letras de la cueva significan otra cosa
+  g.setTransform(kk, 0, 0, kk, 0, 0);
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  const x0 = Math.max(0, Math.floor(camX / ADV_PX) - 2), x1 = Math.min(mapa.cols - 1, Math.ceil((camX + vw) / ADV_PX) + 2);
+  const y0 = Math.max(0, Math.floor(camY / ADV_PX) - 1), y1 = Math.min(mapa.rows.length - 1, Math.ceil((camY + vh) / ADV_PX) + 4);
+  const vistos = {};
+  for(let y = y0; y <= y1; y++){
+    const fila = mapa.rows[y];
+    for(let x = x0; x <= x1; x++){
+      let tipo = ALTA_TIPOS[fila[x]];
+      if(!tipo) continue;
+      const r = ruido(x, y, 91), v = Math.floor(ruido(x, y, 17) * 4);
+      if(tipo === 'arbol' && r > .78) tipo = 'cerezo';
+      const copa = copaAlta(tipo, v);
+      const ox = x * ADV_PX - camX, oy = y * ADV_PX - camY;
+      const dx = ox + 8 - copa.w / 2, dy = oy + 11.5 - copa.ancla;
+      // ¿hay alguien detrás de la copa? entonces se hace transparente (suave)
+      let alvo = 1;
+      for(const t of tapa){ if(t.x1 > dx + 2 && t.x0 < dx + copa.w - 2 && t.y1 > dy + 2 && t.y0 < dy + copa.ancla - 2 && t.pie < oy + 12){ alvo = .38; break; } }
+      const key = x + ',' + y;
+      const a = altaAlfa[key] === undefined ? alvo : altaAlfa[key] + (alvo - altaAlfa[key]) * .3;
+      vistos[key] = a;
+      g.globalAlpha = a;
+      g.drawImage(copa.c, dx, dy, copa.w, copa.h);
+    }
+  }
+  g.globalAlpha = 1;
+  for(const k in altaAlfa) delete altaAlfa[k];
+  Object.assign(altaAlfa, vistos);
+}
+
 /* Realce del piso (cada cuadro, sólo lo que se ve): sombras suaves de árboles, montañas y edificios,
    y brillos que se mueven en el agua. El mapa de fondo sigue siendo el de siempre. */
 const ALTO_SOMBRA = {'#': [9.5, 3.4, .30], 'H': [11, 3.4, .30], 'G': [11, 3.6, .30], 'K': [11, 3.6, .30], 'D': [11, 3.6, .30], 'I': [11, 3.6, .30],
@@ -4296,6 +4489,11 @@ function advRender(){
   if(advMapa === 'overworld') dibujarTren(ctx, camX, camY, vw, vh);
   if(typeof dibujarOtros === 'function') dibujarOtros(ctx, camX, camY, vw, vh, escala);   // Aventura en vivo (servidor.js)
   dibujarJugador(ctx, advPx - camX, advPy - camY);
+  // quiénes pueden quedar tapados por una copa: yo y los Pokémon salvajes (los demás entrenadores también)
+  const tapa = [{x0: advPx - camX + 1, x1: advPx - camX + 15, y0: advPy - camY - 2, y1: advPy - camY + 16, pie: advPy - camY + 16}];
+  sprites.forEach(sp => tapa.push({x0: sp.px - 1, x1: sp.px + 17, y0: sp.px === undefined ? 0 : sp.py - 8, y1: sp.py + 15, pie: sp.py + 15}));
+  if(typeof MUNDO !== 'undefined' && MUNDO.otros) for(const id in MUNDO.otros){ const o = MUNDO.otros[id]; if(o.m === advMapa) tapa.push({x0: o.x - camX + 1, x1: o.x - camX + 15, y0: o.y - camY - 2, y1: o.y - camY + 16, pie: o.y - camY + 16}); }
+  advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa);
   dibujarMini();
   advDibujado = true;
 }
