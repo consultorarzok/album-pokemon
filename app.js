@@ -5279,6 +5279,7 @@ function cargarTopMaestro(){
 
 /* Maestros tiene tres vistas: la semana de la Arena, los coleccionistas de la semana (sobres) y el histórico de siempre.
    Lo de la semana arranca de cero cada lunes 00:00; el histórico, los rangos y el álbum no se tocan. */
+const semanalActivo = () => MODO_SERVIDOR && !!ultimoTopSemana && ultimoTopSemana.activa !== false;
 function pintarSubMaestro(){
   let sub = document.getElementById('rankSub');
   if(!sub){
@@ -5286,7 +5287,7 @@ function pintarSubMaestro(){
     sub.id = 'rankSub'; sub.className = 'rank-sub-tabs';
     document.getElementById('rankList').parentNode.insertBefore(sub, document.getElementById('rankList'));
   }
-  sub.hidden = rankTab !== 'maestro' || !MODO_SERVIDOR;
+  sub.hidden = rankTab !== 'maestro' || !semanalActivo();
   if(sub.hidden) return;
   const op = [['semana', '⚔️ Semana'], ['colec', '📦 Sobres'], ['historico', '👑 Histórico']];
   sub.innerHTML = op.map(o => '<button type="button" class="rank-subchip' + (subMaestro === o[0] ? ' on' : '') + '" data-sub="' + o[0] + '">' + o[1] + '</button>').join('');
@@ -5325,7 +5326,7 @@ function renderRankSemana(lista, cont, done){
 }
 function renderRankMaestro(lista, cont, done){
   pintarSubMaestro();
-  if(MODO_SERVIDOR && subMaestro !== 'historico') return renderRankSemana(lista, cont, done);
+  if(semanalActivo() && subMaestro !== 'historico') return renderRankSemana(lista, cont, done);
   return renderRankMaestroHistorico(lista, cont, done);
 }
 function renderRankMaestroHistorico(lista, cont, done){
