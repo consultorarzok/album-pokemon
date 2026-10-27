@@ -631,7 +631,7 @@ if(MODO_SERVIDOR) arrancarServidor();
    Mientras la Aventura está abierta, una conexión al "mundo" del servidor: cada celular cuenta
    dónde está (~5 veces por segundo, sólo si se movió; si está quieto, cada 20 s para seguir
    visible) y recibe a los demás. Es sólo para verse: no paga ni descuenta nada. */
-const MUNDO = {ws: null, abierto: false, otros: {}, ultimoEnvio: 0, ultimo: '', reintento: null, yo: null, globos: {}};
+const MUNDO = {ws: null, abierto: false, otros: {}, ultimoEnvio: 0, ultimo: '', reintento: null, yo: null, globos: {}, buscando: false};
 function mundoEntrar(){
   if(!MODO_SERVIDOR) return;
   MUNDO.abierto = true;
@@ -642,12 +642,12 @@ function mundoConectar(){
   let ws;
   try{ ws = new WebSocket(SERVIDOR_URL.replace(/^http/, 'ws') + '/mundo/ws?token=' + encodeURIComponent(tokenServidor)); }catch(e){ return; }
   MUNDO.ws = ws; MUNDO.ultimo = '';
-  ws.onopen = () => chatMostrarBoton(true);
+  ws.onopen = () => { chatMostrarBoton(true); batallaReiniciar(); };
   ws.onmessage = ev => { let m; try{ m = JSON.parse(ev.data); }catch(e){ return; } mundoMensaje(m); };
   ws.onclose = () => {
     if(MUNDO.ws === ws) MUNDO.ws = null;
     MUNDO.otros = {}; MUNDO.globos = {};
-    chatMostrarBoton(false);
+    chatMostrarBoton(false); batallaReiniciar();
     if(MUNDO.abierto){ clearTimeout(MUNDO.reintento); MUNDO.reintento = setTimeout(mundoConectar, 4000); }   // se cortó la señal: reintenta solo
   };
 }
@@ -657,7 +657,7 @@ function mundoSalir(){
   const ws = MUNDO.ws; MUNDO.ws = null;
   if(ws) try{ ws.close(); }catch(e){}
   MUNDO.otros = {}; MUNDO.globos = {};
-  chatMostrarBoton(false);
+  chatMostrarBoton(false); batallaReiniciar();
   sincronizarNombres([], 1);
   sincronizarGlobos([], 1);
 }
@@ -665,6 +665,8 @@ function mundoMensaje(m){
   const ahora = performance.now();
   if(m.t === 'chat'){ MUNDO.globos[m.id] = {txt: String(m.txt || '').slice(0, 60), hasta: ahora + 6500}; return; }
   if(m.t === 'chat_no'){ chatAviso(m); return; }
+  if(m.t === 'busca'){ batallaAvisoDeOtro(m); return; }
+  if(m.t === 'batalla'){ batallaEmpezar(m); return; }
   if(m.t === 'todos'){ MUNDO.yo = m.yo; MUNDO.otros = {}; (m.lista || []).forEach(o => mundoPoner(o, ahora, true)); }
   else if(m.t === 'p') mundoPoner(m, ahora, false);
   else if(m.t === 'sale') delete MUNDO.otros[m.id];
@@ -728,8 +730,9 @@ const CHAT_AVISOS = {
   contacto: 'No se pueden pedir ni dar contactos.', rapido: 'Esperá un momentito antes de mandar otro.', silenciado: 'Estás en pausa unos minutos por mensajes no permitidos.'
 };
 function chatMostrarBoton(ver){
-  const b = document.getElementById('advChatBtn');
+  const b = document.getElementById('advChatBtn'), bb = document.getElementById('advBatBtn');
   if(b) b.hidden = !ver;
+  if(bb) bb.hidden = !ver;
   if(!ver) chatCerrar();
 }
 function chatAviso(m){
@@ -742,11 +745,12 @@ function chatCerrar(){
   const bar = document.getElementById('advChatBar');
   if(bar && !bar.hidden){ bar.hidden = true; const i = document.getElementById('advChatInput'); if(i){ i.value = ''; i.blur(); } }
   const b = document.getElementById('advChatBtn'); if(b && MUNDO.ws) b.hidden = false;
+  const bb = document.getElementById('advBatBtn'); if(bb && MUNDO.ws) bb.hidden = false;
 }
 (() => {
   const btn = document.getElementById('advChatBtn'), bar = document.getElementById('advChatBar'), inp = document.getElementById('advChatInput');
   if(!btn || !bar || !inp) return;
-  btn.onclick = () => { bar.hidden = false; btn.hidden = true; inp.focus(); };
+  btn.onclick = () => { bar.hidden = false; btn.hidden = true; const bb = document.getElementById('advBatBtn'); if(bb) bb.hidden = true; inp.focus(); };
   bar.addEventListener('submit', ev => {
     ev.preventDefault();
     const txt = inp.value.trim();
@@ -757,6 +761,55 @@ function chatCerrar(){
     chatCerrar();
   });
   inp.addEventListener('keydown', ev => { if(ev.key === 'Escape') chatCerrar(); });
+})();
+/* ⚔️ Batalla rápida: tocás ⚔️ y quedás "buscando rival" (1 minuto). Si otro entrenador que está en la Aventura
+   también toca ⚔️, el servidor los junta: a los dos se les abre la Arena para elegir equipo (15 segundos) y arranca el duelo. */
+const BATALLA_BUSCA_MS = 60000;
+function batallaAviso(txt, ms){
+  const a = document.getElementById('advBatAviso');
+  if(!a) return;
+  a.textContent = txt || '';
+  clearTimeout(batallaAviso._t);
+  if(txt && ms) batallaAviso._t = setTimeout(() => { if(a.textContent === txt) a.textContent = ''; }, ms);
+}
+function batallaReiniciar(){
+  MUNDO.buscando = false;
+  clearTimeout(batallaReiniciar._t);
+  const bb = document.getElementById('advBatBtn');
+  if(bb) bb.classList.remove('buscando');
+  batallaAviso('');
+}
+const arenaAbierta = () => { const o = document.getElementById('arenaOverlay'); return !!(o && o.classList.contains('show')); };
+function batallaAvisoDeOtro(m){
+  if(MUNDO.buscando || arenaAbierta()) return;   // ya estoy buscando o peleando
+  batallaAviso('⚔️ ' + String(m.n || 'Un entrenador').slice(0, 20) + ' busca batalla: tocá ⚔️ para pelear', 9000);
+}
+function batallaEmpezar(m){
+  batallaReiniciar();
+  if(typeof window.abrirDueloRapido !== 'function' || !m.codigo || arenaAbierta()) return;
+  window.abrirDueloRapido({codigo: String(m.codigo), rival: String(m.rival || 'otro entrenador').slice(0, 20)});
+}
+(() => {
+  const bb = document.getElementById('advBatBtn');
+  if(!bb) return;
+  bb.onclick = () => {
+    if(!MUNDO.ws || MUNDO.ws.readyState !== 1) return;
+    if(MUNDO.buscando){
+      try{ MUNDO.ws.send(JSON.stringify({k: 'b', on: false})); }catch(e){}
+      batallaReiniciar(); batallaAviso('Dejaste de buscar batalla.', 2500);
+      return;
+    }
+    if(typeof window.puedeDueloRapido === 'function' && !window.puedeDueloRapido()) return;
+    try{ MUNDO.ws.send(JSON.stringify({k: 'b', on: true})); }catch(e){ return; }
+    MUNDO.buscando = true; bb.classList.add('buscando');
+    batallaAviso('⚔️ Buscando rival… tocá ⚔️ otra vez para cancelar');
+    clearTimeout(batallaReiniciar._t);
+    batallaReiniciar._t = setTimeout(() => {
+      if(!MUNDO.buscando) return;
+      try{ MUNDO.ws && MUNDO.ws.send(JSON.stringify({k: 'b', on: false})); }catch(e){}
+      batallaReiniciar(); batallaAviso('Nadie quiso pelear por ahora. Probá de nuevo en un rato.', 4000);
+    }, BATALLA_BUSCA_MS);
+  };
 })();
 function sincronizarNombres(lista, escala){
   const caja = document.getElementById('advNombres');

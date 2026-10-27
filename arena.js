@@ -2622,7 +2622,19 @@ function cargarFav(){
 function guardarFav(a){ try{ localStorage.setItem(FAV_KEY, JSON.stringify(a.slice(0, EQUIPO_MAX))); }catch(e){} }
 const sinTildes = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-function abrirArena(){
+function abrirArena(){ return abrirArenaBase(null); }
+/* Duelo rápido (botón ⚔️ de la Aventura): ya hay sala y rival; sólo falta elegir equipo, con 15 segundos. */
+const SEG_ELEGIR = 15;
+function puedeDueloRapido(){
+  const n = kantoMios().concat(especialesMios()).length;
+  if(n < EQUIPO_MIN){
+    if(typeof avisoBatalla === 'function') avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto, Johto, Hoenn o Sinnoh para pelear. Abrí un sobre primero.`);
+    return false;
+  }
+  return true;
+}
+function abrirDueloRapido(info){ if(puedeDueloRapido()) abrirArenaBase(info); }
+function abrirArenaBase(rapido){
   const ov = $('arenaOverlay');
   const mios = kantoMios().concat(especialesMios());   // las especiales (Mewtwo Acorazado) pelean aparte
   if(mios.length < EQUIPO_MIN){
@@ -2691,24 +2703,75 @@ function abrirArena(){
   };
   const pintar = () => {
     root.innerHTML = `<div class="ar-pick">
-      <h2>Arena Pokémon · Kanto, Johto, Hoenn y Sinnoh</h2>
-      <p>Elegí tu equipo: de ${EQUIPO_MIN} a ${EQUIPO_MAX}. Sale primero el que marcaste con el 1. Pelea tu ejemplar más fuerte (💪).</p>
+      <h2>${rapido ? `⚔️ Duelo contra ${rapido.rival.replace(/[<>&"]/g, '')}` : 'Arena Pokémon · Kanto, Johto, Hoenn y Sinnoh'}</h2>
+      <p>${rapido ? `Elegí tu equipo (${EQUIPO_MIN} a ${EQUIPO_MAX}) antes de que se acabe el tiempo: si se acaba, pelea el que tenés marcado.` : `Elegí tu equipo: de ${EQUIPO_MIN} a ${EQUIPO_MAX}. Sale primero el que marcaste con el 1. Pelea tu ejemplar más fuerte (💪).`}</p>
       <div class="ar-busca"><input id="arBuscar" type="search" inputmode="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="🔎 Buscar" aria-label="Buscar Pokémon"></div>
       <div class="ar-favaviso" id="arFavInfo" hidden></div>
       <div class="ar-grid" id="arGrid"></div>
-      <div class="ar-pick-pie"><span id="arPickN"></span>
-        <button class="ar-b ar-med" id="arPickCerrar"><b>Cerrar</b></button>
-        <button class="ar-b ar-med ar-go" id="arPickGo"><b>¡A pelear!</b></button></div>
-      ${MODO_SERVIDOR ? `<button class="ar-b ar-duelo-btn" id="arPickDuelo"><b>👥 Duelo con un amigo${dueloPendiente ? ' · código ' + dueloPendiente : ''}</b><small>En vivo, contra su equipo real</small></button>` : ''}</div>`;
+      <div class="ar-pick-pie"><span id="arPickN"></span>${rapido ? `<span class="ar-cuenta" id="arCuenta" aria-live="off">${SEG_ELEGIR}</span>` : ''}
+        <button class="ar-b ar-med" id="arPickCerrar"><b>${rapido ? 'Salir' : 'Cerrar'}</b></button>
+        <button class="ar-b ar-med ar-go" id="arPickGo"><b>${rapido ? '¡Listo!' : '¡A pelear!'}</b></button></div>
+      ${MODO_SERVIDOR && !rapido ? `<button class="ar-b ar-duelo-btn" id="arPickDuelo"><b>👥 Duelo con un amigo${dueloPendiente ? ' · código ' + dueloPendiente : ''}</b><small>En vivo, contra su equipo real</small></button>` : ''}</div>`;
     const bq = $('arBuscar'); bq.value = q;
     bq.oninput = () => { q = bq.value; pintarLista(); };       // sólo se repinta la lista: el teclado no se cierra
     $('arPickCerrar').onclick = cerrarArena;
-    $('arPickGo').onclick = () => luchar(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]));
+    $('arPickGo').onclick = () => rapido ? confirmarRapido() : luchar(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]));
     const bd = $('arPickDuelo');
     if(bd) bd.onclick = () => pintarDuelo(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]), pintar);
     pintarLista();
   };
+  /* duelo rápido: cuenta regresiva y envío del equipo (a mano con "¡Listo!" o solo al llegar a 0) */
+  let relojRapido = 0;
+  const confirmarRapido = () => {
+    clearInterval(relojRapido);
+    for(const p of orden){ if(sel.length >= EQUIPO_MIN) break; if(!sel.includes(p.id)) sel.push(p.id); }   // si le faltaron, completa con los más fuertes
+    esperarRapido(rapido, sel.slice(0, EQUIPO_MAX));
+  };
   pintar();
+  if(rapido){
+    const miTok = TOK;
+    let resta = SEG_ELEGIR;
+    relojRapido = setInterval(() => {
+      if(TOK !== miTok || !$('arPickGo')){ clearInterval(relojRapido); return; }
+      resta--;
+      const c = $('arCuenta');
+      if(c){ c.textContent = Math.max(0, resta); c.classList.toggle('urge', resta <= 5); }
+      if(resta <= 0) confirmarRapido();
+    }, 1000);
+  }
+}
+
+/* Después de elegir: se manda el equipo a la sala ya preparada y se espera al rival (hasta 45 s) */
+function esperarRapido(info, ids){
+  const root = $('arRoot'), miTok = TOK;
+  root.innerHTML = `<div class="ar-pick ar-duelo">
+    <h2>⚔️ Duelo contra ${info.rival.replace(/[<>&"]/g, '')}</h2>
+    <div class="ar-duelo-eq">${ids.map(id => { const p = DATA.find(x => x.id === id) || ESPECIAL_POR_ID[id]; return p ? `<img src="${spIcono(p.id, (mejorEjemplar(p.id) || {}).s)}" alt="${p.name}" title="${p.name}" width="48" height="48">` : ''; }).join('')}</div>
+    <div class="ar-duelo-estado" id="arDEstado" role="status" aria-live="polite">Enviando tu equipo…</div>
+    <div class="ar-pick-pie"><button class="ar-b ar-med" id="arDVolver"><b>Salir</b></button></div></div>`;
+  const est = $('arDEstado');
+  let espera = 0;
+  $('arDVolver').onclick = () => { clearTimeout(espera); cerrarArena(); };
+  const motivo = mm => ({no_es_tuyo:'Ese Pokémon no está en tu álbum.', equipo_invalido:'Elegí entre 3 y 6 Pokémon.', no_existe:'La sala ya no existe.',
+    empezada:'Ese duelo ya empezó.', no_autorizado:'No sos parte de este duelo.', sin_sesion:'Volvé a entrar al juego.'})[mm] || 'No se pudo: ' + mm;
+  const alMensaje = m => {
+    if(TOK !== miTok) return;
+    if(m.t === 'sala'){
+      if(m.estado === 'rival') est.innerHTML = `<b>¡${info.rival.replace(/[<>&"]/g, '')} ya está listo!</b><br>Arrancando…`;
+      if(m.estado === 'esperando') est.textContent = `Esperando que ${info.rival.replace(/[<>&"]/g, '')} termine de elegir…`;
+      if(m.estado === 'rival_se_fue') est.textContent = 'Tu rival se fue de la sala. Esperando que vuelva…';
+      return;
+    }
+    if(m.t === 'empezar'){ clearTimeout(espera); RED.alMensaje = mensajeDuelo; luchar(null, m); return; }
+    if(m.t === 'error_red'){ clearTimeout(espera); est.textContent = 'Sin conexión con la sala. Probá de nuevo.'; }
+  };
+  api('/duelo/par', {codigo: info.codigo, equipo: ids}).then(res => {
+    if(TOK !== miTok) return;
+    if(!res.ok){ est.textContent = motivo(res.motivo); return; }
+    est.textContent = `Esperando que ${info.rival.replace(/[<>&"]/g, '')} termine de elegir…`;
+    conectarSala(info.codigo, alMensaje);
+    espera = setTimeout(() => { if(TOK === miTok && !(AR && AR.online)){ cerrarSala(); est.textContent = 'Tu rival no llegó a confirmar a tiempo. Volvé a tocar ⚔️ para buscar otra batalla.'; } }, 45000);
+  }).catch(() => { est.textContent = 'Sin conexión, probá de nuevo.'; });
 }
 
 
@@ -2978,4 +3041,6 @@ document.addEventListener('keyup', e => {
 window.addEventListener('blur', () => { if(AR && AR.keys){ AR.keys.clear(); AR.hold.clear(); } });
 
 window.abrirArena = abrirArena;
+window.abrirDueloRapido = abrirDueloRapido;
+window.puedeDueloRapido = puedeDueloRapido;
 })();
