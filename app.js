@@ -3474,12 +3474,12 @@ function trenEstado(ahora){                             // {x, dir, parado}: x e
   }
   return {x: TREN_EST[0], dir: 1, parado: true};
 }
-const TREN_ESCALA = 1.5, TREN_NOMBRES = ['San Salvador', 'Volcán', 'Purmamarca', 'Humahuaca', 'Abra Pampa', 'La Quiaca'];
+const TREN_ESCALA = 1.5, TREN_ANCHO = 2.1, TREN_NOMBRES = ['San Salvador', 'Volcán', 'Purmamarca', 'Humahuaca', 'Abra Pampa', 'La Quiaca'];
 function dibujarTren(ctx, camX, camY, vw, vh){          // visto desde arriba, con la librea real: crema, franja naranja con montañas blancas
   const e = trenEstado(Date.now());
   const px = Math.round(e.x * ADV_PX + 8 - camX), py = TREN_Y * ADV_PX + 8 - camY;
   if(py < -20 || py > vh + 20 || px < -60 || px > vw + 60) return;
-  ctx.save(); ctx.translate(px, py); ctx.rotate(-Math.PI / 2); ctx.scale(TREN_ESCALA, TREN_ESCALA);   // se arma parado, se gira hacia el este y se agranda
+  ctx.save(); ctx.translate(px, py); ctx.rotate(-Math.PI / 2); ctx.scale(TREN_ANCHO, TREN_ESCALA);   // se arma parado, se gira hacia el este; más ancho (2,8 m reales frente a un personaje de 1,7 m)
   const cx = 0, cy = 0;
   const L = 56, top = cy - L / 2, naranja = '#E8631F', crema = '#F1EADB';
   pinta(ctx, 'rgba(0,0,0,.28)', cx - 5, top + 3, 12, L);
