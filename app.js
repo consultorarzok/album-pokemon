@@ -5261,14 +5261,74 @@ function enviarMaestro(){
     return cargarTopMaestro();
   }).catch(() => {});
 }
+let ultimoTopSemana = null, subMaestro = 'semana';
+function cargarTopSemana(){
+  if(!MODO_SERVIDOR) return Promise.resolve();
+  return fetch(SERVIDOR_URL + '/semana-top', {cache: 'no-store'})
+    .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(d => { ultimoTopSemana = d; if(rankTab === 'maestro') renderRank(); })
+    .catch(() => {});
+}
 function cargarTopMaestro(){
+  cargarTopSemana();
   return fetch(MODO_SERVIDOR ? SERVIDOR_URL + '/maestro-top' : API_BASE + '/pokemon-maestro-top', {cache: 'no-store'})
     .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(data => { ultimoTopMaestro = data; topMaestroFallo = false; if(rankTab === 'maestro') renderRank(); })
     .catch(() => { topMaestroFallo = true; if(rankTab === 'maestro') renderRank(); });
 }
 
+/* Maestros tiene tres vistas: la semana de la Arena, los coleccionistas de la semana (sobres) y el histórico de siempre.
+   Lo de la semana arranca de cero cada lunes 00:00; el histórico, los rangos y el álbum no se tocan. */
+function pintarSubMaestro(){
+  let sub = document.getElementById('rankSub');
+  if(!sub){
+    sub = document.createElement('div');
+    sub.id = 'rankSub'; sub.className = 'rank-sub-tabs';
+    document.getElementById('rankList').parentNode.insertBefore(sub, document.getElementById('rankList'));
+  }
+  sub.hidden = rankTab !== 'maestro' || !MODO_SERVIDOR;
+  if(sub.hidden) return;
+  const op = [['semana', '⚔️ Semana'], ['colec', '📦 Sobres'], ['historico', '👑 Histórico']];
+  sub.innerHTML = op.map(o => '<button type="button" class="rank-subchip' + (subMaestro === o[0] ? ' on' : '') + '" data-sub="' + o[0] + '">' + o[1] + '</button>').join('');
+  sub.querySelectorAll('button').forEach(b => b.onclick = () => { subMaestro = b.dataset.sub; renderRank(); });
+}
+function textoFaltaSemana(fin){
+  const ms = new Date(fin).getTime() - Date.now();
+  if(!(ms > 0)) return 'cierra en este momento';
+  const d = Math.floor(ms / 86400e3), h = Math.floor(ms % 86400e3 / 3600e3), m = Math.floor(ms % 3600e3 / 60e3);
+  return 'cierra el lunes 00:00 · faltan ' + (d ? d + ' d ' : '') + h + ' h' + (d ? '' : ' ' + m + ' min');
+}
+function esc(t){ return String(t).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c])); }
+function renderRankSemana(lista, cont, done){
+  const d = ultimoTopSemana, colec = subMaestro === 'colec';
+  if(!d){ lista.innerHTML = '<div class="rank-empty">Cargando la semana…</div>'; cont.hidden = true; done.innerHTML = ''; return; }
+  const filas = colec ? d.colec : d.arena, cfg = colec ? d.premios.colec : d.premios.arena;
+  cont.hidden = true;
+  if(!filas.length) lista.innerHTML = '<div class="rank-empty">' + (colec ? 'Nadie abrió sobres todavía esta semana. ¡Abrí uno y sé el primero!' : 'Nadie ganó todavía esta semana en la Arena. ¡Ganá una pelea y sé el primero!') + '</div>';
+  filas.forEach(f => {
+    const row = document.createElement('div');
+    row.className = 'rank-row rank-row-ma' + (f.jugador === jugador ? ' me' : '');
+    row.innerHTML = '<div class="rank-pos">' + iconoPuesto(f.puesto) + '<span>' + f.puesto + '</span></div>' +
+      '<div class="rank-name"><span></span><small class="rank-rango"></small></div>' +
+      '<div class="rank-score">' + (colec ? f.nuevas + ' <span class="rank-sub">figuritas nuevas</span>' : f.pts + ' <span class="rank-sub">pts · ' + f.ganadas + ' ganadas</span>') + '</div>';
+    row.querySelector('.rank-name span').textContent = f.jugador;
+    row.querySelector('.rank-rango').remove();
+    lista.appendChild(row);
+  });
+  const ant = d.anterior && (colec ? d.anterior.colec : d.anterior.arena);
+  done.innerHTML = '<div class="hof-title">🎁 Premios de la semana</div>' +
+    '<div class="hof-sub">' + (colec ? 'Gana el que consigue más figuritas NUEVAS abriendo sobres.' : 'Gana el que suma más puntos peleando en la Arena.') +
+    ' Todos arrancan de cero cada lunes.<br><b>' + textoFaltaSemana(d.termina) + '</b><br>Los premios te llegan solos al entrar al juego.</div>' +
+    cfg.textos.map((t, i) => '<div class="hof-row rango premio-sem"><span class="rango-pts">' + (i + 1) + '°</span><div class="hof-name">' + esc(t) + '</div></div>').join('') +
+    '<div class="hof-row rango premio-sem"><span class="rango-pts">+</span><div class="hof-name"><b>Participar</b><br><small>' + (colec ? cfg.minimo + ' figuritas nuevas' : cfg.minimo + ' peleas') + ' en la semana: ' + esc(cfg.textoMinimo) + '</small></div></div>' +
+    (ant && ant.length ? '<div class="hof-title" style="margin-top:14px">🏅 La semana pasada</div>' + ant.map(g => '<div class="hof-row"><span class="rango-pts">' + g.puesto + '°</span><div class="hof-name"><b>' + esc(g.nombre) + '</b></div></div>').join('') : '');
+}
 function renderRankMaestro(lista, cont, done){
+  pintarSubMaestro();
+  if(MODO_SERVIDOR && subMaestro !== 'historico') return renderRankSemana(lista, cont, done);
+  return renderRankMaestroHistorico(lista, cont, done);
+}
+function renderRankMaestroHistorico(lista, cont, done){
   if(!ultimoTopMaestro){
     lista.innerHTML = topMaestroFallo
       ? '<div class="rank-empty">No se pudo cargar el ranking de Maestros.<br><button type="button" class="close-btn" id="rankReintentarMa" style="margin-top:10px;padding:10px 18px;">Reintentar</button></div>'
@@ -5569,6 +5629,7 @@ function pintarEnLinea(){
 
 function renderRank(){
   pintarEnLinea();
+  if(rankTab !== 'maestro'){ const sb = document.getElementById('rankSub'); if(sb) sb.hidden = true; }
   const lista = document.getElementById('rankList');
   const done  = document.getElementById('rankDone');
   const cont  = document.getElementById('rankCount');
