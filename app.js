@@ -4346,6 +4346,115 @@ function copaAlta(tipo, variante){
   }
   return ALTA_CACHE[k] = {c, w: W, h: H, ancla};
 }
+/* ---------- Edificios altos (misma capa que las copas) ----------
+   Las construcciones del mapa son de 1 casillero de alto (una catedral = 1,7 m). Se dibujan como fachadas mucho más
+   altas, hacia arriba, sin tocar el mapa ni la colisión (no se crea ningún espacio muerto). Si alguien camina detrás
+   de la parte alta, el edificio se vuelve semitransparente, igual que los árboles. */
+const EDIF_FAMILIAS = [['gobierno', 'GQ', 2], ['catedral', 'KJ', 5], ['cabildo', 'Dd', 3], ['iglesia', 'I', 3], ['centro', 'pqrP', 1], ['adobe', 'h', 1], ['estacion', 'Y', 1]];
+const EDIF_CACHE = {};   // por mapa: lista de {tipo, x0, y0, w, h, extra}
+function edificiosDe(mapaId){
+  if(EDIF_CACHE[mapaId]) return EDIF_CACHE[mapaId];
+  const mapa = ADV_MAPS[mapaId], H = mapa.rows.length, W = mapa.cols, lista = [], visto = new Set();
+  if(mapaId === 'overworld') for(const [tipo, chars, extra] of EDIF_FAMILIAS){
+    for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
+      if(!chars.includes(mapa.rows[y][x]) || visto.has(x + ',' + y)) continue;
+      const pila = [[x, y]]; visto.add(x + ',' + y);
+      let x0 = x, x1 = x, y0 = y, y1 = y;
+      while(pila.length){
+        const [a, b] = pila.pop();
+        x0 = Math.min(x0, a); x1 = Math.max(x1, a); y0 = Math.min(y0, b); y1 = Math.max(y1, b);
+        for(const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){
+          const nx = a + dx, ny = b + dy;
+          if(nx >= 0 && ny >= 0 && nx < W && ny < H && chars.includes(mapa.rows[ny][nx]) && !visto.has(nx + ',' + ny)){ visto.add(nx + ',' + ny); pila.push([nx, ny]); }
+        }
+      }
+      lista.push({tipo, x0, y0, w: x1 - x0 + 1, h: y1 - y0 + 1, extra});
+    }
+  }
+  return EDIF_CACHE[mapaId] = lista;
+}
+function rectG(g, x, y, w, h, c0, c1){ const gr = g.createLinearGradient(x, y, x + w, y); gr.addColorStop(0, c0); gr.addColorStop(1, c1); g.fillStyle = gr; g.fillRect(x, y, w, h); }
+function ventana(g, x, y, w, h, marco){ g.fillStyle = marco; g.fillRect(x - .6, y - .6, w + 1.2, h + 1.2); const gr = g.createLinearGradient(x, y, x, y + h); gr.addColorStop(0, '#9CC7E8'); gr.addColorStop(1, '#3E6A93'); g.fillStyle = gr; g.fillRect(x, y, w, h); g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(x + .5, y + .5, w * .35, h * .3); }
+function techoTejas(g, x, y, w, h, c0, c1, c2){ rectG(g, x, y, w, h, c0, c1); g.fillStyle = c2; for(let i = 2; i < h; i += 2.6) g.fillRect(x, y + i, w, .5); }
+function puerta(g, x, y, w, h, c, arco){ g.fillStyle = c; if(arco){ g.beginPath(); g.moveTo(x, y + h); g.lineTo(x, y + w / 2); g.arc(x + w / 2, y + w / 2, w / 2, Math.PI, 0); g.lineTo(x + w, y + h); g.closePath(); g.fill(); } else g.fillRect(x, y, w, h); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x + w / 2 - .3, y + 2, .6, h - 2); }
+function fachada(e){
+  const k = e.tipo + e.w + 'x' + e.h + '/' + (e.x0 * 7 + e.y0 * 13) % 3;
+  if(ALTA_CACHE[k]) return ALTA_CACHE[k];
+  const base = e.h * ADV_PX, alto = base + e.extra * ADV_PX, W = e.w * ADV_PX + 6, H = alto + 8;
+  const [c, g] = lienzoAlto(W, H);
+  const x0 = 3, xr = W - 3, wb = xr - x0, yb = H;                // yb = piso (borde inferior del edificio)
+  const sombraLado = (x, y, w, h) => { g.fillStyle = 'rgba(40,20,10,.16)'; g.fillRect(x, y, w, h); };
+  const var_ = (e.x0 * 7 + e.y0 * 13) % 3;
+  if(e.tipo === 'gobierno'){            // neoclásico: crema, columnata, frontón con bandera, techo azul pizarra
+    const top = yb - alto + 9;
+    rectG(g, x0, top + 5, wb, yb - top - 5, '#F2E6C4', '#D8C898');
+    techoTejas(g, x0 - 2, top - 2, wb + 4, 8, '#6E7F99', '#4C5C75', 'rgba(255,255,255,.18)');
+    g.fillStyle = '#EDE0B8'; g.beginPath(); g.moveTo(W / 2 - 12, top + 5); g.lineTo(W / 2, top - 7); g.lineTo(W / 2 + 12, top + 5); g.closePath(); g.fill();   // frontón
+    g.strokeStyle = '#B9A672'; g.lineWidth = .8; g.stroke();
+    g.fillStyle = '#C0392B'; g.fillRect(W / 2 - .4, top - 14, .8, 8); g.fillStyle = '#74ACDF'; g.fillRect(W / 2 + .4, top - 14, 5, 1.6); g.fillStyle = '#FFF'; g.fillRect(W / 2 + .4, top - 12.4, 5, 1.6); g.fillStyle = '#74ACDF'; g.fillRect(W / 2 + .4, top - 10.8, 5, 1.6);   // bandera
+    const cols = Math.max(4, Math.round(wb / 9));
+    for(let i = 0; i < cols; i++){ const cx = x0 + 4 + i * ((wb - 8) / (cols - 1)); rectG(g, cx - 1.3, top + 8, 2.6, yb - top - 14, '#FFF8E4', '#CFC096'); }
+    for(let r = 0; r < 2; r++) for(let i = 0; i < cols - 1; i++){ const cx = x0 + 4 + (i + .5) * ((wb - 8) / (cols - 1)); ventana(g, cx - 1.6, top + 11 + r * 11, 3.2, 6, '#FFF8E4'); }
+    puerta(g, W / 2 - 2.5, yb - 12, 5, 12, '#5B3A22', true);
+    g.fillStyle = '#C9B98A'; g.fillRect(x0 - 1, yb - 2, wb + 2, 2);
+  } else if(e.tipo === 'catedral'){     // dos torres con campanario y cúpula, rosetón central
+    const top = yb - alto + 4, tw = 12;
+    rectG(g, x0 + 2, top + 22, wb - 4, yb - top - 22, '#EFE3C8', '#CDBB93');
+    for(const tx of [x0, xr - tw]){
+      rectG(g, tx, top + 8, tw, yb - top - 8, '#F4E9D0', '#C9B68B');
+      g.fillStyle = '#8C5A3C'; g.beginPath(); g.moveTo(tx - 1, top + 9); g.lineTo(tx + tw / 2, top - 4); g.lineTo(tx + tw + 1, top + 9); g.closePath(); g.fill();   // aguja
+      g.fillStyle = '#E8D9B0'; g.fillRect(tx + tw / 2 - .5, top - 9, 1, 6); g.fillRect(tx + tw / 2 - 2, top - 7.5, 4, 1);   // cruz
+      puerta(g, tx + 3.5, top + 13, 5, 9, '#2E2118', true);
+      ventana(g, tx + 4, top + 28, 4, 8, '#F7EBCB');
+    }
+    g.fillStyle = '#E3D2A6'; g.beginPath(); g.moveTo(x0 + 8, top + 22); g.lineTo(W / 2, top + 8); g.lineTo(xr - 8, top + 22); g.closePath(); g.fill();
+    g.fillStyle = '#4E7A9A'; g.beginPath(); g.arc(W / 2, top + 26, 4.2, 0, 6.3); g.fill(); g.strokeStyle = '#F7EBCB'; g.lineWidth = .9; g.stroke();
+    puerta(g, W / 2 - 3, yb - 14, 6, 14, '#4A2F1C', true);
+  } else if(e.tipo === 'cabildo'){      // colonial: blanco con arcadas y torre de reloj, teja roja
+    const top = yb - alto + 10;
+    rectG(g, x0, top + 6, wb, yb - top - 6, '#FBF6EA', '#DDD3BC');
+    techoTejas(g, x0 - 1.5, top, wb + 3, 7, '#B8553A', '#8E3F2B', 'rgba(0,0,0,.2)');
+    const n = Math.max(3, Math.round(wb / 8));
+    for(let i = 0; i < n; i++){ const cx = x0 + 3 + i * ((wb - 6) / (n - 1)) - 2.4; puerta(g, cx, yb - 12, 4.8, 12, '#8C7A5E', true); ventana(g, cx + 1, top + 11, 2.8, 5, '#FFF'); }
+    rectG(g, W / 2 - 5, top - 12, 10, 18, '#FBF6EA', '#D5CAB0'); techoTejas(g, W / 2 - 6, top - 17, 12, 5, '#B8553A', '#8E3F2B', 'rgba(0,0,0,.2)');
+    g.fillStyle = '#fff'; g.beginPath(); g.arc(W / 2, top - 7, 3, 0, 6.3); g.fill(); g.strokeStyle = '#3B3A36'; g.lineWidth = .7; g.stroke();
+    g.beginPath(); g.moveTo(W / 2, top - 7); g.lineTo(W / 2, top - 9); g.moveTo(W / 2, top - 7); g.lineTo(W / 2 + 1.6, top - 6.4); g.stroke();
+  } else if(e.tipo === 'iglesia'){      // capilla blanca con campanario
+    const top = yb - alto + 8;
+    rectG(g, x0 + 1, top + 12, wb - 2, yb - top - 12, '#F7F1E3', '#D9CFB8');
+    rectG(g, W / 2 - 4, top, 8, 14, '#F7F1E3', '#D2C7AE');
+    g.fillStyle = '#9B4A32'; g.beginPath(); g.moveTo(W / 2 - 5, top + 1); g.lineTo(W / 2, top - 8); g.lineTo(W / 2 + 5, top + 1); g.closePath(); g.fill();
+    g.fillStyle = '#E8D9B0'; g.fillRect(W / 2 - .4, top - 13, .8, 6); g.fillRect(W / 2 - 1.6, top - 11.4, 3.2, .8);
+    puerta(g, W / 2 - 1.4, top + 4, 2.8, 5, '#2E2118', true);
+    techoTejas(g, x0, top + 11, wb, 4, '#B8553A', '#8E3F2B', 'rgba(0,0,0,.2)');
+    puerta(g, W / 2 - 2, yb - 8, 4, 8, '#4A2F1C', true);
+  } else if(e.tipo === 'centro'){       // Centro Pokémon: techo rojo, paredes blancas, pokébola
+    const top = yb - alto + 6;
+    rectG(g, x0, top + 12, wb, yb - top - 12, '#FFFFFF', '#E1E4EA');
+    techoTejas(g, x0 - 2, top, wb + 4, 14, '#E5484D', '#B8262C', 'rgba(255,255,255,.22)');
+    g.fillStyle = '#fff'; g.beginPath(); g.arc(W / 2, top + 7, 4, 0, 6.3); g.fill(); g.fillStyle = '#E5484D'; g.beginPath(); g.arc(W / 2, top + 7, 4, Math.PI, 0); g.fill();
+    g.strokeStyle = '#2B2F3A'; g.lineWidth = .7; g.beginPath(); g.arc(W / 2, top + 7, 4, 0, 6.3); g.moveTo(W / 2 - 4, top + 7); g.lineTo(W / 2 + 4, top + 7); g.stroke();
+    ventana(g, x0 + 3, top + 17, 5, 6, '#fff'); ventana(g, xr - 8, top + 17, 5, 6, '#fff');
+    puerta(g, W / 2 - 3, yb - 10, 6, 10, '#6FA8DC', false);
+  } else if(e.tipo === 'estacion'){     // estación del Tren Solar
+    const top = yb - alto + 8;
+    rectG(g, x0, top + 7, wb, yb - top - 7, '#F1EADB', '#D5CDB8');
+    techoTejas(g, x0 - 2, top, wb + 4, 8, '#E8631F', '#C24E12', 'rgba(255,255,255,.25)');
+    ventana(g, x0 + 3, top + 12, 4, 5, '#fff'); ventana(g, xr - 7, top + 12, 4, 5, '#fff');
+    g.fillStyle = '#2A2E36'; g.fillRect(W / 2 - 4, top + 2, 8, 3.4); g.fillStyle = '#FFD166'; g.fillRect(W / 2 - 3, top + 3, 6, 1.2);
+    puerta(g, W / 2 - 2.2, yb - 9, 4.4, 9, '#3A4B5E', false);
+  } else {                              // casa de adobe: ocre con techo plano y vigas
+    const top = yb - alto + 4, tonos = [['#D9A66C', '#B98450'], ['#CF9A62', '#AE7A48'], ['#E0B07A', '#C08C58']][var_];
+    rectG(g, x0, top + 4, wb, yb - top - 4, tonos[0], tonos[1]);
+    g.fillStyle = '#9A6B3E'; g.fillRect(x0 - 1, top + 1, wb + 2, 4);
+    g.fillStyle = '#6B4A2A'; for(let i = 0; i < Math.floor(wb / 5); i++) g.fillRect(x0 + 1.5 + i * 5, top + 3, 1.6, 2.4);   // cabezas de viga
+    puerta(g, W / 2 - 2, yb - 8, 4, 8, '#5B3A22', false);
+    if(wb > 20) ventana(g, x0 + 3, top + 10, 3.6, 4.2, '#7A5330');
+    sombraLado(xr - 3, top + 5, 3, yb - top - 5);
+  }
+  g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(x0, yb - 1.2, wb, 1.2);
+  return ALTA_CACHE[k] = {c, w: W, h: H, ancla: H, base, alto};
+}
 const ALTA_TIPOS = {'#': 'arbol', 'n': 'palmera', 'g': 'cedro', 's': 'algarrobo', 'A': 'historico'};
 const altaAlfa = {};
 function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
@@ -4360,6 +4469,19 @@ function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
   const x0 = Math.max(0, Math.floor(camX / ADV_PX) - 2), x1 = Math.min(mapa.cols - 1, Math.ceil((camX + vw) / ADV_PX) + 2);
   const y0 = Math.max(0, Math.floor(camY / ADV_PX) - 1), y1 = Math.min(mapa.rows.length - 1, Math.ceil((camY + vh) / ADV_PX) + 4);
   const vistos = {};
+  for(const e of edificiosDe('overworld')){
+    const f = fachada(e);
+    const dx = e.x0 * ADV_PX - camX - 3, dy = (e.y0 + e.h) * ADV_PX - camY - f.h;
+    if(dx > vw + 8 || dx + f.w < -8 || dy > vh + 8 || dy + f.h < -8) continue;
+    let alvo = 1;
+    const altoSobre = f.h - f.base;   // la parte que sobresale por encima del casillero original
+    for(const t of tapa){ if(t.x1 > dx + 1 && t.x0 < dx + f.w - 1 && t.y1 > dy + 2 && t.y0 < dy + altoSobre - 2){ alvo = .4; break; } }
+    const key = 'e' + e.x0 + ',' + e.y0;
+    const a = altaAlfa[key] === undefined ? alvo : altaAlfa[key] + (alvo - altaAlfa[key]) * .3;
+    vistos[key] = a;
+    g.globalAlpha = a;
+    g.drawImage(f.c, dx, dy, f.w, f.h);
+  }
   for(let y = y0; y <= y1; y++){
     const fila = mapa.rows[y];
     for(let x = x0; x <= x1; x++){
