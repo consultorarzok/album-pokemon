@@ -2935,12 +2935,13 @@ const PINTORES = {
   },
   puente(ctx, ox, oy, x, y){
     PINTORES.agua(ctx, ox, oy, x, y);
-    pinta(ctx, '#8A5F35', ox, oy, 16, 16);
-    for(let i = 0; i < 4; i++) pinta(ctx, '#6B4522', ox, oy + i * 4 + 3, 16, 1);
-    pinta(ctx, '#A8794A', ox, oy, 16, 2);
-    pinta(ctx, '#5A3A1C', ox, oy + 15, 16, 1);
-    pinta(ctx, '#C89B63', ox + 1, oy + 5, 1, 10);
-    pinta(ctx, '#C89B63', ox + 14, oy + 5, 1, 10);
+    pinta(ctx, 'rgba(0,25,60,.30)', ox, oy + 1, 16, 15);                       // sombra sobre el agua
+    pinta(ctx, '#8A5F35', ox, oy, 16, 15);
+    for(let i = 0; i < 4; i++){ pinta(ctx, '#6B4522', ox, oy + i * 4 + 3, 16, 1); pinta(ctx, '#9C7044', ox, oy + i * 4, 16, 1); }   // tablones
+    for(let k = 0; k < 4; k++) pinta(ctx, ruido(x, y, 300 + k) > .5 ? '#7A5230' : '#946A3D', ox + Math.floor(ruido(x, y, 310 + k) * 14), oy + k * 4 + 1, 2, 2);   // vetas
+    pinta(ctx, '#5A3A1C', ox, oy + 14, 16, 2);
+    pinta(ctx, '#C89B63', ox, oy, 16, 1);
+    for(let px = 1; px < 16; px += 5){ pinta(ctx, '#4A2F16', ox + px, oy, 2, 15); pinta(ctx, '#B88A55', ox + px, oy, 1, 15); }    // vigas / postes de baranda
   },
   torii(ctx, ox, oy, x, y){
     PINTORES.pasto(ctx, ox, oy, x, y);
@@ -3330,7 +3331,7 @@ PINTORES.fuente = (ctx, ox, oy, x, y) => {
     if(d > R + .6) continue;
     let col;
     if(d > R){ col = 'rgba(0,0,0,.28)'; }                                                   // sombra del borde
-    else if(reja && d > R - 1.6){ col = ((wx + wy) % 3 === 0) ? '#707683' : '#1E2026'; }     // reja de hierro negra
+    else if(reja && d > R - 1.6){ const poste = Math.floor((Math.atan2(dy, dx) + Math.PI) * R / 3.4) % 2 === 0 && Math.abs(((Math.atan2(dy, dx) + Math.PI) * R / 3.4) % 1 - .5) < .22; col = poste ? '#8E95A3' : '#1E2026'; }     // reja de hierro negra: aro liso con postes
     else if(reja && d > R - 3.2) col = '#8A8F97';
     else if(d > R - 1.2) col = '#6F6C63';                                                    // contorno de piedra
     else if(d > R - 3.4){                                                                    // borde claro, armado con bloques de piedra
@@ -4552,6 +4553,7 @@ function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
     for(let x = x0; x <= x1; x++){
       let tipo = ALTA_TIPOS[fila[x]];
       if(!tipo || tipo === 'historico') continue;   // el histórico se dibuja una sola vez, abajo
+      if(tipo === 'algarrobo' && ((x + y) & 1)) continue;   // las plazas son densas: una de cada dos, así no se amontonan las copas
       const r = ruido(x, y, 91), v = Math.floor(ruido(x, y, 17) * 4);
       if(tipo === 'arbol' && r > .78) tipo = 'cerezo';
       const copa = copaAlta(tipo, v);
