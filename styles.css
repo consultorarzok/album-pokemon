@@ -274,7 +274,9 @@
   .adv-chatbar[hidden],.adv-chatbtn[hidden]{display:none;}
   /* ⚔️ batalla rápida: al lado del 💬; late mientras busca rival */
   .adv-batbtn{right:70px;}
-  .adv-montbtn{right:128px;}
+  .adv-montbtn{right:128px;display:flex;align-items:center;justify-content:center;padding:0;}
+  .adv-montbtn{overflow:hidden;}
+  .adv-montbtn img{width:64px;height:48px;image-rendering:pixelated;margin-top:-10px;flex:none;}
   .adv-montbtn.puesta{background:#2d6cdf;border-color:#a9c6ff;}
   .adv-batbtn.buscando{background:#C81F1F;border-color:#ff9a90;animation:advBat 1s ease-in-out infinite;}
   @keyframes advBat{0%,100%{box-shadow:0 0 0 0 rgba(255,106,96,.7);}50%{box-shadow:0 0 0 10px rgba(255,106,96,0);}}

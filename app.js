@@ -4236,7 +4236,8 @@ function dibujarSnorlaxParado(ctx, sp, cx, pie, alto, ancho, camina){
    que aleteen. Archivos en images/monturas/<montura>-<avatar>-<vista>-<cuerpo|alas>.png (salen de herramientas/montura-capas.py).
    piv = hombros (fracción del dibujo) sobre los que giran las alas. Si no hay dibujo para ese personaje, queda el armado de abajo. */
 const MONTURA_HD = {
-  'charizard-red': {alto: 44, vistas: {frente: {w: 347, h: 300, piv: [[.35, .40], [.65, .40]]},
+  /* alto medido para que el chico mida lo mismo que a pie (gorra ~7,8 px de mundo) */
+  'charizard-red': {alto: 34, vistas: {frente: {w: 347, h: 300, piv: [[.35, .40], [.65, .40]]},
                                        lado:   {w: 336, h: 300, piv: [[.52, .40]]},
                                        espalda:{w: 281, h: 300, piv: [[.38, .40], [.62, .40]]}}}
 };
@@ -4313,16 +4314,33 @@ function dibujarJugador(ctx, ox, oy){
   if(montura && tiendaDiamantes() && dibujarMontado(ctx, ox, oy, advDir, advPaso, avatarActual, montura)) return;
   dibujarEntrenador(ctx, ox, oy, advDir, advPaso, avatarActual);
 }
-function actualizarBotonMontura(){   // 🐴 en la Aventura: sólo con la tienda abierta para esta cuenta y al menos una montura comprada
+function actualizarBotonMontura(){   // botón de montura en la Aventura: sólo con la tienda abierta para esta cuenta y al menos una montura comprada
   const b = document.getElementById('advMontBtn');
   if(!b) return;
   b.hidden = !(tiendaDiamantes() && Object.keys(monturas).length);
   b.classList.toggle('puesta', !!montura);
+  const clave = montura || monturaPreferida();
+  const m = clave && MONTURAS[clave];
+  if(m && b.dataset.id !== String(m.id)){
+    b.dataset.id = m.id;
+    b.innerHTML = `<img src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/versions/generation-vii/icons/${m.id}.png" alt="">`;
+  }
+  b.setAttribute('aria-label', montura ? 'Bajarte de ' + MONTURAS[montura].nombre : 'Subirte a ' + (m ? m.nombre : 'tu montura'));
+}
+function monturaPreferida(){
+  let ultima = null; try{ ultima = localStorage.getItem('album-montura-ultima'); }catch(e){}
+  return monturas[ultima] ? ultima : Object.keys(monturas)[0];
 }
 (() => { const b = document.getElementById('advMontBtn'); if(b) b.onclick = () => {
-  if(montura) return monturaElegirServidor(null);
-  let ultima = null; try{ ultima = localStorage.getItem('album-montura-ultima'); }catch(e){}
-  monturaElegirServidor(monturas[ultima] ? ultima : Object.keys(monturas)[0]);
+  if(montura){
+    if(montadoVolando()){
+      const montadoAntes = montura; montura = null;
+      const choca = advChoca(advPx, advPy); montura = montadoAntes;
+      if(choca) return advMensaje('🌊 Estás arriba del agua: volá hasta la orilla para bajarte.');
+    }
+    return monturaElegirServidor(null);
+  }
+  monturaElegirServidor(monturaPreferida());
 }; })();
 
 /* Qué pokébola hay tirada en cada casillero. Sale por rareza, pero de forma
@@ -5175,9 +5193,10 @@ function advChoca(px, py){
   const esquinas = [[x0, y0], [x0 + CAJA.w - 1, y0], [x0, y0 + CAJA.h - 1], [x0 + CAJA.w - 1, y0 + CAJA.h - 1]];
   return esquinas.some(([cx, cy]) => {
     const t = advTileEn(Math.floor(cx / ADV_PX), Math.floor(cy / ADV_PX));
-    return !t || !t.walk;
+    return !t || (!t.walk && !(t.pinta === 'agua' && montadoVolando()));   // en una montura voladora se pasa por arriba del agua
   });
 }
+function montadoVolando(){ return !!(montura && tiendaDiamantes() && MONTURAS[montura] && MONTURAS[montura].vuela); }
 
 function advPaso1(dt){
   trenActualizar();
