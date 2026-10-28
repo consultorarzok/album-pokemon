@@ -704,7 +704,24 @@ const TODOS = {corto:[], medio:[], largo:[]};
 MOVS_CAT.forEach((d, i) => TODOS[BOTON[d[3]]].push({i, pr:3, fx:null}));
 const PESO_PRI = [6, 3, 2, 1];
 function semillaNum(txt){ let h = 2166136261; for(const ch of String(txt)){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+/* Ataques EXCLUSIVOS de las figuritas especiales (premio del álbum completo): no existen para ningún otro Pokémon y
+   pegan más fuerte (pot = multiplicador del daño del alcance; el corto y el medio ×1,3, el largo ×1,4).
+   Usan los mismos efectos visuales (fx/forma) que el resto, con el color de su tipo. */
+const POT_ESPECIAL = {corto:1.3, medio:1.3, largo:1.4};
+const MOVS_ESPECIALES = {
+  10150: {corto:['Garra Acorazada','psychic','garra'], medio:['Pulso Blindado','psychic','onda','anillo'], largo:['Psicorrayo Total','psychic','rayo']},
+  10151: {corto:['Garra Umbría','dark','garra'], medio:['Aura Oscura','dark','tornado','medialuna'], largo:['Abismo Total','dark','propia']},
+  10152: {corto:['Pico Carmesí','fire','picotazo'], medio:['Llama Sombría','dark','bola','llama'], largo:['Fuego Eclipse','fire','propia']},
+  10153: {corto:['Garra Plasma','electric','garra'], medio:['Relámpago Veloz','electric','rayito'], largo:['Puño Plasma','electric','trueno']},
+  10154: {corto:['Garra Azul','dragon','garra'], medio:['Llama Azul','fire','bola','llama'], largo:['Aliento Azul','fire','rayo']},
+  10155: {corto:['Puño Hoopa','dark','golpe'], medio:['Portal Anillo','psychic','onda','anillo'], largo:['Dimensión Total','dark','propia']}
+};
 function movsDe(p, semilla){
+  if(p.especial && MOVS_ESPECIALES[p.id]){
+    const out = {};
+    ATAQUES.forEach(alc => { const [n, tipo, fx, forma] = MOVS_ESPECIALES[p.id][alc]; out[alc] = {n, tipo, fx, forma:forma || FORMA_FX[fx] || 'bola', pot:POT_ESPECIAL[alc]}; });
+    return out;
+  }
   const id = p.base || p.id, pools = id === 235 ? TODOS : APRENDE[id];
   const out = {};
   ATAQUES.forEach(alc => {
@@ -1274,7 +1291,7 @@ function encerrar(e){
 function empujar(e, dx, dy){ e.x += dx / G.rx; e.y += dy / G.ry; encerrar(e); }
 
 function medidas(e, img){
-  const sf = ESCALA_POKE[escalaLado(e)] * (AR && AR.zoom || 1) * (img.dataset.fb ? .25 : 1);
+  const sf = ESCALA_POKE[escalaLado(e)] * (AR && AR.zoom || 1) * (img.dataset.fb ? .25 : 1) * ((e.mon && e.mon.p.escala) || 1);   // escala: sprites de Showdown más grandes que los de siempre
   return {w:img.naturalWidth * G.K * sf, h:img.naturalHeight * G.K * sf};
 }
 function tamanoSprite(e){
@@ -1313,6 +1330,7 @@ function ponerSprite(e){
   }
   mostrarVista(e);
   e.rot.style.setProperty('--tc', TYPE_COLORS[mon.p.type]);
+  e.wrap.classList.toggle('ar-aura-oscura', mon.p.aura === 'oscura');   // sólo los Apex Oscuros
 }
 
 /* Mirar ya hacia el rival, sin animación (al entrar a la arena). */
@@ -1471,6 +1489,7 @@ function pintarCooldowns(){
     const b = $(id); if(!b) return;
     b.querySelector('.cd').style.height = (cd > 0 ? Math.min(1, cd / tot) * 100 : 0).toFixed(0) + '%';
     b.classList.toggle('sinEn', m.en < coste);
+    b.classList.toggle('listo', cd <= 0 && m.en >= coste);
   };
   ATAQUES.forEach(k => set('arB-' + k, e.cd[k], ALC[k].cd, ALC[k].coste));
   set('arB-esquivar', e.cd.esq, ESQ.cd, ESQ.coste);
@@ -1479,10 +1498,10 @@ function pintarCooldowns(){
 }
 
 /* ---------------- combate ---------------- */
-function calcularDanio(a, d, alc, tipoMov){
+function calcularDanio(a, d, alc, tipoMov, pot){
   const mult = efectividad(tipoMov, d.p.type), f = factorTipo(mult);
   const crit = f > 0 && Math.random() < a.st.crit;
-  let dmg = ALC[alc].poder * Math.sqrt(a.bst / d.bst) * f * (a.k || 1) * azar(.9, 1.1) * (crit ? a.st.critMult : 1);
+  let dmg = ALC[alc].poder * Math.sqrt(a.bst / d.bst) * f * (a.k || 1) * (pot || 1) * azar(.9, 1.1) * (crit ? a.st.critMult : 1);
   dmg = f === 0 ? 0 : Math.max(1, Math.round(dmg));
   return {dmg, mult, crit};
 }
@@ -1506,7 +1525,7 @@ function golpear(att, def, alc, x, y){
     return false;
   }
   if(def.invul > 0) return false;
-  const res = calcularDanio(att.mon, def.mon, alc, tipo), d = def.mon;
+  const res = calcularDanio(att.mon, def.mon, alc, tipo, mov.pot), d = def.mon;
   if(roce && res.dmg > 0){
     res.dmg = Math.max(1, Math.round(res.dmg * ROCE_LARGO)); res.crit = false;
     texto(c.x, arriba - u() * 4.5, '¡Lo rozó!', '#8be9ff', 3.2);
@@ -1526,6 +1545,7 @@ function golpear(att, def, alc, x, y){
   estallido(x == null ? c.x : x, y == null ? c.y : y, tipo, res.crit ? 22 : 11, res.crit ? 1.4 : 1);
   destello(x == null ? c.x : x, y == null ? c.y : y, res.crit ? 1.2 : .7);
   sacudir(res.crit ? 1.5 : .7, res.crit);
+  if(def.lado === 'yo') vibrar(res.crit ? [30, 20, 30] : 22);
   sfx(res.crit ? 'critico' : 'golpe');
   AR.congela = res.crit ? .11 : .055;
   clase(def, 'ar-golpe', 320);
@@ -2475,8 +2495,11 @@ function iniciarControles(){
 }
 
 /* Apretar un botón o tecla: intenta la acción ya y la deja "mantenida" para repetirla al soltarse el enfriamiento. */
+/* vibración corta en el celular (si el navegador la permite): confirma el toque y avisa los golpes recibidos */
+function vibrar(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
 function pulsar(a){
   if(!AR) return;
+  vibrar(a === 'esquivar' ? 12 : 8);
   AR.hold.add(a);
   if(AR.fase === 'lucha' && !AR.pausa) iniciar(E.yo, a, a === 'esquivar' ? entradaJugador() : null);
 }
@@ -2951,6 +2974,7 @@ function golpeRemoto(m, lado){
   estallido(c.x, c.y, tipo, m.crit ? 22 : 11, m.crit ? 1.4 : 1);
   destello(c.x, c.y, m.crit ? 1.2 : .7);
   sacudir(m.crit ? 1.2 : .5, m.crit);
+  vibrar(m.crit ? [30, 20, 30] : 22);
   sfx(m.crit ? 'critico' : 'golpe');
   AR.congela = m.crit ? .08 : .04;
   clase(def, 'ar-golpe', 320);
