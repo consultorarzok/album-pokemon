@@ -33,7 +33,7 @@ const SHOTS = process.env.SHOTS || '';
     await p.waitForTimeout(1500);
     for(let i = 0; i < 4; i++) for(const s of ['#specialContinueBtn', '#battleCloseBtn']) if(await p.isVisible(s)){ await p.click(s); await p.waitForTimeout(250); }
 
-    check('el botón Evolucionar está habilitado', await p.evaluate(() => !document.getElementById('evolucionarBtn').disabled));
+    check('el botón Evolucionar siempre está habilitado', await p.evaluate(() => !document.getElementById('evolucionarBtn').disabled));
     await p.click('#evolucionarBtn');
     await p.waitForTimeout(300);
     check('abre la pantalla de evolución', await p.isVisible('#evolucionOverlay .reveal-panel'));

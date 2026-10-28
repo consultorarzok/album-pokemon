@@ -1336,8 +1336,6 @@ function updateBarras(){
   if(dc) dc.textContent = dups;
   const cb = document.getElementById('canjeBtn');
   if(cb) cb.disabled = dups < CANJE_COSTO || tengo === DATA.length;
-  const eb = document.getElementById('evolucionarBtn');
-  if(eb) eb.disabled = !evolucionablesYa().length;
   const bb = document.getElementById('battleBtn');
   if(bb) bb.disabled = kantoMios().length < PELEA_MIN;
 }
