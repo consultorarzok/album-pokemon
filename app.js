@@ -4292,27 +4292,14 @@ function dibujarMontadoHD(ctx, ox, oy, dir, m, clave){
   ctx.restore();
   ctx.restore();
   ctx.imageSmoothingEnabled = false;
-  if(nada) ondasDeAgua(ctx, cx, suelo, (vista === 'lado' ? ancho * .42 : ancho * .34), t, camina);
   return true;
 }
-/* Surfeando arriba del agua: la montura se hunde un poco (HUNDE_EN_AGUA del alto) y deja ondas */
+/* Surfeando arriba del agua: la montura se hunde un poco (HUNDE_EN_AGUA del alto) */
 const HUNDE_EN_AGUA = .3;
 function nadandoEnAgua(m){
   if(!m || !m.surfea || !montadoSurfea()) return false;
   const t = advTileEn(Math.floor((advPx + 8) / ADV_PX), Math.floor((advPy + 11) / ADV_PX));
   return !!(t && t.pinta === 'agua');
-}
-function ondasDeAgua(ctx, cx, y, rx, t, camina){
-  ctx.save();
-  ctx.lineWidth = 1; ctx.lineCap = 'round';
-  for(let i = 0; i < 2; i++){
-    const f = ((t * (camina ? 1.4 : .7) + i * .5) % 1);                     // cada onda se agranda y se apaga
-    ctx.strokeStyle = `rgba(235,248,255,${(.75 * (1 - f)).toFixed(3)})`;
-    ctx.beginPath(); ctx.ellipse(cx, y - 1, rx * (.75 + f * .55), 2.2 + f * 1.6, 0, 0, Math.PI * 2); ctx.stroke();
-  }
-  ctx.fillStyle = 'rgba(255,255,255,.55)';                                  // espuma pegada al cuerpo
-  for(let k = -2; k <= 2; k++) ctx.fillRect(Math.round(cx + k * rx * .3 + Math.sin(t * 5 + k) * .8), Math.round(y - 1.5), 2, 1);
-  ctx.restore();
 }
 function dibujarMontado(ctx, ox, oy, dir, paso, av, clave){
   if(MONTURA_HD[clave + '-' + av] && dibujarMontadoHD(ctx, ox, oy, dir, MONTURAS[clave], clave + '-' + av)) return true;
@@ -4346,7 +4333,6 @@ function dibujarMontado(ctx, ox, oy, dir, paso, av, clave){
   ctx.restore();
   ctx.imageSmoothingEnabled = false;
   if(!m.detras) jinete();
-  if(nada) ondasDeAgua(ctx, cx, suelo, w * .4, t, camina);
   return true;
 }
 function dibujarJugador(ctx, ox, oy){
