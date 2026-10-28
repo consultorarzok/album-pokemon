@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261113">
+<link rel="stylesheet" href="styles.css?v=20261114">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -298,6 +298,7 @@
       </div>
       <details class="filtros" id="filtrosBox">
         <summary id="filtrosResumen">Filtros</summary>
+        <div class="filters" id="estadoFilters"></div>
         <div class="filters" id="regionFilters"></div>
         <div class="filters" id="filters"></div>
       </details>
@@ -308,6 +309,17 @@
         <button id="resetBtn" style="background:transparent;border:1px solid var(--border);color:var(--ink-dim);border-radius:8px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;">Reiniciar álbum</button>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="detalleOverlay" role="dialog" aria-modal="true" aria-labelledby="detalleTit" style="z-index:55;">
+  <div class="reveal-panel" style="max-width:430px;margin:0 auto;">
+    <div class="panel-top">
+      <button type="button" class="panel-atras" id="detalleAtrasBtn" aria-label="Cerrar y volver a la Pokédex"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Atrás</button>
+      <h2 id="detalleTit">Figurita</h2>
+    </div>
+    <div id="detalleBody" class="detalle-body"></div>
+    <button class="close-btn" id="detalleCloseBtn" style="margin-top:16px;">Cerrar</button>
   </div>
 </div>
 
@@ -388,7 +400,7 @@
 </div>
 
 <script src="evoluciones.js?v=20261110"></script>
-<script src="app.js?v=20261111"></script>
+<script src="app.js?v=20261114"></script>
 <script src="servidor.js?v=20261108"></script>
 <script src="arena.js?v=20261113"></script>
 <script src="portada.js?v=20261105"></script>

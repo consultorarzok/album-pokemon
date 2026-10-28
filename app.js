@@ -547,6 +547,7 @@ const STORAGE_KEY = 'album-kanto-progreso';
 let coins = 300;
 let currentFilter = 'all';
 let currentRegion = 'all';
+let currentEstado = 'all';   // 'all' | 'shiny' | 'dup'
 const PACK_COST = 150;
 const PACK_SIZE = 6;
 
@@ -769,6 +770,17 @@ function renderRegionFilters(){
   });
 }
 
+function renderEstadoFilters(){
+  const box = document.getElementById('estadoFilters');
+  box.innerHTML = '';
+  [['all', 'Todas'], ['shiny', '✨ Shiny'], ['dup', 'Repetidas']].forEach(([v, t]) => {
+    const chip = chipFiltro('estadoFilters', v, t, v === currentEstado,
+      () => { currentEstado = v; renderEstadoFilters(); renderGrid(); });
+    if(v === currentEstado){ chip.style.background = v === 'shiny' ? '#B88BFF' : '#F4C744'; chip.style.color = '#1b1530'; }
+    box.appendChild(chip);
+  });
+}
+
 function renderFilters(){
   const types = ['all', ...new Set(DATA.map(p=>p.type))];
   const box = document.getElementById('filters');
@@ -819,6 +831,8 @@ function renderGrid(){
   const delEvento = ev ? eventoTiene(ev) : null;
   let lista = ev ? DATA.filter(p => IDS_KANTO_JOHTO.has(p.id)) : DATA;
   lista = lista.filter(p => (currentFilter==='all' || p.type===currentFilter) && (currentRegion==='all' || p.region===currentRegion));
+  if(currentEstado === 'shiny') lista = lista.filter(p => state[p.id].got && tieneShiny(p.id));
+  else if(currentEstado === 'dup') lista = lista.filter(p => state[p.id].got && state[p.id].dup > 0);
   /* Búsqueda: el NÚMERO sirve siempre, pero el NOMBRE sólo en las que ya
      tenés. Si no, buscar "Mewtwo" revelaría cuáles faltan y se pierde la
      gracia de descubrirlas. */
@@ -832,7 +846,7 @@ function renderGrid(){
         || (gotV && normalizarBusqueda(p.name).includes(q));
     });
   }
-  const activos = (currentFilter !== 'all' ? 1 : 0) + (currentRegion !== 'all' ? 1 : 0);
+  const activos = (currentFilter !== 'all' ? 1 : 0) + (currentRegion !== 'all' ? 1 : 0) + (currentEstado !== 'all' ? 1 : 0);
   const resumen = document.getElementById('filtrosResumen');
   if(resumen) resumen.textContent = activos ? 'Filtros · ' + activos + (activos === 1 ? ' activo' : ' activos') : 'Filtros';
   const estado = document.getElementById('buscarEstado');
@@ -844,6 +858,10 @@ function renderGrid(){
   }
   if(q && !lista.length){
     grid.innerHTML = '<div class="grid-vacio">No encontramos ninguna figurita con eso.<br>Buscá el nombre de una que ya tengas, o un número (ej: 25).</div>';
+    return;
+  }
+  if(!lista.length && currentEstado !== 'all'){
+    grid.innerHTML = '<div class="grid-vacio">' + (currentEstado === 'shiny' ? 'Todavía no tenés ninguna ✨ shiny con estos filtros.<br>Salen muy de vez en cuando al abrir sobres o atrapar.' : 'No tenés repetidas con estos filtros.') + '</div>';
     return;
   }
   lista.forEach(p=>{
@@ -864,12 +882,58 @@ function renderGrid(){
       slot.classList.toggle('vario', vario);
       slot.innerHTML = numTag + dupTag + (vario ? '<div class="vario-tag" title="Tenés una shiny">✨</div>' : '') +
         `<img src="${vario ? imgVario(p) : p.img}" alt="" loading="lazy"${vario ? ' onerror="respaldoShiny(this)"' : ''}><div class="name">${p.name}</div>` + bar;
+      /* tocar la carta abre su ficha: copias con su fuerza, shiny, evolución */
+      slot.tabIndex = 0;
+      slot.classList.add('tocable');
+      slot.onclick = () => abrirDetalle(p.id);
+      slot.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); abrirDetalle(p.id); } };
     } else {
       slot.innerHTML = numTag + `<div class="ball-icon"></div>` + bar;
     }
     grid.appendChild(slot);
   });
 }
+
+/* ====================== FICHA DE UNA FIGURITA ====================== */
+function abrirDetalle(id){
+  const p = DATA.find(x => x.id === id);
+  if(!p || !state[id].got) return;
+  const copias = ejemplares(id).slice().sort((a, b) => (b.f + (b.s ? 1000 : 0)) - (a.f + (a.s ? 1000 : 0)));
+  const vario = copias.some(e => e.s);
+  const mejor = copias.reduce((m, e) => (!m || e.f > m.f || (e.f === m.f && e.s)) ? e : m, null);
+  const num = '#' + String(id).padStart(3, '0');
+  const nombreDe = i => (DATA.find(x => x.id === i) || {}).name || '';
+  const viene = Object.keys(EVOLUCIONES).filter(o => EVOLUCIONES[o].includes(id)).map(Number);
+  const va = destinosEvolucion(id);
+  const dup = state[id].dup;
+  document.getElementById('detalleTit').textContent = num + ' ' + p.name;
+  document.getElementById('detalleBody').innerHTML = `
+    <div class="det-arte ${vario ? 'vario' : ''}"><img src="${vario ? imgVario(p) : p.img}" alt="${p.name}"${vario ? ' onerror="respaldoShiny(this)"' : ''}></div>
+    <div class="det-datos">
+      <span class="det-pill" style="background:${TYPE_COLORS[p.type]};color:${textoSobre(TYPE_COLORS[p.type])}">${TYPE_LABEL[p.type]}</span>
+      <span class="det-pill">${REGION_LABEL[p.region]}</span>
+      <span class="det-pill">${p.rarity}</span>
+      ${vario ? '<span class="det-pill det-shiny">✨ Shiny</span>' : ''}
+    </div>
+    <div class="det-sec"><b>Tus copias</b><span>Tenés ${copias.length}${dup > 0 ? ' (' + dup + ' repetida' + (dup === 1 ? '' : 's') + ')' : ' · sin repetidas'}</span></div>
+    <div class="ej-lista det-copias" role="list" aria-label="Copias de ${p.name}">${copias.map(e =>
+      `<div class="ej-chip ${claseFuerza(e.f)}" role="listitem" title="${nivelFuerza(e.f)}"><b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}${e.s ? ' · shiny' : ''}${e === mejor ? ' · ⭐ Arena' : ''}</small></div>`).join('')}</div>
+    <div class="det-sec"><b>Evolución</b></div>
+    <div class="det-evo">
+      ${viene.length ? `<div>Viene de: ${viene.map(nombreDe).join(', ')}</div>` : ''}
+      ${va.length ? va.map(d => `<div>→ <b>${d.name}</b> · cuesta ${costoEvolucion(d.id)} repetidas${dup >= costoEvolucion(d.id) ? ' <span class="det-ok">¡Ya podés!</span>' : ' (te faltan ' + (costoEvolucion(d.id) - dup) + ')'}</div>`).join('') : '<div>No evoluciona.</div>'}
+    </div>
+    ${va.length ? '<button class="open-btn sec" id="detalleEvolBtn" style="margin-top:10px;">Ir a Evolucionar</button>' : ''}`;
+  const eb = document.getElementById('detalleEvolBtn');
+  if(eb) eb.onclick = () => { cerrarDetalle(); document.getElementById('pokedexCloseBtn').click(); abrirEvolucion(); };
+  const ov = document.getElementById('detalleOverlay');
+  ov.querySelector('.reveal-panel').scrollTop = 0;
+  ov.classList.add('show');
+  document.getElementById('detalleCloseBtn').focus({preventScroll:true});
+}
+function cerrarDetalle(){ document.getElementById('detalleOverlay').classList.remove('show'); }
+document.getElementById('detalleCloseBtn').onclick = cerrarDetalle;
+document.getElementById('detalleAtrasBtn').onclick = cerrarDetalle;
 
 function updateProgress(){
   renderEspeciales();
@@ -5492,6 +5556,7 @@ document.getElementById('packCost').textContent = PACK_COST;
 
 loadProgress();
 renderRegionFilters();
+renderEstadoFilters();
 renderFilters();
 renderGrid();
 updateProgress();
@@ -6947,7 +7012,7 @@ document.addEventListener('keydown', e => {
     return;
   }
   if(e.key !== 'Escape' || advAbierto) return;
-  const cierres = ['evolucionCloseBtn','intercambioCloseBtn','shopCloseBtn','pokedexCloseBtn','closeBtn','quizCloseBtn','battleCloseBtn'];
+  const cierres = ['detalleCloseBtn','evolucionCloseBtn','intercambioCloseBtn','shopCloseBtn','pokedexCloseBtn','closeBtn','quizCloseBtn','battleCloseBtn'];
   for(const id of cierres){
     const b = document.getElementById(id);
     const ov = b && b.closest('.overlay');
