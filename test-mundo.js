@@ -127,7 +127,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
 
   console.log('\n— Encuentros más espaciados —');
   const probs = await page.evaluate(() => ({prob: ADV_PROB, descanso: DESCANSO_ENCUENTRO}));
-  check('la hierba tira ' + Math.round(probs.prob.hierba * 100) + '% por casillero (antes 18%)', probs.prob.hierba <= .08);
+  check('la hierba tira ' + Math.round(probs.prob.hierba * 100) + '% por casillero (28/10: el doble que antes, 7%)', probs.prob.hierba === .14);
   check('tras un encuentro hay ' + probs.descanso / 16 + ' casilleros de descanso', probs.descanso >= 48);
   const seguidos = await page.evaluate(() => {
     // camino 200 casilleros por hierba alta y cuento cuántos encuentros salen
