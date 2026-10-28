@@ -130,10 +130,15 @@ async function sesion(br, nombre, disp, regalos){
   check('surfeando arriba del agua salen Pokémon', surf.salvajes.length > 0 || surf.directo, surf);
   check('…y aparecen arriba del agua o en la orilla', surf.salvajes.every(s => s.sobre === 'agua' || s.sobre === 'arena'), surf);
   await p.evaluate(() => { salvajes = []; });
-  for(const clave of ['gyarados', 'lapras']) for(const dir of ['izq', 'abajo']){
-    await p.evaluate(([a, c, d]) => { montura = c; advDir = d; advPx = (a.x + 1) * 16; advPy = a.y * 16 - 3; }, [agua, clave, dir]);
+  for(const clave of ['gyarados', 'lapras']) for(const dir of ['der', 'abajo']){
+    await p.evaluate(([a, c, d]) => { montura = c; advDir = d; advPx = (a.x + 1) * 16; advPy = a.y * 16 - 3; advEje = {x: 0, y: 0}; }, [agua, clave, dir]);
     await p.waitForTimeout(1200);
-    await p.screenshot({path: `${OUT}/surf-${clave}-${dir}.png`, clip: caja2});
+    await p.screenshot({path: `${OUT}/surf-quieto-${clave}-${dir}.png`, clip: caja2});
+    // en movimiento por el medio de un río ancho (51..57 en la fila 15): se sacan cuadros seguidos
+    const mov = {izq: {x: -1, y: 0}, der: {x: 1, y: 0}, abajo: {x: 0, y: 1}}[dir];
+    await p.evaluate(([d, e]) => { advDir = d; advPx = 54.5 * 16; advPy = 15 * 16 - 3; advEje = e; }, [dir, mov]);
+    for(let i = 0; i < 5; i++){ await p.waitForTimeout(140); await p.screenshot({path: `${OUT}/surf-${clave}-${dir}${i ? '-' + i : ''}.png`, clip: caja2}); }
+    await p.evaluate(() => { advEje = {x: 0, y: 0}; });
   }
   await p.waitForTimeout(600); await p.screenshot({path: `${OUT}/botones.png`, clip: await p.evaluate(() => { const r = document.getElementById('advMontBtn').getBoundingClientRect(); return {x: r.x - 20, y: r.y - 20, width: 200, height: 90}; })});
   check('el botón muestra el ícono del Pokémon', await p.evaluate(() => { const b = document.getElementById('advMontBtn'); return !!b.querySelector('img') && !b.textContent.includes('🐴'); }));

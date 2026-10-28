@@ -4292,6 +4292,7 @@ function dibujarMontadoHD(ctx, ox, oy, dir, m, clave){
   ctx.restore();
   ctx.restore();
   ctx.imageSmoothingEnabled = false;
+  if(nada && camina) espumaAlMoverse(ctx, cx, suelo, vista === 'lado' ? ancho * .36 : ancho * .28, t);
   return true;
 }
 /* Surfeando arriba del agua: la montura se hunde un poco (HUNDE_EN_AGUA del alto) */
@@ -4300,6 +4301,27 @@ function nadandoEnAgua(m){
   if(!m || !m.surfea || !montadoSurfea()) return false;
   const t = advTileEn(Math.floor((advPx + 8) / ADV_PX), Math.floor((advPy + 11) / ADV_PX));
   return !!(t && t.pinta === 'agua');
+}
+/* Estela: al avanzar el agua "se abre" detrás de la montura en una V finita y transparente, con un punto de espuma en cada punta.
+   Va hacia atrás de donde caminás; sólo mientras te movés. */
+function espumaAlMoverse(ctx, cx, y, rx, t){
+  const bx = advDir === 'izq' ? 1 : advDir === 'der' ? -1 : 0, by = advDir === 'arriba' ? 1 : advDir === 'abajo' ? -1 : 0;   // hacia atrás
+  const ox = cx + bx * rx * 1.05, oy = y - 1.5 + by * 2;                                 // arranca en la popa
+  ctx.save();
+  ctx.lineCap = 'round'; ctx.lineWidth = 1;
+  for(let k = 0; k < 2; k++){                                                           // dos estelas desfasadas: una nace mientras la otra se apaga
+    const f = (t * .9 + k * .5) % 1, largo = 5 + f * 13, ang = .3 + f * .3;
+    [-1, 1].forEach(lado => {
+      const c = Math.cos(ang * lado), sn = Math.sin(ang * lado);
+      const dx = bx * c - by * sn, dy = (bx * sn + by * c) * .6;                        // .6: el agua se ve en perspectiva, más aplastada
+      const ex = ox + dx * largo, ey = oy + dy * largo;
+      ctx.strokeStyle = `rgba(255,255,255,${(.7 * (1 - f)).toFixed(3)})`;
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.fillStyle = `rgba(255,255,255,${(.75 * (1 - f)).toFixed(3)})`;
+      ctx.fillRect(Math.round(ex), Math.round(ey), 1, 1);
+    });
+  }
+  ctx.restore();
 }
 function dibujarMontado(ctx, ox, oy, dir, paso, av, clave){
   if(MONTURA_HD[clave + '-' + av] && dibujarMontadoHD(ctx, ox, oy, dir, MONTURAS[clave], clave + '-' + av)) return true;
@@ -4333,6 +4355,7 @@ function dibujarMontado(ctx, ox, oy, dir, paso, av, clave){
   ctx.restore();
   ctx.imageSmoothingEnabled = false;
   if(!m.detras) jinete();
+  if(nada && camina) espumaAlMoverse(ctx, cx, suelo, w * .38, t);
   return true;
 }
 function dibujarJugador(ctx, ox, oy){
