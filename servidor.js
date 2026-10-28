@@ -129,6 +129,7 @@ function perderSesion(){
 }
 
 /* El álbum que manda el servidor pisa al de la pantalla (mismo formato que el localStorage). */
+let premioAlbumPedido = false;
 function aplicarProgreso(P, conAlbum = true){
   coins = P.coins;
   Object.keys(state).forEach(id => { state[id] = P.state[id] || {got: false, dup: 0}; });
@@ -139,6 +140,8 @@ function aplicarProgreso(P, conAlbum = true){
   advTomados.clear();
   (P.tomados || []).forEach(k => advTomados.add(k));
   especiales = P.especiales || {};
+  /* completó las 1025 en esta sesión: el servidor entrega el premio del álbum (una vez; si ya lo cobró no hace nada) */
+  if(servidorListo && !premioAlbumPedido && Object.keys(state).every(id => state[id].got)){ premioAlbumPedido = true; setTimeout(cobrarRegalosServidor, 3000); }
   eventosServidor = P.eventos || {};
   diamantes = P.diamantes || 0; monturas = P.monturas || {}; montura = P.montura || null;
   if(typeof actualizarBotonMontura === 'function') actualizarBotonMontura();

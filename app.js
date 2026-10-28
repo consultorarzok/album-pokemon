@@ -593,11 +593,31 @@ const SHINY_PROPIO = {
    igual). Se guardan aparte (progreso.especiales) y se pueden usar en la Arena. Por ahora sólo
    llegan por regalo. Mewtwo Acorazado: arte de Pokémon GO limpio de destellos; los sprites de la
    Arena salen de esa imagen (la espalda es la misma figura espejada y más oscura: no hay una
-   vista de espaldas oficial). bst 780 = más fuerte que el Mewtwo común (680). */
+   vista de espaldas oficial). bst 780 = más fuerte que el Mewtwo común (680).
+   Premio por completar el álbum (28/10): uno de estos 7 al azar (ver PREMIO_ALBUM en el servidor). Las versiones
+   Apex Oscuras son recoloreos de Lugia/Ho-Oh; el resto usa sprites de Showdown y arte oficial. */
 const ESPECIALES = [
   {id:10150, base:150, name:'Mewtwo Acorazado', type:'psychic', rarity:'Legendario', region:'kanto', especial:true, bst:780,
    img:'images/especial/mewtwo-acorazado-arte.png', icono:'images/especial/mewtwo-acorazado-icono.png',
-   frente:'images/especial/mewtwo-acorazado-frente.gif', espalda:'images/especial/mewtwo-acorazado-espalda.gif'}
+   frente:'images/especial/mewtwo-acorazado-frente.gif', espalda:'images/especial/mewtwo-acorazado-espalda.gif'},
+  {id:10151, base:249, name:'Lugia Apex Oscuro', type:'psychic', rarity:'Legendario', region:'kanto', especial:true, bst:780,
+   img:'images/especial/lugia-apex-oscuro-arte.png', icono:'images/especial/lugia-apex-oscuro-icono.png',
+   frente:'images/especial/lugia-apex-oscuro-frente.gif', espalda:'images/especial/lugia-apex-oscuro-espalda.gif'},
+  {id:10152, base:250, name:'Ho-Oh Apex Oscuro', type:'fire', rarity:'Legendario', region:'kanto', especial:true, bst:780,
+   img:'images/especial/hooh-apex-oscuro-arte.png', icono:'images/especial/hooh-apex-oscuro-icono.png',
+   frente:'images/especial/hooh-apex-oscuro-frente.gif', espalda:'images/especial/hooh-apex-oscuro-espalda.gif'},
+  {id:10153, base:807, name:'Zeraora', type:'electric', rarity:'Legendario', region:'kanto', especial:true, bst:780,
+   img:'images/especial/zeraora-arte.png', icono:'images/especial/zeraora-icono.png',
+   frente:'images/especial/zeraora-frente.gif', espalda:'images/especial/zeraora-espalda.gif'},
+  {id:10154, base:6, name:'Mega Charizard X', type:'dragon', rarity:'Legendario', region:'kanto', especial:true, bst:780,
+   img:'images/especial/mega-charizard-x-arte.png', icono:'images/especial/mega-charizard-x-icono.png',
+   frente:'images/especial/mega-charizard-x-frente.gif', espalda:'images/especial/mega-charizard-x-espalda.gif'},
+  {id:10155, base:720, name:'Hoopa Desatado', type:'dark', rarity:'Legendario', region:'kanto', especial:true, bst:780,
+   img:'images/especial/hoopa-desatado-arte.png', icono:'images/especial/hoopa-desatado-icono.png',
+   frente:'images/especial/hoopa-desatado-frente.gif', espalda:'images/especial/hoopa-desatado-espalda.gif'},
+  {id:10156, base:6, name:'Mega Charizard Y', type:'fire', rarity:'Legendario', region:'kanto', especial:true, bst:780,
+   img:'images/especial/mega-charizard-y-arte.png', icono:'images/especial/mega-charizard-y-icono.png',
+   frente:'images/especial/mega-charizard-y-frente.gif', espalda:'images/especial/mega-charizard-y-espalda.gif'}
 ];
 const ESPECIAL_POR_ID = Object.fromEntries(ESPECIALES.map(e => [e.id, e]));
 let especiales = {};   // id -> {f, c}: las especiales que tiene el jugador
