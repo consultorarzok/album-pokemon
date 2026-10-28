@@ -2013,8 +2013,8 @@ const ADV_TIPOS = {
 };
 /* Probabilidad por casillero caminado. Bajas a propósito: con .18 no se podía
    dar tres pasos sin que saltara un encuentro. */
-const ADV_PROB = { hierba:.07, agua:.06, volcan:.08, cueva:.07, hielo:.08,
-                   electrico:.08, psiquico:.08, cienaga:.08, legendario:.12 };
+const ADV_PROB = { hierba:.035, agua:.03, volcan:.04, cueva:.035, hielo:.04,
+                   electrico:.04, psiquico:.04, cienaga:.04, legendario:.06 };   // 28/10: Zeta pidió la MITAD de avistamientos (antes .07 .06 .08 .07 .08 .08 .08 .08 .12)
 const DESCANSO_ENCUENTRO = 64;   // píxeles a caminar tras un encuentro antes de que salga otro
 
 /* Probabilidad real de encuentro para un bioma: durante un evento con
@@ -5134,7 +5134,7 @@ function tirarAltar(santuario, x, y, px, py){
     return;
   }
   const fallos = avistamientoPity[santuario.n] || 0;
-  const prob = Math.min(.6, ADV_PROB.legendario + fallos * .08);
+  const prob = Math.min(.3, ADV_PROB.legendario + fallos * .04);   // la racha también a la mitad (antes +.08 con tope .6)
   if(Math.random() > prob){
     avistamientoPity[santuario.n] = fallos + 1;
     return;

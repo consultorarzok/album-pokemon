@@ -11,29 +11,31 @@
 (function(){
 'use strict';
 const KEY = 'album-musica';
+/* Volumen de fondo: bajo a propósito, que acompañe y no moleste. Cada tema además tiene su `nivel` (las peleas, más bajo, para que se oigan los golpes). */
+const VOLUMEN = .32;
 const ESC = {mayor:[0, 2, 4, 5, 7, 9, 11], menor:[0, 2, 3, 5, 7, 8, 10], lidia:[0, 2, 4, 6, 7, 9, 11]};
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 
 const PISTAS = {
-  inicio: {bpm:104, raiz:60, esc:'mayor', acordes:[0, 5, 3, 4], trans:0, tBajo:-12, tArp:12, onda:'pulso25', vol:.8,
+  inicio: {bpm:104, raiz:60, esc:'mayor', acordes:[0, 5, 3, 4], trans:0, tBajo:-12, tArp:12, onda:'pulso25', vol:.8, nivel:.85,
     melodia:['4 - . 2 - . 4 - 7 - . 4 - 2 - .', '5 - . 4 - . 2 - 4 - . 2 - 0 - .', '3 - . 5 - . 7 - 5 - . 3 - 5 - .', '4 - . 6 - . 8 - 6 - . 4 - 1 - 4'],
     bajo:[0, -1, -1, -1, 2, -1, -1, -1, 0, -1, -1, -1, 2, -1, -1, -1],
     arp:[0, 1, 2, 3, 2, 1, 2, 1, 0, 1, 2, 3, 2, 1, 2, 1],
     kick:[1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], snare:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     hat:[0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0]},
-  aventura: {bpm:126, raiz:67, esc:'mayor', acordes:[0, 4, 5, 3], trans:-12, tBajo:-24, tArp:0, onda:'pulso25', vol:.8,
+  aventura: {bpm:126, raiz:67, esc:'mayor', acordes:[0, 4, 5, 3], trans:-12, tBajo:-24, tArp:0, onda:'pulso25', vol:.8, nivel:.85,
     melodia:['2 - 4 - 7 - 4 - 2 - 4 - 7 - 9 -', '8 - 6 - 4 - 6 - 8 - 6 - 4 - 6 -', '9 - 7 - 5 - 7 - 9 - 11 - 9 - 7 -', '7 - 5 - 3 - 5 - 7 - 5 - 4 - 1 -'],
     bajo:[0, -1, 0, -1, 2, -1, 2, -1, 0, -1, 0, -1, 2, -1, 3, -1],
     arp:[-1, -1, 1, -1, -1, -1, 2, -1, -1, -1, 1, -1, -1, -1, 2, -1],
     kick:[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], snare:[0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
     hat:[0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0]},
-  batalla: {bpm:156, raiz:57, esc:'menor', acordes:[0, 5, 2, 6], trans:0, tBajo:-12, tArp:12, onda:'pulso25', vol:.75,
+  batalla: {bpm:156, raiz:57, esc:'menor', acordes:[0, 5, 2, 6], trans:0, tBajo:-12, tArp:12, onda:'pulso25', vol:.75, nivel:.6,
     melodia:['0 . 0 2 . 0 . 4 0 . 0 2 . 4 2 0', '5 . 5 7 . 5 . 9 5 . 5 7 . 9 7 5', '2 . 2 4 . 2 . 6 2 . 2 4 . 6 4 2', '6 . 6 8 . 6 . 10 6 . 8 10 . 8 6 4'],
     bajo:[0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 2, 3, 2],
     arp:[-1, -1, -1, -1, 2, -1, -1, -1, -1, -1, -1, -1, 2, -1, 1, -1],
     kick:[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0], snare:[0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
     hat:[1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]},
-  equipo: {bpm:168, raiz:62, esc:'menor', acordes:[0, 5, 6, 4], trans:0, tBajo:-12, tArp:12, onda:'pulso25', vol:.75,
+  equipo: {bpm:168, raiz:62, esc:'menor', acordes:[0, 5, 6, 4], trans:0, tBajo:-12, tArp:12, onda:'pulso25', vol:.75, nivel:.6,
     melodia:['4 . 2 . 0 . 2 4 . 7 . 4 . 2 0 .', '5 . 7 . 9 . 7 5 . 9 . 7 . 5 7 .', '6 . 8 . 10 . 8 6 . 10 . 8 . 6 8 .', '4 . 6 . 8 . 6 4 . 8 . 11 . 8 6 4'],
     bajo:[0, 0, -1, 0, 3, 0, -1, 0, 0, 0, -1, 0, 3, 0, 2, 3],
     arp:[2, -1, 1, -1, 2, -1, 3, -1, 2, -1, 1, -1, 2, -1, 3, 1],
@@ -135,7 +137,7 @@ function asegurarCtx(){
   if(!C) return null;
   ctx = new C();
   maestro = ctx.createGain();
-  maestro.gain.value = activa ? .75 : 0;
+  maestro.gain.value = activa ? VOLUMEN : 0;
   maestro.connect(ctx.destination);
   return ctx;
 }
@@ -162,7 +164,7 @@ function sonar(nombre){
     setTimeout(() => { try{ viejo.disconnect(); }catch(e){} }, 900);
   }
   bus = ctx.createGain();
-  bus.gain.setValueAtTime(0, ahora); bus.gain.linearRampToValueAtTime(1, ahora + .6);
+  bus.gain.setValueAtTime(0, ahora); bus.gain.linearRampToValueAtTime(PISTAS[nombre].nivel || 1, ahora + .6);
   bus.connect(maestro);
   actual = nombre; nPaso = 0; tProx = ahora + .08;
   clearInterval(plan); plan = setInterval(programar, 30); programar();
@@ -197,7 +199,7 @@ function pintarBotones(){
 function poner(si){
   activa = !!si;
   try{ localStorage.setItem(KEY, activa ? '1' : '0'); }catch(e){}
-  if(maestro){ const t = ctx.currentTime; maestro.gain.cancelScheduledValues(t); maestro.gain.setValueAtTime(maestro.gain.value, t); maestro.gain.linearRampToValueAtTime(activa ? .75 : 0, t + .25); }
+  if(maestro){ const t = ctx.currentTime; maestro.gain.cancelScheduledValues(t); maestro.gain.setValueAtTime(maestro.gain.value, t); maestro.gain.linearRampToValueAtTime(activa ? VOLUMEN : 0, t + .25); }
   if(activa && desbloqueado) sonar(pistaActual || elegir());
   pintarBotones();
 }
@@ -226,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function renderizar(nombre, vueltas){
   const p = PISTAS[nombre], sec = 60 / p.bpm / 4, total = 64 * (vueltas || 1);
   const off = new OfflineAudioContext(1, Math.ceil((total * sec + 1.2) * 44100), 44100);
-  const salida = off.createGain(); salida.gain.value = .75; salida.connect(off.destination);
+  const salida = off.createGain(); salida.gain.value = VOLUMEN; salida.connect(off.destination);
   for(let n = 0; n < total; n++) paso(off, salida, p, n % 64, n * sec);
   const buf = await off.startRendering();
   return {datos:Array.from(buf.getChannelData(0)), segundos:total * sec, tasa:44100};
