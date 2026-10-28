@@ -4302,24 +4302,36 @@ function nadandoEnAgua(m){
   const t = advTileEn(Math.floor((advPx + 8) / ADV_PX), Math.floor((advPy + 11) / ADV_PX));
   return !!(t && t.pinta === 'agua');
 }
-/* Estela: al avanzar el agua "se abre" detrás de la montura en una V finita y transparente, con un punto de espuma en cada punta.
-   Va hacia atrás de donde caminás; sólo mientras te movés. */
+/* Agua que se abre al avanzar: estela en V finita detrás, ola chica adelante (la proa empuja) y un borde de espuma
+   sobre la línea donde el cuerpo se mete en el agua, para que no se vea cortado. Sólo mientras te movés. */
 function espumaAlMoverse(ctx, cx, y, rx, t){
   const bx = advDir === 'izq' ? 1 : advDir === 'der' ? -1 : 0, by = advDir === 'arriba' ? 1 : advDir === 'abajo' ? -1 : 0;   // hacia atrás
-  const ox = cx + bx * rx * 1.05, oy = y - 1.5 + by * 2;                                 // arranca en la popa
   ctx.save();
   ctx.lineCap = 'round'; ctx.lineWidth = 1;
-  for(let k = 0; k < 2; k++){                                                           // dos estelas desfasadas: una nace mientras la otra se apaga
-    const f = (t * .9 + k * .5) % 1, largo = 5 + f * 13, ang = .3 + f * .3;
-    [-1, 1].forEach(lado => {
-      const c = Math.cos(ang * lado), sn = Math.sin(ang * lado);
-      const dx = bx * c - by * sn, dy = (bx * sn + by * c) * .6;                        // .6: el agua se ve en perspectiva, más aplastada
-      const ex = ox + dx * largo, ey = oy + dy * largo;
-      ctx.strokeStyle = `rgba(255,255,255,${(.7 * (1 - f)).toFixed(3)})`;
-      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ex, ey); ctx.stroke();
-      ctx.fillStyle = `rgba(255,255,255,${(.75 * (1 - f)).toFixed(3)})`;
-      ctx.fillRect(Math.round(ex), Math.round(ey), 1, 1);
-    });
+  // 1) estela de atrás (+ ola de adelante, más chica y más abierta)
+  [[1, 1.05, 5, 13, .3], [-1, 1.0, 3, 7, .6]].forEach(([sentido, desde, base, extra, abre0]) => {
+    const ox = cx + sentido * bx * rx * desde, oy = y - 1.5 + sentido * by * 2;
+    for(let k = 0; k < 2; k++){                                                         // dos desfasadas: una nace mientras la otra se apaga
+      const f = (t * .9 + k * .5) % 1, largo = base + f * extra, ang = abre0 + f * .3;
+      [-1, 1].forEach(lado => {
+        const c = Math.cos(ang * lado), sn = Math.sin(ang * lado), sx = sentido * bx, sy = sentido * by;
+        const dx = sx * c - sy * sn, dy = (sx * sn + sy * c) * .6;                      // .6: el agua se ve en perspectiva, más aplastada
+        const ex = ox + dx * largo, ey = oy + dy * largo;
+        ctx.strokeStyle = `rgba(255,255,255,${((sentido > 0 ? .7 : .6) * (1 - f)).toFixed(3)})`;
+        ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ex, ey); ctx.stroke();
+        ctx.fillStyle = `rgba(255,255,255,${(.75 * (1 - f)).toFixed(3)})`;
+        ctx.fillRect(Math.round(ex), Math.round(ey), 1, 1);
+      });
+    }
+  });
+  // 2) borde de espuma sobre la línea del agua (tapa el corte del cuerpo)
+  const n = Math.max(6, Math.round(rx * 1.6));
+  for(let i = 0; i < n; i++){
+    const u = (i + .5) / n, x = cx + (u - .5) * rx * 2.3;
+    const v = Math.sin(t * 6 + i * 1.7);
+    if(v < -.35) continue;                                                              // algunos huecos: se ve como espuma, no como una raya
+    ctx.fillStyle = `rgba(255,255,255,${(.55 + v * .25).toFixed(3)})`;
+    ctx.fillRect(Math.round(x), Math.round(y - 1 + (v > .5 ? -1 : 0)), v > .2 ? 2 : 1, 1);
   }
   ctx.restore();
 }
