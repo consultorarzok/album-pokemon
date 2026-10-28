@@ -15,25 +15,25 @@ const ESC = {mayor:[0, 2, 4, 5, 7, 9, 11], menor:[0, 2, 3, 5, 7, 8, 10], lidia:[
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 
 const PISTAS = {
-  inicio: {bpm:104, raiz:60, esc:'mayor', acordes:[0, 5, 3, 4], trans:0, tBajo:-12, tArp:12, onda:'square', vol:.8,
+  inicio: {bpm:104, raiz:60, esc:'mayor', acordes:[0, 5, 3, 4], trans:0, tBajo:-12, tArp:12, onda:'pulso25', vol:.8,
     melodia:['4 - . 2 - . 4 - 7 - . 4 - 2 - .', '5 - . 4 - . 2 - 4 - . 2 - 0 - .', '3 - . 5 - . 7 - 5 - . 3 - 5 - .', '4 - . 6 - . 8 - 6 - . 4 - 1 - 4'],
     bajo:[0, -1, -1, -1, 2, -1, -1, -1, 0, -1, -1, -1, 2, -1, -1, -1],
     arp:[0, 1, 2, 3, 2, 1, 2, 1, 0, 1, 2, 3, 2, 1, 2, 1],
     kick:[1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], snare:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     hat:[0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0]},
-  aventura: {bpm:126, raiz:67, esc:'mayor', acordes:[0, 4, 5, 3], trans:-12, tBajo:-24, tArp:0, onda:'square', vol:.8,
+  aventura: {bpm:126, raiz:67, esc:'mayor', acordes:[0, 4, 5, 3], trans:-12, tBajo:-24, tArp:0, onda:'pulso25', vol:.8,
     melodia:['2 - 4 - 7 - 4 - 2 - 4 - 7 - 9 -', '8 - 6 - 4 - 6 - 8 - 6 - 4 - 6 -', '9 - 7 - 5 - 7 - 9 - 11 - 9 - 7 -', '7 - 5 - 3 - 5 - 7 - 5 - 4 - 1 -'],
     bajo:[0, -1, 0, -1, 2, -1, 2, -1, 0, -1, 0, -1, 2, -1, 3, -1],
     arp:[-1, -1, 1, -1, -1, -1, 2, -1, -1, -1, 1, -1, -1, -1, 2, -1],
     kick:[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], snare:[0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
     hat:[0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0]},
-  batalla: {bpm:156, raiz:57, esc:'menor', acordes:[0, 5, 2, 6], trans:0, tBajo:-12, tArp:12, onda:'square', vol:.75,
+  batalla: {bpm:156, raiz:57, esc:'menor', acordes:[0, 5, 2, 6], trans:0, tBajo:-12, tArp:12, onda:'pulso25', vol:.75,
     melodia:['0 . 0 2 . 0 . 4 0 . 0 2 . 4 2 0', '5 . 5 7 . 5 . 9 5 . 5 7 . 9 7 5', '2 . 2 4 . 2 . 6 2 . 2 4 . 6 4 2', '6 . 6 8 . 6 . 10 6 . 8 10 . 8 6 4'],
     bajo:[0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 2, 3, 2],
     arp:[-1, -1, -1, -1, 2, -1, -1, -1, -1, -1, -1, -1, 2, -1, 1, -1],
     kick:[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0], snare:[0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
     hat:[1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]},
-  equipo: {bpm:168, raiz:62, esc:'menor', acordes:[0, 5, 6, 4], trans:0, tBajo:-12, tArp:12, onda:'square', vol:.75,
+  equipo: {bpm:168, raiz:62, esc:'menor', acordes:[0, 5, 6, 4], trans:0, tBajo:-12, tArp:12, onda:'pulso25', vol:.75,
     melodia:['4 . 2 . 0 . 2 4 . 7 . 4 . 2 0 .', '5 . 7 . 9 . 7 5 . 9 . 7 . 5 7 .', '6 . 8 . 10 . 8 6 . 10 . 8 . 6 8 .', '4 . 6 . 8 . 6 4 . 8 . 11 . 8 6 4'],
     bajo:[0, 0, -1, 0, 3, 0, -1, 0, 0, 0, -1, 0, 3, 0, 2, 3],
     arp:[2, -1, 1, -1, 2, -1, 3, -1, 2, -1, 1, -1, 2, -1, 3, 1],
@@ -55,9 +55,21 @@ function grado(p, g){
 }
 
 /* ---- las voces ---- */
-function nota(ctx, dest, onda, midi, t, dur, vol){
+/* Ondas de pulso finas (25 % y 12,5 %): el timbre típico de las consolas portátiles viejas */
+function onda(ctx, nombre){
+  const d = nombre === 'pulso25' ? .25 : .125;
+  ctx._ondas = ctx._ondas || {};
+  if(!ctx._ondas[nombre]){
+    const N = 48, re = new Float32Array(N), im = new Float32Array(N);
+    for(let n = 1; n < N; n++){ re[n] = 2 / (n * Math.PI) * Math.sin(n * Math.PI * d); im[n] = 2 / (n * Math.PI) * (1 - Math.cos(n * Math.PI * d)); }
+    ctx._ondas[nombre] = ctx.createPeriodicWave(re, im);
+  }
+  return ctx._ondas[nombre];
+}
+function nota(ctx, dest, tipo, midi, t, dur, vol){
   const o = ctx.createOscillator(), g = ctx.createGain();
-  o.type = onda; o.frequency.value = hz(midi);
+  if(tipo === 'pulso25' || tipo === 'pulso125') o.setPeriodicWave(onda(ctx, tipo)); else o.type = tipo;
+  o.frequency.value = hz(midi);
   g.gain.setValueAtTime(.0001, t);
   g.gain.linearRampToValueAtTime(vol, t + .006);
   g.gain.setValueAtTime(vol * .8, t + dur * .65);
@@ -96,10 +108,10 @@ function paso(ctx, dest, p, n, t){
   if(tok !== '.' && tok !== '-'){
     let largo = 1;
     for(let k = s + 1; k < 16 && p.mel[c][k] === '-'; k++) largo++;
-    nota(ctx, dest, p.onda, grado(p, Number(tok)) + p.trans, t, largo * sec * .96, .1 * p.vol);
+    nota(ctx, dest, p.onda, grado(p, Number(tok)) + p.trans, t, largo * sec * .96, (p.onda === 'triangle' ? .1 : .15) * p.vol);
   }
   if(p.bajo[s] >= 0) nota(ctx, dest, 'triangle', grado(p, tono(p.bajo[s])) + p.tBajo, t, sec * 1.9, .2);
-  if(p.arp[s] >= 0) nota(ctx, dest, 'square', grado(p, tono(p.arp[s])) + p.tArp, t, sec * .9, .03);
+  if(p.arp[s] >= 0) nota(ctx, dest, 'pulso125', grado(p, tono(p.arp[s])) + p.tArp, t, sec * .9, .04);
   if(p.kick[s]) bombo(ctx, dest, t, .24);
   if(p.snare[s]) golpeRuido(ctx, dest, t, .1, .1, 'bandpass', 1800);
   if(p.hat[s]) golpeRuido(ctx, dest, t, .035, .035, 'highpass', 7000);
