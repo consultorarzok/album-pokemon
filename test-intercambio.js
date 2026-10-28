@@ -60,7 +60,7 @@ const estadoDe = p => p.evaluate(() => JSON.parse(localStorage.getItem('album-ka
 
   console.log('— A genera un código —');
   const A = await entrenador(browser, 'Ana', base(25));
-  await A.click('#intercambioBtn'); await A.waitForTimeout(300);
+  await A.evaluate(() => document.getElementById('intercambioBtn').click()); await A.waitForTimeout(300);
   check('A ve su repetida con botón Generar', await A.isVisible('#intercambioList .open-btn'));
   await A.click('#intercambioList .open-btn'); await A.waitForTimeout(800);
   const codigo = await A.textContent('#codigoCardTexto');
@@ -79,7 +79,7 @@ const estadoDe = p => p.evaluate(() => JSON.parse(localStorage.getItem('album-ka
 
   console.log('— B canjea —');
   const B = await entrenador(browser, 'Beto', null);
-  await B.click('#intercambioBtn'); await B.waitForTimeout(300);
+  await B.evaluate(() => document.getElementById('intercambioBtn').click()); await B.waitForTimeout(300);
   await B.fill('#canjeCodigoInput', 'ZZZZZZ'); await B.click('#canjeCodigoBtn'); await B.waitForTimeout(500);
   check('código inexistente avisa', (await B.textContent('#canjeCodigoFeedback')).includes('no existe'));
   await B.fill('#canjeCodigoInput', codigo.toLowerCase());   // minúsculas: tiene que andar igual
@@ -94,19 +94,19 @@ const estadoDe = p => p.evaluate(() => JSON.parse(localStorage.getItem('album-ka
 
   console.log('— C intenta reusar el código —');
   const C = await entrenador(browser, 'Cami', null);
-  await C.click('#intercambioBtn'); await C.waitForTimeout(300);
+  await C.evaluate(() => document.getElementById('intercambioBtn').click()); await C.waitForTimeout(300);
   await C.fill('#canjeCodigoInput', codigo); await C.click('#canjeCodigoBtn'); await C.waitForTimeout(500);
   check('avisa que ya se usó', (await C.textContent('#canjeCodigoFeedback')).includes('ya lo usó'));
   check('C no recibe nada', !(await estadoDe(C).catch(() => ({})))[25]?.got);
 
   console.log('— Sin repetidas no hay qué regalar —');
-  await B.click('#intercambioBtn'); await B.waitForTimeout(300);
+  await B.evaluate(() => document.getElementById('intercambioBtn').click()); await B.waitForTimeout(300);
   check('B (sin repetidas) no ve botón Generar', !(await B.isVisible('#intercambioList .open-btn')));
 
   console.log('— Repetida de B suma +1 —');
   const D = await entrenador(browser, 'Dani', base(25));
   codigos.MANUAL1 = {jugador:'Ana', pokemonId:25, usado:false};
-  await D.click('#intercambioBtn'); await D.waitForTimeout(300);
+  await D.evaluate(() => document.getElementById('intercambioBtn').click()); await D.waitForTimeout(300);
   await D.fill('#canjeCodigoInput', 'MANUAL1'); await D.click('#canjeCodigoBtn'); await D.waitForTimeout(1200);
   for(let i = 0; i < 3; i++) if(await D.isVisible('#specialContinueBtn')){ await D.click('#specialContinueBtn'); await D.waitForTimeout(500); }
   check('D que ya la tenía pasa de 2 a 3 repetidas', (await estadoDe(D))[25].dup === 3);

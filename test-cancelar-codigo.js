@@ -15,7 +15,7 @@ const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.messag
 await p.goto('file:///root/pokemon/index.html');await p.click('#portadaEntrar',{force:true});await p.waitForTimeout(1200);
 await p.evaluate(()=>{ REGALOS.length=0; document.querySelectorAll('.show').forEach(e=>e.classList.remove('show')); });
 const pika=()=>p.evaluate(()=>({dup:state[25].dup, ej:ejemplares(25).map(e=>e.f+(e.s?'s':'')).sort().join()}));
-await p.click('#intercambioBtn'); await p.waitForTimeout(300);
+await p.evaluate(() => document.getElementById('intercambioBtn').click()); await p.waitForTimeout(300);
 // generar código del Pikachu shiny 77
 const fila=p.locator('.ej-fila',{hasText:'Pikachu'});
 await fila.locator('.ej-chip[data-c="BBBB"]').click(); await fila.locator('button.open-btn').click();

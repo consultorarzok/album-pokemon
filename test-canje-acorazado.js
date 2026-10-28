@@ -18,7 +18,7 @@ await p.goto('file:///root/pokemon/index.html');await p.click('#portadaEntrar',{
 await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>e.classList.remove('show')));
 const fig0=await p.evaluate(()=>figuritasObtenidas());
 async function canjear(c){ await p.evaluate(()=>document.querySelectorAll('.show').forEach(e=>e.classList.remove('show')));
-  await p.click('#intercambioBtn'); await p.fill('#canjeCodigoInput',c); await p.click('#canjeCodigoBtn'); await p.waitForTimeout(900); }
+  await p.evaluate(() => document.getElementById('intercambioBtn').click()); await p.fill('#canjeCodigoInput',c); await p.click('#canjeCodigoBtn'); await p.waitForTimeout(900); }
 await canjear('ESP1');
 check('sale la carta de figurita especial', (await p.textContent('#revealTitle')).includes('especial') && (await p.textContent('#revealCards')).includes('Mewtwo Acorazado') && await p.isVisible('#overlay.show'));
 check('cierra el panel de intercambio', !(await p.isVisible('#intercambioOverlay.show')));

@@ -52,6 +52,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   console.log('— Ranking sin conexión —');
   check('muestra Reintentar', await page.isVisible('#rankReintentar'));
   console.log('— Intercambio —');
+  await page.click('#repetidasBtn'); await page.waitForTimeout(250);
   await page.focus('#intercambioBtn'); await page.keyboard.press('Enter'); await page.waitForTimeout(400);
   check('el foco entra al panel de intercambio', await page.evaluate(() => document.getElementById('intercambioOverlay').contains(document.activeElement)));
   await page.keyboard.press('Escape'); await page.waitForTimeout(300);

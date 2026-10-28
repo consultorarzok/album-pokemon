@@ -870,3 +870,8 @@
 .det-copias .ej-chip{cursor:default;}
 .det-evo{font-size:13px;display:flex;flex-direction:column;gap:4px;} .det-ok{color:#3DDC6E;font-weight:700;}
 .det-copias.ej-lista{order:0;flex:0 0 auto;}
+
+.hof-sin{display:inline-block;width:22px;height:22px;flex:0 0 auto;}
+.hof-det{margin-top:6px;} .hof-det > summary{cursor:pointer;list-style:none;text-align:center;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--ink);}
+.hof-det > summary::-webkit-details-marker{display:none;} .hof-det[open] > summary{margin-bottom:10px;}
+.hof-det > summary:focus-visible{outline:3px solid #FFD54A;outline-offset:2px;}

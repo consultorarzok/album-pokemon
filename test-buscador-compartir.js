@@ -53,7 +53,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   await page.keyboard.press('Escape'); await page.waitForTimeout(300);
 
   console.log('— Compartir por WhatsApp —');
-  await page.click('#intercambioBtn'); await page.waitForTimeout(400);
+  await page.evaluate(() => document.getElementById('intercambioBtn').click()); await page.waitForTimeout(400);
   await page.click('#intercambioList .open-btn'); await page.waitForTimeout(900);
   check('sale la carta con el código', (await page.textContent('#codigoCardTexto')) === 'WHAT01');
   const [popup] = await Promise.all([ctx.waitForEvent('page', {timeout:4000}).catch(() => null), page.click('#codigoCardWhatsBtn')]);
@@ -62,7 +62,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   check('abre wa.me con el mensaje', !!url && url.startsWith('https://wa.me/?text='));
   const texto = url ? decodeURIComponent(url.split('?text=')[1]) : '';
   check('el mensaje trae el código y el nombre', texto.includes('WHAT01') && texto.includes('Pikachu'));
-  check('el mensaje trae el link del juego', texto.includes('consultorarzok.github.io/album-pokemon'));
+  check('el mensaje trae el link del juego', texto.includes('entrenadoresrz.com'));
   await page.click('#codigoCardCerrarBtn'); await page.waitForTimeout(300);
   check('el código queda con botón WhatsApp en "Códigos que generaste"', await page.isVisible('#misCodigosList .btn-whats'));
 

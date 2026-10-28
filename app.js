@@ -1398,6 +1398,8 @@ function updateBarras(){
   const tengo = DATA.filter(p => state[p.id].got).length;
   const dc = document.getElementById('dupCount');
   if(dc) dc.textContent = dups;
+  const dh = document.getElementById('dupCountHome');
+  if(dh) dh.textContent = dups;
   const cb = document.getElementById('canjeBtn');
   if(cb) cb.disabled = dups < CANJE_COSTO || tengo === DATA.length;
   const bb = document.getElementById('battleBtn');
@@ -5508,6 +5510,9 @@ document.getElementById('advBtn').onclick = abrirAventura;
 document.getElementById('advCloseBtn').onclick = cerrarAventura;
 document.getElementById('encCloseBtn').onclick = cerrarEncuentro;
 document.getElementById('shopCloseBtn').onclick = () => document.getElementById('shopOverlay').classList.remove('show');
+document.getElementById('repetidasBtn').onclick = () => { document.getElementById('repetidasOverlay').classList.add('show'); document.getElementById('repetidasCloseBtn').focus({preventScroll:true}); };
+document.getElementById('repetidasCloseBtn').onclick = () => { document.getElementById('repetidasOverlay').classList.remove('show'); document.getElementById('repetidasBtn').focus({preventScroll:true}); };
+document.getElementById('repetidasAtrasBtn').onclick = () => document.getElementById('repetidasCloseBtn').click();
 document.getElementById('evolucionarBtn').onclick = abrirEvolucion;
 document.getElementById('evolucionCloseBtn').onclick = () => document.getElementById('evolucionOverlay').classList.remove('show');
 document.getElementById('evolucionAtrasBtn').onclick = () => document.getElementById('evolucionCloseBtn').click();
@@ -5989,7 +5994,7 @@ function esc(t){ return String(t).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '
 function renderRankSemana(lista, cont, done){
   const d = ultimoTopSemana, colec = subMaestro === 'colec';
   if(!d){ lista.innerHTML = '<div class="rank-empty">Cargando la semana…</div>'; cont.hidden = true; done.innerHTML = ''; return; }
-  const filas = colec ? d.colec : d.arena, cfg = colec ? d.premios.colec : d.premios.arena;
+  const filas = (colec ? d.colec : d.arena).slice(0, TOPE_RANKING), cfg = colec ? d.premios.colec : d.premios.arena;
   cont.hidden = true;
   if(!filas.length) lista.innerHTML = '<div class="rank-empty">' + (colec ? 'Nadie abrió sobres todavía esta semana. ¡Abrí uno y sé el primero!' : 'Nadie ganó todavía esta semana en la Arena. ¡Ganá una pelea y sé el primero!') + '</div>';
   filas.forEach(f => {
@@ -6024,7 +6029,7 @@ function renderRankMaestroHistorico(lista, cont, done){
     if(b) b.onclick = () => cargarTopMaestro();
     cont.hidden = true;
   } else {
-    const filas = ultimoTopMaestro.top || [];
+    const filas = (ultimoTopMaestro.top || []).slice(0, TOPE_RANKING);
     document.getElementById('rankCountNum').textContent = ultimoTopMaestro.jugadores || 0;
     cont.hidden = false;
     if(!filas.length){
@@ -6314,6 +6319,10 @@ function pintarEnLinea(){
   if(n !== null) document.getElementById('rankOnlineNum').textContent = n;
 }
 
+/* Los rankings muestran sólo los 10 primeros (el servidor puede mandar más). */
+const TOPE_RANKING = 10;
+let hofAbierto = false;
+
 function renderRank(){
   pintarEnLinea();
   if(rankTab !== 'maestro'){ const sb = document.getElementById('rankSub'); if(sb) sb.hidden = true; }
@@ -6364,7 +6373,7 @@ function renderRank(){
     cont.hidden = true;
   }
 
-  const filas = (rankTab === 'hoy' ? ultimoTop.hoy : ultimoTop.historico) || [];
+  const filas = ((rankTab === 'hoy' ? ultimoTop.hoy : ultimoTop.historico) || []).slice(0, TOPE_RANKING);
   if(filas.length === 0){
     lista.innerHTML = '<div class="rank-empty">Todavía no hay nadie en el ranking' +
       (rankTab === 'hoy' ? ' hoy' : '') + '. ¡Abrí un sobre y sé el primero!</div>';
@@ -6387,6 +6396,13 @@ function renderRank(){
   }
 
   renderSalonDeLaFama(done);
+  /* el Salón de la Fama y los ganadores de eventos van plegados: el ranking queda corto y se ve de un vistazo */
+  const det = document.createElement('details');
+  det.className = 'hof-det'; det.open = hofAbierto;
+  det.innerHTML = '<summary>🏆 Salón de la Fama y ganadores de eventos</summary>';
+  while(done.firstChild) det.appendChild(done.firstChild);
+  det.addEventListener('toggle', () => { hofAbierto = det.open; });
+  done.appendChild(det);
 }
 
 /* Salón de la Fama · Edición Halloween: completaron Kanto+Johto durante el Pachamanga Fest.
@@ -6438,7 +6454,10 @@ function renderSalonDeLaFama(done){
       gan.filter(g => g.evento === evNombre).forEach(g => {
         const fila = document.createElement('div');
         fila.className = 'hof-row';
-        fila.innerHTML = '<img class="hof-crown" src="images/medal-' + (['oro', 'plata', 'bronce'][g.puesto - 1] || 'bronce') + '.svg" alt="' + g.puesto + 'º"><div class="hof-name"></div><div class="hof-date"></div>';
+        /* medalla sólo para el 1.º, 2.º y 3.º: del 4.º en adelante va el lugar vacío (si no, parecía que tenían bronce) */
+        fila.innerHTML = (g.puesto >= 1 && g.puesto <= 3
+          ? '<img class="hof-crown" src="images/medal-' + ['oro', 'plata', 'bronce'][g.puesto - 1] + '.svg" alt="' + g.puesto + 'º">'
+          : '<span class="hof-crown hof-sin" aria-hidden="true"></span>') + '<div class="hof-name"></div><div class="hof-date"></div>';
         fila.querySelector('.hof-name').textContent = g.nombre;
         const pu = fila.querySelector('.hof-date');
         pu.textContent = g.puesto + 'º'; pu.style.fontSize = '14px'; pu.style.fontWeight = '700';
@@ -6483,7 +6502,7 @@ function renderRankEvento(lista, cont){
     cont.hidden = true;
     return;
   }
-  const filas = ultimoTopEvento.top || [];
+  const filas = (ultimoTopEvento.top || []).slice(0, TOPE_RANKING);
   if(Number.isFinite(ultimoTopEvento.jugadores)){
     document.getElementById('rankCountNum').textContent = ultimoTopEvento.jugadores;
     cont.hidden = false;
@@ -6986,7 +7005,8 @@ document.querySelectorAll('.rank-tab').forEach(t => t.addEventListener('keydown'
       } else if(!abierto && estaba){
         const antes = memoria.get(p);
         memoria.delete(p);
-        if(antes && document.contains(antes) && !abiertos().length && antes.focus) antes.focus();
+        /* el foco vuelve al botón de origen si no queda ningún panel abierto o si ese botón está en uno que sigue abierto (ej: Repetidas → Intercambio) */
+        if(antes && document.contains(antes) && antes.focus && (!abiertos().length || abiertos().some(o => o.contains(antes)))) antes.focus();
       }
     });
   });
@@ -7012,7 +7032,7 @@ document.addEventListener('keydown', e => {
     return;
   }
   if(e.key !== 'Escape' || advAbierto) return;
-  const cierres = ['detalleCloseBtn','evolucionCloseBtn','intercambioCloseBtn','shopCloseBtn','pokedexCloseBtn','closeBtn','quizCloseBtn','battleCloseBtn'];
+  const cierres = ['detalleCloseBtn','evolucionCloseBtn','intercambioCloseBtn','shopCloseBtn','pokedexCloseBtn','closeBtn','quizCloseBtn','battleCloseBtn','repetidasCloseBtn'];
   for(const id of cierres){
     const b = document.getElementById(id);
     const ov = b && b.closest('.overlay');

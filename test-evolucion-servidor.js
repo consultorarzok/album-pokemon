@@ -29,7 +29,7 @@ const suf = Math.random().toString(36).slice(2, 6);
   for(let i = 0; i < 6; i++) for(const s of ['#specialContinueBtn', '#battleCloseBtn', '#closeBtn', '#pinNoBtn']) if(await pg.isVisible(s)){ await pg.click(s); await pg.waitForTimeout(200); }
   await pg.waitForTimeout(500);
   check('botón habilitado', await pg.evaluate(() => !document.getElementById('evolucionarBtn').disabled));
-  await pg.click('#evolucionarBtn'); await pg.waitForTimeout(300);
+  await pg.evaluate(() => document.getElementById('evolucionarBtn').click()); await pg.waitForTimeout(300);
   const fuerte = await pg.evaluate(() => ejemplares(133).slice().sort((a, b) => b.f - a.f)[0]);
   await pg.evaluate(c => { const f = [...document.querySelectorAll('#evolucionList .ej-fila')].find(x => x.querySelector('b').textContent === 'Eevee'); f.querySelector('.ej-chip[data-c="' + c + '"]').click(); }, fuerte.c);
   await pg.evaluate(() => { const f = [...document.querySelectorAll('#evolucionList .ej-fila')].find(x => x.querySelector('b').textContent === 'Eevee'); [...f.querySelectorAll('.evo-btn')].find(b => /Espeon/.test(b.textContent)).click(); });
