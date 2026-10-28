@@ -2509,12 +2509,12 @@ function salvajesActivos(){
 function aparecerSalvajes(pokes, cx, cy){
   pokes = (pokes || []).filter(Boolean);
   if(!pokes.length) return;
-  const bioma = (advTileEn(cx, cy) || {}).encuentro;
+  const bioma = encuentroDe(advTileEn(cx, cy));
   const sitios = [];
   for(let dy = -5; dy <= 5; dy++) for(let dx = -3; dx <= 3; dx++){
     if(Math.max(Math.abs(dx), Math.abs(dy)) < 2) continue;      // ni arriba tuyo
     const t = advTileEn(cx + dx, cy + dy);
-    if(t && t.walk && !t.item && !t.entra && !t.cartel && t.encuentro && t.encuentro === bioma) sitios.push({x: cx + dx, y: cy + dy});
+    if(t && (t.walk || t.pinta === 'agua') && !t.item && !t.entra && !t.cartel && bioma && encuentroDe(t) === bioma) sitios.push({x: cx + dx, y: cy + dy});
   }
   for(let i = sitios.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [sitios[i], sitios[j]] = [sitios[j], sitios[i]]; }
   const elegidos = [];
@@ -4169,13 +4169,14 @@ function dibujarEntrenador(ctx, ox, oy, dir, paso, av){
    alto = alto en el mapa (px de mundo; el entrenador mide ~17) · asiento = [x, y] del lugar donde se sienta, como fracción del dibujo
    mira = hacia dónde mira el arte original ('izq'/'der'; null = de frente) · vuela = flota en el aire con sombra abajo
    detras = el arte mira de frente: el jinete va sentado DETRÁS (asoma por encima) para no taparle la cara
+   surfea = Lapras/Gyarados: cruzan el agua y arriba del agua les salen Pokémon de agua (sólo a ellos)
    parado = Snorlax: el arte lo trae sentado, se le arman las patas para que camine parado. */
 const MONTURAS = {
   arcanine:  {id: 59,  nombre: 'Arcanine',  precio: 100, alto: 25, mira: 'izq', asiento: [.50, .30]},
   entei:     {id: 244, nombre: 'Entei',     precio: 100, alto: 27, mira: null,  asiento: [.50, .22], detras: true},
   snorlax:   {id: 143, nombre: 'Snorlax',   precio: 100, alto: 30, mira: null,  asiento: [.27, .13], parado: true, hombro: true},
-  lapras:    {id: 131, nombre: 'Lapras',    precio: 100, alto: 24, mira: 'izq', asiento: [.60, .34]},
-  gyarados:  {id: 130, nombre: 'Gyarados',  precio: 120, alto: 31, mira: 'izq', asiento: [.50, .46]},
+  lapras:    {id: 131, nombre: 'Lapras',    precio: 100, alto: 24, mira: 'izq', asiento: [.60, .34], surfea: true},
+  gyarados:  {id: 130, nombre: 'Gyarados',  precio: 120, alto: 31, mira: 'izq', asiento: [.50, .46], surfea: true},
   charizard: {id: 6,   nombre: 'Charizard', precio: 150, alto: 28, mira: null,  asiento: [.50, .20], vuela: true, detras: true},
   dragonite: {id: 149, nombre: 'Dragonite', precio: 150, alto: 29, mira: null,  asiento: [.50, .20], vuela: true, detras: true},
   hooh:      {id: 250, nombre: 'Ho-Oh',     precio: 200, alto: 28, mira: 'der', asiento: [.52, .42], vuela: true}
@@ -4239,7 +4240,13 @@ const MONTURA_HD = {
   /* alto medido para que el chico mida lo mismo que a pie (gorra ~7,8 px de mundo) */
   'charizard-red': {alto: 34, vistas: {frente: {w: 347, h: 300, piv: [[.35, .40], [.65, .40]]},
                                        lado:   {w: 336, h: 300, piv: [[.52, .40]]},
-                                       espalda:{w: 281, h: 300, piv: [[.38, .40], [.62, .40]]}}}
+                                       espalda:{w: 281, h: 300, piv: [[.38, .40], [.62, .40]]}}},
+  'charizard-may': {alto: 34, vistas: {frente: {w: 347, h: 300, piv: [[.35, .31], [.65, .31]]},
+                                       lado:   {w: 317, h: 300, piv: [[.52, .40]]},
+                                       espalda:{w: 300, h: 300, piv: [[.38, .40], [.62, .40]]}}},
+  /* de tierra (sinAlas): un solo dibujo por vista y trota al avanzar. alto sale de medir la gorra en la vista de frente */
+  'entei-red': {alto: 42, sinAlas: true, vistas: {frente: {w: 185, h: 300}, lado: {w: 319, h: 300}, espalda: {w: 167, h: 300}}},
+  'entei-may': {alto: 35, sinAlas: true, vistas: {frente: {w: 180, h: 300}, lado: {w: 331, h: 300}, espalda: {w: 175, h: 300}}}
 };
 const MONTURA_HD_IMG = {};
 function capaHD(clave, vista, capa){
@@ -4250,22 +4257,24 @@ function capaHD(clave, vista, capa){
 }
 function dibujarMontadoHD(ctx, ox, oy, dir, m, clave){
   const hd = MONTURA_HD[clave];
-  ['frente', 'lado', 'espalda'].forEach(v => { capaHD(clave, v, 'cuerpo'); capaHD(clave, v, 'alas'); });   // se cargan todas de entrada
+  ['frente', 'lado', 'espalda'].forEach(v => { capaHD(clave, v, 'cuerpo'); if(!hd.sinAlas) capaHD(clave, v, 'alas'); });   // se cargan todas de entrada
   const vista = dir === 'arriba' ? 'espalda' : (dir === 'izq' || dir === 'der') ? 'lado' : 'frente';
-  const cuerpo = capaHD(clave, vista, 'cuerpo'), alas = capaHD(clave, vista, 'alas');
-  if(!cuerpo || !alas) return false;
+  const cuerpo = capaHD(clave, vista, 'cuerpo'), alas = hd.sinAlas ? null : capaHD(clave, vista, 'alas');
+  if(!cuerpo || (!hd.sinAlas && !alas)) return false;
   const V = hd.vistas[vista], alto = hd.alto, ancho = alto * V.w / V.h;
   const t = performance.now() / 1000;
+  const camina = !!(advEje.x || advEje.y);
   const flota = m.vuela ? 8 + Math.sin(t * 2.2) * 1.6 : 0;
-  const cx = Math.round(ox) + 8, suelo = Math.round(oy) + 16, pie = suelo - flota;
-  sombraSuave(ctx, cx, suelo - 1, ancho * .26 * (1 - flota * .012), 2.4, .32);
+  const trote = !m.vuela && camina ? Math.abs(Math.sin(advCamino / 3.4)) * 1.8 : 0;   // de tierra: saltitos al avanzar
+  const cx = Math.round(ox) + 8, suelo = Math.round(oy) + 16, pie = suelo - flota - trote;
+  sombraSuave(ctx, cx, suelo - 1, (vista === 'lado' ? ancho * .36 : ancho * .3) * (1 - flota * .012), 2.4, m.vuela ? .32 : .42);
   const ang = Math.sin(t * Math.PI * 2 * .9) * .11;            // aleteo suave (~6°, casi una vez por segundo)
   ctx.save();
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.translate(cx, pie);
   if(dir === 'der') ctx.scale(-1, 1);                           // la vista de costado mira a la izquierda: a la derecha se espeja
   const x0 = -ancho / 2, y0 = -alto;
-  V.piv.forEach(([px, py], i) => {
+  if(alas) V.piv.forEach(([px, py], i) => {
     ctx.save();
     if(V.piv.length > 1){ ctx.beginPath(); ctx.rect(i ? x0 + ancho / 2 : x0 - ancho, y0 - alto, ancho * 1.5, alto * 3); ctx.clip(); }   // cada mitad su ala
     const gx = x0 + px * ancho, gy = y0 + py * alto;
@@ -4333,10 +4342,10 @@ function monturaPreferida(){
 }
 (() => { const b = document.getElementById('advMontBtn'); if(b) b.onclick = () => {
   if(montura){
-    if(montadoVolando()){
+    if(montadoVolando() || montadoSurfea()){
       const montadoAntes = montura; montura = null;
       const choca = advChoca(advPx, advPy); montura = montadoAntes;
-      if(choca) return advMensaje('🌊 Estás arriba del agua: volá hasta la orilla para bajarte.');
+      if(choca) return advMensaje(`🌊 Estás arriba del agua: ${montadoVolando() ? 'volá' : 'nadá'} hasta la orilla para bajarte.`);
     }
     return monturaElegirServidor(null);
   }
@@ -5193,10 +5202,13 @@ function advChoca(px, py){
   const esquinas = [[x0, y0], [x0 + CAJA.w - 1, y0], [x0, y0 + CAJA.h - 1], [x0 + CAJA.w - 1, y0 + CAJA.h - 1]];
   return esquinas.some(([cx, cy]) => {
     const t = advTileEn(Math.floor(cx / ADV_PX), Math.floor(cy / ADV_PX));
-    return !t || (!t.walk && !(t.pinta === 'agua' && montadoVolando()));   // en una montura voladora se pasa por arriba del agua
+    return !t || (!t.walk && !(t.pinta === 'agua' && (montadoVolando() || montadoSurfea())));   // volando o surfeando se pasa por arriba del agua
   });
 }
 function montadoVolando(){ return !!(montura && tiendaDiamantes() && MONTURAS[montura] && MONTURAS[montura].vuela); }
+function montadoSurfea(){ return !!(montura && tiendaDiamantes() && MONTURAS[montura] && MONTURAS[montura].surfea); }
+/* Qué tipo de encuentro da un casillero: el agua sólo da Pokémon si vas surfeando (el servidor lo vuelve a chequear) */
+function encuentroDe(t){ return t && (t.encuentro || (t.pinta === 'agua' && montadoSurfea() ? 'agua' : null)); }
 
 function advPaso1(dt){
   trenActualizar();
@@ -5276,11 +5288,12 @@ function advPaso1(dt){
       tirarAltar(cerca.santuario, cerca.x, cerca.y, cx, cy);
       return;
     }
-    if(t.encuentro){
+    const enc = encuentroDe(t);
+    if(enc){
       advCamino = 0;
-      if(Math.random() <= probEncuentro(t.encuentro)){
+      if(Math.random() <= probEncuentro(enc)){
         advDescanso = DESCANSO_ENCUENTRO;
-        salirEncuentro(t, cx, cy);
+        salirEncuentro(enc === t.encuentro ? t : Object.assign({}, t, {encuentro: enc}), cx, cy);
       }
     }
   }

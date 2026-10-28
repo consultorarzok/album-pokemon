@@ -1,11 +1,12 @@
 """Imagen de Gemini (3 vistas sobre fondo magenta) -> capas cuerpo/alas por vista para las monturas de la Aventura.
-Uso: python3 herramientas/montura-capas.py <imagen> <montura>-<avatar>   (ej: charizard-red)
+Uso: python3 herramientas/montura-capas.py <imagen> <montura>-<avatar> [sinalas]   (ej: charizard-red · entei-may sinalas)
 Separa las 3 vistas por manchas conectadas (no por columnas: un ala puede meterse en la vista de al lado)."""
 import sys, json
 from collections import deque
 from PIL import Image
 import numpy as np
 src, nombre = sys.argv[1], sys.argv[2]
+SIN_ALAS = len(sys.argv) > 3 and sys.argv[3] == "sinalas"   # monturas de tierra: todo va en el cuerpo
 im = np.asarray(Image.open(src).convert('RGB')).astype(np.float32)
 H, W, _ = im.shape
 r, g, b = im[..., 0], im[..., 1], im[..., 2]
@@ -68,9 +69,13 @@ for idx, nom in enumerate(['frente', 'lado', 'espalda']):
     if nom == 'espalda':
         ala = teal | (((xx < .34) | (xx > .66)) & (yy < .64)); piv = [[.38, .40], [.62, .40]]
     ala = ala & ~(llama & ~teal)
+    if SIN_ALAS: ala = np.zeros_like(ala)
     esc = 300 / hh
     for capa, sel in (('cuerpo', ~ala), ('alas', ala)):
         c = o.copy(); c[..., 3] = np.where(sel, o[..., 3], 0)
         Image.fromarray(c).resize((round(ww * esc), 300), Image.LANCZOS).save(D + f'{nombre}-{nom}-{capa}.png', optimize=True)
-    meta[nom] = {'w': round(ww * esc), 'h': 300, 'piv': piv}
+    roja = (R > 150) & (G < 110) & (B < 120) & (o[..., 3] > 100)
+    filas = [y for y in range(hh) if roja[y].sum() > ww * .08][:max(1, hh // 12)]   # la parte de arriba de la gorra
+    gorra = max((np.where(roja[y])[0].max() - np.where(roja[y])[0].min()) for y in filas) / hh if filas else None
+    meta[nom] = {'w': round(ww * esc), 'h': 300, 'piv': piv, 'gorra_sobre_alto': round(gorra, 3) if gorra else None}
 print(json.dumps(meta))

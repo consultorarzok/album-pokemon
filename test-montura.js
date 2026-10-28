@@ -115,9 +115,23 @@ async function sesion(br, nombre, disp, regalos){
   await p.screenshot({path: `${OUT}/sobre-agua.png`, clip: caja2});
   check('arriba del agua no se puede bajar', await p.evaluate(async () => { document.getElementById('advMontBtn').click(); await new Promise(r => setTimeout(r, 800)); return montura === 'charizard'; }));
   const la = await cruzar('lapras');
-  check('con Lapras (de tierra) NO entra al agua', la.pinta !== 'agua' && la.avanzo < 8, la);
+  check('con Lapras (surfea) también cruza el agua', la.pinta === 'agua' && la.avanzo > 16, la);
+  const ar = await cruzar('snorlax');
+  check('con Snorlax (de tierra) NO entra al agua', ar.pinta !== 'agua' && ar.avanzo < 8, ar);
+  // surfeando arriba del agua aparecen Pokémon de agua (servidor), y aparecen ARRIBA del agua
+  const surf = await p.evaluate(async a => {
+    montura = 'lapras'; await new Promise(r => monturaElegirServidor('lapras') || setTimeout(r, 900));
+    advPx = (a.x + 1) * 16; advPy = a.y * 16 - 3; advX = a.x + 1; advY = a.y; salvajes = [];
+    const tilesAgua = []; const rows = ADV_MAPS.overworld.rows;
+    encuentroServidor(a.x + 1, a.y);
+    for(let i = 0; i < 30 && !salvajesActivos().length && !encuentro; i++) await new Promise(r => setTimeout(r, 150));
+    return {salvajes: salvajesActivos().map(sv => ({id: sv.p.id, tipo: sv.p.type, sobre: (ADV_TILE[rows[sv.y][sv.x]] || {}).pinta})), directo: !!encuentro};
+  }, agua);
+  check('surfeando arriba del agua salen Pokémon', surf.salvajes.length > 0 || surf.directo, surf);
+  check('…y aparecen arriba del agua o en la orilla', surf.salvajes.every(s => s.sobre === 'agua' || s.sobre === 'arena'), surf);
+  await p.evaluate(() => { salvajes = []; });
   await p.waitForTimeout(600); await p.screenshot({path: `${OUT}/botones.png`, clip: await p.evaluate(() => { const r = document.getElementById('advMontBtn').getBoundingClientRect(); return {x: r.x - 20, y: r.y - 20, width: 200, height: 90}; })});
-  check('el botón muestra el ícono del Pokémon (no el caballito)', await p.evaluate(() => { const b = document.getElementById('advMontBtn'); return !!b.querySelector('img') && !b.textContent.includes('🐴'); }));
+  check('el botón muestra el ícono del Pokémon', await p.evaluate(() => { const b = document.getElementById('advMontBtn'); return !!b.querySelector('img') && !b.textContent.includes('🐴'); }));
   const pintada = await p.evaluate(() => Object.keys(MONTURAS).every(k => { const s = MONTURA_IMG[MONTURAS[k].id]; return s && s.cuerpo; }));
   check('los sprites de las monturas cargaron', pintada);
   check('bajarse: monturaElegir(null)', await p.evaluate(async () => { monturaElegirServidor(null); await new Promise(r => setTimeout(r, 900)); return montura === null; }));
