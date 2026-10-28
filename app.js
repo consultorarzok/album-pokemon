@@ -4246,7 +4246,9 @@ const MONTURA_HD = {
                                        espalda:{w: 300, h: 300, piv: [[.38, .40], [.62, .40]]}}},
   /* de tierra (sinAlas): un solo dibujo por vista y trota al avanzar. alto sale de medir la gorra en la vista de frente */
   'entei-red': {alto: 42, sinAlas: true, vistas: {frente: {w: 185, h: 300}, lado: {w: 319, h: 300}, espalda: {w: 167, h: 300}}},
-  'entei-may': {alto: 35, sinAlas: true, vistas: {frente: {w: 180, h: 300}, lado: {w: 331, h: 300}, espalda: {w: 175, h: 300}}}
+  'entei-may': {alto: 35, sinAlas: true, vistas: {frente: {w: 180, h: 300}, lado: {w: 331, h: 300}, espalda: {w: 175, h: 300}}},
+  'gyarados-red': {alto: 48, sinAlas: true, vistas: {frente: {w: 197, h: 300}, lado: {w: 300, h: 300}, espalda: {w: 159, h: 300}}},
+  'gyarados-may': {alto: 42, sinAlas: true, vistas: {frente: {w: 199, h: 300}, lado: {w: 278, h: 300}, espalda: {w: 178, h: 300}}}
 };
 const MONTURA_HD_IMG = {};
 function capaHD(clave, vista, capa){
@@ -4266,8 +4268,12 @@ function dibujarMontadoHD(ctx, ox, oy, dir, m, clave){
   const camina = !!(advEje.x || advEje.y);
   const flota = m.vuela ? 8 + Math.sin(t * 2.2) * 1.6 : 0;
   const trote = !m.vuela && camina ? Math.abs(Math.sin(advCamino / 3.4)) * 1.8 : 0;   // de tierra: saltitos al avanzar
-  const cx = Math.round(ox) + 8, suelo = Math.round(oy) + 16, pie = suelo - flota - trote;
-  sombraSuave(ctx, cx, suelo - 1, (vista === 'lado' ? ancho * .36 : ancho * .3) * (1 - flota * .012), 2.4, m.vuela ? .32 : .42);
+  const nada = nadandoEnAgua(m);
+  const hundir = nada ? alto * HUNDE_EN_AGUA + Math.sin(t * 2.6) * .8 : 0;           // los de agua van metidos en el agua
+  const cx = Math.round(ox) + 8, suelo = Math.round(oy) + 16, pie = suelo - flota - (nada ? 0 : trote) + hundir;
+  if(!nada) sombraSuave(ctx, cx, suelo - 1, (vista === 'lado' ? ancho * .36 : ancho * .3) * (1 - flota * .012), 2.4, m.vuela ? .32 : .42);
+  ctx.save();
+  if(nada){ ctx.beginPath(); ctx.rect(cx - ancho * 2, suelo - alto * 3, ancho * 4, alto * 3); ctx.clip(); }   // lo que queda abajo de la línea del agua no se ve
   const ang = Math.sin(t * Math.PI * 2 * .9) * .11;            // aleteo suave (~6°, casi una vez por segundo)
   ctx.save();
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
@@ -4284,8 +4290,29 @@ function dibujarMontadoHD(ctx, ox, oy, dir, m, clave){
   });
   ctx.drawImage(cuerpo, x0, y0, ancho, alto);
   ctx.restore();
+  ctx.restore();
   ctx.imageSmoothingEnabled = false;
+  if(nada) ondasDeAgua(ctx, cx, suelo, (vista === 'lado' ? ancho * .42 : ancho * .34), t, camina);
   return true;
+}
+/* Surfeando arriba del agua: la montura se hunde un poco (HUNDE_EN_AGUA del alto) y deja ondas */
+const HUNDE_EN_AGUA = .3;
+function nadandoEnAgua(m){
+  if(!m || !m.surfea || !montadoSurfea()) return false;
+  const t = advTileEn(Math.floor((advPx + 8) / ADV_PX), Math.floor((advPy + 11) / ADV_PX));
+  return !!(t && t.pinta === 'agua');
+}
+function ondasDeAgua(ctx, cx, y, rx, t, camina){
+  ctx.save();
+  ctx.lineWidth = 1; ctx.lineCap = 'round';
+  for(let i = 0; i < 2; i++){
+    const f = ((t * (camina ? 1.4 : .7) + i * .5) % 1);                     // cada onda se agranda y se apaga
+    ctx.strokeStyle = `rgba(235,248,255,${(.75 * (1 - f)).toFixed(3)})`;
+    ctx.beginPath(); ctx.ellipse(cx, y - 1, rx * (.75 + f * .55), 2.2 + f * 1.6, 0, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(255,255,255,.55)';                                  // espuma pegada al cuerpo
+  for(let k = -2; k <= 2; k++) ctx.fillRect(Math.round(cx + k * rx * .3 + Math.sin(t * 5 + k) * .8), Math.round(y - 1.5), 2, 1);
+  ctx.restore();
 }
 function dibujarMontado(ctx, ox, oy, dir, paso, av, clave){
   if(MONTURA_HD[clave + '-' + av] && dibujarMontadoHD(ctx, ox, oy, dir, MONTURAS[clave], clave + '-' + av)) return true;
@@ -4301,14 +4328,16 @@ function dibujarMontado(ctx, ox, oy, dir, paso, av, clave){
   const flota = m.vuela ? 7 + Math.sin(t * 3) * 1.4 : 0;                                   // los voladores van en el aire
   const rebote = !m.vuela && camina ? Math.abs(Math.sin(advCamino / 3.2)) * -1.5 : 0;     // los de tierra saltan al avanzar
   const aleteo = m.vuela ? 1 + Math.sin(t * 13) * .035 : 1;
-  const cx = ox + 8, suelo = oy + 16, pie = suelo - flota + rebote;
-  sombraSuave(ctx, cx, suelo - 1, w * (m.vuela ? .3 : .42) * (1 - flota * .012), m.vuela ? 2.2 : 3, m.vuela ? .3 : .42);
+  const nada = nadandoEnAgua(m), hundir = nada ? m.alto * HUNDE_EN_AGUA + Math.sin(t * 2.6) * .8 : 0;
+  const cx = ox + 8, suelo = oy + 16, pie = suelo - flota + (nada ? hundir : rebote);
+  if(!nada) sombraSuave(ctx, cx, suelo - 1, w * (m.vuela ? .3 : .42) * (1 - flota * .012), m.vuela ? 2.2 : 3, m.vuela ? .3 : .42);
   const espejo = m.mira ? ((m.mira === 'izq') !== montadoMiraIzq) : false;
   // asiento (si el arte está espejado, el asiento también)
   const ax = (espejo ? 1 - m.asiento[0] : m.asiento[0]) - .5;
   const jinete = () => dibujarJineteSentado(ctx, cx + ax * w, pie - m.alto * (1 - m.asiento[1]), m.hombro ? .62 : .86, dir, av, m.detras);
   if(m.detras) jinete();   // antes que el Pokémon: queda detrás
   ctx.save();
+  if(nada){ ctx.beginPath(); ctx.rect(cx - w * 2, suelo - m.alto * 3, w * 4, m.alto * 3); ctx.clip(); }
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.translate(cx, pie);
   ctx.scale(espejo ? -1 : 1, aleteo);
@@ -4317,6 +4346,7 @@ function dibujarMontado(ctx, ox, oy, dir, paso, av, clave){
   ctx.restore();
   ctx.imageSmoothingEnabled = false;
   if(!m.detras) jinete();
+  if(nada) ondasDeAgua(ctx, cx, suelo, w * .4, t, camina);
   return true;
 }
 function dibujarJugador(ctx, ox, oy){

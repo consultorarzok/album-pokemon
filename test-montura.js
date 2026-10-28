@@ -130,6 +130,11 @@ async function sesion(br, nombre, disp, regalos){
   check('surfeando arriba del agua salen Pokémon', surf.salvajes.length > 0 || surf.directo, surf);
   check('…y aparecen arriba del agua o en la orilla', surf.salvajes.every(s => s.sobre === 'agua' || s.sobre === 'arena'), surf);
   await p.evaluate(() => { salvajes = []; });
+  for(const clave of ['gyarados', 'lapras']) for(const dir of ['izq', 'abajo']){
+    await p.evaluate(([a, c, d]) => { montura = c; advDir = d; advPx = (a.x + 1) * 16; advPy = a.y * 16 - 3; }, [agua, clave, dir]);
+    await p.waitForTimeout(1200);
+    await p.screenshot({path: `${OUT}/surf-${clave}-${dir}.png`, clip: caja2});
+  }
   await p.waitForTimeout(600); await p.screenshot({path: `${OUT}/botones.png`, clip: await p.evaluate(() => { const r = document.getElementById('advMontBtn').getBoundingClientRect(); return {x: r.x - 20, y: r.y - 20, width: 200, height: 90}; })});
   check('el botón muestra el ícono del Pokémon', await p.evaluate(() => { const b = document.getElementById('advMontBtn'); return !!b.querySelector('img') && !b.textContent.includes('🐴'); }));
   const pintada = await p.evaluate(() => Object.keys(MONTURAS).every(k => { const s = MONTURA_IMG[MONTURAS[k].id]; return s && s.cuerpo; }));
