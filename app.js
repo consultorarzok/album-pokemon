@@ -894,6 +894,30 @@ function renderGrid(){
   });
 }
 
+/* ====================== CARTEL DE NOVEDADES ======================
+   Aparece UNA vez por dispositivo cuando entra al juego (después de los carteles de nombre, personaje y PIN) y
+   deja de salir pasada la fecha, porque habla de "la semana que viene". */
+const NOVEDADES_ID = '20261028', NOVEDADES_HASTA = '2026-11-05';
+function mostrarNovedades(intentos){
+  try{
+    if(localStorage.getItem('album-novedades-visto') === NOVEDADES_ID) return;
+    if(new Date().toISOString().slice(0, 10) > NOVEDADES_HASTA) return;
+    /* las pruebas automáticas no lo ven (taparía los botones), salvo que lo pidan */
+    if(navigator.webdriver && !localStorage.getItem('album-novedades-test')) return;
+  }catch(e){ return; }
+  /* si hay otro cartel abierto (nombre, personaje, PIN, bienvenida...) espera a que se cierre */
+  if(document.querySelector('.overlay.show, .special-overlay.show, .name-overlay.show')){
+    if((intentos || 0) < 40) setTimeout(() => mostrarNovedades((intentos || 0) + 1), 1500);
+    return;
+  }
+  document.getElementById('novedadesOverlay').querySelector('.reveal-panel').scrollTop = 0;
+  document.getElementById('novedadesOverlay').classList.add('show');
+}
+document.getElementById('novedadesCierraBtn').onclick = () => {
+  try{ localStorage.setItem('album-novedades-visto', NOVEDADES_ID); }catch(e){}
+  document.getElementById('novedadesOverlay').classList.remove('show');
+};
+
 /* ====================== FICHA DE UNA FIGURITA ====================== */
 function abrirDetalle(id){
   const p = DATA.find(x => x.id === id);
@@ -7032,7 +7056,7 @@ document.addEventListener('keydown', e => {
     return;
   }
   if(e.key !== 'Escape' || advAbierto) return;
-  const cierres = ['detalleCloseBtn','evolucionCloseBtn','intercambioCloseBtn','shopCloseBtn','pokedexCloseBtn','closeBtn','quizCloseBtn','battleCloseBtn','repetidasCloseBtn'];
+  const cierres = ['novedadesCierraBtn','detalleCloseBtn','evolucionCloseBtn','intercambioCloseBtn','shopCloseBtn','pokedexCloseBtn','closeBtn','quizCloseBtn','battleCloseBtn','repetidasCloseBtn'];
   for(const id of cierres){
     const b = document.getElementById(id);
     const ov = b && b.closest('.overlay');

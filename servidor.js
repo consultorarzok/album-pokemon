@@ -172,6 +172,7 @@ function listo(progreso, tienePin, avatar){
   cobrarRegalosServidor();
   sincronizarCodigos();
   pedirAvatarSiFalta(() => { if(!tienePin) ofrecerPin(); }, avatar === undefined ? null : avatar);
+  setTimeout(() => mostrarNovedades(0), 2500);
 }
 
 /* Subir UNA vez el álbum que el chico tenía en este navegador (el servidor no deja hacerlo dos

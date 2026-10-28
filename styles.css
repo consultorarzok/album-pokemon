@@ -875,3 +875,15 @@
 .hof-det{margin-top:6px;} .hof-det > summary{cursor:pointer;list-style:none;text-align:center;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--ink);}
 .hof-det > summary::-webkit-details-marker{display:none;} .hof-det[open] > summary{margin-bottom:10px;}
 .hof-det > summary:focus-visible{outline:3px solid #FFD54A;outline-offset:2px;}
+
+.nov-panel{display:flex;flex-direction:column;gap:12px;text-align:left;}
+.nov-panel h2{text-align:center;font-size:26px;margin:0;}
+.nov-pill{align-self:center;background:#F4C744;color:#1B2140;font-weight:800;font-size:13px;padding:4px 16px;border-radius:999px;letter-spacing:1px;}
+.nov-card,.nov-prox{display:flex;gap:14px;align-items:center;border-radius:16px;padding:14px 16px;color:#fff;border:2px solid #ffffff30;}
+.nov-pelea{background:linear-gradient(135deg,#B3212C,#6d1320);} .nov-evo{background:linear-gradient(135deg,#2A75BB,#173f78);}
+.nov-prox{background:#F4C744;color:#1B2140;border-color:#F4C744;}
+.nov-ico{font-size:40px;line-height:1;flex:0 0 auto;width:48px;text-align:center;}
+.nov-card h3,.nov-prox h3{font-family:'Baloo 2',sans-serif;font-size:19px;line-height:1.05;margin:0 0 4px;}
+.nov-card p,.nov-prox p{font-size:13px;line-height:1.35;margin:0;} .nov-card p b{color:#F4C744;}
+.nov-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;} .nov-tags span{background:#00000040;border-radius:9px;padding:2px 10px;font-size:12px;font-weight:700;} .nov-tags i{font-style:normal;font-family:'Space Mono',monospace;color:#F4C744;}
+.nov-card small{display:block;margin-top:6px;font-size:11px;opacity:.85;}
