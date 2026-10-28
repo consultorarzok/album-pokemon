@@ -845,3 +845,15 @@
 .ar-lobby-modo{font-family:'Baloo 2',sans-serif;font-size:14px;color:#f2f4ff;padding:6px;}
 .ar-duelo-ops[hidden]{display:none !important;}
 .ar-b[hidden]{display:none !important;}
+.ar-huds{position:absolute;top:6px;left:6px;right:6px;display:flex;gap:4px;z-index:7;}
+.ar-hud.mini{position:static;flex:1 1 0;min-width:0;width:auto;padding:3px 5px;font-size:clamp(9px,2.1cqw,13px);}
+.ar-hud.mini .ar-tip,.ar-hud.mini .ar-num,.ar-hud.mini .ar-nom,.ar-hud.mini .ar-barra.en{display:none;}
+.ar-hud.mini .ar-ent{display:block;font-size:1em;font-weight:700;color:#e8ecff;margin:0 0 .15em;}
+.ar-hud.mini.yo{border-color:#FFD54A;} .ar-hud.mini.yo .ar-barra.en{display:block;}
+.ar-hud.mini.riv,.ar-hud.mini.r2,.ar-hud.mini.r3,.ar-hud.mini.r4{order:1;} .ar-hud.mini.al{order:2;} .ar-hud.mini.yo{order:3;}
+.ar-hud.mini .ar-bola{width:.7em;height:.7em;}
+.ar-lobby-acc{display:flex;gap:6px;align-items:center;flex:0 0 auto;}
+.ar-lobby-modos{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.ar-lobby-m{min-height:38px;padding:4px 10px;font-size:13px;} .ar-lobby-m.on{border-color:#FFD54A;background:#2a3166;}
+.ar-lobby-b{min-height:36px;padding:4px 10px;font-size:12px;} .ar-lobby-b.bA{border-color:#6aa8ff;} .ar-lobby-b.bB{border-color:#ff8a7a;}
+.ar-stage.multi .ar-x{top:58px;left:8px;transform:none;} .ar-stage.multi .ar-son{top:58px;left:auto;right:8px;transform:none;}

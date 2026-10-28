@@ -52,7 +52,7 @@ async function abrirDuelo(x){
   const cod = (await A.p.textContent('.ar-lobby-cod b')).trim();
   for(const X of [B, C]){ await abrirDuelo(X); await X.p.fill('#arDCodigo', cod); await X.p.click('#arDUnir'); }
   check('con 3 en la sala todos los ven', await espera(A.p, () => document.querySelectorAll('.ar-lobby-lista li').length === 3) && await espera(C.p, () => document.querySelectorAll('.ar-lobby-lista li').length === 3));
-  check('con 3 Empezar sigue apagado y avisa "pronto"', await A.p.evaluate(() => document.getElementById('arLEmpezar').disabled && /pronto/.test(document.querySelector('.ar-lobby-modo').textContent)));
+  check('con 3 el modo es todos contra todos y Empezar se prende', await A.p.evaluate(() => !document.getElementById('arLEmpezar').disabled && /Todos contra todos/.test(document.querySelector('.ar-lobby-modo').textContent)));
   check('sólo el anfitrión ve Expulsar (2 botones)', (await A.p.$$('.ar-lobby-x')).length === 2 && (await C.p.$$('.ar-lobby-x')).length === 0);
   if(SHOTS) await A.p.screenshot({path: SHOTS + '/sala-3.png'});
   await A.p.click('.ar-lobby-x[aria-label*="Cami"]');

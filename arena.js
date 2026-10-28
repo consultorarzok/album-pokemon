@@ -816,8 +816,31 @@ const azar = (a, b) => a + Math.random() * (b - a);
 const elige = arr => arr[Math.floor(Math.random() * arr.length)];
 const lim = (v, a, b) => Math.max(a, Math.min(b, v));
 const bstDe = p => p.bst || (typeof BST !== 'undefined' && BST[p.id - 1]) || 300;
-const u = () => Math.min(G.W, G.H * 1.4) / 100;       // unidad de longitud de efectos y velocidades
-const otro = e => e.lado === 'yo' ? E.riv : E.yo;
+const u = () => Math.min(G.W, G.H * 1.4) / 100 * (AR && AR.zoom || 1);       // unidad de longitud de efectos y velocidades (zoom < 1 = cámara más lejos, en partidas de varios)
+/* Equipos: AR.bando[lado] = 'A'/'B' (o uno por jugador en todos contra todos). En 1 vs 1 es yo contra riv de siempre. */
+const enemigosDe = e => AR.lados.filter(l => AR.bando[l] !== AR.bando[e.lado]).map(l => E[l]).filter(Boolean);
+const escalaLado = e => (AR && AR.bando && AR.bando[e.lado] === AR.bando.yo) ? 'yo' : 'riv';
+/* A quién apunta: el que eligió al empezar el ataque; si no, el enemigo vivo más cercano. */
+function otro(e){
+  if(!AR || !AR.lados) return e.lado === 'yo' ? E.riv : E.yo;
+  const A = e.accion && e.accion.obj && E[e.accion.obj];
+  if(A && A.mon && A.mon.vivo) return A;
+  const en = enemigosDe(e);
+  let mejor = null, md = Infinity;
+  for(const o of en){ if(!o.mon || !o.mon.vivo) continue; const d = dist(pie(e), pie(o)); if(d < md){ md = d; mejor = o; } }
+  return mejor || en[0];
+}
+/* el enemigo vivo que mejor coincide con la dirección d (para los ataques de otro celular) */
+function objetivoPorDir(e, d){
+  let mejor = null, mp = -2;
+  for(const o of enemigosDe(e)){
+    if(!o.mon || !o.mon.vivo) continue;
+    const v = unit(pie(e), pie(o)), pr = v.x * d.x + v.y * d.y;
+    if(pr > mp){ mp = pr; mejor = o; }
+  }
+  return mejor || otro(e);
+}
+const dibujarTodos = dt => AR.lados.forEach(l => { if(E[l]) dibujar(E[l], dt); });
 
 function mk(cls, css, padre){
   const d = document.createElement('div');
@@ -886,7 +909,7 @@ function medir(){
   const disp = H - margen;
   G.rx = Math.min(W * .42, (W / 2 - 40 * G.K * ESCALA_POKE.yo) / .96);   // que un sprite en el borde no se salga de la pantalla
   /* el piso va debajo de los HUD y arriba de los controles */
-  const hud = $('arHud-riv'), hudH = hud ? hud.offsetHeight + 8 : 90;
+  const hud = $('arHuds') || $('arHud-riv'), hudH = hud ? hud.offsetHeight + 8 : 90;
   G.hudH = hudH;
   const top = Math.max(hudH * .8, disp * .2), bajo = disp - 6;
   G.ry = Math.min((bajo - top) / 2 / 1.07, G.rx * .8);
@@ -1026,7 +1049,7 @@ function acomodarEscena(){
 function alCambiarTamano(){
   if(!ST) return;
   medir(); pintarFondo(); acomodarEscena();
-  ['yo', 'riv'].forEach(l => { if(E[l]) tamanoSprite(E[l]); });
+  AR.lados.forEach(l => { if(E[l]) tamanoSprite(E[l]); });
 }
 
 /* ---------------- efectos pixel ---------------- */
@@ -1221,12 +1244,13 @@ function crearMon(p, rival, ejFijo){
   return {p, bst, max, hp:max, en:EN_MAX, vivo:true, st:statsDe(p), fz, k, vario:!!(ej && ej.s), movs};
 }
 function crearEntidad(lado){
+  const amigo = lado === 'yo' || (AR.bando && AR.bando[lado] === AR.bando.yo);
   const w = $('arMon-' + lado);
   const e = {lado, wrap:w, cuerpo:w.querySelector('.ar-cuerpo'), flip:w.querySelector('.ar-flip'), giroEl:w.querySelector('.ar-giro'),
     rot:w.querySelector('.ar-rot'), imgs:{frente:w.querySelector('.ar-spr.frente'), espalda:w.querySelector('.ar-spr.espalda')},
     sombra:w.querySelector('.ar-sombra'), refl:w.querySelector('.ar-reflejo img'),
-    vista:lado === 'yo' ? 'espalda' : 'frente', vistaQ:null, flipAp:1, girando:false, giroT:0,
-    x:0, y:0, vx:0, vy:0, rvx:0, rvy:0, px:null, py:null, kx:0, ky:0, fase:0, polvoT:0, fantT:0, cara:lado === 'yo' ? -1 : 1,
+    vista:amigo ? 'espalda' : 'frente', vistaQ:null, flipAp:1, girando:false, giroT:0,
+    x:0, y:0, vx:0, vy:0, rvx:0, rvy:0, px:null, py:null, kx:0, ky:0, fase:0, polvoT:0, fantT:0, cara:amigo ? -1 : 1,
     quieto:0, pose:null, accion:null, cd:{corto:0, medio:0, largo:0, esq:0}, stun:0, invul:0, tEsq:0,
     rodando:false, w:40, h:40, s:1, mon:null, aparece:0, bot:null};
   /* el sprite que se ve: de frente o de espalda según hacia dónde mira */
@@ -1250,7 +1274,7 @@ function encerrar(e){
 function empujar(e, dx, dy){ e.x += dx / G.rx; e.y += dy / G.ry; encerrar(e); }
 
 function medidas(e, img){
-  const sf = ESCALA_POKE[e.lado] * (img.dataset.fb ? .25 : 1);
+  const sf = ESCALA_POKE[escalaLado(e)] * (AR && AR.zoom || 1) * (img.dataset.fb ? .25 : 1);
   return {w:img.naturalWidth * G.K * sf, h:img.naturalHeight * G.K * sf};
 }
 function tamanoSprite(e){
@@ -1397,7 +1421,7 @@ function ventaja(a, b){
 }
 
 function pintarHud(){
-  ['yo', 'riv'].forEach(lado => {
+  AR.lados.forEach(lado => {
     const eq = AR[lado], m = eq.act, h = $('arHud-' + lado);
     if(!m) return;
     h.querySelector('.n').textContent = m.p.name;
@@ -1411,14 +1435,14 @@ function pintarHud(){
       b.classList.toggle('activa', i === eq.idx);
     });
   });
-  const v = ventaja(AR.yo.act, AR.riv.act), vb = $('arHud-yo').querySelector('.v');
+  const oy = otro(E.yo), v = oy && oy.mon ? ventaja(AR.yo.act, oy.mon) : 0, vb = $('arHud-yo').querySelector('.v');
   vb.textContent = v > 0 ? '▲ ventaja' : (v < 0 ? '▼ desventaja' : '');
   vb.className = 'v ' + (v > 0 ? 'bien' : (v < 0 ? 'mal' : ''));
   pintarBotones();
 }
 
 function pintarEnergia(){
-  ['yo', 'riv'].forEach(l => {
+  AR.lados.forEach(l => {
     const m = AR[l].act; if(!m) return;
     const i = $('arHud-' + l).querySelector('.en i'), w = (m.en / EN_MAX * 100).toFixed(0) + '%';
     if(i.style.width !== w) i.style.width = w;
@@ -1466,7 +1490,8 @@ function calcularDanio(a, d, alc, tipoMov){
 /* Devuelve true si el golpe pegó (false: esquivado, protegido o inmune). */
 function golpear(att, def, alc, x, y){
   if(!def.mon.vivo) return false;
-  if(AR.online && def.lado === 'riv') return false;   // en duelo, el daño del rival lo decide SU celular (llega por golpeRemoto)
+  if(AR.bando[att.lado] === AR.bando[def.lado]) return false;   // no se pegan entre compañeros
+  if(AR.online && def.lado !== 'yo') return false;   // en duelo, el daño de los otros lo decide SU celular (llega por golpeRemoto)
   const mov = movDe(att.mon, alc), tipo = mov.tipo;
   const c = cen(def), arriba = c.y - def.h * def.s * .6, ahora = performance.now();
   const roce = def.rodando && alc === 'largo';
@@ -1532,7 +1557,7 @@ function iniciar(e, tipo, dirPref){
 function iniciarBase(e, tipo, dirPref){
   const m = e.mon;
   if(!m || !m.vivo || e.accion || e.stun > 0 || e.aparece > 0 || AR.pausa || AR.fase !== 'lucha') return false;
-  const O = otro(e);
+  const O = tipo !== 'esquivar' && dirPref && (dirPref.x || dirPref.y) && e.lado !== 'yo' ? objetivoPorDir(e, dirPref) : otro(e);
   if(tipo === 'esquivar'){
     if(e.cd.esq > 0 || m.en < ESQ.coste) return false;
     m.en -= ESQ.coste; e.cd.esq = ESQ.cd;
@@ -1552,7 +1577,7 @@ function iniciarBase(e, tipo, dirPref){
   const a = ALC[tipo];
   if(e.cd[tipo] > 0 || m.en < a.coste) return false;
   m.en -= a.coste; e.cd[tipo] = a.cd;
-  e.accion = {tipo, t:0, dir:unit(pie(e), pie(O)), hecho:false, mov:movDe(m, tipo)};
+  e.accion = {tipo, t:0, dir:unit(pie(e), pie(O)), hecho:false, mov:movDe(m, tipo), obj:O.lado};
   if(tipo === 'largo'){ prepararLargo(e); sfx('carga'); }
   return true;
 }
@@ -1626,7 +1651,7 @@ function proyectil(e, o){
   if(o.forma === 'corazon') el.textContent = '♥';
   el.style.setProperty('--c', o.forma === 'roca' ? TYPE_COLORS.rock : col);
   const sx = c.x + d.x * (o.suelo ? e.w * .2 : e.w * .3), sy = o.arriba ? c.y - e.h * .55 : c.y + d.y * (o.suelo ? 0 : e.h * .2);
-  AR.proys.push({lado:e.lado, x:sx, y:sy, vx:d.x * o.vel * U, vy:d.y * o.vel * U, v:o.vel * U, tipo:o.tipo, forma:o.forma, el,
+  AR.proys.push({lado:e.lado, obj:O.lado, x:sx, y:sy, vx:d.x * o.vel * U, vy:d.y * o.vel * U, v:o.vel * U, tipo:o.tipo, forma:o.forma, el,
     vida:o.vida || 1.5, vida0:o.vida || 1.5, rad:tam * .5 * (o.radK || 1), rot:0, giro:o.giro || 0, arco:o.arco || 0,
     crecer:o.crecer || 0, wobble:o.wobble || 0, homing:o.homing || 0, boom:o.boom ? {vuelta:false} : null, suelo:!!o.suelo,
     orient:!!o.orient, grupo:o.grupo, t:0, tr:0, esq:false, fade:!!o.fade, estela:o.estela !== false});
@@ -2022,13 +2047,16 @@ function avanzarZonas(dt){
   AR.zonas = AR.zonas.filter(z => {
     z.t += dt;
     if(z.t < z.imp) return true;
-    const att = E[z.e], O = otro(att);
+    const att = E[z.e];
     if(z.estalla) estallidoZona(z.zona, z.mov);
     else { marca(z.zona.x, z.zona.y, z.zona.r * .9, TYPE_COLORS[z.mov.tipo]); sacudir(1.3); }
     if(z.mov.fx === 'trueno') estallido(z.zona.x, z.zona.y, 'electric', 20, 1.4);
-    if(att.mon && O.mon && O.mon.vivo){
-      const p = pie(O), dx = p.x - z.zona.x, dy = (p.y - z.zona.y) / G.pz;
-      if(Math.hypot(dx, dy) <= z.zona.r) golpear(att, O, 'largo');
+    if(att.mon){
+      for(const O of enemigosDe(att)){
+        if(!O.mon || !O.mon.vivo) continue;
+        const p = pie(O), dx = p.x - z.zona.x, dy = (p.y - z.zona.y) / G.pz;
+        if(Math.hypot(dx, dy) <= z.zona.r) golpear(att, O, 'largo');
+      }
     }
     return false;
   });
@@ -2038,7 +2066,7 @@ function avanzarProyectiles(dt){
   const U = u();
   AR.proys = AR.proys.filter(p => {
     p.vida -= dt; p.t += dt; p.tr -= dt;
-    const dest = E[p.lado === 'yo' ? 'riv' : 'yo'], att = E[p.lado];
+    const att = E[p.lado], dest = (E[p.obj] && E[p.obj].mon && E[p.obj].mon.vivo) ? E[p.obj] : otro(att);
     if(p.homing && dest.mon && dest.mon.vivo){
       const c = cen(dest), d = unit(p, c), k = Math.min(1, p.homing * dt);
       p.vx += (d.x * p.v - p.vx) * k; p.vy += (d.y * p.v - p.vy) * k;
@@ -2059,7 +2087,8 @@ function avanzarProyectiles(dt){
       if(p.suelo){ p.tr = .07; polvo(xx, yy, 2, 1.1); }
       else if(p.estela){ p.tr = .04; rastro(xx, yy, p.tipo, .8); }
     }
-    if(dest.mon && dest.mon.vivo){
+    for(const dest of enemigosDe(att)){
+      if(!dest.mon || !dest.mon.vivo) continue;
       const c = p.suelo ? pie(dest) : cen(dest);
       const dx = c.x - xx, dy = (c.y - yy) / (p.suelo ? G.pz : 1);
       if(Math.hypot(dx, dy) <= radio(dest) * (p.suelo ? .9 : 1) + p.rad * esc){
@@ -2100,11 +2129,19 @@ function caer(e){
   pintarHud();
   const lado = e.lado;
   despues(1.1, () => {
-    if(AR[lado].mons.every(x => !x.vivo)){ terminar(lado === 'riv'); return; }
-    if(lado === 'riv' && AR.online){ AR.fase = 'lucha'; decir(`${AR.rivalNombre} está eligiendo...`); return; }
-    if(lado === 'riv'){
-      const b = mejorBanca(AR.riv, AR.yo.act);
-      sacar('riv', b.i); AR.fase = 'lucha';
+    if(AR[lado].mons.every(x => !x.vivo)){
+      if(AR.multi){
+        if(lado === 'yo') eliminadoMulti();
+        else decir(`${AR[lado].nombre} se quedó sin Pokémon.`);
+        if(AR.fase !== 'fin') AR.fase = 'lucha';
+        return;
+      }
+      terminar(lado === 'riv'); return;
+    }
+    if(lado !== 'yo' && AR.online){ AR.fase = 'lucha'; decir(`${AR[lado].nombre} está eligiendo...`); return; }
+    if(lado !== 'yo'){
+      const b = mejorBanca(AR[lado], AR.yo.act);
+      sacar(lado, b.i); AR.fase = 'lucha';
     } else {
       abrirEquipo(true);
     }
@@ -2130,7 +2167,7 @@ function sacar(lado, idx){
   if(ent && !REDUCE) ent.animate([{transform:'translate(-50%,-100%)'}, {transform:'translate(-50%,-112%)'}, {transform:'translate(-50%,-100%)'}], {duration:300, easing:'steps(4,end)'});
   e.spr.addEventListener('load', () => e.giroEl.animate([{transform:'scale(.2)', opacity:0, filter:'brightness(3)'}, {transform:'scale(1)', opacity:1, filter:'brightness(1)'}],
     {duration:420, easing:'steps(6,end)'}), {once:true});
-  decir(lado === 'yo' ? `¡Adelante, ${eq.act.p.name}!` : `${AR.rivalNombre} saca a ${eq.act.p.name}.`);
+  decir(lado === 'yo' ? `¡Adelante, ${eq.act.p.name}!` : `${AR[lado].nombre || AR.rivalNombre} saca a ${eq.act.p.name}.`);
 }
 
 function sortearPeso(w, evitar){
@@ -2281,10 +2318,13 @@ function actualizarMon(e, dt, intent){
   e.vx += (tx - e.vx) * k; e.vy += (ty - e.vy) * k;
   if(Math.abs(e.vx) + Math.abs(e.vy) > .5) empujar(e, e.vx * dt, e.vy * dt);
   /* separación: que no se atraviesen */
-  const O = otro(e);
-  if(O.mon && O.mon.vivo && e.lado === 'yo'){
-    const c1 = cen(e), c2 = cen(O), min = (radio(e) + radio(O)) * .8, d = dist(c1, c2);
-    if(d < min && d > 0){ const s = (min - d) / 2, dir = unit(c2, c1); empujar(e, dir.x * s, dir.y * s); empujar(O, -dir.x * s, -dir.y * s); }
+  if(e.lado === 'yo'){
+    for(const l of AR.lados){
+      const O = E[l];
+      if(O === e || !O.mon || !O.mon.vivo) continue;
+      const c1 = cen(e), c2 = cen(O), min = (radio(e) + radio(O)) * .8, d = dist(c1, c2);
+      if(d < min && d > 0){ const s = (min - d) / 2, dir = unit(c2, c1); empujar(e, dir.x * s, dir.y * s); empujar(O, -dir.x * s, -dir.y * s); }
+    }
   }
 }
 
@@ -2306,11 +2346,11 @@ function bucle(ts){
   RAF = requestAnimationFrame(bucle);
   let dt = AR.ult ? (ts - AR.ult) / 1000 : 0; AR.ult = ts;
   dt = Math.min(.05, Math.max(0, dt)) * (window.__arenaTurbo > 0 ? window.__arenaTurbo : 1);
-  if(AR.pausa || !dt){ dibujar(E.yo, 0); dibujar(E.riv, 0); return; }
+  if(AR.pausa || !dt){ dibujarTodos(0); return; }
   /* hit-stop: un instante congelado en cada golpe */
   if(AR.congela > 0){ AR.congela -= dt; return; }
   /* cámara lenta mientras se carga un largo (entra y sale suave) */
-  const cargando = [E.yo, E.riv].some(x => x.accion && x.accion.tipo === 'largo' && !x.accion.hecho);
+  const cargando = AR.lados.map(l => E[l]).some(x => x.accion && x.accion.tipo === 'largo' && !x.accion.hecho);
   AR.esc += ((cargando ? CAMARA_LENTA : 1) - AR.esc) * Math.min(1, dt * 12);
   ST.classList.toggle('ar-lento', AR.esc < .85);
   dt *= AR.esc;
@@ -2325,7 +2365,7 @@ function bucle(ts){
     }
     const bi = AR.online ? {x:0, y:0} : botActualizar(E.riv, h);
     actualizarMon(E.yo, h, intent);
-    actualizarMon(E.riv, h, bi);
+    AR.lados.forEach(l => { if(l !== 'yo') actualizarMon(E[l], h, l === 'riv' ? bi : {x:0, y:0}); });
     if(AR.online) seguirRemoto(h);
     avanzarProyectiles(h);
     avanzarZonas(h);
@@ -2334,14 +2374,14 @@ function bucle(ts){
     if(AR.fase === 'lucha') AR.tLucha += h;
     if(AR.congela > 0) break;
   }
-  dibujar(E.yo, dt); dibujar(E.riv, dt);
+  dibujarTodos(dt);
   pintarEnergia(); pintarCooldowns();
   if(AR.online) mandarPosicion();
 }
 
 /* ---------------- armado de la arena ---------------- */
 function hudHTML(lado, titulo){
-  return `<div class="ar-hud ${lado}" id="arHud-${lado}">
+  return `<div class="ar-hud ${lado}${AR.multi ? ' mini' : ''}" id="arHud-${lado}">
     <div class="ar-ent">${titulo}</div>
     <div class="ar-nom"><span class="n"></span><span class="v"></span></div>
     <div class="ar-tip"><span class="t"></span></div>
@@ -2354,16 +2394,16 @@ const monHTML = lado => `<div class="ar-mon ${lado}" id="arMon-${lado}"><div cla
 
 function armarEscenario(){
   $('arRoot').innerHTML = `
-    <div class="ar-stage" id="arStage">
+    <div class="ar-stage${AR.multi ? ' multi' : ''}" id="arStage">
       <div class="ar-shake" id="arShake">
         <canvas class="ar-bg" id="arBg"></canvas>
         <div class="ar-luz"><div class="ar-cono"></div><div class="ar-motas"></div><div class="ar-lampara"></div></div>
         <div class="ar-piso" id="arPiso"></div>
         <div class="ar-ent-sprite riv"></div><div class="ar-ent-sprite yo"></div>
-        ${monHTML('riv')}${monHTML('yo')}
+        ${AR.lados.map(monHTML).join('')}
         <div class="ar-fx" id="arFx"></div>
       </div>
-      ${hudHTML('riv', AR.rivalNombre)}${hudHTML('yo', window.__yoNombre || 'Vos')}
+      ${AR.multi ? `<div class="ar-huds" id="arHuds">${AR.lados.map(l => hudHTML(l, AR[l].nombre)).join('')}</div>` : hudHTML('riv', AR.rivalNombre) + hudHTML('yo', window.__yoNombre || 'Vos')}
       <div class="ar-lineas"></div>
       <div class="ar-log" id="arLog" aria-live="polite"></div>
       <div class="ar-aviso" id="arAviso" aria-hidden="true"></div>
@@ -2449,6 +2489,36 @@ function pedirSalida(){
   else AR.pausa = AR.pausaAntes;
 }
 
+/* Partida de 2 vs 2 o todos contra todos: el servidor manda quiénes juegan, en qué equipo y con qué Pokémon.
+   Yo soy 'yo'; mi compañero 'al'; los rivales 'riv', 'r2', 'r3', 'r4'. En 2 vs 2 los rivales se ven "espejados"
+   (como el duelo de siempre); en todos contra todos hay una sola cancha igual para todos. */
+function armarMulti(d, pDe){
+  const yo = d.jugadores.find(j => j.slot === d.miSlot), otros = d.jugadores.filter(j => j.slot !== d.miSlot);
+  const eq = j => j.equipo.map(x => crearMon(pDe(x.id), j.slot !== d.miSlot, x));
+  AR.multi = true; AR.modo = d.modo; AR.miSlot = d.miSlot;
+  /* más gente en la cancha = cámara más lejos (todo se ve más chico) para que haya lugar para pelear */
+  AR.zoom = d.modo === '2v2' ? .78 : ({3:.86, 4:.76, 5:.68})[d.jugadores.length] || .72;
+  AR.lados = ['yo']; AR.bando = {yo:d.modo === '2v2' ? yo.bando : 'yo'}; AR.espejo = {}; AR.porSlot = {[d.miSlot]:'yo'}; AR.spawn = {};
+  AR.yo = {mons:eq(yo), idx:0, act:null, nombre:yo.nombre}; AR.slotDe = {yo:yo.slot};
+  const nombresRival = [], libres = ['riv', 'r2', 'r3', 'r4'];
+  otros.forEach(j => {
+    const amigo = d.modo === '2v2' && j.bando === yo.bando, l = amigo ? 'al' : libres.shift();
+    AR.lados.push(l); AR.bando[l] = d.modo === '2v2' ? j.bando : l; AR.espejo[l] = d.modo === '2v2' && !amigo;
+    AR.porSlot[j.slot] = l; AR.slotDe[l] = j.slot; AR[l] = {mons:eq(j), idx:0, act:null, nombre:j.nombre};
+    if(!amigo) nombresRival.push(j.nombre);
+  });
+  AR.rivalNombre = d.modo === '2v2' ? nombresRival.join(' y ') : 'todos';
+  /* dónde arranca cada uno (en mi pantalla) */
+  if(d.modo === '2v2'){
+    const S = [[.45, .4], [-.45, .4]];
+    const idxEquipo = j => d.jugadores.filter(x => x.bando === j.bando).sort((a, b) => a.slot - b.slot).findIndex(x => x.slot === j.slot);
+    d.jugadores.forEach(j => { const l = AR.porSlot[j.slot], k = S[idxEquipo(j)] || S[0], f = AR.espejo[l] ? -1 : 1; AR.spawn[l] = [k[0] * f, k[1] * f]; });
+  } else {
+    const orden = d.jugadores.slice().sort((a, b) => a.slot - b.slot), n = orden.length;
+    orden.forEach((j, i) => { const a = Math.PI / 2 + 2 * Math.PI * i / n; AR.spawn[AR.porSlot[j.slot]] = [+(.66 * Math.cos(a)).toFixed(3), +(.5 * Math.sin(a)).toFixed(3)]; });
+  }
+}
+
 async function luchar(mios, duelo){
   audio();   // el navegador sólo deja arrancar el sonido después de un toque del usuario
   /* con servidor: anota que empieza la pelea y con qué equipo (al terminar controla el tiempo y los premios) */
@@ -2457,39 +2527,41 @@ async function luchar(mios, duelo){
     if(!res || !res.ok){ avisoServidor(res ? res.motivo : 'sin_conexion'); return; }
   }
   const pDe = id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id];
-  const rival = duelo ? duelo.rival.equipo.map(x => pDe(x.id)) : armarRival(mios);
-  const ent = duelo ? {nombre:duelo.rival.nombre, fig:null} : elegirRival();
+  const multi = !!(duelo && duelo.multi);
+  const rival = duelo && !multi ? duelo.rival.equipo.map(x => pDe(x.id)) : (multi ? [] : armarRival(mios));
+  const ent = duelo && !multi ? {nombre:duelo.rival.nombre, fig:null} : multi ? {nombre:'', fig:null} : elegirRival();
   rivalFig = ent.fig;
   const estilo = elige(Object.keys(ESTILOS));
   AR = {
-    yo:  {mons:duelo ? duelo.yo.equipo.map(x => crearMon(pDe(x.id), false, x)) : mios.map(p => crearMon(p)), idx:0, act:null},
-    riv: {mons:duelo ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null},
-    online:!!duelo, red:{ult:0, obj:null},
+    yo:  {mons:duelo && !multi ? duelo.yo.equipo.map(x => crearMon(pDe(x.id), false, x)) : mios ? mios.map(p => crearMon(p)) : [], idx:0, act:null, nombre:window.__yoNombre || 'Vos'},
+    riv: {mons:duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
+    zoom:1, lados:['yo', 'riv'], bando:{yo:'A', riv:'B'}, espejo:{riv:true}, porSlot:{}, miSlot:null, multi:false, modo:'1v1', spawn:{yo:[.55, .35], riv:[-.55, -.2]},
+    online:!!duelo, red:{ult:0, obj:{}},
     estilo:ESTILOS[estilo], proys:[], zonas:[], pend:[], hold:new Set(), keys:new Set(), joy:{x:0, y:0},
     fase:'intro', tLucha:0, esc:1, pausa:false, pausaAntes:false, cambioCd:0, cambioRiv:3, ult:0, congela:0,
     combo:{lado:null, n:0, t:0},
     rivalNombre:ent.nombre
   };
+  if(multi) armarMulti(duelo, pDe);
   armarEscenario();
-  E = {yo:crearEntidad('yo'), riv:crearEntidad('riv')};
+  E = {};
+  AR.lados.forEach(l => { E[l] = crearEntidad(l); });
   E.riv.bot = duelo ? null : {guion:nuevoGuion(AR.estilo), hist:[], modo:'orbitar', t:1.2, reac:0, huye:0, huyeDir:1, dirOrb:1, ejecutado:false};
-  E.yo.x = .55; E.yo.y = .35; E.riv.x = -.55; E.riv.y = -.2;
-  AR.yo.act = AR.yo.mons[0]; AR.riv.act = AR.riv.mons[0];
-  E.yo.mon = AR.yo.act; E.riv.mon = AR.riv.act;
+  AR.lados.forEach(l => { E[l].x = AR.spawn[l][0]; E[l].y = AR.spawn[l][1]; AR[l].act = AR[l].mons[0]; E[l].mon = AR[l].act; });
   medir(); pintarFondo(); acomodarEscena();
-  orientarYa(E.yo); orientarYa(E.riv);
+  AR.lados.forEach(l => orientarYa(E[l]));
   if(typeof ResizeObserver === 'function'){
     RO = new ResizeObserver(() => { if(AR) alCambiarTamano(); });
     RO.observe(ST);
   }
-  ponerSprite(E.yo); ponerSprite(E.riv);
+  AR.lados.forEach(l => ponerSprite(E[l]));
   pintarHud();
-  ['yo', 'riv'].forEach(l => { dibujar(E[l], 0); E[l].spr.addEventListener('load', () => dibujar(E[l], 0), {once:true}); });
-  window.__arena = {estado:() => AR, ent:() => E, golpe:alc => golpear(E.riv, E.yo, alc || 'largo')};   // golpe: sólo para pruebas
-  decir(duelo ? `¡Duelo contra ${AR.rivalNombre}!` : `¡${AR.rivalNombre} quiere pelear!`);
+  AR.lados.forEach(l => { dibujar(E[l], 0); E[l].spr.addEventListener('load', () => dibujar(E[l], 0), {once:true}); });
+  window.__arena = {estado:() => AR, ent:() => E, golpe:alc => golpear(E.riv, E.yo, alc || 'largo'), golpeDe:(de, a, alc) => golpear(E[de], E[a], alc || 'largo')};   // golpe, golpeDe: sólo para pruebas
+  decir(multi ? (AR.modo === '2v2' ? `¡2 vs 2! Tu compañero: ${AR.al ? AR.al.nombre : '—'}` : '¡Todos contra todos!') : duelo ? `¡Duelo contra ${AR.rivalNombre}!` : `¡${AR.rivalNombre} quiere pelear!`);
   const aviso = $('arAviso'), tok = TOK, turbo = window.__arenaTurbo > 0 ? window.__arenaTurbo : 1;
   /* mientras cuenta, los dos ya respiran y miran al rival */
-  const respira = ts => { if(tok !== TOK || !AR || AR.fase !== 'intro') return; dibujar(E.yo, 0); dibujar(E.riv, 0); requestAnimationFrame(respira); };
+  const respira = ts => { if(tok !== TOK || !AR || AR.fase !== 'intro') return; dibujarTodos(0); requestAnimationFrame(respira); };
   requestAnimationFrame(respira);
   for(const t of ['3', '2', '1', '¡PELEA!']){
     if(tok !== TOK) return;
@@ -2500,7 +2572,7 @@ async function luchar(mios, duelo){
   }
   if(tok !== TOK) return;
   aviso.textContent = '';
-  E.yo.invul = E.riv.invul = .6;
+  AR.lados.forEach(l => { E[l].invul = .6; });
   AR.fase = 'lucha';
   decir('¡A pelear!');
   RAF = requestAnimationFrame(bucle);
@@ -2789,7 +2861,7 @@ const RED = {ws:null, codigo:null, alMensaje:null, cerrado:false, intentos:0};
 const POS_CADA_MS = 66;
 
 function enviarSala(o){ if(RED.ws && RED.ws.readyState === 1) RED.ws.send(JSON.stringify(o)); }
-function enviarRed(o){ if(RED.ws && RED.ws.readyState === 1) RED.ws.send(JSON.stringify(Object.assign({t:'r'}, o))); }
+function enviarRed(o){ if(RED.ws && RED.ws.readyState === 1) RED.ws.send(JSON.stringify(Object.assign({t:'r'}, AR && AR.multi ? {d:AR.miSlot} : {}, o))); }
 
 function conectarSala(codigo, alMensaje){
   cerrarSala();
@@ -2822,20 +2894,24 @@ function cerrarSala(){
 /* lo que llega del otro celular durante la pelea */
 function mensajeDuelo(m){
   if(m.t === 'r'){ if(AR && AR.online) recibirJugada(m); return; }
-  if(m.t === 'rival_se_fue'){ if(AR && AR.fase !== 'fin') decir(`Se cortó la conexión de ${AR.rivalNombre}… esperando que vuelva.`); return; }
-  if(m.t === 'rival_volvio'){ if(AR && AR.fase !== 'fin') decir(`¡${AR.rivalNombre} volvió!`); return; }
+  const quien = () => AR && AR.multi && AR.porSlot[m.d] ? AR[AR.porSlot[m.d]].nombre : AR && AR.rivalNombre;
+  if(m.t === 'rival_se_fue'){ if(AR && AR.fase !== 'fin') decir(`Se cortó la conexión de ${quien()}… esperando que vuelva.`); return; }
+  if(m.t === 'rival_volvio'){ if(AR && AR.fase !== 'fin') decir(`¡${quien()} volvió!`); return; }
+  if(m.t === 'jugador_fuera'){ if(AR && AR.multi) jugadorFuera(AR.porSlot[m.d], m.abandono); return; }
   if(m.t === 'reconectando'){ if(AR && AR.fase !== 'fin') decir('Se cortó tu conexión… reconectando.'); return; }
   if(m.t === 'error_red'){ if(AR && AR.fase !== 'fin') decir('Sin conexión con la sala.'); else if(AR && AR.esperandoResultado) mostrarResultadoDuelo({t:'resultado', empate:true, motivo:'sin_conexion'}); return; }
   if(m.t === 'resultado') mostrarResultadoDuelo(m);
 }
 
 function recibirJugada(m){
-  const e = E.riv;
+  const lado = AR.multi ? AR.porSlot[m.d] : 'riv';
+  const e = E[lado];
   if(!e || !e.mon) return;
+  const sg = AR.espejo[lado] ? -1 : 1;
   if(m.k === 'p'){
-    AR.red.obj = {x:-m.x, y:-m.y, vx:-m.vx * G.rx, vy:-m.vy * G.ry, t:performance.now()};
+    AR.red.obj[lado] = {x:sg * m.x, y:sg * m.y, vx:sg * m.vx * G.rx, vy:sg * m.vy * G.ry, t:performance.now()};
     /* su vida y su energía las manda su celular: es la verdad */
-    if(m.i === AR.riv.idx && e.mon.vivo && typeof m.hp === 'number'){ e.mon.hp = Math.max(0, Math.min(e.mon.max, m.hp)); }
+    if(m.i === AR[lado].idx && e.mon.vivo && typeof m.hp === 'number'){ e.mon.hp = Math.max(0, Math.min(e.mon.max, m.hp)); }
     if(typeof m.en === 'number') e.mon.en = m.en;
     return;
   }
@@ -2846,20 +2922,20 @@ function recibirJugada(m){
     e.cd[m.a === 'esquivar' ? 'esq' : m.a] = 0;
     e.mon.en = Math.max(e.mon.en, m.a === 'esquivar' ? ESQ.coste : ALC[m.a].coste);
     const fase = AR.fase; AR.fase = 'lucha';
-    iniciarBase(e, m.a, m.a === 'esquivar' ? {x:-m.dx, y:-m.dy} : null);
+    iniciarBase(e, m.a, m.dx || m.dy ? {x:sg * m.dx, y:sg * m.dy} : null);
     if(fase !== 'lucha') AR.fase = fase;
     return;
   }
-  if(m.k === 'g') return golpeRemoto(m);
+  if(m.k === 'g') return golpeRemoto(m, lado);
   if(m.k === 's'){
     const i = Number(m.i);
-    if(AR.riv.mons[i] && AR.riv.mons[i].vivo && i !== AR.riv.idx){ sacar('riv', i); AR.fase = AR.fase === 'fin' ? 'fin' : 'lucha'; }
+    if(AR[lado].mons[i] && AR[lado].mons[i].vivo && i !== AR[lado].idx){ sacar(lado, i); AR.fase = AR.fase === 'fin' ? 'fin' : 'lucha'; }
   }
 }
 
 /* cómo le fue al Pokémon del rival con un golpe mío (lo calculó su celular) */
-function golpeRemoto(m){
-  const def = E.riv, d = def.mon;
+function golpeRemoto(m, lado){
+  const def = E[lado || 'riv'], d = def.mon;
   if(!d || !d.vivo) return;
   const c = cen(def), arriba = c.y - def.h * def.s * .6;
   if(m.r === 'esq'){ texto(c.x, arriba, '¡Esquivó!', '#8be9ff', 3.6); return; }
@@ -2885,14 +2961,17 @@ function golpeRemoto(m){
 
 /* el rival va hacia donde dice su celular (con un poco de adelanto según su velocidad) */
 function seguirRemoto(h){
-  const o = AR.red.obj, e = E.riv;
-  if(!o || !e.mon || !e.mon.vivo) return;
-  const adel = Math.min(.15, (performance.now() - o.t) / 1000);
-  const tx = o.x + o.vx / G.rx * adel, ty = o.y + o.vy / G.ry * adel;
-  const k = Math.min(1, h * 14);
-  e.x += (tx - e.x) * k; e.y += (ty - e.y) * k;
-  e.vx = o.vx; e.vy = o.vy;
-  encerrar(e);
+  AR.lados.forEach(lado => {
+    if(lado === 'yo') return;
+    const o = AR.red.obj[lado], e = E[lado];
+    if(!o || !e.mon || !e.mon.vivo) return;
+    const adel = Math.min(.15, (performance.now() - o.t) / 1000);
+    const tx = o.x + o.vx / G.rx * adel, ty = o.y + o.vy / G.ry * adel;
+    const k = Math.min(1, h * 14);
+    e.x += (tx - e.x) * k; e.y += (ty - e.y) * k;
+    e.vx = o.vx; e.vy = o.vy;
+    encerrar(e);
+  });
 }
 function mandarPosicion(){
   const ahora = performance.now();
@@ -2900,6 +2979,24 @@ function mandarPosicion(){
   AR.red.ult = ahora;
   enviarRed({k:'p', x:+E.yo.x.toFixed(4), y:+E.yo.y.toFixed(4), vx:+(E.yo.vx / G.rx).toFixed(3), vy:+(E.yo.vy / G.ry).toFixed(3),
     hp:Math.round(E.yo.mon.hp * 10) / 10, en:Math.round(E.yo.mon.en), i:AR.yo.idx});
+}
+
+/* Partidas con varios: el servidor lleva la cuenta de quién quedó eliminado y cuándo; yo sólo aviso que me quedé sin Pokémon. */
+function eliminadoMulti(){
+  if(AR.espectador) return;
+  AR.espectador = true;
+  sfx('pierde');
+  decir('Quedaste eliminado. Mirá cómo sigue la batalla…');
+  enviarSala({t:'elim'});
+}
+/* alguien (otro) ya no está: se fue o quedó sin Pokémon; que no estorbe en la cancha */
+function jugadorFuera(lado, abandono){
+  if(!lado || !AR[lado] || lado === 'yo') return;
+  AR[lado].mons.forEach(x => { x.vivo = false; x.hp = 0; });
+  const e = E[lado];
+  if(e){ cortarAccion(e); e.rodando = false; e.wrap.style.display = 'none'; }
+  pintarHud();
+  decir(abandono ? `${AR[lado].nombre} abandonó.` : `${AR[lado].nombre} quedó eliminado.`);
 }
 
 /* fin: cada uno cuenta cómo le fue; el servidor confirma y paga */
@@ -2930,10 +3027,11 @@ function mostrarResultadoDuelo(m){
   const pr = r ? {monedas:r.monedas, lineas:r.lineas, bolas:r.bolas, pts:r.pts, bolasTxt:Object.keys(r.bolas).map(t => `+${r.bolas[t]} ${nombres[t]}`).join(' · ')}
     : {monedas:0, lineas:[], bolas:{}, bolasTxt:'', pts:0};
   const subidas = r ? r.subidas.map(u => ({nombre:u.nombre, premio:textoPremioRango(RANGOS_MAESTRO[u.nivel].premio || {})})) : [];
-  const aviso = m.empate ? (m.motivo === 'sin_conexion' || m.motivo === 'sin_respuesta' ? 'Se cortó la conexión: el duelo no se anotó.' : 'No se pudo confirmar quién ganó: este duelo no da premio.')
+  const puesto = m.puesto && m.total ? `Quedaste ${m.puesto}.º de ${m.total}. ` : '';
+  const aviso = puesto + (m.empate ? (m.motivo === 'sin_conexion' || m.motivo === 'sin_respuesta' ? 'Se cortó la conexión: el duelo no se anotó.' : 'No se pudo confirmar quién ganó: este duelo no da premio.')
     : m.motivo === 'abandono' ? (m.gane ? `${AR.rivalNombre} abandonó el duelo.` : 'Abandonaste el duelo.')
     : m.sinPremio ? 'Fue demasiado rápido: este duelo no da premio.'
-    : (r && r.tope) ? 'Ya peleaste un montón hoy: los duelos de acá a mañana no dan premio.' : '';
+    : (r && r.tope) ? 'Ya peleaste un montón hoy: los duelos de acá a mañana no dan premio.' : '');
   if(typeof cargarTopMaestro === 'function') cargarTopMaestro();
   pintarFin(!!m.gane, pr, subidas, aviso);
   const otra = $('arOtra'); if(otra){ otra.querySelector('b').textContent = 'Otro duelo'; }
@@ -2967,7 +3065,8 @@ function pintarDuelo(equipo, volver){
     muchas_salas:'Creaste muchas salas seguidas, esperá unos minutos.', sin_sesion:'Volvé a entrar al juego.', vacio:'Escribí el código.',
     expulsado:'El anfitrión te sacó de esa sala.'})[mm] || 'No se pudo: ' + mm;
   const aviso = {hace_falta_otro:'Hace falta otro entrenador para empezar.', solo_dos:'Por ahora se pelea 1 vs 1: tienen que quedar 2 en la sala. (2 vs 2 y todos contra todos vienen pronto.)',
-    sin_conexion:'Alguien perdió la conexión: esperá que vuelva.'};
+    sin_conexion:'Alguien perdió la conexión: esperá que vuelva.', equipos_parejos:'Para 2 vs 2 tienen que ser 2 y 2: tocá el equipo de un jugador para cambiarlo.'};
+  const NOMBRE_MODO = {'1v1':'⚔️ 1 vs 1', '2v2':'🤝 2 vs 2', 'ffa':'🥊 Todos contra todos'};
   const esc = t => String(t).replace(/[<>&"]/g, '');
   /* sala de espera: lista de entrenadores, anfitrión 👑 que puede expulsar y empezar */
   const pintarLobby = m => {
@@ -2976,21 +3075,29 @@ function pintarDuelo(equipo, volver){
     let box = $('arDLobby');
     if(!box){ box = document.createElement('div'); box.id = 'arDLobby'; box.className = 'ar-lobby'; est.parentNode.insertBefore(box, est); }
     const soyHost = m.host === m.yo, n = m.jugadores.length;
-    const modo = n < 2 ? 'Esperando entrenadores… (podés sumar hasta 5)' : n === 2 ? '⚔️ 1 vs 1 listo' : n === 4 ? '🤝 2 vs 2 (pronto)' : '🥊 Todos contra todos (pronto)';
+    const dosVsDos = m.modo === '2v2', nA = m.jugadores.filter(x => x.bando === 'A').length, nB = m.jugadores.filter(x => x.bando === 'B').length;
+    const listo = !!m.modo && (!dosVsDos || (nA === 2 && nB === 2));
+    const modo = n < 2 ? 'Esperando entrenadores… (podés sumar hasta 5)'
+      : m.modos.length > 1 ? `<span class="ar-lobby-modos" role="group" aria-label="Modo de batalla">${m.modos.map(k => `<button type="button" class="ar-b ar-lobby-m${k === m.modo ? ' on' : ''}" data-m="${k}"${soyHost ? '' : ' disabled'} aria-pressed="${k === m.modo}"><b>${NOMBRE_MODO[k]}</b></button>`).join('')}</span>`
+      : `${NOMBRE_MODO[m.modo]} listo`;
     box.innerHTML = `<div class="ar-lobby-cod">Sala <b>${esc(m.codigo)}</b></div>
       <div class="ar-lobby-comp"><button class="ar-b" id="arLCopiar"><b>Copiar código</b></button><button class="ar-b ar-wa" id="arLWa"><b>WhatsApp</b></button></div>
       <ul class="ar-lobby-lista" aria-label="Entrenadores en la sala">${m.jugadores.map(x => `<li${x.conectado ? '' : ' class="off"'}>
         <span>${x.id === m.host ? '👑 ' : ''}<b>${esc(x.nombre)}</b>${x.id === m.yo ? ' (vos)' : ''}${x.conectado ? '' : ' · sin conexión'}</span>
-        ${soyHost && x.id !== m.yo ? `<button class="ar-b ar-lobby-x" data-id="${x.id}" aria-label="Expulsar a ${esc(x.nombre)}"><b>Expulsar</b></button>` : ''}</li>`).join('')}</ul>
+        <span class="ar-lobby-acc">${dosVsDos ? `<button type="button" class="ar-b ar-lobby-b b${x.bando}" data-b="${x.id}" data-bando="${x.bando}"${soyHost ? '' : ' disabled'} aria-label="Equipo ${x.bando} de ${esc(x.nombre)}"><b>Equipo ${x.bando}</b></button>` : ''}
+        ${soyHost && x.id !== m.yo ? `<button class="ar-b ar-lobby-x" data-id="${x.id}" aria-label="Expulsar a ${esc(x.nombre)}"><b>Expulsar</b></button>` : ''}</span></li>`).join('')}</ul>
       <div class="ar-lobby-modo" role="status">${modo}</div>
-      ${soyHost ? `<button class="ar-b ar-go" id="arLEmpezar"${n === 2 ? '' : ' disabled'}><b>¡Empezar!</b></button>` : '<div class="ar-duelo-esp">Esperando que el anfitrión empiece…</div>'}
+      ${dosVsDos && !listo ? '<div class="ar-duelo-esp">Para 2 vs 2 tienen que ser 2 y 2.</div>' : ''}
+      ${soyHost ? `<button class="ar-b ar-go" id="arLEmpezar"${listo ? '' : ' disabled'}><b>¡Empezar!</b></button>` : '<div class="ar-duelo-esp">Esperando que el anfitrión empiece…</div>'}
       <button class="ar-b ar-med" id="arLIrse"><b>Salir de la sala</b></button>`;
     est.textContent = '';
     $('arLCopiar').onclick = () => copiarTexto(m.codigo, $('arLCopiar').querySelector('b'));
     $('arLWa').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent(
       '¡Te invito a una sala de batalla Pokémon en Entrenadores RZ! ⚔️\nEntrá a la Arena → Duelo con un amigo y poné este código: *' + m.codigo + '*\n' + SITIO_NUEVO + '#duelo=' + m.codigo), '_blank', 'noopener');
     box.querySelectorAll('.ar-lobby-x').forEach(b => b.onclick = () => enviarSala({t:'expulsar', id:Number(b.dataset.id)}));
-    const em = $('arLEmpezar'); if(em) em.onclick = () => { em.disabled = true; enviarSala({t:'empezar'}); setTimeout(() => { if($('arLEmpezar')) $('arLEmpezar').disabled = n !== 2; }, 1500); };
+    box.querySelectorAll('.ar-lobby-m').forEach(b => b.onclick = () => enviarSala({t:'modo', modo:b.dataset.m}));
+    box.querySelectorAll('.ar-lobby-b').forEach(b => b.onclick = () => enviarSala({t:'bando', id:Number(b.dataset.b), bando:b.dataset.bando === 'A' ? 'B' : 'A'}));
+    const em = $('arLEmpezar'); if(em) em.onclick = () => { em.disabled = true; enviarSala({t:'empezar'}); setTimeout(() => { if($('arLEmpezar')) $('arLEmpezar').disabled = !listo; }, 1500); };
     $('arLIrse').onclick = () => { enviarSala({t:'irse'}); cerrarSala(); volver(); };
   };
   const alMensaje = m => {
