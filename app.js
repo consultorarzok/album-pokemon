@@ -4163,7 +4163,167 @@ function dibujarEntrenador(ctx, ox, oy, dir, paso, av){
   const spr = spriteJugadorCacheado(dir, paso, av);
   if(spr) ctx.drawImage(spr, ox - (spr.width - 16) / 2, oy - 7);   // mientras carga la hoja: el de siempre
 }
-function dibujarJugador(ctx, ox, oy){ dibujarEntrenador(ctx, ox, oy, advDir, advPaso, avatarActual); }
+/* ---------- Monturas (tienda de diamantes) ----------
+   Modo prueba: sólo la cuenta de Zeta. El precio que vale es el del servidor (juego.js, MONTURAS); acá es para mostrarlo.
+   Se dibujan con el arte oficial (grande y claro) en una sola pose, espejada según hacia dónde caminás.
+   alto = alto en el mapa (px de mundo; el entrenador mide ~17) · asiento = [x, y] del lugar donde se sienta, como fracción del dibujo
+   mira = hacia dónde mira el arte original ('izq'/'der'; null = de frente) · vuela = flota en el aire con sombra abajo
+   detras = el arte mira de frente: el jinete va sentado DETRÁS (asoma por encima) para no taparle la cara
+   parado = Snorlax: el arte lo trae sentado, se le arman las patas para que camine parado. */
+const MONTURAS = {
+  arcanine:  {id: 59,  nombre: 'Arcanine',  precio: 100, alto: 25, mira: 'izq', asiento: [.50, .30]},
+  entei:     {id: 244, nombre: 'Entei',     precio: 100, alto: 27, mira: null,  asiento: [.50, .22], detras: true},
+  snorlax:   {id: 143, nombre: 'Snorlax',   precio: 100, alto: 30, mira: null,  asiento: [.27, .13], parado: true, hombro: true},
+  lapras:    {id: 131, nombre: 'Lapras',    precio: 100, alto: 24, mira: 'izq', asiento: [.60, .34]},
+  gyarados:  {id: 130, nombre: 'Gyarados',  precio: 120, alto: 31, mira: 'izq', asiento: [.50, .46]},
+  charizard: {id: 6,   nombre: 'Charizard', precio: 150, alto: 28, mira: null,  asiento: [.50, .20], vuela: true, detras: true},
+  dragonite: {id: 149, nombre: 'Dragonite', precio: 150, alto: 29, mira: null,  asiento: [.50, .20], vuela: true, detras: true},
+  hooh:      {id: 250, nombre: 'Ho-Oh',     precio: 200, alto: 28, mira: 'der', asiento: [.52, .42], vuela: true}
+};
+const MONTURA_VEL = 1.45;                    // montado se camina más rápido
+let diamantes = 0, monturas = {}, montura = null;   // montura = clave de la que está puesta, o null
+const tiendaDiamantes = () => { try{ return MODO_SERVIDOR && claveNombre(jugador) === 'zeta centeno'; }catch(e){ return false; } };   // try: al arrancar `jugador` todavía no existe (let más abajo)
+const MONTURA_IMG = {};
+function monturaImagen(m){
+  if(!MONTURA_IMG[m.id]){
+    const im = new Image(); im.crossOrigin = 'anonymous';
+    im.src = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/' + m.id + '.png';
+    MONTURA_IMG[m.id] = {im, cuerpo: null};
+    im.onload = () => { MONTURA_IMG[m.id].cuerpo = cuerpoDeSprite(im) || {l: 0, r: im.naturalWidth, t: 0, b: im.naturalHeight}; };
+    im.onerror = () => { if(im.src.includes('cdn.jsdelivr.net')) im.src = im.src.replace('https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/'); };
+  }
+  return MONTURA_IMG[m.id];
+}
+let montadoMiraIzq = true;   // hacia dónde mira el jinete: se queda con el último lado al que caminó
+/* Jinete SENTADO: tronco del cuadro de la hoja (de frente / de espaldas / de perfil) + dos piernitas colgando a los costados */
+function dibujarJineteSentado(ctx, cx, cy, escala, dir, av, sinPiernas){
+  const h = spriteHD(av, dir, 0);
+  if(!h) return;
+  const dw = h.dw * escala, dh = h.dh * escala, tronco = .70;     // se usa el 70% de arriba del cuadro: cabeza + tronco
+  const alt = dh * tronco, top = cy - alt;
+  const pierna = (x, y, ang) => {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    ctx.fillStyle = '#6a7fb3'; ctx.strokeStyle = '#1A1310'; ctx.lineWidth = .6;
+    ctx.beginPath(); ctx.roundRect(-1.2 * escala, 0, 2.4 * escala, 4 * escala, 1.1); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#1f1a18'; ctx.beginPath(); ctx.roundRect(-1.5 * escala, 3.4 * escala, 3.2 * escala, 1.8 * escala, .8); ctx.fill();
+    ctx.restore();
+  };
+  if(sinPiernas){}
+  else if(dir === 'izq' || dir === 'der'){ pierna(cx + (dir === 'izq' ? -.3 : .3), cy - 1, dir === 'izq' ? .35 : -.35); }
+  else { pierna(cx - dw * .28, cy - 1.2, .55); pierna(cx + dw * .28, cy - 1.2, -.55); }
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(h.c, 0, 0, h.c.width, h.c.height * tronco, cx - dw / 2, top, dw, alt);
+  ctx.imageSmoothingEnabled = false;
+}
+/* Snorlax parado: el torso del arte (sin los pies sentados) arriba y dos patas con pie crema abajo */
+function dibujarSnorlaxParado(ctx, sp, cx, pie, alto, ancho, camina){
+  const c = sp.cuerpo, cw = c.r - c.l, ch = c.b - c.t;
+  const pata = alto * .2, torso = alto - pata;
+  const swing = camina ? Math.sin(advCamino / 3.2) * 1.4 : 0;
+  ctx.lineWidth = .8; ctx.strokeStyle = '#1A1310';
+  // torso: el arte hasta la panza (sin los pies sentados), apoyado sobre las patas
+  ctx.drawImage(sp.im, c.l, c.t, cw, ch * .8, cx - ancho / 2, pie - alto, ancho, torso * 1.03);
+  [-1, 1].forEach(lado => {
+    const px = cx + lado * ancho * .21, dy = lado * swing * .5;
+    ctx.fillStyle = '#356f8c';
+    ctx.beginPath(); ctx.roundRect(px - ancho * .075, pie - pata - 1 + Math.min(0, dy), ancho * .15, pata, 1.4); ctx.fill();
+    ctx.fillStyle = '#ead8b0';
+    ctx.beginPath(); ctx.ellipse(px + lado * .5, pie - 1.5 - Math.max(0, -dy), ancho * .125, 1.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#8c6a55'; ctx.beginPath(); ctx.ellipse(px + lado * .5, pie - 1.3 - Math.max(0, -dy), ancho * .06, .7, 0, 0, Math.PI * 2); ctx.fill();
+  });
+}
+/* Monturas dibujadas a mano (Gemini, pedido de Zeta 28/10): el Pokémon CON el entrenador sentado, 3 vistas, alas en capa aparte para
+   que aleteen. Archivos en images/monturas/<montura>-<avatar>-<vista>-<cuerpo|alas>.png (salen de herramientas/montura-capas.py).
+   piv = hombros (fracción del dibujo) sobre los que giran las alas. Si no hay dibujo para ese personaje, queda el armado de abajo. */
+const MONTURA_HD = {
+  'charizard-red': {alto: 44, vistas: {frente: {w: 347, h: 300, piv: [[.35, .40], [.65, .40]]},
+                                       lado:   {w: 336, h: 300, piv: [[.52, .40]]},
+                                       espalda:{w: 281, h: 300, piv: [[.38, .40], [.62, .40]]}}}
+};
+const MONTURA_HD_IMG = {};
+function capaHD(clave, vista, capa){
+  const k = clave + '-' + vista + '-' + capa;
+  if(!MONTURA_HD_IMG[k]){ const im = new Image(); im.src = 'images/monturas/' + k + '.png'; MONTURA_HD_IMG[k] = im; }
+  const im = MONTURA_HD_IMG[k];
+  return im.complete && im.naturalWidth ? im : null;
+}
+function dibujarMontadoHD(ctx, ox, oy, dir, m, clave){
+  const hd = MONTURA_HD[clave];
+  ['frente', 'lado', 'espalda'].forEach(v => { capaHD(clave, v, 'cuerpo'); capaHD(clave, v, 'alas'); });   // se cargan todas de entrada
+  const vista = dir === 'arriba' ? 'espalda' : (dir === 'izq' || dir === 'der') ? 'lado' : 'frente';
+  const cuerpo = capaHD(clave, vista, 'cuerpo'), alas = capaHD(clave, vista, 'alas');
+  if(!cuerpo || !alas) return false;
+  const V = hd.vistas[vista], alto = hd.alto, ancho = alto * V.w / V.h;
+  const t = performance.now() / 1000;
+  const flota = m.vuela ? 8 + Math.sin(t * 2.2) * 1.6 : 0;
+  const cx = Math.round(ox) + 8, suelo = Math.round(oy) + 16, pie = suelo - flota;
+  sombraSuave(ctx, cx, suelo - 1, ancho * .26 * (1 - flota * .012), 2.4, .32);
+  const ang = Math.sin(t * Math.PI * 2 * .9) * .11;            // aleteo suave (~6°, casi una vez por segundo)
+  ctx.save();
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.translate(cx, pie);
+  if(dir === 'der') ctx.scale(-1, 1);                           // la vista de costado mira a la izquierda: a la derecha se espeja
+  const x0 = -ancho / 2, y0 = -alto;
+  V.piv.forEach(([px, py], i) => {
+    ctx.save();
+    if(V.piv.length > 1){ ctx.beginPath(); ctx.rect(i ? x0 + ancho / 2 : x0 - ancho, y0 - alto, ancho * 1.5, alto * 3); ctx.clip(); }   // cada mitad su ala
+    const gx = x0 + px * ancho, gy = y0 + py * alto;
+    ctx.translate(gx, gy); ctx.rotate(V.piv.length > 1 ? (i ? ang : -ang) : -ang * .8); ctx.translate(-gx, -gy);
+    ctx.drawImage(alas, x0, y0, ancho, alto);
+    ctx.restore();
+  });
+  ctx.drawImage(cuerpo, x0, y0, ancho, alto);
+  ctx.restore();
+  ctx.imageSmoothingEnabled = false;
+  return true;
+}
+function dibujarMontado(ctx, ox, oy, dir, paso, av, clave){
+  if(MONTURA_HD[clave + '-' + av] && dibujarMontadoHD(ctx, ox, oy, dir, MONTURAS[clave], clave + '-' + av)) return true;
+  const m = MONTURAS[clave];
+  const sp = m && monturaImagen(m);
+  if(!sp || !sp.cuerpo) return false;                 // todavía cargando: se ve el entrenador a pie
+  ox = Math.round(ox); oy = Math.round(oy);
+  if(dir === 'izq') montadoMiraIzq = true; else if(dir === 'der') montadoMiraIzq = false;
+  const c = sp.cuerpo, cw = c.r - c.l, ch = c.b - c.t;
+  const k = m.alto / ch, w = cw * k;
+  const camina = !!(advEje.x || advEje.y);
+  const t = performance.now() / 1000;
+  const flota = m.vuela ? 7 + Math.sin(t * 3) * 1.4 : 0;                                   // los voladores van en el aire
+  const rebote = !m.vuela && camina ? Math.abs(Math.sin(advCamino / 3.2)) * -1.5 : 0;     // los de tierra saltan al avanzar
+  const aleteo = m.vuela ? 1 + Math.sin(t * 13) * .035 : 1;
+  const cx = ox + 8, suelo = oy + 16, pie = suelo - flota + rebote;
+  sombraSuave(ctx, cx, suelo - 1, w * (m.vuela ? .3 : .42) * (1 - flota * .012), m.vuela ? 2.2 : 3, m.vuela ? .3 : .42);
+  const espejo = m.mira ? ((m.mira === 'izq') !== montadoMiraIzq) : false;
+  // asiento (si el arte está espejado, el asiento también)
+  const ax = (espejo ? 1 - m.asiento[0] : m.asiento[0]) - .5;
+  const jinete = () => dibujarJineteSentado(ctx, cx + ax * w, pie - m.alto * (1 - m.asiento[1]), m.hombro ? .62 : .86, dir, av, m.detras);
+  if(m.detras) jinete();   // antes que el Pokémon: queda detrás
+  ctx.save();
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.translate(cx, pie);
+  ctx.scale(espejo ? -1 : 1, aleteo);
+  if(m.parado) dibujarSnorlaxParado(ctx, sp, 0, 0, m.alto, w, camina);
+  else ctx.drawImage(sp.im, c.l, c.t, cw, ch, -w / 2, -m.alto, w, m.alto);
+  ctx.restore();
+  ctx.imageSmoothingEnabled = false;
+  if(!m.detras) jinete();
+  return true;
+}
+function dibujarJugador(ctx, ox, oy){
+  if(montura && tiendaDiamantes() && dibujarMontado(ctx, ox, oy, advDir, advPaso, avatarActual, montura)) return;
+  dibujarEntrenador(ctx, ox, oy, advDir, advPaso, avatarActual);
+}
+function actualizarBotonMontura(){   // 🐴 en la Aventura: sólo con la tienda abierta para esta cuenta y al menos una montura comprada
+  const b = document.getElementById('advMontBtn');
+  if(!b) return;
+  b.hidden = !(tiendaDiamantes() && Object.keys(monturas).length);
+  b.classList.toggle('puesta', !!montura);
+}
+(() => { const b = document.getElementById('advMontBtn'); if(b) b.onclick = () => {
+  if(montura) return monturaElegirServidor(null);
+  let ultima = null; try{ ultima = localStorage.getItem('album-montura-ultima'); }catch(e){}
+  monturaElegirServidor(monturas[ultima] ? ultima : Object.keys(monturas)[0]);
+}; })();
 
 /* Qué pokébola hay tirada en cada casillero. Sale por rareza, pero de forma
    DETERMINÍSTICA (a partir de la posición, con el mismo ruido que usa el
@@ -4310,6 +4470,7 @@ function advSyncHud(){
   }
   const sc = document.getElementById('shopCoins');
   if(sc) sc.textContent = coins;
+  actualizarBotonMontura();
 }
 
 function advMensaje(txt){
@@ -5029,7 +5190,7 @@ function advPaso1(dt){
 
   advDir = Math.abs(vx) > Math.abs(vy) ? (vx < 0 ? 'izq' : 'der') : (vy < 0 ? 'arriba' : 'abajo');
 
-  const paso = ADV_VEL * dt;
+  const paso = ADV_VEL * (montura && tiendaDiamantes() ? MONTURA_VEL : 1) * dt;
   const antesX = advPx, antesY = advPy;
   const nx = advPx + vx * paso;
   if(!advChoca(nx, advPy)) advPx = nx;
@@ -5389,6 +5550,25 @@ function renderTienda(){
     fila.appendChild(btn);
     lista.appendChild(fila);
   });
+  if(tiendaDiamantes()){
+    const tit = document.createElement('div');
+    tit.style.cssText = "font-family:'Baloo 2',sans-serif;font-size:13px;margin:14px 0 8px;";
+    tit.innerHTML = `💎 Monturas · tenés <b>${diamantes}</b> diamantes <span style="color:var(--ink-dim);font-size:10px;">(modo prueba)</span>`;
+    lista.appendChild(tit);
+    Object.keys(MONTURAS).forEach(clave => {
+      const m = MONTURAS[clave], mia = !!monturas[clave];
+      const fila = document.createElement('div');
+      fila.className = 'shop-row';
+      fila.innerHTML = `<img class="bola-ico" src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${m.id}.png" alt="" style="width:48px;height:48px;object-fit:contain;">
+        <span class="txt"><b>${m.nombre}</b>${m.hombro ? 'Te lleva sentado en su hombro' : 'Subite a su espalda'} · vas más rápido${mia && montura === clave ? '<br><b style="display:inline">Puesta ✔</b>' : ''}</span>`;
+      const btn = document.createElement('button');
+      btn.className = 'open-btn'; btn.style.padding = '9px 14px';
+      if(mia){ btn.textContent = montura === clave ? 'Bajar' : 'Usar'; btn.onclick = () => monturaElegirServidor(montura === clave ? null : clave); }
+      else { btn.textContent = `${m.precio} 💎`; btn.disabled = diamantes < m.precio; btn.onclick = () => monturaComprarServidor(clave); }
+      fila.appendChild(btn);
+      lista.appendChild(fila);
+    });
+  }
 }
 
 function comprarBola(tipo){

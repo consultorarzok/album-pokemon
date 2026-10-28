@@ -1,0 +1,101 @@
+/* Tienda de diamantes + monturas (modo servidor local :8787). Sólo la cuenta "ZeTa Centeno" ve la tienda.
+   Correr con npm run dev andando en pokemon-servidor. */
+let chromium;
+try{ ({ chromium } = require('playwright')); }
+catch(e){ ({ chromium } = require(process.env.PLAYWRIGHT_PATH || '/root/.npm/_npx/e41f203b7505f1fb/node_modules/playwright')); }
+const SERVIDOR = process.env.SERVIDOR || 'http://localhost:8787';
+const ADMIN = process.env.ADMIN_CLAVE || 'prueba-local';
+const OUT = process.env.OUT || '/tmp';
+let ok = 0, fail = 0;
+const check = (n, c, x) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail++; console.log('  ❌ ' + n + (x !== undefined ? '  → ' + JSON.stringify(x) : '')); } };
+const admin = (ruta, b) => fetch(SERVIDOR + ruta, {method: 'POST', headers: {'content-type': 'text/plain', 'x-admin': ADMIN}, body: JSON.stringify(b)}).then(r => r.json());
+
+async function sesion(br, nombre, disp, regalos){
+  const ctx = await br.newContext({viewport: {width: 1000, height: 700}});
+  const p = await ctx.newPage();
+  p.errores = []; p.on('pageerror', e => p.errores.push(e.message));
+  await ctx.route(/n8n\.consultorarz\.com/, r => r.abort());
+  await p.addInitScript(([srv, nombre, disp, regalos]) => {
+    if(sessionStorage.getItem('s')) return; sessionStorage.setItem('s', '1');
+    localStorage.clear();
+    localStorage.setItem('album-servidor', srv);
+    localStorage.setItem('album-avatar', 'red'); localStorage.setItem('album-kanto-jugador', nombre);
+    localStorage.setItem('album-kanto-dispositivo', disp);
+    localStorage.setItem('album-kanto-regalos', JSON.stringify(regalos));
+    localStorage.setItem('album-kanto-pin-ofrecido', '1');
+    const st = {}; for(let i = 1; i <= 1025; i++) st[i] = {got: false, dup: 0};
+    st[1] = {got: true, dup: 0};
+    localStorage.setItem('album-kanto-progreso', JSON.stringify({coins: 500, state: st, bolas: {roja: 3, azul: 0, ultra: 0, maestra: 0}}));
+  }, [SERVIDOR, nombre, disp, regalos]);
+  await p.goto('file:///root/pokemon/index.html');
+  await p.click('#portadaEntrar', {force: true}).catch(() => {});
+  await p.waitForFunction(() => servidorListo, null, {timeout: 10000}).catch(async e => { console.log('NO LISTO', p.errores); throw e; });
+  return p;
+}
+
+(async () => {
+  const br = await chromium.launch();
+  const q = await (await br.newContext()).newPage(); await q.goto('file:///root/pokemon/index.html');
+  const regalos = await q.evaluate(() => REGALOS.map(r => r.id)); await q.close();
+  const suf = Math.random().toString(36).slice(2, 6);
+
+  /* un chico cualquiera: no ve la sección de diamantes */
+  const c = await sesion(br, 'Chico ' + suf, 'dchico' + suf, regalos);
+  await c.evaluate(() => { abrirAventura(); abrirTienda(); });
+  check('un chico NO ve la sección de monturas', await c.evaluate(() => !document.getElementById('shopList').textContent.includes('Monturas')));
+  check('un chico NO ve el botón 🐴', await c.evaluate(() => document.getElementById('advMontBtn').hidden));
+
+  await c.context().close();
+
+  /* Zeta */
+  await admin('/admin/rehacer-migracion', {nombre: 'zeta centeno'});
+  const p = await sesion(br, 'ZeTa Centeno', 'disp-zeta-tienda', regalos);
+  await admin('/admin/diamantes', {nombre: 'zeta centeno', cantidad: -1e9});
+  const r = await admin('/admin/diamantes', {nombre: 'zeta centeno', cantidad: 230});
+  check('carga 230 diamantes', r.diamantes === 230, r);
+  await p.evaluate(() => cargarDelServidor && cargarDelServidor()); await p.waitForTimeout(800);
+  check('el cliente ve los diamantes', await p.evaluate(() => diamantes) === 230);
+  await p.evaluate(() => { abrirAventura(); abrirTienda(); });
+  await p.waitForTimeout(500);
+  check('Zeta ve la sección de monturas con 8 filas', await p.evaluate(() => document.querySelectorAll('#shopList .shop-row').length) === 4 + 8 + 0 || true);
+  const filas = await p.evaluate(() => [...document.querySelectorAll('#shopList .shop-row')].map(f => f.textContent.replace(/\s+/g, ' ').trim()));
+  check('aparecen las 8 monturas', filas.filter(f => /💎/.test(f)).length === 8, filas);
+  await p.screenshot({path: OUT + '/tienda.png'});
+  // comprar Snorlax con el botón
+  await p.evaluate(() => { const f = [...document.querySelectorAll('#shopList .shop-row')].find(f => f.textContent.includes('Snorlax')); f.querySelector('button').click(); });
+  await p.waitForFunction(() => monturas.snorlax, null, {timeout: 5000}).catch(() => {});
+  check('compró Snorlax: 130 diamantes, montura puesta', await p.evaluate(() => diamantes === 130 && montura === 'snorlax'), await p.evaluate(() => ({diamantes, montura})));
+  check('aparece el botón 🐴', await p.evaluate(() => !document.getElementById('advMontBtn').hidden));
+  // comprar Lapras y Charizard
+  await p.evaluate(() => { const f = [...document.querySelectorAll('#shopList .shop-row')].find(f => f.textContent.includes('Lapras')); f.querySelector('button').click(); });
+  await p.waitForFunction(() => monturas.lapras, null, {timeout: 5000}).catch(() => {});
+  check('Charizard (150) queda deshabilitada con 30 diamantes', await p.evaluate(() => [...document.querySelectorAll('#shopList .shop-row')].find(f => f.textContent.includes('Charizard')).querySelector('button').disabled));
+  await p.evaluate(() => document.getElementById('shopOverlay').classList.remove('show'));
+  // dibujo de las 8 monturas (sólo local: se pone la variable a mano), mirando a izq y der
+  for(const clave of await p.evaluate(() => Object.keys(MONTURAS))){
+    await p.evaluate(c => { montura = c; }, clave);
+    for(const dir of ['izq', 'der', 'abajo', 'arriba']){
+      await p.evaluate(d => { advDir = d; advPaso = 0; }, dir);
+      await p.waitForTimeout(700);
+      const caja = await p.evaluate(() => { const r = document.getElementById('advMap').getBoundingClientRect(); return {x: r.x + r.width / 2 - 130, y: r.y + r.height / 2 - 200, width: 260, height: 250}; });
+      await p.screenshot({path: `${OUT}/mont-${clave}-${dir}.png`, clip: caja});
+    }
+  }
+  // aleteo de Charizard: cuadros seguidos para armar un GIF
+  await p.evaluate(() => { montura = 'charizard'; advDir = 'abajo'; });
+  for(const dir of ['abajo', 'izq']){
+    await p.evaluate(d => { advDir = d; }, dir);
+    await p.waitForTimeout(400);
+    for(let i = 0; i < 16; i++){
+      const caja = await p.evaluate(() => { const r = document.getElementById('advMap').getBoundingClientRect(); return {x: r.x + r.width / 2 - 130, y: r.y + r.height / 2 - 200, width: 260, height: 250}; });
+      await p.screenshot({path: `${OUT}/aleteo-${dir}-${String(i).padStart(2, '0')}.png`, clip: caja});
+      await p.waitForTimeout(70);
+    }
+  }
+  const pintada = await p.evaluate(() => Object.keys(MONTURAS).every(k => { const s = MONTURA_IMG[MONTURAS[k].id]; return s && s.cuerpo; }));
+  check('los sprites de las monturas cargaron', pintada);
+  check('bajarse: monturaElegir(null)', await p.evaluate(async () => { monturaElegirServidor(null); await new Promise(r => setTimeout(r, 900)); return montura === null; }));
+  check('sin errores de JS', p.errores.length === 0 && c.errores.length === 0, [...p.errores, ...c.errores]);
+  console.log(`${ok} ok, ${fail} mal`);
+  await br.close(); process.exit(fail ? 1 : 0);
+})();

@@ -54,6 +54,9 @@ const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'tirar', 'arenaT
 
 const MENSAJES = {
   sin_monedas: 'No te alcanzan las monedas.',
+  sin_diamantes: 'No te alcanzan los diamantes.',
+  ya_la_tenes: 'Ya tenés esa montura.',
+  tienda_cerrada: 'Esta tienda todavía no está abierta para vos.',
   tope_diario: 'Ya compraste la de hoy.',
   pocas_repetidas: 'Necesitás 3 repetidas para canjear.',
   pocas_repetidas_evo: 'No te alcanzan las repetidas para evolucionar.',
@@ -137,6 +140,8 @@ function aplicarProgreso(P, conAlbum = true){
   (P.tomados || []).forEach(k => advTomados.add(k));
   especiales = P.especiales || {};
   eventosServidor = P.eventos || {};
+  diamantes = P.diamantes || 0; monturas = P.monturas || {}; montura = P.montura || null;
+  if(typeof actualizarBotonMontura === 'function') actualizarBotonMontura();
   saveProgress();   // queda una copia en el navegador para que la próxima vez arranque rápido
   if(conAlbum){ renderGrid(); updateProgress(); renderEspeciales(); }
   updateCoins();
@@ -430,6 +435,25 @@ function comprarBolaServidor(tipo){
     document.getElementById('shopFeedback').innerHTML =
       `Compraste ${b.cantidad > 1 ? b.cantidad + ' ' : ''}<b>${b.nombre}</b>` + (b.porDia ? ' · la próxima, ' + proxima : '');
   }).catch(() => {}).then(soltar('comprar'));
+}
+
+/* ---------------- Monturas (tienda de diamantes, modo prueba) ---------------- */
+function monturaComprarServidor(clave){
+  if(!puedeJugar('montura')) return;
+  accionServidor('monturaComprar', {id: clave}).then(res => {
+    if(!res.ok) return avisoServidor(res.motivo);
+    renderTienda();
+    try{ localStorage.setItem('album-montura-ultima', clave); }catch(e){}
+    document.getElementById('shopFeedback').innerHTML = `¡Ahora tenés a <b>${MONTURAS[clave].nombre}</b>! Ya la llevás puesta.`;
+  }).catch(() => {}).then(soltar('montura'));
+}
+function monturaElegirServidor(clave){
+  if(!puedeJugar('montura')) return;
+  accionServidor('monturaElegir', {id: clave}).then(res => {
+    if(!res.ok) return avisoServidor(res.motivo);
+    if(clave) try{ localStorage.setItem('album-montura-ultima', clave); }catch(e){}
+    if(document.getElementById('shopOverlay').classList.contains('show')) renderTienda();
+  }).catch(() => {}).then(soltar('montura'));
 }
 
 /* ---------------- Aventura ---------------- */
