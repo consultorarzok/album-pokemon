@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261105">
+<link rel="stylesheet" href="styles.css?v=20261108">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -67,6 +67,10 @@
       <div class="acc">
         <div class="acc-txt"><b>Repetidas</b><span>Tenés <b id="dupCount">0</b> · 3 repetidas = 1 que te falte</span></div>
         <button class="open-btn sec" id="canjeBtn">Canjear</button>
+      </div>
+      <div class="acc">
+        <div class="acc-txt"><b>Evolución</b><span>Gastá repetidas y hacé evolucionar al que elijas</span></div>
+        <button class="open-btn sec" id="evolucionarBtn">Evolucionar</button>
       </div>
       <div class="acc">
         <div class="acc-txt"><b>Intercambio</b><span>Regalá una repetida con un código o canjeá uno</span></div>
@@ -170,6 +174,22 @@
     <div id="shopList" style="max-width:370px;width:100%;margin:0 auto;"></div>
     <div id="shopFeedback" aria-live="polite" style="font-family:'Baloo 2',sans-serif;font-size:12px;min-height:20px;margin:6px 0 12px;"></div>
     <button class="close-btn" id="shopCloseBtn">Cerrar</button>
+  </div>
+</div>
+
+<div class="overlay" id="evolucionOverlay" role="dialog" aria-modal="true" style="z-index:45;">
+  <div class="reveal-panel" style="max-width:430px;margin:0 auto;">
+    <div class="panel-top">
+      <button type="button" class="panel-atras" id="evolucionAtrasBtn" aria-label="Cerrar la evolución y volver"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Atrás</button>
+      <h2>🌟 Evolucionar</h2>
+    </div>
+    <div style="font-size:11px;color:var(--ink-dim);margin-bottom:12px;">
+      Elegí un Pokémon que tengas repetido, cuál de sus copias evoluciona (conserva su fuerza y su ✨)
+      y en quién. Se gastan repetidas según lo que conseguís: <b id="evoCostos"></b>.
+      Siempre te queda 1 del original en el álbum.
+    </div>
+    <div id="evolucionList"></div>
+    <button class="close-btn" id="evolucionCloseBtn" style="margin-top:16px;">Cerrar</button>
   </div>
 </div>
 
@@ -367,8 +387,9 @@
   <div class="ar-root" id="arRoot"></div>
 </div>
 
-<script src="app.js?v=20261107"></script>
-<script src="servidor.js?v=20261107"></script>
+<script src="evoluciones.js?v=20261110"></script>
+<script src="app.js?v=20261108"></script>
+<script src="servidor.js?v=20261108"></script>
 <script src="arena.js?v=20261105"></script>
 <script src="portada.js?v=20261105"></script>
 </body>

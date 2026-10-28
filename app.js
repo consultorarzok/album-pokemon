@@ -1087,6 +1087,95 @@ function canjearRepetidas(){
   }
 }
 
+/* ====================== EVOLUCIONAR ======================
+   Tabla en evoluciones.js. Se elige un ejemplar de un Pokémon con repetidas: ese ejemplar pasa a
+   ser su evolución (mismo número de fuerza y shiny) y se gastan otras copias hasta completar el costo,
+   que depende de la rareza de lo que se consigue. Siempre queda 1 del original en el álbum. */
+const costoEvolucion = destId => COSTO_EVOLUCION[DATA.find(p => p.id === destId).rarity];
+function destinosEvolucion(id){
+  const ev = eventoVistaActiva();
+  return (EVOLUCIONES[id] || []).map(d => DATA.find(p => p.id === d))
+    .filter(d => d && !(ev && !IDS_KANTO_JOHTO.has(d.id)));
+}
+/* Pokémon que se podrían evolucionar ya mismo (alcanzan las repetidas para al menos una rama) */
+function evolucionablesYa(){
+  return DATA.filter(p => state[p.id].got && destinosEvolucion(p.id).some(d => state[p.id].dup >= costoEvolucion(d.id)));
+}
+function evolucionarLocal(id, destId, serie){
+  const dest = DATA.find(p => p.id === destId), costo = costoEvolucion(destId);
+  if(!destinosEvolucion(id).some(d => d.id === destId) || state[id].dup < costo) return null;
+  const l = ejemplares(id), i = l.findIndex(e => e.c === serie);
+  if(i < 0) return null;
+  const elegido = l[i];
+  l.splice(i, 1);
+  const resto = l.map((e, k) => k).sort((x, y) => (l[x].f + (l[x].s ? 1000 : 0)) - (l[y].f + (l[y].s ? 1000 : 0))).slice(0, costo - 1);
+  resto.sort((x, y) => y - x).forEach(k => l.splice(k, 1));
+  state[id].dup -= costo;
+  ejemplares(destId);   // completa lo que ya tenía antes de sumar éste
+  const nueva = !state[destId].got;
+  if(nueva) state[destId].got = true; else state[destId].dup++;
+  state[destId].ej.push(nuevoEjemplar(codigoFuerza(elegido)));
+  renderGrid(); updateProgress(); saveProgress(); enviarPuntaje();
+  return {p: dest, isNew: nueva};
+}
+function evolucionar(id, destId, serie){
+  if(MODO_SERVIDOR) return evolucionarServidor(id, destId, serie);
+  const pull = evolucionarLocal(id, destId, serie);
+  if(!pull) return;
+  const titulo = 'Evolucionó a ' + pull.p.name;
+  renderEvolucion();
+  if(isSpecial(pull.p)) playSpecialSequence([pull], 0, () => showReveal([pull], titulo));
+  else showReveal([pull], titulo);
+}
+function renderEvolucion(){
+  const cont = document.getElementById('evolucionList');
+  document.getElementById('evoCostos').textContent = ['Poco Común', 'Rara', 'Épico', 'Legendario']
+    .map(r => (r === 'Poco Común' ? 'Común/Poco Común' : r) + ' ' + COSTO_EVOLUCION[r]).join(' · ');
+  cont.innerHTML = '';
+  const lista = DATA.filter(p => state[p.id].dup > 0 && destinosEvolucion(p.id).length)
+    .sort((a, b) => Number(evolucionablesYa().includes(b)) - Number(evolucionablesYa().includes(a)) || a.id - b.id);
+  if(!lista.length){
+    cont.innerHTML = '<div style="font-size:11px;color:var(--ink-dim);">Todavía no tenés repetidas de Pokémon que evolucionen. Cuando te salgan, vení acá.</div>';
+    return;
+  }
+  lista.forEach(p => {
+    const copias = ejemplares(p.id).slice().sort((a, b) => b.f - a.f);
+    let elegido = copias[0].c;
+    const fila = document.createElement('div');
+    fila.className = 'shop-row ej-fila';
+    fila.innerHTML = `<img src="${p.img}" alt="" style="width:34px;height:34px;object-fit:contain;flex:0 0 auto;">
+      <span class="txt"><b>${p.name}</b>Tenés ${copias.length} (${state[p.id].dup} repetida${state[p.id].dup === 1 ? '' : 's'}): elegí cuál evoluciona</span>
+      <div class="ej-lista" role="radiogroup" aria-label="Copias de ${p.name}">${copias.map((e, i) =>
+        `<button type="button" class="ej-chip ${claseFuerza(e.f)}" title="${nivelFuerza(e.f)}" data-c="${e.c}" role="radio">
+          <b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}${e.s ? ' · shiny' : ''}${i === 0 ? ' · ⭐ Arena' : ''}</small></button>`).join('')}</div>
+      <div class="ej-lista evo-destinos"></div>`;
+    const marcar = () => fila.querySelectorAll('.ej-chip').forEach(ch => {
+      const on = ch.dataset.c === elegido;
+      ch.classList.toggle('on', on); ch.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+    fila.querySelectorAll('.ej-chip').forEach(ch => ch.onclick = () => { elegido = ch.dataset.c; marcar(); });
+    marcar();
+    const dBox = fila.querySelector('.evo-destinos');
+    destinosEvolucion(p.id).forEach(d => {
+      const costo = costoEvolucion(d.id), falta = costo - state[p.id].dup;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'open-btn evo-btn';
+      b.disabled = falta > 0;
+      b.innerHTML = `<img src="${d.img}" alt="" style="width:26px;height:26px;object-fit:contain;vertical-align:middle;margin-right:6px;">` +
+        `→ ${d.name} <small>${falta > 0 ? 'te faltan ' + falta : costo + ' repetidas'}${state[d.id].got ? ' · ya lo tenés' : ' · nuevo'}</small>`;
+      b.onclick = () => evolucionar(p.id, d.id, elegido);
+      dBox.appendChild(b);
+    });
+    cont.appendChild(fila);
+  });
+}
+function abrirEvolucion(){
+  document.getElementById('evolucionOverlay').querySelector('.reveal-panel').scrollTop = 0;
+  renderEvolucion();
+  document.getElementById('evolucionOverlay').classList.add('show');
+}
+
 /* ====================== TIPOS Y FUERZA (los usa la arena, arena.js) ====================== */
 /* Tabla de efectividad oficial (6ª generación en adelante).
    Sólo se listan las excepciones: lo que no figura vale x1. */
@@ -1247,6 +1336,8 @@ function updateBarras(){
   if(dc) dc.textContent = dups;
   const cb = document.getElementById('canjeBtn');
   if(cb) cb.disabled = dups < CANJE_COSTO || tengo === DATA.length;
+  const eb = document.getElementById('evolucionarBtn');
+  if(eb) eb.disabled = !evolucionablesYa().length;
   const bb = document.getElementById('battleBtn');
   if(bb) bb.disabled = kantoMios().length < PELEA_MIN;
 }
@@ -5355,6 +5446,9 @@ document.getElementById('advBtn').onclick = abrirAventura;
 document.getElementById('advCloseBtn').onclick = cerrarAventura;
 document.getElementById('encCloseBtn').onclick = cerrarEncuentro;
 document.getElementById('shopCloseBtn').onclick = () => document.getElementById('shopOverlay').classList.remove('show');
+document.getElementById('evolucionarBtn').onclick = abrirEvolucion;
+document.getElementById('evolucionCloseBtn').onclick = () => document.getElementById('evolucionOverlay').classList.remove('show');
+document.getElementById('evolucionAtrasBtn').onclick = () => document.getElementById('evolucionCloseBtn').click();
 document.getElementById('intercambioBtn').onclick = abrirIntercambio;
 document.getElementById('intercambioCloseBtn').onclick = () => document.getElementById('intercambioOverlay').classList.remove('show');
 document.getElementById('intercambioAtrasBtn').onclick = () => document.getElementById('intercambioCloseBtn').click();
@@ -6855,7 +6949,7 @@ document.addEventListener('keydown', e => {
     return;
   }
   if(e.key !== 'Escape' || advAbierto) return;
-  const cierres = ['intercambioCloseBtn','shopCloseBtn','pokedexCloseBtn','closeBtn','quizCloseBtn','battleCloseBtn'];
+  const cierres = ['evolucionCloseBtn','intercambioCloseBtn','shopCloseBtn','pokedexCloseBtn','closeBtn','quizCloseBtn','battleCloseBtn'];
   for(const id of cierres){
     const b = document.getElementById(id);
     const ov = b && b.closest('.overlay');

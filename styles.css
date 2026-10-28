@@ -829,3 +829,8 @@
   .rank-count[hidden]{display:none;}
   .hof-premio{align-items:flex-start;}
   .hof-premio .hof-name{white-space:normal;overflow:visible;font-size:13px;line-height:1.35;}
+
+.evo-destinos{flex-direction:column;gap:6px;}
+.evo-btn{display:flex;align-items:center;justify-content:flex-start;gap:0;padding:8px 12px;text-align:left;font-size:13px;}
+.evo-btn small{margin-left:auto;padding-left:10px;font-size:10px;font-family:'Space Mono',monospace;opacity:.85;}
+.evo-btn:disabled{opacity:.5;}

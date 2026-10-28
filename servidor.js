@@ -50,12 +50,15 @@ const enCurso = new Set();           // jugadas esperando respuesta (evita el do
 const POR_ID_C = Object.fromEntries(DATA.map(p => [p.id, p]));
 const aPull = x => ({p: POR_ID_C[x.id], isNew: x.isNew});
 /* jugadas que pueden cambiar las figuritas: sólo ésas vuelven a dibujar el álbum entero */
-const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'tirar', 'arenaTerminar']);
+const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'tirar', 'arenaTerminar']);
 
 const MENSAJES = {
   sin_monedas: 'No te alcanzan las monedas.',
   tope_diario: 'Ya compraste la de hoy.',
   pocas_repetidas: 'Necesitás 3 repetidas para canjear.',
+  pocas_repetidas_evo: 'No te alcanzan las repetidas para evolucionar.',
+  no_evoluciona: 'Ese Pokémon no evoluciona en eso.',
+  evento_solo_kanto_johto: 'Durante el evento sólo se puede evolucionar a Pokémon de Kanto y Johto.',
   album_completo: '¡Ya tenés todas!',
   sin_bolas: 'No te quedan de esa pokébola.',
   no_es_tuyo: 'Ese Pokémon no está en tu álbum.',
@@ -335,6 +338,19 @@ function canjearRepetidasServidor(){
     if(isSpecial(pulls[0].p)) playSpecialSequence(pulls, 0, () => showReveal(pulls, 'Canjeaste 3 repetidas'));
     else showReveal(pulls, 'Canjeaste 3 repetidas');
   }).catch(() => {}).then(soltar('canje'));
+}
+
+function evolucionarServidor(id, destId, serie){
+  if(!puedeJugar('evolucionar')) return;
+  accionServidor('evolucionar', {id, a: destId, c: serie}).then(res => {
+    if(!res.ok) return avisoServidor(res.motivo);
+    const pulls = res.resultado.pulls.map(aPull);
+    enviarPuntaje();
+    renderEvolucion();
+    const titulo = 'Evolucionó a ' + pulls[0].p.name;
+    if(isSpecial(pulls[0].p)) playSpecialSequence(pulls, 0, () => showReveal(pulls, titulo));
+    else showReveal(pulls, titulo);
+  }).catch(() => {}).then(soltar('evolucionar'));
 }
 
 /* "Responder y ganar": el servidor arma la pregunta y se queda con la respuesta. */
