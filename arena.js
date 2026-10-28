@@ -2439,6 +2439,7 @@ function armarEscenario(){
     SONIDO = !SONIDO;
     try{ localStorage.setItem('arena-sonido', SONIDO ? '1' : '0'); }catch(e){}
     const b = $('arSonido'); b.textContent = SONIDO ? '🔊' : '🔇'; b.setAttribute('aria-pressed', SONIDO);
+    if(window.Musica) Musica.poner(SONIDO);
     if(SONIDO) sfx('cuenta');
   };
   iniciarControles();
