@@ -1119,6 +1119,10 @@ function mostrarEspeciales(pulls, despues){
 
 /* ====================== CANJE DE REPETIDAS ====================== */
 const CANJE_COSTO = 3;
+/* Al canjear, esta es la chance de que salga una figurita que NO tenés; si no, sale una cualquiera (puede ser repetida).
+   Antes era 1 (siempre una nueva): Zeta lo bajó a 0,4 el 28/10. */
+const CANJE_PROB_NUEVA = .4;
+const tituloCanje = nueva => nueva ? 'Canjeaste 3 repetidas: ¡una nueva!' : 'Canjeaste 3 repetidas: te tocó una que ya tenías';
 
 function repetidasTotales(){
   return Object.values(state).reduce((a,s) => a + (s.dup || 0), 0);
@@ -1160,18 +1164,22 @@ function canjearRepetidas(){
     if(restan === 0) break;
   }
 
-  const nueva = elegirPesado(falta);
-  state[nueva.id].got = true;
+  const ev = eventoVistaActiva();
+  const pool = ev ? DATA.filter(p => IDS_KANTO_JOHTO.has(p.id)) : DATA;
+  const sale = Math.random() < CANJE_PROB_NUEVA ? elegirPesado(falta) : elegirPesado(pool);
+  const eraNueva = !state[sale.id].got;
+  if(eraNueva) state[sale.id].got = true; else state[sale.id].dup++;
+  const pull = {p:sale, isNew:eraNueva};
 
   renderGrid();
   updateProgress();
   saveProgress();
   enviarPuntaje();
 
-  if(isSpecial(nueva)){
-    playSpecialSequence([{p:nueva, isNew:true}], 0, () => showReveal([{p:nueva, isNew:true}], 'Canjeaste 3 repetidas'));
+  if(isSpecial(sale)){
+    playSpecialSequence([pull], 0, () => showReveal([pull], tituloCanje(eraNueva)));
   } else {
-    showReveal([{p:nueva, isNew:true}], 'Canjeaste 3 repetidas');
+    showReveal([pull], tituloCanje(eraNueva));
   }
 }
 
@@ -2013,8 +2021,8 @@ const ADV_TIPOS = {
 };
 /* Probabilidad por casillero caminado. Bajas a propósito: con .18 no se podía
    dar tres pasos sin que saltara un encuentro. */
-const ADV_PROB = { hierba:.035, agua:.03, volcan:.04, cueva:.035, hielo:.04,
-                   electrico:.04, psiquico:.04, cienaga:.04, legendario:.06 };   // 28/10: Zeta pidió la MITAD de avistamientos (antes .07 .06 .08 .07 .08 .08 .08 .08 .12)
+const ADV_PROB = { hierba:.14, agua:.12, volcan:.16, cueva:.14, hielo:.16,
+                   electrico:.16, psiquico:.16, cienaga:.16, legendario:.12 };   // 28/10: Zeta pidió que los salvajes salgan el DOBLE de seguido (antes .07 .06 .08 .07 .08 .08 .08 .08); el legendario no se tocó
 const DESCANSO_ENCUENTRO = 64;   // píxeles a caminar tras un encuentro antes de que salga otro
 
 /* Probabilidad real de encuentro para un bioma: durante un evento con
@@ -5134,7 +5142,7 @@ function tirarAltar(santuario, x, y, px, py){
     return;
   }
   const fallos = avistamientoPity[santuario.n] || 0;
-  const prob = Math.min(.3, ADV_PROB.legendario + fallos * .04);   // la racha también a la mitad (antes +.08 con tope .6)
+  const prob = Math.min(.6, ADV_PROB.legendario + fallos * .08);
   if(Math.random() > prob){
     avistamientoPity[santuario.n] = fallos + 1;
     return;

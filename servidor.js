@@ -336,8 +336,8 @@ function canjearRepetidasServidor(){
     if(!res.ok) return avisoServidor(res.motivo);
     const pulls = res.resultado.pulls.map(aPull);
     enviarPuntaje();
-    if(isSpecial(pulls[0].p)) playSpecialSequence(pulls, 0, () => showReveal(pulls, 'Canjeaste 3 repetidas'));
-    else showReveal(pulls, 'Canjeaste 3 repetidas');
+    if(isSpecial(pulls[0].p)) playSpecialSequence(pulls, 0, () => showReveal(pulls, tituloCanje(pulls[0].isNew)));
+    else showReveal(pulls, tituloCanje(pulls[0].isNew));
   }).catch(() => {}).then(soltar('canje'));
 }
 
