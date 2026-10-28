@@ -834,3 +834,14 @@
 .evo-btn{display:flex;align-items:center;justify-content:flex-start;gap:0;padding:8px 12px;text-align:left;font-size:13px;}
 .evo-btn small{margin-left:auto;padding-left:10px;font-size:10px;font-family:'Space Mono',monospace;opacity:.85;}
 .evo-btn:disabled{opacity:.5;}
+
+.ar-lobby{display:flex;flex-direction:column;gap:10px;align-items:stretch;margin:6px 0 10px;text-align:center;color:#f2f4ff;}
+.ar-lobby-cod{font-size:14px;color:#aab3d9;} .ar-lobby-cod b{font-family:'Space Mono',monospace;font-size:30px;letter-spacing:6px;color:#FFD54A;display:block;}
+.ar-lobby-comp{display:flex;gap:8px;justify-content:center;}
+.ar-lobby-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+.ar-lobby-lista li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:10px;border:1px solid #3a4680;background:#0e1430;text-align:left;font-size:14px;color:#f2f4ff;}
+.ar-lobby-lista li.off{opacity:.55;}
+.ar-lobby-x{min-height:36px;padding:4px 10px;font-size:12px;flex:0 0 auto;}
+.ar-lobby-modo{font-family:'Baloo 2',sans-serif;font-size:14px;color:#f2f4ff;padding:6px;}
+.ar-duelo-ops[hidden]{display:none !important;}
+.ar-b[hidden]{display:none !important;}

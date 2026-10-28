@@ -2963,9 +2963,45 @@ function pintarDuelo(equipo, volver){
   const est = $('arDEstado'), ids = equipo.map(p => p.id);
   const ocupado = si => { ['arDCrear', 'arDUnir', 'arDCodigo'].forEach(id => { const el = $(id); if(el) el.disabled = si; }); };
   const motivo = mm => ({no_es_tuyo:'Ese Pokémon no está en tu álbum.', equipo_invalido:'Elegí entre 3 y 6 Pokémon.', no_existe:'No hay ninguna sala con ese código.',
-    llena:'Esa sala ya tiene dos entrenadores.', propia:'Esa sala la creaste vos: pasale el código a tu amigo.', empezada:'Ese duelo ya empezó.',
-    muchas_salas:'Creaste muchas salas seguidas, esperá unos minutos.', sin_sesion:'Volvé a entrar al juego.', vacio:'Escribí el código.'})[mm] || 'No se pudo: ' + mm;
+    llena:'Esa sala ya está llena (máximo 5).', propia:'Esa sala la creaste vos: pasale el código a tu amigo.', empezada:'Ese duelo ya empezó.',
+    muchas_salas:'Creaste muchas salas seguidas, esperá unos minutos.', sin_sesion:'Volvé a entrar al juego.', vacio:'Escribí el código.',
+    expulsado:'El anfitrión te sacó de esa sala.'})[mm] || 'No se pudo: ' + mm;
+  const aviso = {hace_falta_otro:'Hace falta otro entrenador para empezar.', solo_dos:'Por ahora se pelea 1 vs 1: tienen que quedar 2 en la sala. (2 vs 2 y todos contra todos vienen pronto.)',
+    sin_conexion:'Alguien perdió la conexión: esperá que vuelva.'};
+  const esc = t => String(t).replace(/[<>&"]/g, '');
+  /* sala de espera: lista de entrenadores, anfitrión 👑 que puede expulsar y empezar */
+  const pintarLobby = m => {
+    const ops = document.querySelector('.ar-duelo-ops'); if(ops) ops.hidden = true;
+    const pie = $('arDVolver'); if(pie) pie.hidden = true;
+    let box = $('arDLobby');
+    if(!box){ box = document.createElement('div'); box.id = 'arDLobby'; box.className = 'ar-lobby'; est.parentNode.insertBefore(box, est); }
+    const soyHost = m.host === m.yo, n = m.jugadores.length;
+    const modo = n < 2 ? 'Esperando entrenadores… (podés sumar hasta 5)' : n === 2 ? '⚔️ 1 vs 1 listo' : n === 4 ? '🤝 2 vs 2 (pronto)' : '🥊 Todos contra todos (pronto)';
+    box.innerHTML = `<div class="ar-lobby-cod">Sala <b>${esc(m.codigo)}</b></div>
+      <div class="ar-lobby-comp"><button class="ar-b" id="arLCopiar"><b>Copiar código</b></button><button class="ar-b ar-wa" id="arLWa"><b>WhatsApp</b></button></div>
+      <ul class="ar-lobby-lista" aria-label="Entrenadores en la sala">${m.jugadores.map(x => `<li${x.conectado ? '' : ' class="off"'}>
+        <span>${x.id === m.host ? '👑 ' : ''}<b>${esc(x.nombre)}</b>${x.id === m.yo ? ' (vos)' : ''}${x.conectado ? '' : ' · sin conexión'}</span>
+        ${soyHost && x.id !== m.yo ? `<button class="ar-b ar-lobby-x" data-id="${x.id}" aria-label="Expulsar a ${esc(x.nombre)}"><b>Expulsar</b></button>` : ''}</li>`).join('')}</ul>
+      <div class="ar-lobby-modo" role="status">${modo}</div>
+      ${soyHost ? `<button class="ar-b ar-go" id="arLEmpezar"${n === 2 ? '' : ' disabled'}><b>¡Empezar!</b></button>` : '<div class="ar-duelo-esp">Esperando que el anfitrión empiece…</div>'}
+      <button class="ar-b ar-med" id="arLIrse"><b>Salir de la sala</b></button>`;
+    est.textContent = '';
+    $('arLCopiar').onclick = () => copiarTexto(m.codigo, $('arLCopiar').querySelector('b'));
+    $('arLWa').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent(
+      '¡Te invito a una sala de batalla Pokémon en Entrenadores RZ! ⚔️\nEntrá a la Arena → Duelo con un amigo y poné este código: *' + m.codigo + '*\n' + SITIO_NUEVO + '#duelo=' + m.codigo), '_blank', 'noopener');
+    box.querySelectorAll('.ar-lobby-x').forEach(b => b.onclick = () => enviarSala({t:'expulsar', id:Number(b.dataset.id)}));
+    const em = $('arLEmpezar'); if(em) em.onclick = () => { em.disabled = true; enviarSala({t:'empezar'}); setTimeout(() => { if($('arLEmpezar')) $('arLEmpezar').disabled = n !== 2; }, 1500); };
+    $('arLIrse').onclick = () => { enviarSala({t:'irse'}); cerrarSala(); volver(); };
+  };
   const alMensaje = m => {
+    if(m.t === 'lobby'){ pintarLobby(m); return; }
+    if(m.t === 'lobby_error'){ est.textContent = aviso[m.motivo] || 'No se pudo empezar.'; return; }
+    if(m.t === 'expulsado'){
+      cerrarSala(); const b = $('arDLobby'); if(b) b.remove();
+      const ops = document.querySelector('.ar-duelo-ops'); if(ops) ops.hidden = false;
+      const pie = $('arDVolver'); if(pie) pie.hidden = false;
+      ocupado(false); est.textContent = 'El anfitrión te sacó de la sala.'; return;
+    }
     if(m.t === 'sala'){
       if(m.estado === 'rival') est.innerHTML = `<b>¡${m.rival} está en la sala!</b><br>Arrancando…`;
       if(m.estado === 'rival_se_fue') est.innerHTML = 'Tu amigo se fue de la sala. Esperando que vuelva…';
@@ -2977,15 +3013,9 @@ function pintarDuelo(equipo, volver){
   $('arDVolver').onclick = () => { cerrarSala(); volver(); };
   $('arDCrear').onclick = () => {
     ocupado(true); est.textContent = 'Creando la sala…';
-    api('/duelo/crear', {equipo:ids}).then(res => {
+    api('/duelo/sala', {equipo:ids}).then(res => {
       if(!res.ok){ est.textContent = motivo(res.motivo); ocupado(false); return; }
-      const link = SITIO_NUEVO + '#duelo=' + res.codigo;
-      est.innerHTML = `Pasale este código a tu amigo:<div class="ar-duelo-codigo">${res.codigo}</div>
-        <div class="ar-duelo-comp"><button class="ar-b" id="arDCopiar"><b>Copiar</b></button><button class="ar-b ar-wa" id="arDWa"><b>WhatsApp</b></button></div>
-        <span class="ar-duelo-esp">Esperando a tu amigo… (la sala dura 15 minutos)</span>`;
-      $('arDCopiar').onclick = () => copiarTexto(res.codigo, $('arDCopiar').querySelector('b'));
-      $('arDWa').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent(
-        '¡Te desafío a un duelo Pokémon en Entrenadores RZ! ⚔️\nEntrá a la Arena → Duelo con un amigo y poné este código: *' + res.codigo + '*\n' + link), '_blank', 'noopener');
+      est.textContent = 'Abriendo la sala…';
       conectarSala(res.codigo, alMensaje);
     }).catch(() => { est.textContent = 'Sin conexión, probá de nuevo.'; ocupado(false); });
   };
