@@ -1592,6 +1592,7 @@ const ADV_TILE = {
   'i': {walk:false, label:'Cartel',            pinta:'cartel', cartel:true},
   'b': {walk:true,  label:'Objeto en el piso', pinta:'pisoObjeto', item:'roja'},
   'F': {walk:true,  label:'Ceniza caliente',   pinta:'ceniza', encuentro:'volcan'},
+  '%': {walk:true,  label:'Tierra ardiente',   pinta:'brasa',  encuentro:'fuego'},   // zonas de fuego de Kanto y Johto (29/10): sólo salen Pokémon de fuego
   'C': {walk:true,  label:'Entrada de cueva',  pinta:'entradaCueva', entra:'cueva'},
   'P': {walk:true,  label:'Centro Pokémon',    pinta:'centro',  accion:'centro'},
   'p': {walk:false, label:'Centro Pokémon',    pinta:'techoIzq'},
@@ -2016,6 +2017,18 @@ function repararMapa(mapa, inicioCh){
   mapa.rows = g.map(r => r.join(''));
   return {abiertos, bolsones};
 }
+/* Zonas de fuego (29/10, pedido de Zeta): más lugares donde salen Pokémon de fuego en las dos primeras regiones (Kanto y Johto).
+   Seis claros en cada una, repartidos de norte a sur; centros (x, y) elegidos sobre pasto/árboles lejos de edificios, agua y objetos.
+   Se arma antes de repararMapa, así que si algún claro tapa un camino se vuelve a abrir solo. */
+const ZONAS_FUEGO = [[12, 7], [22, 24], [23, 82], [43, 87], [29, 108], [5, 113],        // Kanto (x 0-54)
+                     [63, 12], [87, 35], [65, 47], [98, 73], [67, 99], [91, 109]];       // Johto (x 55-108)
+(() => {
+  const g = ADV_MAPS.overworld.rows.map(r => r.split(''));
+  ZONAS_FUEGO.forEach(([cx, cy]) => {
+    for(let dy = -2; dy <= 2; dy++) for(let dx = -3; dx <= 3; dx++) if((dx * dx) / 9.5 + (dy * dy) / 4.5 <= 1) g[cy + dy][cx + dx] = '%';
+  });
+  ADV_MAPS.overworld.rows = g.map(r => r.join(''));
+})();
 const MAPA_REPARO = {overworld: repararMapa(ADV_MAPS.overworld, '@'), cueva: repararMapa(ADV_MAPS.cueva, 'E')};
 
 
@@ -2026,6 +2039,7 @@ const ADV_TIPOS = {
   hierba:    ['grass','bug','normal','poison','fairy'],
   agua:      ['water'],
   volcan:    ['fire','rock','ground','dragon'],
+  fuego:     ['fire'],
   cueva:     ['rock','ground','steel','dark','ghost','fighting'],
   hielo:     ['ice'],
   /* 'flying' se sumó acá (06/09 la nota decía "no hay flying" porque sólo
@@ -2038,7 +2052,7 @@ const ADV_TIPOS = {
 };
 /* Probabilidad por casillero caminado. Bajas a propósito: con .18 no se podía
    dar tres pasos sin que saltara un encuentro. */
-const ADV_PROB = { hierba:.14, agua:.12, volcan:.16, cueva:.14, hielo:.16,
+const ADV_PROB = { hierba:.14, agua:.12, volcan:.16, fuego:.16, cueva:.14, hielo:.16,
                    electrico:.16, psiquico:.16, cienaga:.16, legendario:.12 };   // 28/10: Zeta pidió que los salvajes salgan el DOBLE de seguido (antes .07 .06 .08 .07 .08 .08 .08 .08); el legendario no se tocó
 const DESCANSO_ENCUENTRO = 64;   // píxeles a caminar tras un encuentro antes de que salga otro
 
@@ -2523,15 +2537,15 @@ function salvajesActivos(){
   return salvajes.filter(sv => sv.mapa === advMapa && ahora < sv.hasta);
 }
 
-function aparecerSalvajes(pokes, cx, cy){
+function aparecerSalvajes(pokes, cx, cy, libre){   // libre: aparece donde estés parado aunque no sea una zona de encuentro (lo manda el servidor a mano)
   pokes = (pokes || []).filter(Boolean);
   if(!pokes.length) return;
-  const bioma = encuentroDe(advTileEn(cx, cy));
+  const bioma = libre ? null : encuentroDe(advTileEn(cx, cy));
   const sitios = [];
   for(let dy = -5; dy <= 5; dy++) for(let dx = -3; dx <= 3; dx++){
     if(Math.max(Math.abs(dx), Math.abs(dy)) < 2) continue;      // ni arriba tuyo
     const t = advTileEn(cx + dx, cy + dy);
-    if(t && (t.walk || t.pinta === 'agua') && !t.item && !t.entra && !t.cartel && bioma && encuentroDe(t) === bioma) sitios.push({x: cx + dx, y: cy + dy});
+    if(t && (t.walk || t.pinta === 'agua') && !t.item && !t.entra && !t.cartel && (libre ? t.walk && t.pinta !== 'agua' : bioma && encuentroDe(t) === bioma)) sitios.push({x: cx + dx, y: cy + dy});
   }
   for(let i = sitios.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [sitios[i], sitios[j]] = [sitios[j], sitios[i]]; }
   const elegidos = [];
@@ -3477,6 +3491,16 @@ PINTORES.ceniza = (ctx, ox, oy, x, y) => {
   if(ruido(x, y, 41) > .55){
     const gx = ox + 2 + Math.floor(ruido(x, y, 42) * 10), gy = oy + 3 + Math.floor(ruido(x, y, 43) * 8);
     pinta(ctx, p[3], gx, gy, 5, 1); pinta(ctx, p[3], gx + 3, gy + 1, 4, 1);
+  }
+};
+/* Tierra ardiente (zonas de fuego): la ceniza de siempre con más brasas encendidas, para que se note que ahí salen los de fuego. */
+PINTORES.brasa = (ctx, ox, oy, x, y) => {
+  PINTORES.ceniza(ctx, ox, oy, x, y);
+  for(let i = 0; i < 3; i++){
+    const bx = ox + 1 + Math.floor(ruido(x, y, 60 + i) * 12), by = oy + 1 + Math.floor(ruido(x, y, 70 + i) * 12);
+    pinta(ctx, '#C8431A', bx - 1, by - 1, 4, 3);
+    pinta(ctx, '#F28A2E', bx, by, 2, 1);
+    pinta(ctx, '#FFD36A', bx, by, 1, 1);
   }
 };
 
@@ -5204,7 +5228,7 @@ function miniFondo(){
   cv.height = mapa.rows.length * MINI_PX;
   const ctx = cv.getContext('2d');
   const color = {'~':'#2C68C8', 'a':'#E8D9A8', 'B':'#8A5F35', '#':'#2E7A2C', '"':'#2F7A2A',
-                 '^':'#8E8C82', 'V':'#54301F', 'F':'#6F3E21', '.':'#C6AC7C', 'P':'#C0392B',
+                 '^':'#8E8C82', 'V':'#54301F', 'F':'#6F3E21', '%':'#B5481F', '.':'#C6AC7C', 'P':'#C0392B',
                  'p':'#C0392B', 'q':'#C0392B', 'r':'#EFE7D5', 'C':'#151420', 'L':'#C6A6FF',
                  'T':'#C0392B', 'v':'#6B5A44', 'Y':'#3B66A1', 'i':'#B98A50', 'b':'#FFFFFF', 'c':'#F0B400'};
   mapa.rows.forEach((fila, y) => {

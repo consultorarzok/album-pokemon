@@ -767,6 +767,9 @@ function mundoMensaje(m){
   if(m.t === 'batalla'){ batallaEmpezar(m); return; }
   if(m.t === 'todos'){ MUNDO.yo = m.yo; MUNDO.otros = {}; (m.lista || []).forEach(o => mundoPoner(o, ahora, true)); }
   else if(m.t === 'sal') salvajesCompartidos(m);
+  else if(m.t === 'aparece'){   // el servidor te hace aparecer un Pokémon cerca (ya lo dejó entre tus opciones)
+    if(advAbierto && !encuentro && !avistamientoActivo() && POR_ID_C[m.id]) aparecerSalvajes([POR_ID_C[m.id]], Math.floor((advPx + 8) / ADV_PX), Math.floor((advPy + 11) / ADV_PX), true);
+  }
   else if(m.t === 'p') mundoPoner(m, ahora, false);
   else if(m.t === 'sale'){ delete MUNDO.otros[m.id]; delete MUNDO.busca[m.id]; }
 }
