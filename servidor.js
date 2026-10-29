@@ -529,6 +529,22 @@ function elegirSalvajeServidor(p){
   }).catch(() => {}).then(soltar('elegir'));
 }
 
+/* Le salieron salvajes a este entrenador: se avisa a los de al lado (el servidor revisa que sean los que de verdad sorteó) */
+function compartirSalvajes(lista){
+  const ws = MUNDO.ws;
+  if(!ws || ws.readyState !== 1) return;
+  try{ ws.send(JSON.stringify({k: 's', s: lista.map(sv => ({id: sv.p.id, x: sv.x, y: sv.y}))})); }catch(e){}
+}
+/* Eligió uno de los salvajes que le salieron a OTRO: cada uno atrapa el suyo, el servidor valida que el grupo exista y no haya vencido. */
+function unirseSalvajeServidor(sv){
+  if(!servidorListo || enCurso.has('elegir')) return;
+  enCurso.add('elegir');
+  accionServidor('unirseSalvaje', {sp: sv.comp, id: sv.p.id}).then(res => {
+    if(res.ok && advAbierto && !encuentro) iniciarEncuentro(POR_ID_C[res.resultado.id]);
+    else if(!res.ok) advMensaje('💨 Se escapó antes de que llegaras.');
+  }).catch(() => {}).then(soltar('elegir'));
+}
+
 /* Cerca de un altar el juego tiraba los dados en cada paso; con servidor se juntan los pasos y
    se pregunta como mucho una vez por segundo (el servidor tira los dados por cada paso). */
 let altarPasos = 0, altarEnVuelo = false, altarUltimo = 0;
@@ -750,6 +766,7 @@ function mundoMensaje(m){
   if(m.t === 'busca_no'){ delete MUNDO.busca[m.id]; return; }
   if(m.t === 'batalla'){ batallaEmpezar(m); return; }
   if(m.t === 'todos'){ MUNDO.yo = m.yo; MUNDO.otros = {}; (m.lista || []).forEach(o => mundoPoner(o, ahora, true)); }
+  else if(m.t === 'sal') salvajesCompartidos(m);
   else if(m.t === 'p') mundoPoner(m, ahora, false);
   else if(m.t === 'sale'){ delete MUNDO.otros[m.id]; delete MUNDO.busca[m.id]; }
 }

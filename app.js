@@ -2546,6 +2546,20 @@ function aparecerSalvajes(pokes, cx, cy){
   const nombres = salvajes.map(sv => `<b>${sv.p.name}</b>`);
   const lista = nombres.length > 1 ? nombres.slice(0, -1).join(', ') + ' y ' + nombres[nombres.length - 1] : nombres[0];
   advMensaje(`👀 ¡Aparecieron ${lista}! Acercate al que quieras atrapar`);
+  if(MODO_SERVIDOR && typeof compartirSalvajes === 'function') compartirSalvajes(salvajes);   // los entrenadores cercanos los ven en el mismo lugar
+}
+
+/* A otro entrenador cercano le salieron estos Pokémon: se ven en las mismas coordenadas y cada uno atrapa el suyo. */
+function salvajesCompartidos(m){
+  if(!advAbierto || advMapa !== m.m || encuentro || avistamientoActivo() || salvajesActivos().length) return;
+  const items = (m.items || []).filter(it => POR_ID_C[it.id] && Number.isInteger(it.x) && Number.isInteger(it.y)).slice(0, 3);
+  if(!items.length) return;
+  const hasta = Date.now() + Math.min(Number(m.ms) || SALVAJE_VIVE_MS, SALVAJE_VIVE_MS);
+  salvajes = items.map(it => ({p: POR_ID_C[it.id], mapa: m.m, x: it.x, y: it.y, hasta, comp: m.sp}));
+  salvajes.forEach(sv => spriteDe(sv.p, SALVAJE_TAM, SALVAJE_SPRITE_CACHE));
+  const nombres = salvajes.map(sv => `<b>${sv.p.name}</b>`);
+  const lista = nombres.length > 1 ? nombres.slice(0, -1).join(', ') + ' y ' + nombres[nombres.length - 1] : nombres[0];
+  advMensaje(`👀 ¡${String(m.de || 'Un entrenador').replace(/[<>&]/g, '')} encontró ${lista}! Vos también podés atrapar uno`);
 }
 
 function salvajeTocado(){
@@ -2556,7 +2570,7 @@ function salvajeTocado(){
 function elegirSalvaje(sv){
   salvajes = [];
   advDescanso = DESCANSO_ENCUENTRO;
-  if(MODO_SERVIDOR) return elegirSalvajeServidor(sv.p);
+  if(MODO_SERVIDOR) return sv.comp ? unirseSalvajeServidor(sv) : elegirSalvajeServidor(sv.p);
   iniciarEncuentro(sv.p);
 }
 
