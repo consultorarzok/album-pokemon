@@ -144,6 +144,7 @@ function aplicarProgreso(P, conAlbum = true){
   if(servidorListo && !premioAlbumPedido && Object.keys(state).every(id => state[id].got)){ premioAlbumPedido = true; setTimeout(cobrarRegalosServidor, 3000); }
   eventosServidor = P.eventos || {};
   diamantes = P.diamantes || 0; monturas = P.monturas || {}; montura = P.montura || null;
+  npcRegalos = P.npc || {};
   if(typeof actualizarBotonMontura === 'function') actualizarBotonMontura();
   saveProgress();   // queda una copia en el navegador para que la próxima vez arranque rápido
   if(conAlbum){ renderGrid(); updateProgress(); renderEspeciales(); }
@@ -459,6 +460,41 @@ function monturaElegirServidor(clave){
   }).catch(() => {}).then(soltar('montura'));
 }
 
+/* ---------------- NPC que regalan pokébolas (Gobernador Sadir) ---------------- */
+let npcRegalos = {};   // npc -> cuándo cobraste (ms), viene del servidor
+const NPC_CADA_MS = 24 * 3600e3;
+let npcActual = null;
+function npcBoton(cerca){
+  const b = document.getElementById('advNpcBtn');
+  if(!b) return;
+  npcActual = cerca;
+  const ver = !!cerca && servidorListo;
+  if(b.hidden === ver) b.hidden = !ver;
+  if(ver && b.dataset.npc !== cerca.id){ b.dataset.npc = cerca.id; b.textContent = '🎁 Hablar con ' + cerca.nombre; }
+}
+function npcFaltante(npc){
+  const falta = (npcRegalos[npc] || 0) + NPC_CADA_MS - Date.now();
+  if(falta <= 0) return '';
+  const h = Math.floor(falta / 3600e3), m = Math.ceil((falta % 3600e3) / 60e3);
+  return h ? `${h} h ${m} min` : `${m} min`;
+}
+function hablarConNpc(){
+  const n = npcActual;
+  if(!n || !puedeJugar('npc')) return;
+  const espera = npcFaltante(n.id);
+  if(espera){ soltar('npc')(); return advMensaje(`🏛️ <b>${n.nombre}</b>: ¡Ya te di tus pokébolas de hoy! Volvé en ${espera}.`); }
+  accionServidor('regaloNpc', {npc: n.id, mapa: advMapa, x: Math.round(advPx), y: Math.round(advPy)}).then(res => {
+    if(!res.ok){
+      if(res.motivo === 'lejos_del_npc') return advMensaje('Acercate un poco más 🚶');
+      if(res.motivo === 'volve_mas_tarde') return advMensaje(`🏛️ <b>${n.nombre}</b>: ¡Ya te di tus pokébolas de hoy! Volvé mañana.`);
+      return avisoServidor(res.motivo);
+    }
+    const b = res.resultado.bolas, txt = Object.keys(b).map(t => `+${b[t]} ${BOLAS[t] ? BOLAS[t].nombre : t}`).join(' · ');
+    advMensaje(`🏛️ <b>${n.nombre}</b>: ¡Para los entrenadores de Jujuy!<br>${txt}`);
+  }).catch(() => {}).then(soltar('npc'));
+}
+(() => { const b = document.getElementById('advNpcBtn'); if(b) b.onclick = hablarConNpc; })();
+
 /* ---------------- Aventura ---------------- */
 function levantarServidor(mapa, x, y){
   if(!servidorListo) return;
@@ -701,7 +737,7 @@ function mundoSalir(){
   const ws = MUNDO.ws; MUNDO.ws = null;
   if(ws) try{ ws.close(); }catch(e){}
   MUNDO.otros = {}; MUNDO.globos = {}; MUNDO.busca = {};
-  chatMostrarBoton(false); batallaReiniciar();
+  chatMostrarBoton(false); batallaReiniciar(); npcBoton(null);
   sincronizarNombres([], 1);
   sincronizarBatGlobos([], 1);
   sincronizarGlobos([], 1);
@@ -721,8 +757,8 @@ function mundoPoner(o, ahora, saltar){
   const v = MUNDO.otros[o.id];
   // cambió de mapa o pegó un salto grande (Centro Pokémon, cueva): aparece directo, sin deslizarse
   if(!v || saltar || v.m !== o.m || Math.abs(v.x - o.x) + Math.abs(v.y - o.y) > 64)
-    MUNDO.otros[o.id] = {n: o.n, av: o.av, mo: o.mo || null, m: o.m, x: o.x, y: o.y, tx: o.x, ty: o.y, d: o.d, visto: ahora};
-  else Object.assign(v, {n: o.n, av: o.av, mo: o.mo || null, tx: o.x, ty: o.y, d: o.d, visto: ahora});
+    MUNDO.otros[o.id] = {n: o.n, av: o.av, mo: o.mo || null, npc: o.npc || null, m: o.m, x: o.x, y: o.y, tx: o.x, ty: o.y, d: o.d, visto: ahora};
+  else Object.assign(v, {n: o.n, av: o.av, mo: o.mo || null, npc: o.npc || null, tx: o.x, ty: o.y, d: o.d, visto: ahora});
 }
 /* Se llama en cada cuadro desde advRender, antes de dibujar al propio jugador (que queda arriba). */
 function dibujarOtros(ctx, camX, camY, vw, vh, escala){
@@ -736,6 +772,7 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
     }
   }
   const nombres = [], globos = [], bats = [];
+  let npcCerca = null;
   if(MUNDO.buscando) bats.push({id: null, px: advPx - camX, py: advPy - camY});
   const miGlobo = MUNDO.globos[MUNDO.yo];
   if(miGlobo && ahora < miGlobo.hasta) globos.push({txt: miGlobo.txt, px: advPx - camX, py: advPy - camY});
@@ -750,6 +787,7 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
     if(sx < -24 || sy < -32 || sx > vw + 8 || sy > vh + 8) continue;
     if(!(o.mo && dibujarMontadoOtro(ctx, sx, sy, o, camina))) dibujarEntrenador(ctx, sx, sy, o.d, camina ? Math.floor(ahora / 140) % 4 : 0, o.av);
     nombres.push({n: o.n, px: sx, py: sy});
+    if(o.npc && Math.abs(o.x - advPx) <= 40 && Math.abs(o.y - advPy) <= 40) npcCerca = {id: o.npc, nombre: o.n};
     if(MUNDO.busca[id] && ahora < MUNDO.busca[id] && !MUNDO.buscando) bats.push({id, px: sx, py: sy});
     const g = MUNDO.globos[id];
     if(g && ahora < g.hasta) globos.push({txt: g.txt, px: sx, py: sy});
@@ -758,6 +796,7 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
   sincronizarNombres(nombres, escala);
   sincronizarGlobos(globos, escala);
   sincronizarBatGlobos(bats, escala);
+  npcBoton(npcCerca);
 }
 /* Los globos de chat son <span> que se mueven con el personaje (textContent: nunca HTML). */
 function sincronizarGlobos(lista, escala){

@@ -20,10 +20,10 @@ const SHOTS = process.env.SHOTS || '';
       sessionStorage.setItem('sembrado', '1');
       localStorage.setItem('album-avatar','red'); localStorage.setItem('album-kanto-jugador', 'Tester'); localStorage.setItem('album-servidor', 'off');
       const st = {}; for(let i = 1; i <= 1025; i++) st[i] = {got:false, dup:0};
-      st[1] = {got:true, dup:10, ej:[{f:10,c:'AAAA'},{f:40,c:'BBBB'},{f:90,c:'CCCC',s:true},{f:70,c:'DDDD'},{f:20,c:'EEEE'},{f:30,c:'FFFF'},{f:1,c:'X001'},{f:2,c:'X002'},{f:3,c:'X003'},{f:4,c:'X004'},{f:5,c:'X005'}]};   // Bulbasaur: 10 rep -> Ivysaur (10)
+      st[1] = {got:true, dup:5, ej:[{f:10,c:'AAAA'},{f:40,c:'BBBB'},{f:90,c:'CCCC',s:true},{f:70,c:'DDDD'},{f:20,c:'EEEE'},{f:30,c:'FFFF'}]};   // Bulbasaur: 5 rep -> Ivysaur (5)
       st[2] = {got:true, dup:0};                                                                                // Ivysaur sin repetidas
-      st[4] = {got:true, dup:10};                                                                               // Charmander 10 rep
-      st[133] = {got:true, dup:19};                                                                              // Eevee 4: Vaporeon/Jolteon/Flareon (Rara 15) sí, Espeon/Umbreon (Épico 20) no
+      st[4] = {got:true, dup:5};                                                                                // Charmander 5 rep
+      st[133] = {got:true, dup:9};                                                                               // Eevee 4: Vaporeon/Jolteon/Flareon (Rara 8) sí, Espeon/Umbreon (Épico 10) no
       st[10] = {got:true, dup:1};                                                                               // Caterpie: no alcanza
       localStorage.setItem('album-kanto-progreso', JSON.stringify({coins:300, state:st}));
     });
@@ -41,7 +41,7 @@ const SHOTS = process.env.SHOTS || '';
     check('lista los que tienen repetidas y evolucionan (Bulbasaur, Charmander, Caterpie, Eevee)', ['Bulbasaur','Charmander','Caterpie','Eevee'].every(n => filas.includes(n)) && filas.length === 4);
     check('los que se pueden evolucionar ya van primero', filas.indexOf('Caterpie') === 3);
     const eevee = await p.$$eval('#evolucionList .ej-fila', fs => { const f = fs.find(x => x.querySelector('b').textContent === 'Eevee'); return [...f.querySelectorAll('.evo-btn')].map(b => b.textContent.replace(/\s+/g,' ').trim() + (b.disabled ? ' [off]' : ' [on]')); });
-    check('Eevee: ramas Rara (15) habilitadas y Épico (20) apagadas con "te falta 1"', eevee.some(t => /Vaporeon.*15 repetidas.*\[on\]/.test(t)) && eevee.some(t => /Espeon.*te faltan 1.*\[off\]/.test(t)));
+    check('Eevee: ramas Rara (8) habilitadas y Épico (10) apagadas con "te falta 1"', eevee.some(t => /Vaporeon.*8 repetidas.*\[on\]/.test(t)) && eevee.some(t => /Espeon.*te faltan 1.*\[off\]/.test(t)));
     if(SHOTS) await p.screenshot({path: SHOTS + '/evolucion-' + w + '-lista.png'});
 
     // Bulbasaur: elijo la shiny (90) y evoluciono a Ivysaur
@@ -57,7 +57,7 @@ const SHOTS = process.env.SHOTS || '';
     await p.evaluate(() => document.getElementById('closeBtn').click());
     await p.waitForTimeout(300);
 
-    // Charmander: 3 rep -> Charmeleon (Poco Común: 10) y recién 0 -> no se puede seguir
+    // Charmander: 3 rep -> Charmeleon (Poco Común: 5) y recién 0 -> no se puede seguir
     await p.evaluate(() => evolucionar(4, 5, ejemplares(4)[0].c));
     await p.waitForTimeout(600);
     check('Charmander -> Charmeleon: nuevo, Charmander queda con 1', await p.evaluate(() => state[5].got && state[5].dup === 0 && state[4].dup === 0 && ejemplares(4).length === 1));

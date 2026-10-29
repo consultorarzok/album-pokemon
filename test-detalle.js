@@ -54,7 +54,7 @@ const SHOTS = process.env.SHOTS || '';
     const chips = await p.$$eval('#detalleBody .ej-chip', c => c.map(x => x.textContent.replace(/\s+/g, ' ').trim()));
     check('lista las 3 copias con su fuerza, la shiny primero y ⭐ Arena', chips.length === 3 && /✨.*88/.test(chips[0]) && /Arena/.test(chips[0]) && /30/.test(chips[2]), chips);
     check('marca shiny', /Shiny/.test(txt));
-    check('evolución: → Ivysaur · cuesta 10 · te faltan 8', /Ivysaur.*cuesta 10.*te faltan 8/.test(txt), txt);
+    check('evolución: → Ivysaur · cuesta 5 · te faltan 3', /Ivysaur.*cuesta 5.*te faltan 3/.test(txt), txt);
     if(SHOTS) await p.screenshot({path: SHOTS + '/detalle-' + w + '.png'});
     await p.keyboard.press('Escape'); await p.waitForTimeout(300);
     check('Escape cierra la ficha y queda la Pokédex', !(await p.isVisible('#detalleOverlay .reveal-panel')) && await p.isVisible('#pokedexOverlay'));

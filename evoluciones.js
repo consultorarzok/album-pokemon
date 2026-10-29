@@ -463,4 +463,4 @@ const EVOLUCIONES = {
   1011:[1019],
   1012:[1013]
 };
-const COSTO_EVOLUCION = {'Común':10, 'Poco Común':10, 'Rara':15, 'Épico':20, 'Legendario':25};
+const COSTO_EVOLUCION = {'Común':5, 'Poco Común':5, 'Rara':8, 'Épico':10, 'Legendario':13};   // 29/10: bajado a la mitad (antes 10/10/15/20/25)

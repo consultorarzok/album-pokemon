@@ -2631,6 +2631,19 @@ let advCartelHasta = 0;          // hasta cuándo manda el cartel grande de regi
 let advRaf = null;
 let advUltimo = 0;
 const advTomados = new Set();    // pokébolas del piso ya levantadas
+/* Las pokébolas del piso vuelven cada 6 h (cortes a las 00, 06, 12 y 18 de Jujuy; el servidor es el que manda, esto sólo las vuelve a mostrar
+   si se pasa el corte con la Aventura abierta). Las monedas no vuelven. */
+let advTanda = null;
+function advRepone(){
+  const t = Math.floor((Date.now() - 3 * 3600e3) / (6 * 3600e3));
+  if(advTanda === t) return;
+  if(advTanda !== null) [...advTomados].forEach(k => {
+    const m = /^([^:]+):(\d+),(\d+)$/.exec(k), mapa = m && ADV_MAPS[m[1]];
+    const tl = mapa && ADV_TILE[(mapa.rows[Number(m[3])] || '')[Number(m[2])]];
+    if(tl && tl.item && tl.item !== 'moneda') advTomados.delete(k);
+  });
+  advTanda = t;
+}
 
 /* ---------- Tiles pixel-art de 16x16 ----------
    Estética de los cenitales de 16 bits estilo Pocky & Rocky (Natsume, SNES):
@@ -4062,7 +4075,8 @@ function agregarBordeCanvas(origen, colorBorde){
    y no se pregunte de nuevo en otro celular. */
 const AVATARES = {
   red: {src: 'images/red_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true},
-  may: {src: 'images/may_walk.png', fw: 16, fh: 21, w: 16, h: 21, suave: false}   // ya viene a tamaño real: se copia pixel por pixel
+  may: {src: 'images/may_walk.png', fw: 16, fh: 21, w: 16, h: 21, suave: false},   // ya viene a tamaño real: se copia pixel por pixel
+  sadir: {src: 'images/sadir_walk.png', fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true}   // el Gobernador (NPC de la Aventura): no se puede elegir
 };
 let avatarActual = 'red';
 try{ if(AVATARES[localStorage.getItem('album-avatar')]) avatarActual = localStorage.getItem('album-avatar'); }catch(e){}
@@ -4141,7 +4155,7 @@ function spriteJugadorCacheado(dir, paso, av = avatarActual){
 
 /* Personajes en alta resolución: se dibuja el cuadro de la hoja original (Red 48x72) sin achicarlo a 14x21.
    May es de 16x21: se agranda con píxeles nítidos (nearest) y recién después se ajusta a la pantalla. */
-const HD_AVATAR = {red: {dw: 11.3, dh: 17, up: 1}, may: {dw: 12.4, dh: 16.4, up: 8}};   // ~1 casillero de alto (antes 1,5): el terreno pesa más
+const HD_AVATAR = {red: {dw: 11.3, dh: 17, up: 1}, may: {dw: 12.4, dh: 16.4, up: 8}, sadir: {dw: 11.7, dh: 17.5, up: 1}};   // ~1 casillero de alto (antes 1,5): el terreno pesa más
 const HD_CACHE = {};
 function spriteHD(av, dir, paso){
   if(!HD_AVATAR[av]) av = 'red';
@@ -5076,6 +5090,7 @@ function advRealce(ctx, mapa, camX, camY, vw, vh){
 }
 
 function advRender(){
+  advRepone();
   const cv = document.getElementById('advMap');
   const mapa = ADV_MAPS[advMapa];
   const anchoCss = cv.clientWidth  || window.innerWidth;

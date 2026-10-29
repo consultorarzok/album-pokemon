@@ -278,6 +278,9 @@
   .adv-montbtn{overflow:hidden;}
   .adv-montbtn img{width:64px;height:48px;image-rendering:pixelated;margin-top:-10px;flex:none;}
   .adv-montbtn.puesta{background:#2d6cdf;border-color:#a9c6ff;}
+  .adv-npcbtn{position:absolute;left:50%;bottom:76px;transform:translateX(-50%);z-index:4;height:44px;padding:0 18px;border-radius:22px;background:#2d6cdf;color:#fff;border:2px solid #a9c6ff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.4);white-space:nowrap;}
+  .adv-npcbtn:active{transform:translateX(-50%) scale(.96);}
+  .adv-npcbtn[hidden]{display:none;}
   .adv-batbtn.buscando{background:#C81F1F;border-color:#ff9a90;animation:advBat 1s ease-in-out infinite;}
   @keyframes advBat{0%,100%{box-shadow:0 0 0 0 rgba(255,106,96,.7);}50%{box-shadow:0 0 0 10px rgba(255,106,96,0);}}
   .adv-batglobos{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;}
