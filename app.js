@@ -2537,7 +2537,7 @@ function salvajesActivos(){
   return salvajes.filter(sv => sv.mapa === advMapa && ahora < sv.hasta);
 }
 
-function aparecerSalvajes(pokes, cx, cy, libre){   // libre: aparece donde estés parado aunque no sea una zona de encuentro (lo manda el servidor a mano)
+function aparecerSalvajes(pokes, cx, cy, libre, privado){   // libre: aparece donde estés parado aunque no sea una zona de encuentro (lo manda el servidor a mano)
   pokes = (pokes || []).filter(Boolean);
   if(!pokes.length) return;
   const bioma = libre ? null : encuentroDe(advTileEn(cx, cy));
@@ -2560,7 +2560,7 @@ function aparecerSalvajes(pokes, cx, cy, libre){   // libre: aparece donde esté
   const nombres = salvajes.map(sv => `<b>${sv.p.name}</b>`);
   const lista = nombres.length > 1 ? nombres.slice(0, -1).join(', ') + ' y ' + nombres[nombres.length - 1] : nombres[0];
   advMensaje(`👀 ¡Aparecieron ${lista}! Acercate al que quieras atrapar`);
-  if(MODO_SERVIDOR && typeof compartirSalvajes === 'function') compartirSalvajes(salvajes);   // los entrenadores cercanos los ven en el mismo lugar
+  if(MODO_SERVIDOR && !privado && typeof compartirSalvajes === 'function') compartirSalvajes(salvajes);   // los entrenadores cercanos los ven en el mismo lugar
 }
 
 /* A otro entrenador cercano le salieron estos Pokémon: se ven en las mismas coordenadas y cada uno atrapa el suyo. */

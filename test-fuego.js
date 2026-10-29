@@ -59,6 +59,10 @@ const suf = Math.random().toString(36).slice(2, 5);
     await p.evaluate(() => { const o = salvajesActivos()[0]; if(!o) return; const dx = o.x * 16 + 8 - (advPx + 8), dy = o.y * 16 + 8 - (advPy + 11), l = Math.hypot(dx, dy) || 1; advEje = {x: dx / l, y: dy / l}; });
     await p.waitForTimeout(100);
   }
+  if(!(await p.isVisible('#encOverlay'))){   // si un árbol lo frenó, se para al lado y da el último paso
+    await p.evaluate(() => { const o = salvajesActivos()[0]; if(o){ advPonerEn(o.x, o.y); advEje = {x: 1, y: 0}; } });
+    for(let i = 0; i < 20 && !(await p.isVisible('#encOverlay')); i++) await p.waitForTimeout(100);
+  }
   await p.evaluate(() => { advEje = {x: 0, y: 0}; });
   check('lo puede atrapar: se abre su pelea con Charizard', await p.isVisible('#encOverlay') && await p.evaluate(() => encuentro && encuentro.p.name === 'Charizard'));
   check('sin errores de página', errores.length === 0); if(errores.length) console.log(errores);
