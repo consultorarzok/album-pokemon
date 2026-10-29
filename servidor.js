@@ -721,15 +721,15 @@ function mundoPoner(o, ahora, saltar){
   const v = MUNDO.otros[o.id];
   // cambió de mapa o pegó un salto grande (Centro Pokémon, cueva): aparece directo, sin deslizarse
   if(!v || saltar || v.m !== o.m || Math.abs(v.x - o.x) + Math.abs(v.y - o.y) > 64)
-    MUNDO.otros[o.id] = {n: o.n, av: o.av, m: o.m, x: o.x, y: o.y, tx: o.x, ty: o.y, d: o.d, visto: ahora};
-  else Object.assign(v, {n: o.n, av: o.av, tx: o.x, ty: o.y, d: o.d, visto: ahora});
+    MUNDO.otros[o.id] = {n: o.n, av: o.av, mo: o.mo || null, m: o.m, x: o.x, y: o.y, tx: o.x, ty: o.y, d: o.d, visto: ahora};
+  else Object.assign(v, {n: o.n, av: o.av, mo: o.mo || null, tx: o.x, ty: o.y, d: o.d, visto: ahora});
 }
 /* Se llama en cada cuadro desde advRender, antes de dibujar al propio jugador (que queda arriba). */
 function dibujarOtros(ctx, camX, camY, vw, vh, escala){
   const ahora = performance.now();
   const ws = MUNDO.ws;
   if(ws && ws.readyState === 1 && ahora - MUNDO.ultimoEnvio > 200){
-    const msg = JSON.stringify({k: 'p', m: advMapa, x: Math.round(advPx), y: Math.round(advPy), d: advDir, p: advPaso});
+    const msg = JSON.stringify({k: 'p', m: advMapa, x: Math.round(advPx), y: Math.round(advPy), d: advDir, p: advPaso, mo: montura || null});
     if(msg !== MUNDO.ultimo || ahora - MUNDO.ultimoEnvio > 20000){
       try{ ws.send(msg); }catch(e){}
       MUNDO.ultimo = msg; MUNDO.ultimoEnvio = ahora;
@@ -748,7 +748,7 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
     o.x += dx * .2; o.y += dy * .2;   // se desliza hacia la última posición que llegó
     const sx = o.x - camX, sy = o.y - camY;
     if(sx < -24 || sy < -32 || sx > vw + 8 || sy > vh + 8) continue;
-    dibujarEntrenador(ctx, sx, sy, o.d, camina ? Math.floor(ahora / 140) % 4 : 0, o.av);
+    if(!(o.mo && dibujarMontadoOtro(ctx, sx, sy, o, camina))) dibujarEntrenador(ctx, sx, sy, o.d, camina ? Math.floor(ahora / 140) % 4 : 0, o.av);
     nombres.push({n: o.n, px: sx, py: sy});
     if(MUNDO.busca[id] && ahora < MUNDO.busca[id] && !MUNDO.buscando) bats.push({id, px: sx, py: sy});
     const g = MUNDO.globos[id];

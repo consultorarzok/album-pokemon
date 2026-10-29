@@ -39,10 +39,10 @@ async function sesion(br, nombre, disp, regalos){
   const regalos = await q.evaluate(() => REGALOS.map(r => r.id)); await q.close();
   const suf = Math.random().toString(36).slice(2, 6);
 
-  /* un chico cualquiera: no ve la sección de diamantes */
+  /* un chico cualquiera: desde 29/10 también ve la tienda de monturas (sin monturas compradas no hay botón 🐴) */
   const c = await sesion(br, 'Chico ' + suf, 'dchico' + suf, regalos);
   await c.evaluate(() => { abrirAventura(); abrirTienda(); });
-  check('un chico NO ve la sección de monturas', await c.evaluate(() => !document.getElementById('shopList').textContent.includes('Monturas')));
+  check('un chico ve la sección de monturas', await c.evaluate(() => document.getElementById('shopList').textContent.includes('Monturas')));
   check('un chico NO ve el botón 🐴', await c.evaluate(() => document.getElementById('advMontBtn').hidden));
 
   await c.context().close();
