@@ -4181,7 +4181,7 @@ function dibujarEntrenador(ctx, ox, oy, dir, paso, av){
   if(spr) ctx.drawImage(spr, ox - (spr.width - 16) / 2, oy - 7);   // mientras carga la hoja: el de siempre
 }
 /* ---------- Monturas (tienda de diamantes) ----------
-   Modo prueba: sólo la cuenta de Zeta. El precio que vale es el del servidor (juego.js, MONTURAS); acá es para mostrarlo.
+   Abierta a todos los jugadores (29/10). El precio que vale es el del servidor (juego.js, MONTURAS); acá es para mostrarlo.
    Se dibujan con el arte oficial (grande y claro) en una sola pose, espejada según hacia dónde caminás.
    alto = alto en el mapa (px de mundo; el entrenador mide ~17) · asiento = [x, y] del lugar donde se sienta, como fracción del dibujo
    mira = hacia dónde mira el arte original ('izq'/'der'; null = de frente) · vuela = flota en el aire con sombra abajo
@@ -4200,7 +4200,7 @@ const MONTURAS = {
 };
 const MONTURA_VEL = 1.45;                    // montado se camina más rápido
 let diamantes = 0, monturas = {}, montura = null;   // montura = clave de la que está puesta, o null
-const tiendaDiamantes = () => { try{ return MODO_SERVIDOR && claveNombre(jugador) === 'zeta centeno'; }catch(e){ return false; } };   // try: al arrancar `jugador` todavía no existe (let más abajo)
+const tiendaDiamantes = () => MODO_SERVIDOR;
 const MONTURA_IMG = {};
 function monturaImagen(m){
   if(!MONTURA_IMG[m.id]){
@@ -5653,7 +5653,7 @@ function renderTienda(){
   if(tiendaDiamantes()){
     const tit = document.createElement('div');
     tit.style.cssText = "font-family:'Baloo 2',sans-serif;font-size:13px;margin:14px 0 8px;";
-    tit.innerHTML = `💎 Monturas · tenés <b>${diamantes}</b> diamantes <span style="color:var(--ink-dim);font-size:10px;">(modo prueba)</span>`;
+    tit.innerHTML = `💎 Monturas · tenés <b>${diamantes}</b> diamantes`;
     lista.appendChild(tit);
     Object.keys(MONTURAS).forEach(clave => {
       const m = MONTURAS[clave], mia = !!monturas[clave];
