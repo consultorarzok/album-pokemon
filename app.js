@@ -6696,9 +6696,13 @@ function iconoPuesto(puesto){
   return '<img class="rank-medal" src="images/crown-' + nivel + '.svg" alt="Corona de ' + nivel + '">';
 }
 
-/* Entrenadores de más que se suman al contador, y en línea se suma 3, 7 u 8 a los reales. */
+/* Entrenadores de más que se suman al contador, y a los en línea reales se les suma un extra según la hora. */
 const ENTRENADORES_EXTRA = 87;
-const EN_LINEA_EXTRA = [3, 7, 8][Math.floor(Math.random() * 3)];
+/* De 1 a 8 de la madrugada (hora de Argentina) suma 3; el resto del día sortea 7 u 8. */
+const EN_LINEA_EXTRA = (() => {
+  const hora = (new Date().getUTCHours() + 21) % 24;
+  return hora >= 1 && hora < 8 ? 3 : (Math.random() < 0.5 ? 7 : 8);
+})();
 
 function pintarEnLinea(){
   const el = document.getElementById('rankOnline');
