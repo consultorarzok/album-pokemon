@@ -6415,7 +6415,7 @@ function renderRankMaestroHistorico(lista, cont, done){
     cont.hidden = true;
   } else {
     const filas = (ultimoTopMaestro.top || []).slice(0, TOPE_RANKING);
-    document.getElementById('rankCountNum').textContent = ultimoTopMaestro.jugadores || 0;
+    document.getElementById('rankCountNum').textContent = (ultimoTopMaestro.jugadores || 0) + ENTRENADORES_EXTRA;
     cont.hidden = false;
     if(!filas.length){
       lista.innerHTML = '<div class="rank-empty">Todavía nadie ganó en la Arena. ¡Ganá una batalla y sé el primer Maestro!</div>';
@@ -6696,12 +6696,16 @@ function iconoPuesto(puesto){
   return '<img class="rank-medal" src="images/crown-' + nivel + '.svg" alt="Corona de ' + nivel + '">';
 }
 
+/* Entrenadores de más que se suman al contador, y en línea se suma 3, 7 u 8 a los reales. */
+const ENTRENADORES_EXTRA = 87;
+const EN_LINEA_EXTRA = [3, 7, 8][Math.floor(Math.random() * 3)];
+
 function pintarEnLinea(){
   const el = document.getElementById('rankOnline');
   if(!el) return;
   const n = ultimoTop && Number.isFinite(ultimoTop.enLinea) ? ultimoTop.enLinea : null;
   el.hidden = n === null;
-  if(n !== null) document.getElementById('rankOnlineNum').textContent = n;
+  if(n !== null) document.getElementById('rankOnlineNum').textContent = n + EN_LINEA_EXTRA;
 }
 
 /* Los rankings muestran sólo los 10 primeros (el servidor puede mandar más). */
@@ -6752,7 +6756,7 @@ function renderRank(){
   /* Cantidad total de entrenadores que jugaron alguna vez (no es un tab: es
      un dato fijo al lado de Hoy/Histórico). */
   if(Number.isFinite(ultimoTop.jugadores)){
-    document.getElementById('rankCountNum').textContent = ultimoTop.jugadores;
+    document.getElementById('rankCountNum').textContent = ultimoTop.jugadores + ENTRENADORES_EXTRA;
     cont.hidden = false;
   } else {
     cont.hidden = true;
@@ -6889,7 +6893,7 @@ function renderRankEvento(lista, cont){
   }
   const filas = (ultimoTopEvento.top || []).slice(0, TOPE_RANKING);
   if(Number.isFinite(ultimoTopEvento.jugadores)){
-    document.getElementById('rankCountNum').textContent = ultimoTopEvento.jugadores;
+    document.getElementById('rankCountNum').textContent = ultimoTopEvento.jugadores + ENTRENADORES_EXTRA;
     cont.hidden = false;
   } else {
     cont.hidden = true;
