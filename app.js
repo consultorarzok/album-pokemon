@@ -2222,14 +2222,17 @@ const BOLAS = {
    recibe Incursión Balls según la parte del daño que hizo (3 / 2 / 1) para tirarle. El servidor (juego.js) usa esta misma tabla. */
 const INCURSIONES = {
   duracionMin: 30, jugadores: 5, probAtrapar: .35, vidaJefe: 12,
+  /* Zeta 31/10: 4 turnos fijos al día para todos (hora de Jujuy); en cada turno abren `porTurno` guaridas, que rotan para que cada región le toque
+     cada tanto. Un solo intento por entrenador por turno (para todas las guaridas juntas). */
+  turnos: [9, 14, 19, 23], porTurno: 2,
   regiones: [
-    {region: 'kanto',  legendario: 150, horas: [10, 19]},   // Mewtwo
-    {region: 'johto',  legendario: 249, horas: [11, 20]},   // Lugia
-    {region: 'hoenn',  legendario: 384, horas: [12, 21]},   // Rayquaza
-    {region: 'sinnoh', legendario: 487, horas: [13, 22]},   // Giratina
-    {region: 'unova',  legendario: 646, horas: [14, 18]},   // Kyurem
-    {region: 'kalos',  legendario: 716, horas: [15, 17]},   // Xerneas
-    {region: 'alola',  legendario: 800, horas: [16, 20]}    // Necrozma
+    {region: 'kanto',  legendario: 150},   // Mewtwo
+    {region: 'johto',  legendario: 249},   // Lugia
+    {region: 'hoenn',  legendario: 384},   // Rayquaza
+    {region: 'sinnoh', legendario: 487},   // Giratina
+    {region: 'unova',  legendario: 646},   // Kyurem
+    {region: 'kalos',  legendario: 716},   // Xerneas
+    {region: 'alola',  legendario: 800}    // Necrozma
   ]
 };
 /* Los legendarios de las incursiones SÓLO se consiguen ahí (Zeta 31/10): sobres, canje, pasto, altares y regalos al azar usan DATA_LIBRE */
@@ -2238,16 +2241,23 @@ const DATA_LIBRE = DATA.filter(p => !SOLO_INCURSION.has(p.id));
 const GUARIDAS = [{"region": "kanto", "x0": 2, "y0": 102, "w": 13, "h": 11, "suelo": "verde", "puerta": [8, 109], "piso": [3, 2, 7, 5]}, {"region": "johto", "x0": 60, "y0": 103, "w": 13, "h": 11, "suelo": "verde", "puerta": [66, 110], "piso": [3, 2, 7, 5]}, {"region": "hoenn", "x0": 116, "y0": 102, "w": 13, "h": 11, "suelo": "fuego", "puerta": [122, 109], "piso": [3, 2, 7, 5]}, {"region": "sinnoh", "x0": 168, "y0": 103, "w": 13, "h": 11, "suelo": "fuego", "puerta": [174, 110], "piso": [3, 2, 7, 5]}, {"region": "unova", "x0": 222, "y0": 103, "w": 13, "h": 11, "suelo": "verde", "puerta": [228, 110], "piso": [3, 2, 7, 5]}, {"region": "kalos", "x0": 276, "y0": 103, "w": 13, "h": 11, "suelo": "verde", "puerta": [282, 110], "piso": [3, 2, 7, 5]}, {"region": "alola", "x0": 2, "y0": 147, "w": 13, "h": 11, "suelo": "fuego", "puerta": [8, 154], "piso": [3, 2, 7, 5]}];   // (las escribe aplicar_mundo6.py: dónde está cada guarida en el mapa)
 const INC_BALL = {nombre: 'Incursión Ball', img: ITEM_CDN + 'beast-ball.png'};
 let incBolas = 0, incursionPendiente = null;   // vienen del servidor
+/* ¿Qué guaridas abren en cada turno? El número de turno (día * 4 + turno del día) reparte las 7 regiones de a `porTurno`, dando la vuelta sin parar. */
 function aperturaIncursion(cfg, ahora){
-  const H = 3 * 3600e3, dur = INCURSIONES.duracionMin * 60e3, loc = new Date(ahora - H);
+  const H = 3 * 3600e3, dur = INCURSIONES.duracionMin * 60e3, T = INCURSIONES.turnos, n = INCURSIONES.regiones.length, k = INCURSIONES.porTurno;
+  const idx = INCURSIONES.regiones.findIndex(r => r.region === cfg.region), loc = new Date(ahora - H);
   let proxima = null;
-  for(const off of [-1, 0, 1]) for(const h of cfg.horas){
-    const desde = Date.UTC(loc.getUTCFullYear(), loc.getUTCMonth(), loc.getUTCDate() + off, Math.floor(h), Math.round((h % 1) * 60)) + H;
-    if(ahora >= desde && ahora < desde + dur) return {abierta: true, desde, hasta: desde + dur};
-    if(desde > ahora && (proxima === null || desde < proxima)) proxima = desde;
-  }
-  return {abierta: false, proxima};
+  for(let off = -1; off <= 4; off++) T.forEach((h, ti) => {
+    const dia = Date.UTC(loc.getUTCFullYear(), loc.getUTCMonth(), loc.getUTCDate() + off);
+    const turno = Math.floor(dia / 86400e3) * T.length + ti;
+    let toca = false; for(let q = 0; q < k; q++) if((turno * k + q) % n === idx) toca = true;
+    if(!toca) return;
+    const desde = dia + h * 3600e3 + H;
+    if(ahora >= desde && ahora < desde + dur){ proxima = {abierta: true, desde, hasta: desde + dur}; }
+    else if(desde > ahora && !(proxima && proxima.abierta) && (proxima === null || desde < proxima)) proxima = desde;
+  });
+  return proxima && proxima.abierta ? proxima : {abierta: false, proxima};
 }
+const diaHoraJujuy = t => { const d = new Date(t), hoy = new Date(Date.now() - 3 * 3600e3), x = new Date(t - 3 * 3600e3); const dif = Math.round((Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate()) - Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth(), hoy.getUTCDate())) / 86400e3); return (dif === 0 ? 'hoy' : dif === 1 ? 'mañana' : 'en ' + dif + ' días') + ' a las ' + d.toLocaleTimeString('es-AR', {timeZone: 'America/Argentina/Jujuy', hour: '2-digit', minute: '2-digit', hour12: false}); };
 const horaJujuy = t => new Date(t).toLocaleTimeString('es-AR', {timeZone: 'America/Argentina/Jujuy', hour: '2-digit', minute: '2-digit', hour12: false});
 const cfgIncursion = region => INCURSIONES.regiones.find(r => r.region === region);
 function guaridaEn(x, y){ return GUARIDAS.find(g => g.puerta[0] === x && g.puerta[1] === y) || null; }
@@ -2271,6 +2281,17 @@ function dibujarGuaridas(ctx, camX, camY, vw, vh){
     }
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(cx, cy + lado * .42, lado * .32, lado * .1, 0, 0, 7); ctx.fill();   // sombra en el piso
     if(im.complete && im.naturalWidth) ctx.drawImage(im, cx - lado / 2, cy - lado / 2, lado, lado);
+    ctx.restore();
+  }
+}
+/* La puerta corrediza y el cartel se dibujan en la capa de arriba (la de las copas), así los árboles no los tapan. */
+function dibujarPuertasGuaridas(ctx, camX, camY, vw, vh){
+  const ahora = Date.now();
+  for(const g of GUARIDAS){
+    const px = g.x0 * ADV_PX - camX, py = g.y0 * ADV_PX - camY, W_ = g.w || 13, H_ = g.h || 11;
+    if(px > vw + 40 || py > vh + 40 || px < -(W_ + 1) * ADV_PX || py < -(H_ + 1) * ADV_PX) continue;
+    const cfg = cfgIncursion(g.region), ap = aperturaIncursion(cfg, ahora);
+    ctx.save();
     /* la puerta corrediza de madera: cerrada tapa el paso; cuando abre se corre hacia el costado, detrás de la roca */
     const dx = g.puerta[0] * ADV_PX - camX, dy = g.puerta[1] * ADV_PX - camY;
     ctx.fillStyle = '#3A2A1A'; ctx.fillRect(dx - 2, dy, 20, 2);                                  // riel
@@ -5464,6 +5485,7 @@ function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
   g.globalAlpha = 1;
   for(const k in altaAlfa) delete altaAlfa[k];
   Object.assign(altaAlfa, vistos);
+  dibujarPuertasGuaridas(g, camX, camY, vw, vh);
 }
 
 /* Realce del piso (cada cuadro, sólo lo que se ve): sombras suaves de árboles, montañas y edificios,
@@ -5892,7 +5914,7 @@ function advLeerCartel(x, y){
     const cfg = cfgIncursion(gu.region), ap = aperturaIncursion(cfg, Date.now()), p = DATA.find(d => d.id === cfg.legendario) || {name: 'un legendario'};
     advMensaje(ap.abierta
       ? `⚔️ <b>¡La guarida de ${p.name} está abierta!</b> Hasta las ${horaJujuy(ap.hasta)}. Tocá <b>Incursión</b>: hasta 5 entrenadores (con 4 o 5 se le puede ganar).`
-      : `🔒 <b>Guarida de ${p.name}</b> (fuerza 90-100). Se abre a las ${cfg.horas.map(h => String(h).padStart(2, '0') + ':00').join(' y ')} (hora de Jujuy). Próxima: ${horaJujuy(ap.proxima)}.`);
+      : `🔒 <b>Guarida de ${p.name}</b> (fuerza 90-100). Hay 4 turnos por día (09:00, 14:00, 19:00 y 23:00, hora de Jujuy) y en cada uno abren 2 guaridas. A esta le toca el ${diaHoraJujuy(ap.proxima)}.`);
     return;
   }
   if(cerradoPorEvento(x, y)){

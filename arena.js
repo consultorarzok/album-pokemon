@@ -3152,11 +3152,11 @@ function pintarIncursion(equipo, inc){
   const root = $('arRoot'), p = DATA.find(x => x.id === inc.legendario) || {name:'el legendario'};
   root.innerHTML = `<div class="ar-pick ar-duelo">
     <h2>⚔️ Incursión contra ${p.name}</h2>
-    <p>Pueden entrar hasta <b>5 entrenadores</b>. Con 5 arranca sola; si no llegan, tocá <b>Empezar ya</b> (esperamos hasta 20 minutos). Ojo: ${p.name} es igual de fuerte para todos: con 1, 2 o 3 entrenadores no se le puede ganar; con <b>4 o 5</b> sí.</p>
+    <p>Pueden entrar hasta <b>5 entrenadores</b>. Con 5 arranca sola; si no llegan, tocá <b>Iniciar</b> (podés pelear con 1 solo, pero sólo con 4 o 5 se le gana) (esperamos hasta 20 minutos). Ojo: ${p.name} es igual de fuerte para todos: con 1, 2 o 3 entrenadores no se le puede ganar; con <b>4 o 5</b> sí.</p>
     <div class="ar-duelo-eq">${equipo.map(x => `<img src="${spIcono(x.id, (mejorEjemplar(x.id) || {}).s)}" alt="${x.name}" title="${x.name}" width="48" height="48">`).join('')}</div>
     <ul class="ar-lobby-lista" id="arILista" aria-label="Entrenadores en la incursión"></ul>
     <div class="ar-duelo-estado" id="arIEstado" role="status" aria-live="polite">Entrando a la guarida…</div>
-    <div class="ar-pick-pie"><button class="ar-b ar-go" id="arIEmpezar" disabled><b>Empezar ya</b></button><button class="ar-b ar-med" id="arIIrse"><b>Salir</b></button></div></div>`;
+    <div class="ar-pick-pie"><button class="ar-b ar-go" id="arIEmpezar" disabled><b>Iniciar</b></button><button class="ar-b ar-med" id="arIIrse"><b>Salir</b></button></div></div>`;
   const est = $('arIEstado'), esc = t => String(t).replace(/[<>&"]/g, '');
   const motivo = mm => ({cerrada:'La guarida está cerrada: abre a la hora que dice el cartel.', ya_participaste:'Ya peleaste en esta apertura. Volvé en la próxima.',
     equipo_invalido:'Elegí entre 3 y 6 Pokémon.', no_es_tuyo:'Ese Pokémon no está en tu álbum.', sin_sesion:'Volvé a entrar al juego.'})[mm] || 'No se pudo: ' + mm;
@@ -3168,7 +3168,7 @@ function pintarIncursion(equipo, inc){
       const faltan = m.incursion ? m.incursion.faltan : 5 - m.jugadores.length;
       const n = m.jugadores.length, conectados = m.jugadores.filter(x => x.conectado).length, bt = $('arIEmpezar');
       est.innerHTML = faltan > 0 ? `Hay <b>${n}</b> de 5. Esperando entrenadores: faltan <b>${faltan}</b>. Avisales a tus amigos que vengan a la guarida.${n < 4 ? ' <b>Con menos de 4 no se le puede ganar.</b>' : ''}` : '¡Están los 5! Arrancando…';
-      if(bt){ bt.disabled = !conectados || faltan <= 0; bt.innerHTML = `<b>Empezar ya${conectados ? ' (con ' + conectados + ')' : ''}</b>`; }
+      if(bt){ bt.disabled = !conectados || faltan <= 0; bt.innerHTML = `<b>Iniciar${conectados ? ' (con ' + conectados + ')' : ''}</b>`; }
       return;
     }
     if(m.t === 'empezar'){ RED.alMensaje = mensajeDuelo; luchar(null, m); return; }

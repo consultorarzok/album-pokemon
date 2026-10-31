@@ -19,12 +19,18 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   check('los legendarios de incursión no salen en sobres ni en la Aventura', g.sobreSinSolo && g.advSinSolo && g.solo === '150,249,384,487,646,716,800');
   const msj = await page.evaluate(() => {
     const k = GUARIDAS[0], real = Date.now;
-    Date.now = () => Date.parse('2026-11-03T08:00:00-03:00'); advLeerCartel(k.puerta[0], k.puerta[1]); const cerrada = document.getElementById('advZona').textContent;
-    Date.now = () => Date.parse('2026-11-03T10:10:00-03:00'); advLeerCartel(k.puerta[0], k.puerta[1]); const abierta = document.getElementById('advZona').textContent;
-    Date.now = real; return {cerrada, abierta};
+    /* un turno en que le toca abrir a la guarida de Kanto (los turnos son 09, 14, 19 y 23 de Jujuy) */
+    let turno = null;
+    for(let d = 3; d < 12 && !turno; d++) for(const h of ['09', '14', '19', '23']){
+      const t = Date.parse('2026-11-' + String(d).padStart(2, '0') + 'T' + h + ':10:00-03:00');
+      if(aperturaIncursion(cfgIncursion(k.region), t).abierta){ turno = t; break; }
+    }
+    Date.now = () => Date.parse('2026-11-03T12:00:00-03:00'); advLeerCartel(k.puerta[0], k.puerta[1]); const cerrada = document.getElementById('advZona').textContent;
+    Date.now = () => turno; advLeerCartel(k.puerta[0], k.puerta[1]); const abierta = document.getElementById('advZona').textContent;
+    Date.now = real; return {cerrada, abierta, turno};
   });
-  check('cerrada: dice el horario (' + msj.cerrada.slice(0, 50) + '…)', /Mewtwo/.test(msj.cerrada) && /10:00 y 19:00/.test(msj.cerrada) && /Próxima: 10:00/.test(msj.cerrada));
-  check('abierta: avisa que entran exactamente 5', /abierta/.test(msj.abierta) && /hasta 5/.test(msj.abierta));
+  check('cerrada: explica los 4 turnos y cuándo le toca (' + msj.cerrada.slice(0, 50) + '…)', /Mewtwo/.test(msj.cerrada) && /09:00, 14:00, 19:00 y 23:00/.test(msj.cerrada) && /le toca el/.test(msj.cerrada));
+  check('abierta: avisa que entran hasta 5 (y que con 4 o 5 se le gana)', /abierta/.test(msj.abierta) && /hasta 5/.test(msj.abierta) && !!msj.turno);
   await page.evaluate(() => { const k = GUARIDAS[0]; advPonerEn(k.puerta[0], k.puerta[1] + 2); advRender(); });
   await page.waitForTimeout(800);
   await page.screenshot({path: '/tmp/claude-0/-root/b70858be-5edb-4e9c-bb87-88f6028271ef/scratchpad/guarida.png'});
