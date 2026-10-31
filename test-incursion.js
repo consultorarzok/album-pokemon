@@ -24,7 +24,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
     Date.now = real; return {cerrada, abierta};
   });
   check('cerrada: dice el horario (' + msj.cerrada.slice(0, 50) + '…)', /Mewtwo/.test(msj.cerrada) && /10:00 y 19:00/.test(msj.cerrada) && /Próxima: 10:00/.test(msj.cerrada));
-  check('abierta: avisa que entran exactamente 5', /abierta/.test(msj.abierta) && /exactamente 5/.test(msj.abierta));
+  check('abierta: avisa que entran exactamente 5', /abierta/.test(msj.abierta) && /hasta 5/.test(msj.abierta));
   await page.evaluate(() => { const k = GUARIDAS[0]; advPonerEn(k.puerta[0], k.puerta[1] + 2); advRender(); });
   await page.waitForTimeout(800);
   await page.screenshot({path: '/tmp/claude-0/-root/b70858be-5edb-4e9c-bb87-88f6028271ef/scratchpad/guarida.png'});

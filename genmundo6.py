@@ -22,6 +22,13 @@ def R(x0, y0, x1, y1, ch):
 
 carteles, zonas = {}, []
 
+# Zeta 31/10: la capa de hielo (montaña nevada, no se puede pasar) era espacio muerto. Ahora es una ladera nevada que se camina (Nieve, Pokémon de hielo),
+# con picos sueltos ('Z', uno de cada 9 casilleros) para que siga pareciendo montaña.
+for _y in range(H):
+    for _x in range(W):
+        if g[_y][_x] == 'Z' and (_x * 7 + _y * 13) % 9 != 0:
+            g[_y][_x] = 'N'
+
 
 def cartel(x, y, txt):
     g[y][x] = 'i'
@@ -235,8 +242,8 @@ for region, gx0, gx1, gy0, gy1, suelo in GUARIDAS_REGIONES:
         g[y0 + 7][cx] = '7'                                                 # la puerta corrediza
         for y in range(y0 + 8, y0 + GH):
             g[y][cx] = '.'                                                  # pasillo de entrada
-            g[y][cx - 1] = '^' if y % 2 == 0 else '#'
-            g[y][cx + 1] = '#' if y % 2 == 0 else '^'
+            g[y][cx - 1] = '^'                                              # a los costados sólo rocas (un árbol taparía el pasillo)
+            g[y][cx + 1] = '^'
         salida = (cx, y0 + GH)
         g[salida[1]][salida[0]] = '.'
         fl, vis_ = _alcanza(g)
@@ -380,6 +387,38 @@ for (cx, cy) in _bolsones():
             g[p[1]][p[0]] = '.'
         p = prev[p]
     claro(cx, cy, 2, 1)
+
+# ---------------- despeje de caminos (Zeta 31/10: "algunos caminos están tapados por los árboles, no se ve bien") ----------------
+# Un árbol se dibuja más alto que su casillero y tapa lo que queda atrás: se sacan los árboles que quedan justo delante (al sur) de un camino,
+# y en los senderos y el pasillo de las guaridas también los de los costados. Nunca se tocan los muros de árboles de las fronteras ni las guaridas.
+def _muro(x, y):
+    """Árbol que forma parte de una fila larga de árboles (muro de frontera): no se toca."""
+    n = 0
+    xx = x
+    while xx >= 0 and g[y][xx] in '#gsn': n += 1; xx -= 1
+    xx = x + 1
+    while xx < W and g[y][xx] in '#gsn': n += 1; xx += 1
+    return n >= 14
+
+
+def _en_guarida(x, y):
+    return any(gg['x0'] <= x < gg['x0'] + gg['w'] and gg['y0'] <= y < gg['y0'] + gg['h'] for gg in guaridas)
+
+
+_sendas = set()
+for gg in guaridas:
+    for yy in range(gg['y0'] + 8, gg['y0'] + gg['h'] + 1):
+        _sendas.add((gg['puerta'][0], yy))
+_cambios = 0
+for y in range(4, H - 5):
+    for x in range(4, W - 4):
+        if g[y][x] in '.9' or (x, y) in _sendas:
+            for dx in ((-1, 0, 1) if (x, y) in _sendas else (0,)):
+                nx, ny = x + dx, y + 1
+                if g[ny][nx] in '#gsn' and not _en_guarida(nx, ny) and not _muro(nx, ny):
+                    g[ny][nx] = ','
+                    _cambios += 1
+print('despeje de caminos: %d árboles sacados' % _cambios)
 
 # ---------------- validación ----------------
 filas = [''.join(r) for r in g]
