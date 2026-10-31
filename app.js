@@ -2258,6 +2258,13 @@ function aperturaIncursion(cfg, ahora){
   return proxima && proxima.abierta ? proxima : {abierta: false, proxima};
 }
 const diaHoraJujuy = t => { const d = new Date(t), hoy = new Date(Date.now() - 3 * 3600e3), x = new Date(t - 3 * 3600e3); const dif = Math.round((Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate()) - Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth(), hoy.getUTCDate())) / 86400e3); return (dif === 0 ? 'hoy' : dif === 1 ? 'mañana' : 'en ' + dif + ' días') + ' a las ' + d.toLocaleTimeString('es-AR', {timeZone: 'America/Argentina/Jujuy', hour: '2-digit', minute: '2-digit', hour12: false}); };
+/* "hoy 23:00", "mañana 09:00" o "vie 14:00": el cartel de la puerta cerrada siempre dice QUÉ DÍA abre (hora de Jujuy) */
+const etiquetaApertura = t => {
+  const J = 3 * 3600e3, dia = x => { const d = new Date(x - J); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); };
+  const dif = Math.round((dia(t) - dia(Date.now())) / 86400e3), hora = new Date(t).toLocaleTimeString('es-AR', {timeZone: 'America/Argentina/Jujuy', hour: '2-digit', minute: '2-digit', hour12: false});
+  const cuando = dif <= 0 ? 'hoy' : dif === 1 ? 'mañana' : new Date(t).toLocaleDateString('es-AR', {timeZone: 'America/Argentina/Jujuy', weekday: 'short'}).replace('.', '');
+  return cuando + ' ' + hora;
+};
 const horaJujuy = t => new Date(t).toLocaleTimeString('es-AR', {timeZone: 'America/Argentina/Jujuy', hour: '2-digit', minute: '2-digit', hour12: false});
 const cfgIncursion = region => INCURSIONES.regiones.find(r => r.region === region);
 function guaridaEn(x, y){ return GUARIDAS.find(g => g.puerta[0] === x && g.puerta[1] === y) || null; }
@@ -2304,7 +2311,7 @@ function dibujarPuertasGuaridas(ctx, camX, camY, vw, vh){
     ctx.restore();
     ctx.fillStyle = '#6E6E6E'; ctx.fillRect(dx - 3, dy - 1, 3, 17); ctx.fillRect(dx + 16, dy - 1, 3, 17);   // postes de piedra
     ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center';
-    const txt = ap.abierta ? '⚔️ ¡INCURSIÓN ABIERTA!' : '🔒 abre ' + horaJujuy(ap.proxima);
+    const txt = ap.abierta ? '⚔️ ¡INCURSIÓN ABIERTA!' : '🔒 abre ' + etiquetaApertura(ap.proxima);
     const w = ctx.measureText(txt).width + 10, tx = px + W_ / 2 * ADV_PX;
     ctx.fillStyle = ap.abierta ? 'rgba(180,30,40,.92)' : 'rgba(10,16,40,.85)'; ctx.fillRect(tx - w / 2, dy + 18, w, 13);
     ctx.fillStyle = '#fff'; ctx.fillText(txt, tx, dy + 28);
@@ -6223,6 +6230,25 @@ function comprarBola(tipo){
 function abrirAventura(){
   advAbierto = true;
   document.getElementById('advOverlay').classList.add('show');
+  /* pantalla de carga: se muestra YA (antes del trabajo pesado) para que no parezca que se colgó, y se retira sola cuando el mapa está dibujado */
+  const car = document.getElementById('advCargando'), t0 = performance.now(), primera = !advDibujado;
+  if(car){ clearTimeout(car._t); car.hidden = false; car.classList.remove('fuera'); }
+  // pantalla completa de verdad donde el navegador lo permita (tiene que pedirse dentro del toque)
+  try{
+    const el = document.documentElement;
+    if(!document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().catch(() => {});
+  }catch(e){}
+  const terminar = () => {
+    if(!car) return;
+    const falta = Math.max(0, (primera ? 900 : 450) - (performance.now() - t0));   // que la animación se llegue a ver
+    car._t = setTimeout(() => { car.classList.add('fuera'); car._t = setTimeout(() => { car.hidden = true; }, 420); }, falta);
+  };
+  requestAnimationFrame(() => setTimeout(() => {
+    if(!advAbierto){ if(car) car.hidden = true; return; }      // cerró la Aventura mientras cargaba
+    try{ abrirAventuraAhora(); } finally { requestAnimationFrame(() => requestAnimationFrame(terminar)); }
+  }, 40));
+}
+function abrirAventuraAhora(){
   if(!advDibujado){
     const inicio = advBuscarTile('overworld', '@');
     advPonerEn(inicio.x, inicio.y);
@@ -6239,11 +6265,6 @@ function abrirAventura(){
   advUltimo = performance.now();
   if(!advRaf) advRaf = requestAnimationFrame(advCiclo);
   if(typeof mundoEntrar === 'function') mundoEntrar();
-  // pantalla completa de verdad donde el navegador lo permita
-  try{
-    const el = document.documentElement;
-    if(!document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().catch(() => {});
-  }catch(e){}
 }
 
 function cerrarAventura(){
@@ -6254,6 +6275,7 @@ function cerrarAventura(){
   salvajes = [];
   if(typeof mundoSalir === 'function') mundoSalir();
   document.getElementById('advOverlay').classList.remove('show');
+  { const car = document.getElementById('advCargando'); if(car){ clearTimeout(car._t); car.hidden = true; } }
   try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }catch(e){}
 }
 

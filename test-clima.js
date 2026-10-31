@@ -18,8 +18,8 @@ const SHOTS = '/tmp/claude-0/-root/b70858be-5edb-4e9c-bb87-88f6028271ef/scratchp
   console.log('\n— Clima real y día/noche —');
   const estado = () => page.evaluate(() => { const c = document.getElementById('climaCanvas'); let pix = 0; if(c && c.style.display === 'block'){ const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; for(let i = 3; i < d.length; i += 4) if(d[i] > 0) pix++; } return {visible: !!c && c.style.display === 'block', pix, pe: c ? getComputedStyle(c).pointerEvents : null}; });
   const poner = (condicion, noche) => page.evaluate(([c, n]) => { CLIMA = {condicion: c, noche: n}; }, [condicion, noche]);
-  await poner('despejado', false);
-  await page.click('#advBtn'); await page.waitForTimeout(500);
+  await page.click('#advBtn'); await page.waitForTimeout(1500);   // entra con la pantalla de carga; recién después se fija el clima de la prueba
+  await poner('despejado', false); await page.waitForTimeout(350);
   check('día despejado: no hay capa', !(await estado()).visible);
   for(const c of ['lluvia', 'calor', 'viento', 'niebla', 'nublado']){
     await poner(c, false); await page.waitForTimeout(350);
@@ -28,7 +28,10 @@ const SHOTS = '/tmp/claude-0/-root/b70858be-5edb-4e9c-bb87-88f6028271ef/scratchp
     await page.screenshot({path: SHOTS + 'clima_' + c + '.png'});
   }
   await poner('despejado', true); await page.waitForTimeout(350);
-  const n = await estado(); check('noche: oscurece todo el mapa', n.visible && n.pix > 5000);
+  await page.evaluate(() => { nocheNivel = 1; advRender(); }); await page.waitForTimeout(300);
+  /* en el mapa de la Aventura la noche la dibuja #advNoche (manto azul parejo + círculos en los faroles); la capa climaCanvas queda para batallas */
+  const n = await page.evaluate(() => { const c = document.getElementById('advNoche'); if(!c || c.style.display !== 'block') return {visible: false, pix: 0}; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let pix = 0; for(let i = 3; i < d.length; i += 4) if(d[i] > 40) pix++; return {visible: true, pix}; });
+  check('noche: oscurece todo el mapa (' + n.pix + ' px)', n.visible && n.pix > 5000);
   await page.screenshot({path: SHOTS + 'clima_noche.png'});
   await poner('lluvia', true); await page.waitForTimeout(350);
   await page.screenshot({path: SHOTS + 'clima_noche_lluvia.png'});
