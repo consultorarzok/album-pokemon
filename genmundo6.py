@@ -420,6 +420,32 @@ for y in range(4, H - 5):
                     _cambios += 1
 print('despeje de caminos: %d árboles sacados' % _cambios)
 
+# ---------------- faroles (Zeta 31/10: "que se haga de noche de verdad y que los faroles alumbren") ----------------
+# Un farol ('l', no se pisa) junto a los caminos y avenidas de los pueblos: sobre un casillero de pasto pegado al camino, con 3 o más casas cerca,
+# separados al menos 6 casilleros entre sí. Alto Comedero: además uno cada 8 casilleros a los dos lados de cada avenida.
+_casas = set('hH')
+_FAROLES = [(x, y) for y in range(H) for x in range(W) if g[y][x] == 'l']
+
+
+def _lejos(x, y, d):
+    return all(max(abs(x - a), abs(y - b)) >= d for a, b in _FAROLES)
+
+
+for yy in range(AY0 + 5, AY1 + 1, 8):                       # avenidas de Alto Comedero (uno cada 8: se ve cada charco de luz)
+    for xx in (39, 42, 45, 48):
+        if g[yy][xx] == ',' and _lejos(xx, yy, 3):
+            g[yy][xx] = 'l'; _FAROLES.append((xx, yy))
+for y in range(5, H - 5):
+    for x in range(5, W - 5):
+        if g[y][x] != ',' or not _lejos(x, y, 6): continue
+        if not any(g[y + dy][x + dx] in '.9' for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))): continue
+        if not (y >= 120 and x < 54) and sum(1 for yy in range(y - 5, y + 6) for xx in range(x - 5, x + 6) if g[yy][xx] in _casas) < 3: continue   # en Alola (valle de los Pericos) van a lo largo de todos los caminos
+        if any(gg['x0'] - 2 <= x <= gg['x0'] + gg['w'] + 1 and gg['y0'] - 2 <= y <= gg['y0'] + gg['h'] + 1 for gg in guaridas): continue
+        if any(abs(x - int(k.split(',')[0])) < 3 and abs(y - int(k.split(',')[1])) < 3 for k in meta['santuarios']): continue
+        if any(g[y + dy][x + dx] in 'ibcLCP' for dx in (-1, 0, 1) for dy in (-1, 0, 1)): continue
+        g[y][x] = 'l'; _FAROLES.append((x, y))
+print('faroles: %d' % len(_FAROLES))
+
 # ---------------- validación ----------------
 filas = [''.join(r) for r in g]
 assert len(filas) == H and all(len(f) == W for f in filas)
