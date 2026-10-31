@@ -11,7 +11,7 @@ base = io.open('mundo5.txt', encoding='utf-8').read().split('\n')
 meta = json.load(io.open('mundo5.json', encoding='utf-8'))
 W, H = len(base[0]), len(base)
 g = [list(r) for r in base]
-CAMINABLES = set('.,@*aB"bF%CPokLENeumcvw6')
+CAMINABLES = set('.,@*aB"bF%CPokLENeumcvw69')
 
 
 def R(x0, y0, x1, y1, ch):
@@ -114,12 +114,12 @@ for y in range(AY0 - 1, AY1 + 1):                       # entrada: bajada desde 
     for x in (46, 47):
         if y <= AY0 + 3:
             g[y][x] = '.'
-# Av. Forestal (este-oeste, 2 de ancho) y Av. Yuto (norte-sur, 2 de ancho)
-R(AX0, 108, AX1, 109, '.')
-R(40, AY0 + 3, 41, AY1 + 1, '.')
-R(46, AY0 + 3, 47, 107, '.')
-# salida sur: la Av. Yuto baja hasta el camino de la fila 118 (que ya recorre todo el borde sur)
-R(40, 118, 41, 118, '.')
+# Av. Forestal (x 40-41) y Av. Yuto (x 46-47): dos avenidas de asfalto PARALELAS (norte-sur), 2 carriles cada una (Zeta 31/10)
+R(40, AY0 + 3, 41, AY1, '9')
+R(46, AY0 + 3, 47, AY1, '9')
+# salida sur: ambas bajan hasta el camino de la fila 118 (que ya recorre todo el borde sur)
+R(40, 118, 41, 118, '9')
+R(46, 118, 47, 118, '9')
 
 
 def manzana(x0, y0, x1, y1, ch='H'):
@@ -130,28 +130,28 @@ def manzana(x0, y0, x1, y1, ch='H'):
 
 
 manzana(33, 104, 39, 106)                               # La Loma (NO)
-manzana(43, 104, 45, 106)                               # 150 Hectáreas (NE, a la izquierda de la bajada)
+manzana(43, 104, 45, 106)                               # 150 Hectáreas (entre las dos avenidas, norte)
 manzana(33, 111, 39, 115)                               # B4 (SO)
-manzana(43, 111, 48, 112)                               # 30 Hectáreas (SE norte)
-manzana(43, 114, 48, 116)                               # 128 Viviendas (SE sur)
+manzana(43, 108, 45, 110)                               # 30 Hectáreas (entre las dos avenidas, centro)
+manzana(43, 112, 45, 116)                               # 128 Viviendas (entre las dos avenidas, sur)
 for (x, y) in [(36, 103), (44, 103), (36, 110), (44, 110)]:
     g[y][x] = 'n'                                       # palmeras en las esquinas
 cartel(38, 107, 'Barrio La Loma, en Alto Comedero.')
-cartel(42, 107, '150 Hectáreas, en Alto Comedero. Av. Forestal al sur.')
+cartel(42, 107, '150 Hectáreas, en Alto Comedero, entre la Av. Forestal y la Av. Yuto.')
 cartel(37, 110, 'Barrio B4, en Alto Comedero.')
 cartel(42, 110, '30 Hectáreas, en Alto Comedero.')
 cartel(42, 113, '128 Viviendas, en Alto Comedero.')
-cartel(33, 110, 'Av. Forestal: la gran avenida de Alto Comedero. Cruza con la Av. Yuto.')
-cartel(39, 110, 'Av. Yuto: sube desde el sur hasta la Av. Forestal. Por acá pasa la línea que va a El Chalicán.')
-cartel(35, 110, 'Torres del Alto: 248 departamentos sobre la Av. Forestal.')
+cartel(39, 109, 'Av. Forestal: la gran avenida asfaltada de Alto Comedero. Corre paralela a la Av. Yuto.')
+cartel(44, 109, 'Av. Yuto: avenida asfaltada, paralela a la Av. Forestal. Por acá pasa la línea que va a El Chalicán.')
+cartel(35, 110, 'Torres del Alto: 248 departamentos, a una cuadra de la Av. Forestal.')
 zonas = [
     {'n': 'Alto Comedero · La Loma', 'x0': 32, 'y0': 103, 'x1': 39, 'y1': 107},
-    {'n': 'Alto Comedero · 150 Hectáreas', 'x0': 42, 'y0': 103, 'x1': 48, 'y1': 107},
+    {'n': 'Alto Comedero · 150 Hectáreas', 'x0': 42, 'y0': 103, 'x1': 45, 'y1': 107},
     {'n': 'Alto Comedero · B4', 'x0': 32, 'y0': 110, 'x1': 39, 'y1': 117},
-    {'n': 'Alto Comedero · 30 Hectáreas', 'x0': 42, 'y0': 110, 'x1': 48, 'y1': 112},
-    {'n': 'Alto Comedero · 128 Viviendas', 'x0': 42, 'y0': 113, 'x1': 48, 'y1': 117},
-    {'n': 'Alto Comedero · Av. Forestal', 'x0': 32, 'y0': 108, 'x1': 48, 'y1': 109},
-    {'n': 'Alto Comedero · Av. Yuto', 'x0': 40, 'y0': 103, 'x1': 41, 'y1': 118},
+    {'n': 'Alto Comedero · 30 Hectáreas', 'x0': 42, 'y0': 108, 'x1': 45, 'y1': 110},
+    {'n': 'Alto Comedero · 128 Viviendas', 'x0': 42, 'y0': 112, 'x1': 45, 'y1': 117},
+    {'n': 'Alto Comedero · Av. Forestal', 'x0': 40, 'y0': 103, 'x1': 41, 'y1': 118},
+    {'n': 'Alto Comedero · Av. Yuto', 'x0': 46, 'y0': 103, 'x1': 47, 'y1': 118},
     {'n': 'Alto Comedero', 'x0': 30, 'y0': 99, 'x1': 48, 'y1': 118},
 ] + zonas
 
@@ -172,38 +172,83 @@ def _alcanza(gr):
 _fl0, _vis0 = _alcanza(g)
 _poi0 = sum(1 for y in range(H) for x in range(W) if _fl0[y][x] in 'bcLCP' and (x, y) in _vis0)
 _altares = [tuple(map(int, k.split(','))) for k in meta['santuarios']]
-GW, GH = 9, 7
+GW, GH = 13, 11
+# Zeta 31/10 (2ª vez): el legendario va en una ESQUINA de la región, encerrado por un cinturón ancho de árboles y rocas; la entrada (de frente)
+# tiene piedras a los dos lados y una puerta corrediza de madera que se abre sola a la hora. Plano (13 x 11):
+#   filas 0-1 y columnas 0-2 / 10-12: cinturón de árboles con rocas · claro 7 x 5 ('8', no se pisa) en x 3-9, y 2-6 ·
+#   fila 7: puerta '7' en el medio con 3 rocas a cada lado · filas 8-10: pasillo de 1 casillero entre árboles y rocas, que sale al exterior.
 GUARIDAS_REGIONES = [('kanto', 2, 48, 3, 116, 'verde'), ('johto', 60, 102, 3, 116, 'verde'), ('hoenn', 114, 156, 3, 116, 'fuego'),
                      ('sinnoh', 168, 210, 3, 116, 'fuego'), ('unova', 222, 264, 3, 116, 'verde'), ('kalos', 276, 319, 3, 116, 'verde'),
                      ('alola', 2, 50, 123, 175, 'fuego')]
+PERMITIDO = set(',"*#^ZNgsnm')
 guaridas = []
+
+
+def _abrir_hasta_camino(sx, sy, vis_, caja):
+    """Abre un sendero de 1 casillero desde (sx, sy) hasta el camino más cercano que ya se alcanza a pie (no atraviesa la guarida)."""
+    prev, qq = {(sx, sy): None}, deque([(sx, sy)])
+    fin_ = None
+    while qq and fin_ is None:
+        x, y = qq.popleft()
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            n = (x + dx, y + dy)
+            if 3 <= n[0] < W - 3 and 3 <= n[1] < H - 3 and n not in prev and n not in caja and g[n[1]][n[0]] in '#gsn^' + ''.join(CAMINABLES):
+                prev[n] = (x, y)
+                if n in vis_ and g[n[1]][n[0]] in '.,"a':
+                    fin_ = n
+                    break
+                qq.append(n)
+    if fin_ is None:
+        return False
+    p = prev[fin_]
+    while p is not None:
+        if g[p[1]][p[0]] in '#gsn^':
+            g[p[1]][p[0]] = '.'
+        p = prev[p]
+    return True
+
+
 for region, gx0, gx1, gy0, gy1, suelo in GUARIDAS_REGIONES:
     cands = []
+    esq = [(gx0, gy0), (gx1, gy0), (gx0, gy1), (gx1, gy1)]
     for y0 in range(gy0, gy1 - GH - 1):
         for x0 in range(gx0, gx1 - GW):
-            caja = [(x, y) for y in range(y0 - 1, y0 + GH + 1) for x in range(x0 - 1, x0 + GW + 1)]
-            if not all(g[y][x] in ',"*#^ZN' for x, y in caja): continue
-            if any(max(abs(ax - (x0 + 4)), abs(ay - (y0 + 3))) < 8 for ax, ay in _altares): continue
-            cerca = sum(1 for y in range(y0 - 3, y0 + GH + 4) for x in range(x0 - 3, x0 + GW + 4) if 0 <= y < H and 0 <= x < W and g[y][x] in '.B')
-            cands.append((-cerca, y0, x0))
+            caja = [(x, y) for y in range(y0 - 1, y0 + GH + 2) for x in range(x0 - 1, x0 + GW + 1)]
+            if not all(g[y][x] in PERMITIDO for x, y in caja): continue
+            if any(max(abs(ax - (x0 + 6)), abs(ay - (y0 + 4))) < 9 for ax, ay in _altares): continue
+            cx_, cy_ = x0 + GW / 2, y0 + GH / 2
+            score = min(max(abs(cx_ - ex), abs(cy_ - ey)) for ex, ey in esq)
+            cands.append((score, y0, x0))
     cands.sort()
     puesta = False
-    for _, y0, x0 in cands[:80]:
+    for _, y0, x0 in cands[:200]:
         viejo = [row[:] for row in g]
         for y in range(y0, y0 + GH):
             for x in range(x0, x0 + GW):
-                borde = x in (x0, x0 + GW - 1) or y in (y0, y0 + GH - 1)
-                if not borde: g[y][x] = '8'
-                else:
-                    esquina = x in (x0, x0 + GW - 1) and y in (y0, y0 + GH - 1)
-                    g[y][x] = '^' if esquina or (x + y) % 3 == 0 else '#'      # árboles con algunas rocas
-        puerta = (x0 + GW // 2, y0 + GH - 1)
-        g[puerta[1]][puerta[0]] = '7'
-        if g[puerta[1] + 1][puerta[0]] not in CAMINABLES: g[puerta[1] + 1][puerta[0]] = ','
+                g[y][x] = '^' if (x * 3 + y * 5) % 6 == 0 else '#'          # cinturón: árboles con rocas
+        for y in range(y0 + 2, y0 + 7):
+            for x in range(x0 + 3, x0 + 10):
+                g[y][x] = '8'                                               # el claro (no se pisa)
+        cx = x0 + 6
+        for x in (3, 4, 5, 7, 8, 9):
+            g[y0 + 7][x0 + x] = '^'                                         # piedras a los lados de la puerta
+        g[y0 + 7][cx] = '7'                                                 # la puerta corrediza
+        for y in range(y0 + 8, y0 + GH):
+            g[y][cx] = '.'                                                  # pasillo de entrada
+            g[y][cx - 1] = '^' if y % 2 == 0 else '#'
+            g[y][cx + 1] = '#' if y % 2 == 0 else '^'
+        salida = (cx, y0 + GH)
+        g[salida[1]][salida[0]] = '.'
         fl, vis_ = _alcanza(g)
+        if salida not in vis_:
+            caja_ = {(x, y) for y in range(y0, y0 + GH) for x in range(x0, x0 + GW)} - {(cx, y) for y in range(y0 + 8, y0 + GH)}
+            if not _abrir_hasta_camino(salida[0], salida[1], _vis0, caja_):
+                g[:] = viejo
+                continue
+            fl, vis_ = _alcanza(g)
         poi = sum(1 for y in range(H) for x in range(W) if fl[y][x] in 'bcLCP' and (x, y) in vis_)
-        if poi == _poi0 and (puerta[0], puerta[1] + 1) in vis_:
-            guaridas.append({'region': region, 'x0': x0, 'y0': y0, 'w': GW, 'h': GH, 'suelo': suelo, 'puerta': list(puerta)})
+        if poi == _poi0 and salida in vis_:
+            guaridas.append({'region': region, 'x0': x0, 'y0': y0, 'w': GW, 'h': GH, 'suelo': suelo, 'puerta': [cx, y0 + 7], 'piso': [3, 2, 7, 5]})
             puesta = True
             break
         g[:] = viejo
@@ -259,7 +304,7 @@ sendero_recto(33, 83, 33, 91)
 claro(33, 91, 2, 1)
 
 # bolsones macizos: BFS desde su centro hasta el camino más cercano que ya se alcanza a pie
-_cam = set('.,@*aB"bF%CPokLENeumcvw6')
+_cam = set('.,@*aB"bF%CPokLENeumcvw69')
 
 
 def _alcanzable():
