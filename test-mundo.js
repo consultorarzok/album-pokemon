@@ -34,11 +34,11 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
       region: advRegion, x: advX, y: advY
     };
   });
-  check(`mundo gigante de ${mundo.cols}x${mundo.filas} = ${mundo.cols * mundo.filas} casilleros`, mundo.cols === 322 && mundo.filas === 120);
+  check(`mundo gigante de ${mundo.cols}x${mundo.filas} = ${mundo.cols * mundo.filas} casilleros`, mundo.cols === 322 && mundo.filas === 180);
   check('el juego ocupa toda la pantalla', mundo.anchoOk);
-  check('fondo pre-dibujado 5152x1920 px', mundo.fondo === '5152x1920');
-  check('hay un Centro Pokémon por región', mundo.centros === 6);
-  check('hay una cueva por región', mundo.cuevas === 6);
+  check('fondo pre-dibujado 5152x2880 px', mundo.fondo === '5152x2880');
+  check('hay un Centro Pokémon por región', mundo.centros === 7);
+  check('hay una cueva por región', mundo.cuevas === 7);
   check('arranca en Kanto', mundo.region === 'kanto');
 
   console.log('\n— Las 6 regiones —');
@@ -59,7 +59,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
     legKanto: poolBioma('legendario', 'kanto').map(p => p.name).slice(0, 3),
     zonas: ADV_MAPS.overworld.zonas.length
   }));
-  check('el mapa se divide en las 6 regiones en orden', regs.limites.join(',') === 'kanto,johto,hoenn,sinnoh,unova,kalos');
+  check('el mapa se divide en las 7 regiones en orden', regs.limites.join(',') === 'kanto,johto,hoenn,sinnoh,unova,kalos');
   check('en Kanto sólo salen Pokémon de Kanto', regs.kanto.join() === 'kanto');
   check('en Johto sólo salen Pokémon de Johto', regs.johto.join() === 'johto');
   check('en Hoenn sólo salen Pokémon de Hoenn', regs.hoenn.join() === 'hoenn');
@@ -323,8 +323,8 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
       porRegion, total: vistos.size
     };
   });
-  check('se llega a los 6 Centros (' + alcance.centros + ')', alcance.centros === '6/6');
-  check('se llega a las 6 cuevas (' + alcance.cuevas + ')', alcance.cuevas === '6/6');
+  check('se llega a los 7 Centros (' + alcance.centros + ')', alcance.centros === '7/7');
+  check('se llega a las 7 cuevas (' + alcance.cuevas + ')', alcance.cuevas === '7/7');
   const [bolasOk, bolasTot] = alcance.bolas.split('/');
   check('se llega a todas las pokébolas del piso (' + alcance.bolas + ')', bolasOk === bolasTot && +bolasTot > 0);
   const monedas = await page.evaluate(() => {
