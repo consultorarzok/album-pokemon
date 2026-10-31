@@ -63,6 +63,14 @@ html, n = re.subn(r'    santuarios:\{\n(?:.*?\n)*?    \}\n', '    santuarios:{\n
                   html, count=1)
 assert n == 1, 'no se pudo reemplazar santuarios'
 
+# ---------------- fuentes y zonas de fuego de Kanto (las calcula genmundo6.py sobre la capital) ----------------
+if meta.get('fuentes'):
+    html, n = re.subn(r'const FUENTES = \[.*?\];', 'const FUENTES = ' + json.dumps(meta['fuentes']) + ';', html, count=1)
+    assert n == 1, 'no se pudo reemplazar FUENTES'
+if meta.get('fuego_kanto'):
+    kanto = ', '.join('[%d, %d]' % tuple(p) for p in meta['fuego_kanto'])
+    html, n = re.subn(r'const ZONAS_FUEGO = \[[^\n]*// Kanto \(x 0-54\)', 'const ZONAS_FUEGO = [' + kanto + ',        // Kanto (x 0-54): claros en las sierras de la capital', html, count=1)
+    assert n == 1, 'no se pudo reemplazar ZONAS_FUEGO de Kanto'
 io.open(RUTA, 'w', encoding='utf-8').write(html)
 print('index.html actualizado: {}x{}, {} zonas, {} carteles, {} altares'.format(
     meta['cols'], meta['filas'], len(meta['zonas']), len(meta['carteles']), len(meta['santuarios'])))

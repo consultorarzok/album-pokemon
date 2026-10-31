@@ -94,7 +94,7 @@
         <span class="rank-status" id="rankStatus" role="status"></span>
         <div class="rank-tabs" role="tablist" aria-label="Ranking">
           <div class="rank-tab" id="tabEvento" role="tab" tabindex="0" aria-selected="false" hidden>Evento</div>
-          <div class="rank-tab active" id="tabHoy" role="tab" tabindex="0" aria-selected="true">📅 Semanal</div>
+          <div class="rank-tab active" id="tabHoy" role="tab" tabindex="0" aria-selected="true">Semanal</div>
           <div class="rank-tab" id="tabHist" role="tab" tabindex="0" aria-selected="false">Histórico</div>
           <div class="rank-tab" id="tabMaestro" role="tab" tabindex="0" aria-selected="false">⚔️ Maestros</div>
           <div class="rank-tab" id="tabSalon" role="tab" tabindex="0" aria-selected="false" hidden>🏆 Salón de la Fama</div>
@@ -140,6 +140,10 @@
   <button class="adv-chatbtn" id="advChatBtn" hidden aria-label="Escribir un mensaje">💬</button>
   <button class="adv-chatbtn adv-batbtn" id="advBatBtn" hidden aria-label="Buscar una batalla con otro entrenador">⚔️</button>
   <button class="adv-chatbtn adv-montbtn" id="advMontBtn" hidden aria-label="Subirte o bajarte de tu montura"></button>
+  <div class="adv-atajos" id="advAtajos">
+    <button type="button" class="adv-atajo" id="advPokedexBtn" aria-label="Abrir la Pokédex"><span aria-hidden="true">📖</span><small>Pokédex</small></button>
+    <button type="button" class="adv-atajo" id="advCodigosBtn" aria-label="Códigos: generar o ingresar un código de intercambio"><span aria-hidden="true">🎟️</span><small>Códigos</small></button>
+  </div>
   <button class="adv-npcbtn" id="advNpcBtn" hidden></button>
   <form class="adv-chatbar" id="advChatBar" hidden autocomplete="off">
     <input id="advChatInput" type="text" maxlength="60" placeholder="Escribí algo (sin teléfonos ni links)" enterkeyhint="send" autocomplete="off" autocapitalize="sentences">
@@ -176,22 +180,20 @@
 <div class="overlay" id="novedadesOverlay" role="dialog" aria-modal="true" aria-labelledby="novTit" style="z-index:75;">
   <div class="reveal-panel nov-panel" style="max-width:430px;margin:0 auto;">
     <span class="nov-pill">NOVEDADES</span>
-    <h2 id="novTit">Dos modos nuevos</h2>
-    <div class="nov-card nov-pelea"><div class="nov-ico" aria-hidden="true">⚔️</div><div>
-      <h3>Modo Pelea</h3>
-      <p>Armá una <b>sala</b> con tus amigos, <b>expulsá</b> a quien quieras y peleá en vivo con tu equipo real.</p>
-      <div class="nov-tags"><span>1 vs 1</span><span>2 vs 2</span><span>Todos contra todos · 3 a 5</span></div>
-      <small>Arena → Duelo con un amigo</small>
+    <h2 id="novTit">Cambios del lunes 2 de noviembre</h2>
+    <div class="nov-card nov-pelea"><div class="nov-ico" aria-hidden="true">💰</div><div>
+      <h3>Economía nueva</h3>
+      <p>Desde el <b>lunes 2 a las 00:00</b> el sobre cuesta <b>300 monedas</b>. El quiz paga <b>30</b> por acierto y <b>10</b> de consuelo (hasta <b>40 preguntas con premio por día</b>) y ganar en la Arena paga hasta <b>175</b>.</p>
+      <div class="nov-tags"><span>Sobre <i>300</i></span><span>Quiz <i>30 / 10</i></span><span>Arena <i>hasta 175</i></span></div>
+      <small>Las cuentas nuevas arrancan con 10 sobres de regalo</small>
     </div></div>
-    <div class="nov-card nov-evo"><div class="nov-ico" aria-hidden="true">🌟</div><div>
-      <h3>Modo Evolución</h3>
-      <p>Juntá <b>repetidas</b> del mismo Pokémon y hacelo evolucionar. Conserva su fuerza y su ✨ shiny.</p>
-      <div class="nov-tags"><span>Común <i>10</i></span><span>Rara <i>15</i></span><span>Épico <i>20</i></span><span>Legendario <i>25</i></span></div>
-      <small>Inicio → Repetidas → Evolucionar</small>
+    <div class="nov-card nov-evo"><div class="nov-ico" aria-hidden="true">🎁</div><div>
+      <h3>Regalo por el cambio</h3>
+      <p>Todos los que ya jugaban reciben <b>3 sobres de regalo</b> (900 monedas), una sola vez. Te llega solo al entrar.</p>
     </div></div>
-    <div class="nov-prox"><div class="nov-ico" aria-hidden="true">🛠️</div><div>
-      <h3>La semana que viene</h3>
-      <p>Actualizamos el servidor y sumamos funciones para mejorar la experiencia y la competitividad.</p>
+    <div class="nov-prox"><div class="nov-ico" aria-hidden="true">🧭</div><div>
+      <h3>Y también</h3>
+      <p>Región nueva <b>Alola</b> al sur del mapa, la capital de Jujuy ampliada hasta Alto Comedero, ranking <b>Semanal</b> y NPC que recorren el mapa y regalan pokébolas: Gastón Millón, Chuli Jorge y los admins.</p>
     </div></div>
     <button class="close-btn" id="novedadesCierraBtn" style="margin-top:14px;">¡A jugar!</button>
   </div>

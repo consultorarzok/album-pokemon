@@ -548,7 +548,18 @@ let coins = 300;
 let currentFilter = 'all';
 let currentRegion = 'all';
 let currentEstado = 'all';   // 'all' | 'shiny' | 'dup'
-const PACK_COST = 150;
+/* ECONOMÍA NUEVA (Zeta 31/10): desde el lunes 2/11 00:00 (hora de Jujuy) sobre a 300, quiz 30/10 con tope de 40 premios por día, victoria de arena hasta 175
+   y bienvenida de 10 sobres a las cuentas nuevas. Hasta esa fecha sigue todo como estaba y el juego AVISA (cartel de novedades).
+   El servidor usa los mismos números (extraer-reglas exporta ECONOMIA) y es el que manda. */
+const ECONOMIA = {
+  desde: '2026-11-02T00:00:00-03:00',
+  antes:   {sobre: 150, quizOk: 15, quizMal: 5,  ganar: 100, topeQuiz: 0,  bienvenida: 700},    // topeQuiz 0 = sin tope
+  despues: {sobre: 300, quizOk: 30, quizMal: 10, ganar: 115, topeQuiz: 40, bienvenida: 2700}    // 300 iniciales + 2.700 = 10 sobres de 300
+};
+const economiaDe = ahora => (ahora >= Date.parse(ECONOMIA.desde) ? ECONOMIA.despues : ECONOMIA.antes);
+const PACK_COST = economiaDe(Date.now()).sobre;
+/* si el juego está abierto justo en el cambio, se recarga solo para tomar los precios nuevos */
+(() => { const f = Date.parse(ECONOMIA.desde) - Date.now(); if(f > 0 && f < 5 * 86400e3) setTimeout(() => location.reload(), f + 2000); })();
 const PACK_SIZE = 6;
 
 const state = {};
@@ -694,6 +705,8 @@ function loadProgress(){
       });
     }
     if(data.maestro) Object.keys(maestro).forEach(k => { if(typeof data.maestro[k] === 'number') maestro[k] = data.maestro[k]; });
+    if(!data.maestro || data.maestro.rv !== 2) delete maestro.rv;   // un álbum de antes de la tabla de 14 rangos
+    migrarRangosLocal();
     if(data.comprasDia && typeof data.comprasDia === 'object') comprasDia = data.comprasDia;
     if(data.legendariosDia && data.legendariosDia.dia) legendariosDia = data.legendariosDia;
     /* Los objetos del piso son de UNA sola vez. Sin esto, recargar la página
@@ -715,7 +728,7 @@ function resetProgress(){
   coins = 300;
   DATA.forEach(p => state[p.id] = {got:false, dup:0});
   Object.assign(bolas, BOLAS_INICIALES);
-  Object.assign(maestro, {pts:0, ganadas:0, peleas:0, nivel:0});
+  Object.assign(maestro, {pts:0, ganadas:0, peleas:0, nivel:0, rv:2});
   especiales = {};
   comprasDia = {};
   legendariosDia = {dia: null, obtenidos: {}};
@@ -914,7 +927,7 @@ function renderGrid(){
 /* ====================== CARTEL DE NOVEDADES ======================
    Aparece UNA vez por dispositivo cuando entra al juego (después de los carteles de nombre, personaje y PIN) y
    deja de salir pasada la fecha, porque habla de "la semana que viene". */
-const NOVEDADES_ID = '20261028', NOVEDADES_HASTA = '2026-11-05';
+const NOVEDADES_ID = '20261031', NOVEDADES_HASTA = '2026-11-07';
 function mostrarNovedades(intentos){
   try{
     if(localStorage.getItem('album-novedades-visto') === NOVEDADES_ID) return;
@@ -1455,8 +1468,8 @@ function updateBarras(){
   if(bb) bb.disabled = kantoMios().length < PELEA_MIN;
 }
 
-const QUIZ_REWARD_CORRECT = 15;
-const QUIZ_REWARD_WRONG = 5;
+const QUIZ_REWARD_CORRECT = economiaDe(Date.now()).quizOk;
+const QUIZ_REWARD_WRONG = economiaDe(Date.now()).quizMal;
 
 let quizModo = 'tipo';
 let quizTarget = null;
@@ -1626,7 +1639,9 @@ const ADV_TILE = {
   'd': {walk:false, label:'Cabildo',           pinta:'cabildoArcos'},
   '1': {walk:false, label:'Municipalidad',     pinta:'cabildo'},
   '2': {walk:false, label:'Concejo Deliberante', pinta:'gobierno'},
-  '3': {walk:false, label:'Estadio 23 de Agosto', pinta:'gobierno'},
+  '3': {walk:false, label:'Estadio 23 de Agosto', pinta:'estadio'},
+  '5': {walk:false, label:'Torres del Alto', pinta:'gobierno'},
+  '6': {walk:true,  label:'Cancha del estadio', pinta:'estadio', encuentro:'lucha'},   // la cancha del Lobo: se camina y salen Pokémon de tipo Lucha
   '4': {walk:false, label:'Nueva Terminal de Ómnibus', pinta:'gobierno'},
   'J': {walk:false, label:'Catedral',          pinta:'catedralNave'},
   'v': {walk:true,  label:'Vía del Tren Solar', pinta:'via'},
@@ -1693,19 +1708,19 @@ const ADV_MAPS = {
       "#,..........................................aa~~~Ta~~~~~~~aT,,,i,,,...\"\".\"\"\"\".\"\"\"\".\"\"\"\"##,#,#,#,a#a#\"##T,^^^^^^^,T#,mmmm..m,#,,MMM,,,,,,,,,,,,,,,,,a~~~~~~~~~Ta~~~~~~~aT~~~~~~~~aa..,,,,..,,#,,\"\"aaa~~~aaa,,,,,,,,,T,^^^^^^^uTuuuuuuuuuuuuuuu,..\"\",\",\",,,,,,\",\",\"#\",,#\"##Ta~~~~~~~aT,uuuuuuuuuuuuu\"\"..\"#,#,\",\",,#\",,aaaaammmmmm\",#",
       "#,,,,,,,,,,,,,,#.....,,,..........................aBBBBBBBa...................................................................MMMMM.................BBBBBBBBBBaBBBBBBBa...B....a.................aaa~~~aaa................................................................aBBBBBBBa...................\",,,,,,\"#,,,,,\"mmmmmmmmmm#,#",
       "#,vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvBBBBBBBvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvBBBBBBBBBBvBBBBBBBvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvBBBvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvBBBBBBBvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv,#",
-      "#,##,,,#\",,\"#,,,,,,,..R.\"#\"#i,Yi.uuuu..uu,.......ia~~~~~~~ai####,,,,.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"Yi\"\"\"\"\",######,#,,\"i,^^^^^^^,immmmmm..mMMMMMMMMM,,Yi,,,,,,,,,,,a~~~~~~~~~ia~~~~~~~ai,,,,,,,,,,..,,,,,,,,Yi,\"\"aaa~~~a.a,,#,,,,#,i,^^^^^^^,iuuuuuuuuuuuuu\"\",,\"#,,\"Yi,,.,,,\",\",,,,,,,,,\"ia~~~~~~~ai,uuuuuuuuuuuu,u\".,,aaaYi~a#aa,,\"#,mmmmmmm,,,,#",
-      "#,#aaaaaaa#aa#aa#aaa,..\"#\"\"#,#,\",uuuu..uuu..##,,..a~~~~~~~a#####,#\"#.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ZZZZ\"###,###\",^^^^^^^,mmmmmmm..MMMMMMMMMMM,,,##,,,,,,,c,a~~~~~~~~~~a~~~~~~~a,,#,,,,,,,,..,,,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^,#,uuuuuuuuuuu,\",,\",,,,,,,\",.,#,,,,,,,,,,,,,,,a~~~~~~~a,,,uuuuuuuuuuuu\",.aaa~~~~~~~~aaa,\",,#\"\",,,\",\",#",
-      "#,a~~~~~~~~~~~~~~~~....i..eeee#,,uuuu..uuu..#,,\",.a~~~~~~~a######,,,.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ZZZZ\",,####\"#,^^^^^^^mmmmmmmm..MMMMMMMMMMM,,,,,#,,#,,,,,#~~~~~~~~~~a~~~~~~~a###uuuuuuuuuLuuuuuuu#i,,\"\"aaa~~~a.a,,,,,,#,,,,^^^^^^^,,,,uuuuuuuuu,,,,,\",\",,##,,#.,,,#,\",,,#,\",,,,,a~~~~~~~a,,\"uuuLuu.uuu,hh,.a~~~~~~~~~~~~aa,,,,,\",##,,,,#",
-      "#,a~~~~~~~~~~~~~~~~......eeeLe.#,uuuuuuuuu..\"##,,.a~~~~~~~a#####,#\",.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ZZZZ#\"\",#,#,,,^^^^^^^,mmmmmmm..MMMMMMMMMMM...,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a###,,,,,,,c,,,,,,,,,,,,,\"\"aaa~~~a.a,,,,,,#,,,,^^^^^^^,\",,,,,#\",uu\"#,#,,\",,\",,,,,\".,,\"#,#,,#\",,,,#,,a~~~~~~~a\",,,uuuuu.u,,h,,,.a~~~~~~~~~~~~~aa,,\",\",,\",,,,#",
-      "#,a~~~~~~~~~~~~~~~~..#aaaaaaeee..,uuuuuuu,..,\",,#,a~~~~~~~a######,,\".\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ZZZZ#,#\"e#,\"\",^^^^^^^,mimmmmm...i............,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a##\",,,,,,,,,,,,,,,,,,,,,\"\"aaa~~~a.a,,,,,#,,,#,^^^^^^^,,,,\",,aaa,,,#aa,,,,\",,,,,,,.\"\",,,,,,\",,#,,,,#a~~~~~~~a,\"#h,,,,u.u,,h,,,.~~~~~~~~~~~~~~~a,,,,,,,#,,,,#",
-      "#,#~~~~~wwwwwwwww~..\"##~ia~aae.,,,,,,,,,,,..,#,,,#a~~~~~~~a######\"##.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"NNNNeeeeeee,e,^^^^^^^#mmm.mmmmmmmmm,,,,#,,,..,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"uuuuuuuuuuuuuuu,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^,,\",,,fa~faifa~faaa,,,,,,,,,.,,,,,,#,,\",,,#,,,a~~~~~~~a\",,,hh,i,.,h,,,,,.~~~~~~~~~~~~~~~a,,#,#,,,,,,,#",
-      "#,#~~~~~Uwwwwwwww...\"#aa~a~~aa,,33333333,,..,,\"#,#a~~~~~~~a#####\"###.\"#\"\"##,###,####\"\"N..NNNNNNeeeeeeeee,^^^^^^^,,hm.mmmmmmmm,,,,,,,,,..,,,j.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\",,,,,,,,,,,,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,#,,^^^^^^^,,a#aja~~~~~~~~a~~aaNNNN#\",,.,,\",b,,,,\",,\",\",,a~~~~~~~a\",,,,,h,,I,h,,,,h.BBBBBBB.B~~~~~~a,,,,,#,,#,,,#",
-      "###~~~~~wwwwwwwww..iaaaa#a~~~aai33333333,,..\"\"\"\",\"a~~~~~~~a#########.#\"\"\",,,,,,#\"\"##NNN..NNNNNeeeeeeeeeee^^^^^^^,hh,.mmmmmMM,,,,,,,,,,C.,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\",,,,,,,,,,,,,#,,,,\"\"aaa~~~a.a,,,,#,,,,,,^^^^^^^,,a~~~~~~~~~~~~~~~f~NNNN#,,,.#,,,,,,,,,,\"\",#\",a~~~~~~~a,,,,hh,h,.hh,,h,,.BBBBBBBB~~~~~~~a,,,,,#,,\",#,#",
-      "###~~~~~~~~~~~~~..\"##~~aa##~~~#.............\",,,\"#a~~~~~~~a#^^^##\"\"#.............b............eeeeeeeeeee^^^^^^^,,,,.mImm,MMM,,,,,,,,,.AAAA,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"uuuuuuu,,,,#,,,,\"\"aaa~~~a.a,#,,,,,,,,,^^^^^^^aaf~~~~~~~~~~~~~~~~~NNNN#,\",.,,,,,\",,\",,\",,,,,a~~~~~~~a,,,...............~~~~~~~~~~~~~~~a,,,,,,,,,,\",#",
-      "###~~~~~~~~~~~~..\"\"a~~~~#~a#~~~a##,###..i....#,#b,a~~~~~~~a#^^^^##,,..........................eeeeeLeeeee^^^^^^^,,,h.,,,,,MMM,,,,,#,hh.AAAA,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"#####,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^~~~~~~~~~~~~~~~~~~~~~~NNN\",,.,,\"\",,,,,,,,,\",\"#a~~~~~~~a,,\",,,,hh.h,hh,,,.~~~~~~~~~~~~~~aa,,,,,,\",#,,,#",
-      "###~~~~~~~~~~~...\"\"a#~~~~~~~a~~~aa,,,,\",,.....,\",,a~~~~~~~a#^^^^,,,,.#,\",####,##,##\",,N..NNNNeeeeeeeeeeee^^^^^^^,,hh.,h,,MMMMM,,,,,,,h.AAAAi.hh,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"####,,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^f~~~~~~~~~~~~~~~~~~~~~NNN,,#.,#,m,,,,,,,,,,,,#a~~~~~~~a,,,hh,,,,.,hh,,,,.aa~~~~~~~~~~~aa,,,,,,,,,,,,,#",
-      "###~~~~~~~~~~~..\"#######~~~~~~~~~a###aa,\"#.....\"#,a~~~~~~~a#^^^^##\"#.#,,\"##\"\"#,\"###,##\"..NNNNNeeeeeeeeee,^^^^^^^,h,,.,h,,MMMMMM,,,,,,h.AAAA,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"........,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^~~~~~~~~~~..BBBBBBB~~~~NNmmm.mmmmmmm,,\"#,,,b,,a~~~~~~~a,,,hhh,,,.,,,,,,,.,aaa~~~~~~~~#a,#\",,,,,,,,#,,#",
-      "###~~~~~~~~~~..\"\"########~~~~~~~~~~~~~aa##..#\"...\"a~~~~~~~a##^^^\",##.,ia#a\"#\"#,#\"##,,##..\"NN,#ceeeeeeeee,^^^^^^^,h,h.,,,MMMMMMM,,,,,,i.,i,,,.,,h,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"........,,,,,j\"\"aaa~~~a.a,,h,.,,,,,,^^^^^^^~~~~~~~~~~BBBBBBBBB~~~~NNNmm.mmmmmmmmm,,,,,,,,a~~~~~~~a,,,h,h,,,.hh,h,,,.,,,#a#~~aaaa#\",,,,#\",\"#,,,,,#",
+      "#,##,,,#\",,\"#,,,,,,,..R.\"#\"#i,ii.................ia~~~~~~~ai####,,,,.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"Yi\"\"\"\"\",######,#,,\"i,^^^^^^^,immmmmm..mMMMMMMMMM,,Yi,,,,,,,,,,,a~~~~~~~~~ia~~~~~~~ai,,,,,,,,,,..,,,,,,,,Yi,\"\"aaa~~~a.a,,#,,,,#,i,^^^^^^^,iuuuuuuuuuuuuu\"\",,\"#,,\"Yi,,.,,,\",\",,,,,,,,,\"ia~~~~~~~ai,uuuuuuuuuuuu,u\".,,aaaYi~a#aa,,\"#,mmmmmmm,,,,#",
+      "#,#aaaaaaa#aa#aa#aaa,..\"#\"\"#,#.333333.333333.uuuuua~~~~~~~a#####,#\"#.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ZZZZ\"###,###\",^^^^^^^,mmmmmmm..MMMMMMMMMMM,,,##,,,,,,,c,a~~~~~~~~~~a~~~~~~~a,,#,,,,,,,,..,,,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^,#,uuuuuuuuuuu,\",,\",,,,,,,\",.,#,,,,,,,,,,,,,,,a~~~~~~~a,,,uuuuuuuuuuuu\",.aaa~~~~~~~~aaa,\",,#\"\",,,\",\",#",
+      "#,a~~~~~~~~~~~~~~~~....i..eeee.333333.333333.uuuuua~~~~~~~a######,,,.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ZZZZ\",,####\"#,^^^^^^^mmmmmmmm..MMMMMMMMMMM,,,,,#,,#,,,,,#~~~~~~~~~~a~~~~~~~a###uuuuuuuuuLuuuuuuu#i,,\"\"aaa~~~a.a,,,,,,#,,,,^^^^^^^,,,,uuuuuuuuu,,,,,\",\",,##,,#.,,,#,\",,,#,\",,,,,a~~~~~~~a,,\"uuuLuu.uuu,hh,.a~~~~~~~~~~~~aa,,,,,\",##,,,,#",
+      "#,a~~~~~~~~~~~~~~~~......eeeLe.3366666666633.uuuuua~~~~~~~a#####,#\",.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ZZZZ#\"\",#,#,,,^^^^^^^,mmmmmmm..MMMMMMMMMMM...,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a###,,,,,,,c,,,,,,,,,,,,,\"\"aaa~~~a.a,,,,,,#,,,,^^^^^^^,\",,,,,#\",uu\"#,#,,\",,\",,,,,\".,,\"#,#,,#\",,,,#,,a~~~~~~~a\",,,uuuuu.u,,h,,,.a~~~~~~~~~~~~~aa,,\",\",,\",,,,#",
+      "#,a~~~~~~~~~~~~~~~~..#aaaaaaee.3366666666633.uuuuua~~~~~~~a######,,\".\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ZZZZ#,#\"e#,\"\",^^^^^^^,mimmmmm...i............,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a##\",,,,,,,,,,,,,,,,,,,,,\"\"aaa~~~a.a,,,,,#,,,#,^^^^^^^,,,,\",,aaa,,,#aa,,,,\",,,,,,,.\"\",,,,,,\",,#,,,,#a~~~~~~~a,\"#h,,,,u.u,,h,,,.~~~~~~~~~~~~~~~a,,,,,,,#,,,,#",
+      "#,#~~~~~wwwwwwwww~..\"##~ia~aae.3366666666633.uuuuua~~~~~~~a######\"##.\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"NNNNeeeeeee,e,^^^^^^^#mmm.mmmmmmmmm,,,,#,,,..,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"uuuuuuuuuuuuuuu,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^,,\",,,fa~faifa~faaa,,,,,,,,,.,,,,,,#,,\",,,#,,,a~~~~~~~a\",,,hh,i,.,h,,,,,.~~~~~~~~~~~~~~~a,,#,#,,,,,,,#",
+      "#,#~~~~~Uwwwwwwww...\"#aa~a~~aa...666666666...uuuuua~~~~~~~a#####\"###.\"#\"\"##,###,####\"\"N..NNNNNNeeeeeeeee,^^^^^^^,,hm.mmmmmmmm,,,,,,,,,..,,,j.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\",,,,,,,,,,,,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,#,,^^^^^^^,,a#aja~~~~~~~~a~~aaNNNN#\",,.,,\",b,,,,\",,\",\",,a~~~~~~~a\",,,,,h,,I,h,,,,h.BBBBBBB.B~~~~~~a,,,,,#,,#,,,#",
+      "###~~~~~wwwwwwwww..iaaaa#a~~~a.3366666666633.uuuuua~~~~~~~a#########.#\"\"\",,,,,,#\"\"##NNN..NNNNNeeeeeeeeeee^^^^^^^,hh,.mmmmmMM,,,,,,,,,,C.,,,,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\",,,,,,,,,,,,,#,,,,\"\"aaa~~~a.a,,,,#,,,,,,^^^^^^^,,a~~~~~~~~~~~~~~~f~NNNN#,,,.#,,,,,,,,,,\"\",#\",a~~~~~~~a,,,,hh,h,.hh,,h,,.BBBBBBBB~~~~~~~a,,,,,#,,\",#,#",
+      "###~~~~~~~~~~~~~..\"##~~aa##~~~.3366666666633.uuuuua~~~~~~~a#^^^##\"\"#.............b............eeeeeeeeeee^^^^^^^,,,,.mImm,MMM,,,,,,,,,.AAAA,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"uuuuuuu,,,,#,,,,\"\"aaa~~~a.a,#,,,,,,,,,^^^^^^^aaf~~~~~~~~~~~~~~~~~NNNN#,\",.,,,,,\",,\",,\",,,,,a~~~~~~~a,,,...............~~~~~~~~~~~~~~~a,,,,,,,,,,\",#",
+      "###~~~~~~~~~~~~..\"\"a~~~~#~a#~~.3366666666633.#,#b,a~~~~~~~a#^^^^##,,..........................eeeeeLeeeee^^^^^^^,,,h.,,,,,MMM,,,,,#,hh.AAAA,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"#####,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^~~~~~~~~~~~~~~~~~~~~~~NNN\",,.,,\"\",,,,,,,,,\",\"#a~~~~~~~a,,\",,,,hh.h,hh,,,.~~~~~~~~~~~~~~aa,,,,,,\",#,,,#",
+      "###~~~~~~~~~~~...\"\"a#~~~~~~~a~.333333.333333..,\",,a~~~~~~~a#^^^^,,,,.#,\",####,##,##\",,N..NNNNeeeeeeeeeeee^^^^^^^,,hh.,h,,MMMMM,,,,,,,h.AAAAi.hh,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"####,,,,,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^f~~~~~~~~~~~~~~~~~~~~~NNN,,#.,#,m,,,,,,,,,,,,#a~~~~~~~a,,,hh,,,,.,hh,,,,.aa~~~~~~~~~~~aa,,,,,,,,,,,,,#",
+      "###~~~~~~~~~~~..\"#######~~~~~~.333333.333333...\"#,a~~~~~~~a#^^^^##\"#.#,,\"##\"\"#,\"###,##\"..NNNNNeeeeeeeeee,^^^^^^^,h,,.,h,,MMMMMM,,,,,,h.AAAA,.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"........,,,,,,\"\"aaa~~~a.a,,,,,,,,,,,^^^^^^^~~~~~~~~~~..BBBBBBB~~~~NNmmm.mmmmmmm,,\"#,,,b,,a~~~~~~~a,,,hhh,,,.,,,,,,,.,aaa~~~~~~~~#a,#\",,,,,,,,#,,#",
+      "###~~~~~~~~~~..\"\"########~~~~~...............\"...\"a~~~~~~~a##^^^\",##.,ia#a\"#\"#,#\"##,,##..\"NN,#ceeeeeeeee,^^^^^^^,h,h.,,,MMMMMMM,,,,,,i.,i,,,.,,h,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"........,,,,,j\"\"aaa~~~a.a,,h,.,,,,,,^^^^^^^~~~~~~~~~~BBBBBBBBB~~~~NNNmm.mmmmmmmmm,,,,,,,,a~~~~~~~a,,,h,h,,,.hh,h,,,.,,,#a#~~aaaa#\",,,,#\",\"#,,,,,#",
       "#####~~#####...#\"##########aa~~~~~~~~~~~a,..,m,,..a~~~~~~~a#^^^^\"\"#a.###~aL##\"##,\",\",#,..#####,e,eeeeee,,^^^^^^^,,,,.,MMMMMMMMMM,,,,,,.D,I,,.,hh,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\"##,,,,,,,,,,,\"\"aaa~~~a.a,,h,.,,h,,,^^^^^^^~~~~~~~~~~~~~~~~~~~~~~~NNmmm.mmmmmmmmm,,\",,,,,a~~~~~~~a\",,,,h,,,.,,h,,hh.,,,,,aa#a,,,\",\",\",,\",\",,,#,,#",
       "######~######.##############aaa~~~~~~~~~aa..immmm.a~~~~~~~a#^^^^aa#~.BBBBBBBB..,,##\"\"#,..,#\",\",,,,,#,\"\",,^^^^^^^,,,,,MMMMMMMMMMMM,,.............,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"\"####,,,,,,#,#,,\"\"aaa~~~a.a,hih.hh,,,,^^^^^^^a~~~~~~~~~~~~~~~~~~~~~~~NNmm.mmmmmmmmm,##\",,\",a~~~~~~~a\"\",,h,,,h.,,,,,,,.eeeeee,,,#,,,\",,\",,j\",,,\",,,#",
       "######~~#####.#####~~~~~~#~~#~~~~~~~~~~~~...mmmmm,a~~~~~~~a###^^a~~~~~~~~~~~~~.#a#,#,,,..,#,#\"#,##C#,###,^^^^^^^,,,,MMMMMMMMMMMMM,,,,,.s,.ss.,,,,,,a~~~~~~~~~~a~~~~~~~a\"\"\"\"\"\"\"\"######,,,,,,,,,,\"\"aaa~~~a.ah,,,.,,hh,,^^^^^^^~~~~~~~~~~~~~~~~~~~~~~~~Nmmm.mmmmmmmmmm,#,,,,,a~~~~~~~a,,,,,,,h,.,,,,,ee.eeeeeeee,,\"\",,,,\"\",,\",,,,,\",#",
@@ -1844,7 +1859,7 @@ const ADV_MAPS = {
       {n:'Valles · Concejo Deliberante (Av. Bolivia)', x0:36,  y0:1,   x1:44,  y1:3},
       {n:'Valles · Casa de Gobierno', x0:19,  y0:12,  x1:27,  y1:17},
       {n:'Valles · Municipalidad (Av. El Éxodo)', x0:24,  y0:38,  x1:33,  y1:42},
-      {n:'Valles · Estadio 23 de Agosto (la cancha del Lobo)', x0:30,  y0:48,  x1:42,  y1:53},
+      {n:'Valles · Estadio 23 de Agosto (la cancha del Lobo)', x0:33,  y0:47,  x1:41,  y1:53},
       {n:'Zona sur · Nueva Terminal de Ómnibus', x0:38,  y0:79,  x1:47,  y1:84},
       {n:'Puente del Río Grande',     x0:49,  y0:1,   x1:59,  y1:118},
       {n:'Cuesta de Zenta',           x0:103, y0:1,   x1:113, y1:118},
@@ -1978,7 +1993,7 @@ const ADV_MAPS = {
       '31,40': 'Municipalidad de San Salvador de Jujuy, Av. El Éxodo 215. Acá despacha el Intendente, Chuli Jorge.',
       '26,40': 'Av. El Éxodo: la gran avenida que pasa al sur del Parque Xibi Xibi. Ahí queda la Municipalidad.',
       '28,44': 'Parque del Bicentenario del Éxodo, sobre la Av. El Éxodo.',
-      '31,51': 'Estadio 23 de Agosto: la cancha del Lobo, Gimnasia y Esgrima de Jujuy.',
+      '30,44': 'Estadio 23 de Agosto: la cancha del Lobo, Gimnasia y Esgrima de Jujuy. Entrá por los túneles: en la cancha salen Pokémon de tipo Lucha.',
       '44,58': 'Parque Cívico de las Banderas, camino al sur. Un poco más allá empiezan los barrios de la zona sur.',
       '48,92': 'Villa Aeroclub y el camino que lleva a Alto Comedero.',
       '38,82': 'Nueva Terminal de Ómnibus, en el Acceso Sur (Rutas 9 y 66). De acá salen los micros a todo el país.',
@@ -2161,12 +2176,13 @@ const ADV_TIPOS = {
      que eléctrico+volador combinan bien en este mundo). */
   electrico: ['electric','steel','flying'],
   psiquico:  ['psychic','ghost','fairy'],
-  cienaga:   ['poison','ground','bug']
+  cienaga:   ['poison','ground','bug'],
+  lucha:     ['fighting']          // la cancha del Estadio 23 de Agosto (Zeta 31/10)
 };
 /* Probabilidad por casillero caminado. Bajas a propósito: con .18 no se podía
    dar tres pasos sin que saltara un encuentro. */
 const ADV_PROB = { hierba:.14, agua:.12, volcan:.16, fuego:.16, cueva:.14, hielo:.16,
-                   electrico:.16, psiquico:.16, cienaga:.16, legendario:.12 };   // 28/10: Zeta pidió que los salvajes salgan el DOBLE de seguido (antes .07 .06 .08 .07 .08 .08 .08 .08); el legendario no se tocó
+                   electrico:.16, psiquico:.16, cienaga:.16, lucha:.18, legendario:.12 };   // 28/10: Zeta pidió que los salvajes salgan el DOBLE de seguido (antes .07 .06 .08 .07 .08 .08 .08 .08); el legendario no se tocó
 const DESCANSO_ENCUENTRO = 64;   // píxeles a caminar tras un encuentro antes de que salga otro
 
 /* Probabilidad real de encuentro para un bioma: durante un evento con
@@ -2319,15 +2335,32 @@ const BOLAS_INICIALES = {roja:5, azul:0, ultra:0, maestra:0};
 const bolas = Object.assign({}, BOLAS_INICIALES);
 /* Puntos de Maestro Pokémon: sólo se suman ganando en la arena y van al
    ranking de Maestros. 'nivel' = último rango cuyo premio ya se cobró. */
-const maestro = {pts:0, ganadas:0, peleas:0, nivel:0};
+const maestro = {pts:0, ganadas:0, peleas:0, nivel:0, rv:2};
+let emperador = null;   // {dir, coronado, montura_pendiente, mes} cuando el servidor dice que sos Emperador
 const RANGOS_MAESTRO = [
   {pts:0,    nombre:'Entrenador Novato'},
   {pts:100,  nombre:'Entrenador',        premio:{monedas:150, bolas:{azul:3}}},
+  {pts:500,  nombre:'Entrenador Guay',   premio:{monedas:500, bolas:{azul:5}}},
   {pts:1000, nombre:'Líder de Gimnasio', premio:{monedas:1000, bolas:{ultra:4}}},
+  {pts:2000, nombre:'Veterano',          premio:{monedas:1500, bolas:{ultra:5}}},
   {pts:3000, nombre:'Alto Mando',        premio:{monedas:2500, bolas:{maestra:2}}},
+  {pts:5000, nombre:'As del Frente',     premio:{monedas:3500, bolas:{maestra:3}}},
   {pts:7000, nombre:'Campeón',           premio:{monedas:5000, legendarias:1, bolas:{maestra:3}}},
-  {pts:15000, nombre:'Maestro Pokémon',   premio:{monedas:12000, legendarias:2, bolas:{maestra:6}}}
+  {pts:10000, nombre:'Clase Maestra',    premio:{monedas:8000, legendarias:1, bolas:{maestra:5}}},
+  {pts:15000, nombre:'Maestro Pokémon',  premio:{monedas:12000, legendarias:2, bolas:{maestra:6}}},
+  {pts:25000, nombre:'Leyenda Pokémon',  premio:{monedas:20000, legendarias:3, bolas:{maestra:10}}},
+  {pts:50000, nombre:'Campeón Mundial',  premio:{monedas:40000, legendarias:5, bolas:{maestra:15}}},
+  {pts:100000, nombre:'Monarca',         premio:{monedas:100000}, texto:'100000 monedas + título de Monarca'},
+  {pts:150000, nombre:'Emperador', emperador:true, texto:'Sólo 4 puestos (Norte, Sur, Este y Oeste). Una sola vez: Pokémon al azar + montura a elección + 100 diamantes. Cada mes: 10 Master Ball, 15 Ultra, 20 Súper, 30 Poké Ball, 5000 monedas y 25 diamantes'}
 ];
+/* La tabla pasó de 6 a 14 posiciones (31/10): lo guardado como 'nivel' se migra POR NOMBRE de rango para no repetir premios (maestro.rv = 2) */
+const RANGOS_VIEJOS = ['Entrenador Novato', 'Entrenador', 'Líder de Gimnasio', 'Alto Mando', 'Campeón', 'Maestro Pokémon'];
+function migrarRangosLocal(){
+  if(maestro.rv === 2) return;
+  const i = RANGOS_MAESTRO.findIndex(x => x.nombre === RANGOS_VIEJOS[maestro.nivel]);
+  if(i >= 0) maestro.nivel = i;
+  maestro.rv = 2;
+}
 const NOMBRE_BOLA = {roja:'Poké Ball', azul:'Súper Ball', ultra:'Ultra Ball', maestra:'Master Ball'};
 /* Un rango ya cobrado no se pierde aunque se muevan los puntajes */
 function rangoPropio(){ return Math.max(rangoMaestro(maestro.pts), maestro.nivel); }
@@ -2337,6 +2370,7 @@ function rangoMaestro(pts){
   return n;
 }
 function textoPremioRango(pr){
+  if(!pr) return '';
   const partes = [];
   if(pr.monedas) partes.push(pr.monedas + ' monedas');
   if(pr.legendarias) partes.push(pr.legendarias + ' legendaria' + (pr.legendarias > 1 ? 's' : ''));
@@ -2756,7 +2790,14 @@ function poolBioma(bioma, region){
   }
   const tipos = ADV_TIPOS[bioma] || [];
   const pool = base.filter(p => p.rarity !== 'Legendario' && tipos.includes(p.type));
-  return conBoostFaltantes(pool.length ? pool : base.filter(p => p.rarity !== 'Legendario'));
+  return conBoostFaltantes(conClimaLocal(pool.length ? pool : base.filter(p => p.rarity !== 'Legendario'), base, bioma));
+}
+/* Con servidor el que sortea es el servidor (mismo criterio: juego.js conClima); acá sirve para el modo sin servidor */
+function conClimaLocal(pool, base, bioma){
+  const tc = tiposDelClimaActual();
+  if(!tc.length) return pool;
+  const extra = ['fuego', 'lucha'].includes(bioma) ? [] : base.filter(p => p.rarity !== 'Legendario' && tc.includes(p.type) && !pool.includes(p));
+  return pool.concat(extra).map(p => tc.includes(p.type) ? Object.assign({}, p, {weight: p.weight * 2}) : p);
 }
 
 let advAbierto = false;
@@ -3682,6 +3723,48 @@ PINTORES.cabildo = (ctx, ox, oy) => {                 // Cabildo: arcos blancos 
   pinta(ctx, '#B5412F', ox + 5, oy - 0, 6, 1);
   pinta(ctx, '#2F3A55', ox + 7, oy + 2, 2, 2); pinta(ctx, '#F4F1E8', ox + 8, oy + 3, 1, 1);
 };
+/* ---------- Estadio 23 de Agosto (la cancha del Lobo) visto desde arriba, como en el satélite ----------
+   Los casilleros '3' forman un rectángulo: cada uno pinta su pedazo del óvalo (tribunas celestes y blancas como en las fotos,
+   techo gris arriba, la cancha con sus líneas y una torre de luz en cada esquina). */
+function bloqueEstadio(){
+  if(bloqueEstadio._b !== undefined) return bloqueEstadio._b;
+  const rows = ADV_MAPS.overworld.rows, caja = () => ({x0: 1e9, y0: 1e9, x1: -1, y1: -1}), afuera = caja(), cancha = caja();
+  const sumar = (c, x, y) => { c.x0 = Math.min(c.x0, x); c.x1 = Math.max(c.x1, x); c.y0 = Math.min(c.y0, y); c.y1 = Math.max(c.y1, y); };
+  rows.forEach((f, y) => { for(let x = 0; x < f.length; x++){ if(f[x] === '3' || f[x] === '6') sumar(afuera, x, y); if(f[x] === '6') sumar(cancha, x, y); } });
+  return bloqueEstadio._b = afuera.x1 < 0 ? null : {afuera, cancha};
+}
+PINTORES.estadio = (ctx, ox, oy, x, y) => {
+  PINTORES.pasto(ctx, ox, oy, x, y);
+  const b = bloqueEstadio(); if(!b) return;
+  const A = b.afuera, C = b.cancha;
+  const cx = (A.x0 + A.x1 + 1) * 8, cy = (A.y0 + A.y1 + 1) * 8, rx = (A.x1 - A.x0 + 1) * 8, ry = (A.y1 - A.y0 + 1) * 8;
+  const ax = (C.x1 - C.x0 + 1) * 8 - 3, ay = (C.y1 - C.y0 + 1) * 8 - 3;      // la cancha (con un margen de pasto)
+  for(let py = 0; py < 16; py++) for(let px = 0; px < 16; px++){
+    const wx = x * 16 + px + .5, wy = y * 16 + py + .5, dx = wx - cx, dy = wy - cy;
+    const e = (Math.abs(dx) / rx) ** 4 + (Math.abs(dy) / ry) ** 4;           // rectángulo con las esquinas redondeadas
+    let col = null;
+    const torre = [[-1, -1], [1, -1], [-1, 1], [1, 1]].some(([sx, sy]) => Math.abs(dx - sx * rx * .86) < 2.2 && Math.abs(dy - sy * ry * .82) < 2.2);
+    if(torre) col = (Math.abs(dy) > ry * .82 + .5) ? '#7D838D' : '#FFE680';   // torres de luz
+    else if(e > 1) continue;
+    else if(Math.abs(dx) <= ax + 3 && Math.abs(dy) <= ay + 3){
+      if(Math.abs(dx) > ax || Math.abs(dy) > ay){ col = '#3E8C39'; }
+      else {                                                                     // césped a franjas con las líneas de cal
+        const borde = Math.abs(Math.abs(dx) - ax) < .8 || Math.abs(Math.abs(dy) - ay) < .8;
+        const media = Math.abs(dx) < .6, circ = Math.abs(Math.hypot(dx, dy) - ay * .36) < .6, punto = Math.hypot(dx, dy) < 1.2;
+        const area = (Math.abs(Math.abs(dx) - ax * .78) < .6 && Math.abs(dy) < ay * .52) || (Math.abs(Math.abs(dy) - ay * .52) < .6 && Math.abs(dx) > ax * .78);
+        const arco = Math.abs(dx) > ax - 1.5 && Math.abs(dx) < ax + 2 && Math.abs(dy) < ay * .14;
+        col = arco ? '#FFFFFF' : (borde || media || circ || area || punto) ? '#F4F8F1' : (Math.floor((dx + ax) / 9) % 2 ? '#4FA64A' : '#46993F');
+      }
+    }
+    else if(e > .88) col = (dy < 0) ? '#A6AFBC' : '#8C96A3';                     // borde y techo de la tribuna
+    else {                                                                       // butacas: celestes y blancas, como en las fotos
+      const ang = Math.atan2(dy / ry, dx / rx), seg = Math.floor((ang + Math.PI) / (Math.PI / 16));
+      const fila = Math.floor(Math.max(Math.abs(dx) - ax, Math.abs(dy) - ay) / 2.4);
+      col = (seg % 2 === 0) ? (fila % 2 ? '#79BDEB' : '#8FCBF2') : (fila % 2 ? '#F2F6FA' : '#E4EBF2');
+    }
+    pinta(ctx, col, ox + px, oy + py, 1, 1);
+  }
+};
 /* ---------- Plaza Belgrano y Parque San Martín en detalle (sacado de las fotos) ----------
    FUENTES = las mismas del generador (genmundo4.py): [centro x, centro y, radio en casilleros, con reja]. La fuente
    se dibuja pixel a pixel con la distancia al centro, así los casilleros 'X' arman un círculo continuo. */
@@ -4231,16 +4314,17 @@ const AVATARES = {
   red: {src: 'images/red_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true},
   may: {src: 'images/may_walk.png', fw: 16, fh: 21, w: 16, h: 21, suave: false},   // ya viene a tamaño real: se copia pixel por pixel
   sadir: {src: 'images/sadir_walk.png', fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true},   // el Gobernador (NPC de la Aventura): no se puede elegir
-  /* Skins de Zeta (hojas 4x4 de 128x192 pasadas de su carpeta "Sprite"): no están en el selector, los asigna el servidor (/admin/avatar) */
-  zeta:  {src: 'images/zeta_walk.png',  fw: 128, fh: 192, w: 14, h: 21, suave: true, reservado: true},
-  mago:  {src: 'images/mago_walk.png',  fw: 128, fh: 192, w: 14, h: 21, suave: true, reservado: true},
-  joker: {src: 'images/joker_walk.png', fw: 128, fh: 192, w: 14, h: 21, suave: true, reservado: true},
+  /* Admins de la Aventura (Gunzack, JokeR, El Mago): NPC que recorren todo el mapa. No se pueden elegir. Hojas 4x4 de 128x192 de la carpeta "Sprite" de Zeta */
+  zeta:  {src: 'images/zeta_walk.png',  fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true},
+  mago:  {src: 'images/mago_walk.png',  fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true},
+  joker: {src: 'images/joker_walk.png', fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true},
   /* NPC de la Aventura que regalan pokébolas (como el Gobernador): no se pueden elegir */
   millon: {src: 'images/millon_walk.png', fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true},
   chuli:  {src: 'images/chuli_walk.png',  fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true}
 };
 let avatarActual = 'red';
-try{ if(AVATARES[localStorage.getItem('album-avatar')]) avatarActual = localStorage.getItem('album-avatar'); }catch(e){}
+const esElegible = a => !!(AVATARES[a] && !AVATARES[a].npc);   // los NPC (Sadir, Millón, Chuli, admins) no se pueden elegir
+try{ if(esElegible(localStorage.getItem('album-avatar'))) avatarActual = localStorage.getItem('album-avatar'); }catch(e){}
 /* las dos hojas cargadas siempre: en la Aventura en vivo se ven Reds y Mays a la vez */
 const HOJAS = {};
 for(const a in AVATARES){ HOJAS[a] = new Image(); HOJAS[a].src = AVATARES[a].src; }
@@ -4251,7 +4335,7 @@ function fijarAvatar(a, subir = true){
 }
 function subirAvatar(a){
   if(MODO_SERVIDOR && typeof api === 'function' && tokenServidor) api('/avatar', {avatar: a})
-    .then(res => { if(res && AVATARES[res.avatar] && res.avatar !== avatarActual) fijarAvatar(res.avatar, false); })   // la cuenta ya tenía otro: manda ése
+    .then(res => { if(res && esElegible(res.avatar) && res.avatar !== avatarActual) fijarAvatar(res.avatar, false); })   // la cuenta ya tenía otro: manda ése
     .catch(() => {});
 }
 /* Zeta 25/10: que cada chico elija personaje al crear su nombre, y los que ya
@@ -4259,11 +4343,11 @@ function subirAvatar(a){
    venía (p. ej. ofrecer el PIN) cuando ya eligió. */
 function pedirAvatarSiFalta(luego, delServidor){
   // el de la cuenta manda (eligió en otro celular)
-  if(AVATARES[delServidor]){ if(delServidor !== avatarActual) fijarAvatar(delServidor, false); luego && luego(); return; }
+  if(esElegible(delServidor)){ if(delServidor !== avatarActual) fijarAvatar(delServidor, false); luego && luego(); return; }
   let elegido = null;
   try{ elegido = localStorage.getItem('album-avatar'); }catch(e){ elegido = 'red'; }   // sin almacenamiento no se puede recordar: no molestar
   // ya había elegido en este celular antes de que se guardara en el servidor: se sube solo
-  if(AVATARES[elegido]){ if(delServidor === null) subirAvatar(elegido); luego && luego(); return; }
+  if(esElegible(elegido)){ if(delServidor === null) subirAvatar(elegido); luego && luego(); return; }
   const ov = document.getElementById('avatarOverlay');
   ov.querySelectorAll('.avatar-op').forEach(b => b.onclick = () => {
     fijarAvatar(b.dataset.avatar);
@@ -5054,7 +5138,7 @@ function copaAlta(tipo, variante){
    Las construcciones del mapa son de 1 casillero de alto (una catedral = 1,7 m). Se dibujan como fachadas mucho más
    altas, hacia arriba, sin tocar el mapa ni la colisión (no se crea ningún espacio muerto). Si alguien camina detrás
    de la parte alta, el edificio se vuelve semitransparente, igual que los árboles. */
-const EDIF_FAMILIAS = [['gobierno', 'GQ', 1], ['catedral', 'KJ', 5], ['cabildo', 'Dd', 3], ['municipalidad', '1', 3], ['concejo', '2', 2], ['estadio', '3', 2], ['terminal', '4', 2], ['iglesia', 'I', 3], ['centro', 'pqrP', 1], ['adobe', 'h', 1], ['estacion', 'Y', 1]];
+const EDIF_FAMILIAS = [['gobierno', 'GQ', 1], ['catedral', 'KJ', 5], ['cabildo', 'Dd', 3], ['municipalidad', '1', 3], ['concejo', '2', 2], ['terminal', '4', 2], ['torres', '5', 4], ['iglesia', 'I', 3], ['centro', 'pqrP', 1], ['adobe', 'h', 1], ['estacion', 'Y', 1]];
 const EDIF_CACHE = {};   // por mapa: lista de {tipo, x0, y0, w, h, extra}
 function edificiosDe(mapaId){
   if(EDIF_CACHE[mapaId]) return EDIF_CACHE[mapaId];
@@ -5085,7 +5169,7 @@ function fachada(e){
   const k = e.tipo + e.w + 'x' + e.h + '/' + (e.x0 * 7 + e.y0 * 13) % 3;
   if(ALTA_CACHE[k]) return ALTA_CACHE[k];
   /* Municipalidad y Concejo Deliberante se dibujan con el estilo del Cabildo y de la Casa de Gobierno, con otro tono para distinguirlos */
-  const ALIAS = {municipalidad: ['cabildo', 'rgba(255,196,110,.30)'], concejo: ['gobierno', 'rgba(80,130,225,.28)'], terminal: ['estacion', 'rgba(60,170,110,.32)']}, tipo = ALIAS[e.tipo] ? ALIAS[e.tipo][0] : e.tipo;
+  const ALIAS = {municipalidad: ['civico', null], concejo: ['civico', 'rgba(70,120,210,.16)'], terminal: ['estacion', 'rgba(60,170,110,.32)']}, tipo = ALIAS[e.tipo] ? ALIAS[e.tipo][0] : e.tipo;
   const base = e.h * ADV_PX, alto = base + e.extra * ADV_PX, W = e.w * ADV_PX + 6, H = alto + 8;
   const [c, g] = lienzoAlto(W, H);
   const x0 = 3, xr = W - 3, wb = xr - x0, yb = H;                // yb = piso (borde inferior del edificio)
@@ -5093,9 +5177,9 @@ function fachada(e){
   const var_ = (e.x0 * 7 + e.y0 * 13) % 3;
   if(tipo === 'gobierno'){            // neoclásico: crema, columnata, frontón con bandera, techo azul pizarra
     const top = yb - alto + 9;
-    rectG(g, x0, top + 5, wb, yb - top - 5, '#F2E6C4', '#D8C898');
-    techoTejas(g, x0 - 2, top - 2, wb + 4, 8, '#6E7F99', '#4C5C75', 'rgba(255,255,255,.18)');
-    g.fillStyle = '#EDE0B8'; g.beginPath(); g.moveTo(W / 2 - 12, top + 5); g.lineTo(W / 2, top - 7); g.lineTo(W / 2 + 12, top + 5); g.closePath(); g.fill();   // frontón
+    rectG(g, x0, top + 5, wb, yb - top - 5, '#F3D9C6', '#DDBBA3');   // fachada rosada y crema (foto de la Casa de Gobierno)
+    techoTejas(g, x0 - 2, top - 2, wb + 4, 8, '#B9C3CF', '#8E9AA9', 'rgba(255,255,255,.25)');   // mansarda de pizarra gris clara
+    g.fillStyle = '#F7E9DA'; g.beginPath(); g.moveTo(W / 2 - 12, top + 5); g.lineTo(W / 2, top - 7); g.lineTo(W / 2 + 12, top + 5); g.closePath(); g.fill();   // frontón
     g.strokeStyle = '#B9A672'; g.lineWidth = .8; g.stroke();
     g.fillStyle = '#C0392B'; g.fillRect(W / 2 - .4, top - 14, .8, 8); g.fillStyle = '#74ACDF'; g.fillRect(W / 2 + .4, top - 14, 5, 1.6); g.fillStyle = '#FFF'; g.fillRect(W / 2 + .4, top - 12.4, 5, 1.6); g.fillStyle = '#74ACDF'; g.fillRect(W / 2 + .4, top - 10.8, 5, 1.6);   // bandera
     const cols = Math.max(4, Math.round(wb / 9));
@@ -5142,6 +5226,25 @@ function fachada(e){
     g.strokeStyle = '#2B2F3A'; g.lineWidth = .7; g.beginPath(); g.arc(W / 2, top + 7, 4, 0, 6.3); g.moveTo(W / 2 - 4, top + 7); g.lineTo(W / 2 + 4, top + 7); g.stroke();
     ventana(g, x0 + 3, top + 17, 5, 6, '#fff'); ventana(g, xr - 8, top + 17, 5, 6, '#fff');
     puerta(g, W / 2 - 3, yb - 10, 6, 10, '#6FA8DC', false);
+  } else if(tipo === 'civico'){         // edificio público moderno (Municipalidad / Concejo): 3 pisos claros con bandas de ventanas, alero y bandera
+    const top = yb - alto + 12;
+    rectG(g, x0, top, wb, yb - top, '#EEE8DC', '#CDC4B2');
+    g.fillStyle = '#9C9282'; g.fillRect(x0 - 1, top - 2, wb + 2, 3);                          // cornisa
+    for(let r = 0; r < 3; r++){ const y = top + 5 + r * 9; g.fillStyle = '#2F4C6A'; g.fillRect(x0 + 3, y, wb - 6, 4.6);
+      g.fillStyle = 'rgba(255,255,255,.38)'; for(let i = x0 + 5; i < xr - 4; i += 5) g.fillRect(i, y, 1, 4.6); }
+    g.fillStyle = '#5A6470'; g.fillRect(W / 2 - 10, yb - 12, 20, 2.2);                        // alero de la entrada
+    g.fillStyle = '#8FB8D8'; g.fillRect(W / 2 - 5, yb - 9.8, 10, 9.8); g.fillStyle = '#5E7F99'; g.fillRect(W / 2 - .4, yb - 9.8, .8, 9.8);
+    g.fillStyle = '#C9CED6'; g.fillRect(xr - 5, top - 16, 1, 16);                              // mástil con la bandera
+    g.fillStyle = '#74ACDF'; g.fillRect(xr - 4, top - 16, 6, 1.4); g.fillStyle = '#FFF'; g.fillRect(xr - 4, top - 14.6, 6, 1.4); g.fillStyle = '#74ACDF'; g.fillRect(xr - 4, top - 13.2, 6, 1.4);
+  } else if(tipo === 'torres'){         // Torres del Alto: tres torres de departamentos, blancas con ventanas
+    const top = yb - alto + 2, n = 3, ancho = (wb - 4) / n;
+    for(let k = 0; k < n; k++){
+      const tx = x0 + k * (ancho + 2), tt = top + (k === 1 ? 0 : 7);
+      rectG(g, tx, tt, ancho, yb - tt, '#F4F4F0', '#C8CAC4');
+      g.fillStyle = '#9EA3A8'; g.fillRect(tx - .5, tt - 1.5, ancho + 1, 2);
+      g.fillStyle = '#3E5E7E'; for(let wy = tt + 4; wy < yb - 6; wy += 4) for(let wx = tx + 2; wx < tx + ancho - 2; wx += 3.2) g.fillRect(wx, wy, 1.8, 2);
+    }
+    puerta(g, W / 2 - 2, yb - 7, 4, 7, '#5B4B3A', false);
   } else if(tipo === 'estadio'){        // 23 de Agosto (el Lobo): tribuna blanca con franjas azules, techo gris y torres de luz
     const top = yb - alto + 8;
     rectG(g, x0, top + 8, wb, yb - top - 8, '#F1F4F9', '#C7CEDB');
@@ -5166,7 +5269,7 @@ function fachada(e){
     if(wb > 20) ventana(g, x0 + 3, top + 10, 3.6, 4.2, '#7A5330');
     sombraLado(xr - 3, top + 5, 3, yb - top - 5);
   }
-  if(ALIAS[e.tipo]){ g.globalCompositeOperation = 'source-atop'; g.fillStyle = ALIAS[e.tipo][1]; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'source-over'; }
+  if(ALIAS[e.tipo] && ALIAS[e.tipo][1]){ g.globalCompositeOperation = 'source-atop'; g.fillStyle = ALIAS[e.tipo][1]; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'source-over'; }
   g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(x0, yb - 1.2, wb, 1.2);
   return ALTA_CACHE[k] = {c, w: W, h: H, ancla: H, base, alto};
 }
@@ -5915,7 +6018,8 @@ function abrirAventura(){
   sacarDeZonaCerrada();
   advRender();
   advSyncHud();
-  advMensaje('Caminá hasta la <b>hierba alta</b> o el <b>lago</b> para que salgan Pokémon');
+  advMensaje(textoAvisoClima() || 'Caminá hasta la <b>hierba alta</b> o el <b>lago</b> para que salgan Pokémon');
+  actualizarClima();
   // la ayuda de los mandos se retira sola: después tapa el mapa
   const ayuda = document.querySelector('.adv-ayuda');
   if(ayuda){ ayuda.classList.remove('oculta'); clearTimeout(abrirAventura._t); abrirAventura._t = setTimeout(() => ayuda.classList.add('oculta'), 9000); }
@@ -5953,7 +6057,7 @@ function ejeDeTeclado(){
 
 const escribiendo = e => e.target && e.target.closest && e.target.closest('input, textarea');   // chat: las letras no mueven al personaje
 document.addEventListener('keydown', e => {
-  if(!advAbierto || escribiendo(e)) return;
+  if(!advAbierto || escribiendo(e) || document.querySelector('.overlay.show')) return;   // con la Pokédex o los códigos abiertos, las flechas no mueven al personaje
   const k = TECLAS[e.key] ? e.key : (e.key || '').toLowerCase();
   if(!TECLAS[k]) return;
   e.preventDefault();
@@ -6038,6 +6142,9 @@ document.getElementById('evolucionarBtn').onclick = abrirEvolucion;
 document.getElementById('evolucionCloseBtn').onclick = () => document.getElementById('evolucionOverlay').classList.remove('show');
 document.getElementById('evolucionAtrasBtn').onclick = () => document.getElementById('evolucionCloseBtn').click();
 document.getElementById('intercambioBtn').onclick = abrirIntercambio;
+/* atajos de la Aventura: la Pokédex y los códigos se abren encima del mapa (los paneles tienen más z-index que la Aventura) */
+document.getElementById('advPokedexBtn').onclick = () => { teclasApretadas.clear(); advEje = {x: 0, y: 0}; document.getElementById('pokedexOverlay').classList.add('show'); };
+document.getElementById('advCodigosBtn').onclick = () => { teclasApretadas.clear(); advEje = {x: 0, y: 0}; abrirIntercambio(); };
 document.getElementById('intercambioCloseBtn').onclick = () => document.getElementById('intercambioOverlay').classList.remove('show');
 document.getElementById('intercambioAtrasBtn').onclick = () => document.getElementById('intercambioCloseBtn').click();
 document.getElementById('canjeCodigoBtn').onclick = canjearCodigoInput;
@@ -6107,6 +6214,7 @@ const REGALOS_KEY = 'album-kanto-regalos';
 const REGALOS = [
   { id: 'zeta-2000-20260906',  para: 'zeta centeno', monedas: 2000 },
   { id: 'todos-900-20260906', para: '*',            monedas: 900  },
+  { id: 'compensacion-sobres-20261102', para: '*', monedas: 900 },   // 3 sobres de regalo a las cuentas existentes por la suba de precios (31/10: una sola vez)
   { id: 'agusg-1200-20260906', para: 'agus g.',      monedas: 1200 },
   { id: 'agusg-legendaria-20260906', para: 'agus g.', monedas: 0, legendarias: 1 },
   { id: 'zeta-2legendarias-20260906', para: 'zeta centeno', monedas: 0, legendarias: 2 },
@@ -6515,6 +6623,12 @@ function textoFaltaSemana(fin){
   return 'cierra el lunes 00:00 · faltan ' + (d ? d + ' d ' : '') + h + ' h' + (d ? '' : ' ' + m + ' min');
 }
 function esc(t){ return String(t).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c])); }
+/* 1°, 2° y 3° con premio propio y del 4° al 10° el mismo: se muestra agrupado ("4°–10°") para que sea corto y claro */
+function agruparPremios(textos){
+  const gr = [];
+  textos.forEach((t, i) => { const g = gr[gr.length - 1]; if(g && g.t === t) g.hasta = i + 1; else gr.push({t, desde: i + 1, hasta: i + 1}); });
+  return gr;
+}
 function renderRankSemana(lista, cont, done){
   const d = ultimoTopSemana, colec = subMaestro === 'colec';
   if(!d){ lista.innerHTML = '<div class="rank-empty">Cargando la semana…</div>'; cont.hidden = true; done.innerHTML = ''; return; }
@@ -6535,7 +6649,7 @@ function renderRankSemana(lista, cont, done){
   done.innerHTML = '<div class="hof-title">🎁 Premios de la semana</div>' +
     '<div class="hof-sub">' + (colec ? 'Gana el que consigue más figuritas NUEVAS abriendo sobres.' : 'Gana el que suma más puntos peleando en la Arena.') +
     ' Todos arrancan de cero cada lunes.<br><b>' + textoFaltaSemana(d.termina) + '</b><br>Los premios te llegan solos al entrar al juego.</div>' +
-    cfg.textos.map((t, i) => '<div class="hof-row rango premio-sem"><span class="rango-pts">' + (i + 1) + '°</span><div class="hof-name">' + esc(t) + '</div></div>').join('') +
+    agruparPremios(cfg.textos).map(g => '<div class="hof-row rango premio-sem"><span class="rango-pts">' + (g.desde === g.hasta ? g.desde + '°' : g.desde + '°–' + g.hasta + '°') + '</span><div class="hof-name">' + esc(g.t) + '</div></div>').join('') +
     '<div class="hof-row rango premio-sem"><span class="rango-pts">+</span><div class="hof-name"><b>Participar</b><br><small>' + (colec ? cfg.minimo + ' figuritas nuevas' : cfg.minimo + ' peleas') + ' en la semana: ' + esc(cfg.textoMinimo) + '</small></div></div>' +
     (ant && ant.length ? '<div class="hof-title" style="margin-top:14px">🏅 La semana pasada</div>' + ant.map(g => '<div class="hof-row"><span class="rango-pts">' + g.puesto + '°</span><div class="hof-name"><b>' + esc(g.nombre) + '</b></div></div>').join('') : '');
 }
@@ -6573,13 +6687,29 @@ function renderRankMaestroHistorico(lista, cont, done){
   }
   /* abajo: en qué rango estás y qué premio destraba cada uno */
   const mio = rangoPropio(), sig = RANGOS_MAESTRO[mio + 1];
-  done.innerHTML = '<div class="hof-title">⚔️ Rangos de Maestro</div>' +
+  /* Emperador: el servidor decide quién ocupa los 4 puestos; acá se reclama el premio del mes y se elige la montura de regalo */
+  const NOM_MONT = {gyarados: 'Gyarados', entei: 'Entei', charizard: 'Charizard'};
+  const emp = (MODO_SERVIDOR && emperador && emperador.dir) ? '<div class="hof-title">👑 Emperador del ' + esc(emperador.dir) + '</div><div class="hof-sub">' +
+    (emperador.montura_pendiente ? 'Elegí tu <b>montura de regalo</b> (una sola vez):<br>' + Object.keys(NOM_MONT).map(k => '<button type="button" class="open-btn sec emp-mont" data-id="' + k + '" style="margin:6px 4px;">' + NOM_MONT[k] + '</button>').join('') + '<br>' : '') +
+    'Cada mes que conservás el trono te llevás 10 Master Ball, 15 Ultra, 20 Súper, 30 Poké Ball, 5000 monedas y 25 diamantes.<br>' +
+    '<button type="button" class="open-btn" id="empReclamarBtn" style="margin-top:8px;">Reclamar el premio del mes</button><div id="empMsg" style="min-height:18px;margin-top:6px;font-size:12px;"></div></div>' : '';
+  done.innerHTML = emp + '<div class="hof-title">⚔️ Rangos de Maestro</div>' +
     '<div class="hof-sub">Sumás puntos ganando en la Arena (más si tumbás a todos y no perdés a ninguno).<br>' +
     'Vos: <b>' + RANGOS_MAESTRO[mio].nombre + '</b> · ' + maestro.pts + ' pts' +
     (sig ? ' · te faltan ' + (sig.pts - maestro.pts) + ' para ' + sig.nombre : ' · ¡llegaste al máximo!') + '</div>' +
     RANGOS_MAESTRO.slice(1).map((x, i) => '<div class="hof-row rango' + (i + 1 <= maestro.nivel ? ' ok' : '') + '">' +
-      '<span class="rango-pts">' + x.pts + '</span><div class="hof-name"><b>' + x.nombre + '</b><br><small>' + textoPremioRango(x.premio) + '</small></div>' +
+      '<span class="rango-pts">' + x.pts + '</span><div class="hof-name"><b>' + x.nombre + '</b><br><small>' + (x.texto || textoPremioRango(x.premio)) + '</small></div>' +
       '<div class="hof-date">' + (i + 1 <= maestro.nivel ? '✅' : '🔒') + '</div></div>').join('');
+  const msg = (t, ok) => { const el = document.getElementById('empMsg'); if(el){ el.style.color = ok ? '#3DAA5B' : '#E3453B'; el.textContent = t; } };
+  const rec = document.getElementById('empReclamarBtn');
+  if(rec) rec.onclick = () => { rec.disabled = true; api('/emperador/reclamar', {}).then(res => {
+      if(res.progreso) aplicarProgreso(res.progreso, false);
+      if(res.ok){ const r = res.resultado; msg('¡Listo! +' + r.monedas + ' monedas, +' + r.diamantes + ' diamantes y las pokébolas del mes 👑', true); renderRank(); }
+      else msg(res.motivo === 'ya_reclamado_este_mes' ? 'Ya reclamaste el premio de este mes. Volvé el mes que viene.' : res.motivo === 'no_sos_emperador' ? 'Ya no tenés el trono: te superaron en puntos.' : 'No se pudo reclamar: ' + res.motivo);
+    }).catch(() => msg('Sin conexión. Probá de nuevo.')).then(() => { rec.disabled = false; }); };
+  done.querySelectorAll('.emp-mont').forEach(b => b.onclick = () => accionServidor('emperadorMontura', {id: b.dataset.id}).then(res => {
+    if(res.ok) renderRank(); else msg('No se pudo elegir: ' + res.motivo);
+  }).catch(() => msg('Sin conexión. Probá de nuevo.')));
 }
 
 /* =================== RANKING DE EVENTO =================== */
@@ -6947,6 +7077,10 @@ function renderRank(){
   while(done.firstChild) det.appendChild(done.firstChild);
   det.addEventListener('toggle', () => { hofAbierto = det.open; });
   done.appendChild(det);
+  /* cada ranking dice qué regala (Zeta 31/10): el Histórico premia con el álbum completo; los premios por puntos están en Semanal y en Maestros */
+  const nota = document.createElement('div');
+  nota.innerHTML = '<div class="hof-title">🎁 Qué regala este ranking</div><div class="hof-sub">Es el ranking de siempre: quién tiene más figuritas. El premio grande es <b>completar el álbum</b>: te llevás una carta especial (Mewtwo Acorazado, Zeraora, Mega Charizard X y más) y entrás al Salón de la Fama. Los premios por puntos de cada semana están en <b>Semanal</b> y los de rangos, en <b>Maestros</b>.</div>';
+  done.insertBefore(nota, done.firstChild);
 }
 
 /* Salón de la Fama · Edición Halloween: completaron Kanto+Johto durante el Pachamanga Fest.
@@ -7517,6 +7651,102 @@ document.querySelectorAll('.rank-tab').forEach(t => t.addEventListener('keydown'
     e.preventDefault(); sig.focus(); sig.click();
   }
 }));
+
+/* ====================== CLIMA REAL DE JUJUY ======================
+   El servidor consulta el clima de San Salvador de Jujuy (Open-Meteo, caché de 15 min) y lo manda por /clima; el juego lo MUESTRA (capa de gotas,
+   niebla, calor, viento, noche) en el mapa y en las batallas, y avisa. Quien decide qué Pokémon salen es el servidor. No se puede apagar. */
+const CLIMA_INFO = {
+  lluvia:  {ico: '🌧️', aviso: 'Está lloviendo en Jujuy',  tipos: 'Agua y Eléctrico'},
+  calor:   {ico: '🔥', aviso: 'Hace mucho calor en Jujuy', tipos: 'Fuego'},
+  viento:  {ico: '💨', aviso: 'Sopla viento en Jujuy',     tipos: 'Volador'},
+  niebla:  {ico: '🌫️', aviso: 'Hay niebla en Jujuy',       tipos: 'Fantasma y Hada'},
+  nublado: {ico: '☁️', aviso: 'Está nublado en Jujuy',     tipos: 'Normal y Planta'}
+};
+const CLIMA_TIPOS_JS = {lluvia: ['water', 'electric'], calor: ['fire'], viento: ['flying'], niebla: ['ghost', 'fairy'], nublado: ['normal', 'grass']};
+function nochePorHora(){ const h = (new Date().getUTCHours() + 21) % 24; return h >= 20 || h < 6; }   // Jujuy = UTC-3
+let CLIMA = {condicion: 'despejado', noche: nochePorHora()};
+function tiposDelClimaActual(){ return (CLIMA_TIPOS_JS[CLIMA.condicion] || []).concat(CLIMA.noche ? ['ghost', 'dark'] : []); }
+function textoAvisoClima(){
+  const partes = [];
+  const c = CLIMA_INFO[CLIMA.condicion];
+  if(c) partes.push(c.ico + ' ' + c.aviso + ': salen más Pokémon de <b>' + c.tipos + '</b>.');
+  if(CLIMA.noche) partes.push('🌙 Es de noche en Jujuy: salen más Pokémon <b>Fantasma y Siniestro</b>.');
+  return partes.join('<br>');
+}
+function avisarClima(){
+  const t = textoAvisoClima();
+  if(t && advAbierto) advMensaje(t);
+}
+function actualizarClima(){
+  if(!(typeof MODO_SERVIDOR !== 'undefined' && MODO_SERVIDOR && SERVIDOR_URL)){ CLIMA.noche = nochePorHora(); return Promise.resolve(); }
+  return fetch(SERVIDOR_URL + '/clima', {cache: 'no-store'}).then(r => r.json()).then(d => {
+    if(!d || !d.ok) return;
+    const cambio = d.condicion !== CLIMA.condicion || d.noche !== CLIMA.noche;
+    CLIMA = {condicion: d.condicion, noche: !!d.noche, temp: d.temp, viento: d.viento};
+    if(cambio) avisarClima();
+  }).catch(() => { CLIMA.noche = nochePorHora(); });
+}
+/* Capa visual: un canvas por encima de la Aventura y de las batallas (no tapa Pokédex, tienda ni demás paneles) */
+const climaCv = document.createElement('canvas');
+climaCv.id = 'climaCanvas';
+climaCv.setAttribute('aria-hidden', 'true');
+climaCv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:60;pointer-events:none;display:none;';
+document.body.appendChild(climaCv);
+const climaCtx = climaCv.getContext('2d');
+const CLIMA_ESC = 2;   // el canvas es de la mitad de la pantalla: más liviano en celulares
+let climaPart = [], climaT0 = 0, climaPaso = 0;
+function climaVisible(){
+  if(document.hidden) return false;
+  const base = document.querySelector('#advOverlay.show, #encOverlay.show, #arenaOverlay.show, #battleOverlay.show');
+  if(!base) return false;
+  return !document.querySelector('#pokedexOverlay.show, #intercambioOverlay.show, #shopOverlay.show, #detalleOverlay.show, #specialOverlay.show, #codigoCardOverlay.show, #quizOverlay.show, #novedadesOverlay.show, #evolucionOverlay.show, #repetidasOverlay.show, #nameOverlay.show, #pinOverlay.show');
+}
+function climaReiniciar(w, h){
+  const n = CLIMA.condicion === 'lluvia' ? Math.round(w * h / 2200) : CLIMA.condicion === 'viento' ? Math.round(w * h / 9000) : CLIMA.condicion === 'niebla' ? 7 : CLIMA.condicion === 'calor' ? 26 : 0;
+  climaPart = Array.from({length: n}, () => ({x: Math.random() * w, y: Math.random() * h, v: .6 + Math.random() * .8, r: Math.random()}));
+}
+function climaDibujar(ahora){
+  requestAnimationFrame(climaDibujar);
+  const quiere = (CLIMA.noche || CLIMA.condicion !== 'despejado') && climaVisible();
+  if(!quiere){ if(climaCv.style.display !== 'none') climaCv.style.display = 'none'; return; }
+  if(ahora - climaT0 < 40) return;   // ~25 cuadros por segundo alcanzan
+  climaT0 = ahora;
+  const w = Math.max(1, Math.round(innerWidth / CLIMA_ESC)), h = Math.max(1, Math.round(innerHeight / CLIMA_ESC));
+  if(climaCv.style.display !== 'block'){ climaCv.style.display = 'block'; climaPaso = 0; }
+  const clave = CLIMA.condicion + '|' + w + 'x' + h;
+  if(climaCv.width !== w || climaCv.height !== h || climaCv._k !== clave){ climaCv.width = w; climaCv.height = h; climaCv._k = clave; climaReiniciar(w, h); }
+  const g = climaCtx; g.clearRect(0, 0, w, h);
+  climaPaso++;
+  const c = CLIMA.condicion;
+  if(c === 'nublado'){ g.fillStyle = 'rgba(70,82,104,.22)'; g.fillRect(0, 0, w, h); }
+  if(c === 'lluvia'){
+    g.fillStyle = 'rgba(28,46,86,.20)'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(214,232,255,.82)'; g.lineWidth = 1.2; g.beginPath();
+    for(const p of climaPart){ p.y += 9 * p.v; p.x -= 2.4 * p.v; if(p.y > h){ p.y = -10; p.x = Math.random() * (w + 40); } g.moveTo(p.x, p.y); g.lineTo(p.x - 2, p.y + 8 + 5 * p.v); }
+    g.stroke();
+  }
+  if(c === 'niebla'){
+    g.fillStyle = 'rgba(214,224,236,.16)'; g.fillRect(0, 0, w, h);
+    for(const p of climaPart){ p.x += .25 * p.v; if(p.x > w + 120) p.x = -120; const rr = 90 + p.r * 80, gr = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, rr); gr.addColorStop(0, 'rgba(236,242,248,.26)'); gr.addColorStop(1, 'rgba(236,242,248,0)'); g.fillStyle = gr; g.fillRect(p.x - rr, p.y - rr, rr * 2, rr * 2); }
+  }
+  if(c === 'calor'){
+    const gr = g.createLinearGradient(0, h, 0, 0); gr.addColorStop(0, 'rgba(255,140,40,.26)'); gr.addColorStop(.6, 'rgba(255,170,70,.08)'); gr.addColorStop(1, 'rgba(255,200,90,.04)');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(255,214,140,.32)';
+    for(const p of climaPart){ p.y -= .7 * p.v; p.x += Math.sin((climaPaso + p.r * 90) / 14) * .6; if(p.y < -4){ p.y = h + 4; p.x = Math.random() * w; } g.fillRect(p.x, p.y, 1.6, 1.6); }
+    for(let k = 0; k < 5; k++){ const y = h * (.2 + k * .17) + Math.sin(climaPaso / 18 + k) * 3; g.fillStyle = 'rgba(255,255,255,.035)'; g.fillRect(0, y, w, 6); }   // ondas de calor
+  }
+  if(c === 'viento'){
+    g.fillStyle = 'rgba(210,225,235,.07)'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(235,245,250,.38)'; g.lineWidth = 1; g.beginPath();
+    for(const p of climaPart){ p.x += 11 * p.v; p.y += Math.sin(climaPaso / 9 + p.r * 6) * .6; if(p.x > w + 30){ p.x = -40; p.y = Math.random() * h; } g.moveTo(p.x, p.y); g.lineTo(p.x - 18 * p.v, p.y); }
+    g.stroke();
+  }
+  if(CLIMA.noche){ g.fillStyle = 'rgba(6,12,50,.44)'; g.fillRect(0, 0, w, h); }
+}
+requestAnimationFrame(climaDibujar);
+actualizarClima();
+setInterval(actualizarClima, 5 * 60e3);
 
 /* ---------- Foco de los paneles ----------
    Al abrir un panel el foco entra en él, Tab no se escapa a la página de

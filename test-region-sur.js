@@ -47,6 +47,12 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
     const media = ch => { const l = hallar(ch); return l.length ? {x: l.reduce((a, p) => a + p.x, 0) / l.length, y: l.reduce((a, p) => a + p.y, 0) / l.length, n: l.length} : null; };
     out.eje = {concejo: media('2'), gobierno: media('G'), muni: media('1'), estadio: media('3'), terminal: media('4'), casas: media('H')};
     out.edificios = edificiosDe('overworld').map(e => e.tipo);
+    const t3 = hallar('3').concat(hallar('6'));
+    out.estadio = {ancho: Math.max(...t3.map(p => p.x)) - Math.min(...t3.map(p => p.x)) + 1, alto: Math.max(...t3.map(p => p.y)) - Math.min(...t3.map(p => p.y)) + 1, cancha: hallar('6').length};
+    { const c6 = hallar('6')[0], ini = advBuscarTile('overworld', '@'), q = [[ini.x, ini.y]], vis = new Set([ini.x + ',' + ini.y]); let ok = false;
+      while(q.length && !ok){ const [x, y] = q.shift(); for(const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const k = (x + dx) + ',' + (y + dy); if(vis.has(k)) continue; const t = advTileEn(x + dx, y + dy); if(t && t.walk){ vis.add(k); q.push([x + dx, y + dy]); if(x + dx === c6.x && y + dy === c6.y) ok = true; } } }
+      out.estadio.entra = ok; }
+    out.lucha = [...new Set(poolBioma('lucha', 'kanto').map(p => p.type))];
     // pararse adentro: el juego pinta y cambia a la región nueva
     advPonerEn(25, 150); advRender();
     out.advRegion = advRegion;
@@ -77,8 +83,10 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   check('Concejo en la punta norte (y 1-2, x 39-42, sobre la Av. Bolivia)', E.concejo && E.concejo.y < 3 && E.concejo.x > 38 && E.concejo.n === 8);
   check('Casa de Gobierno entre el Parque San Martín (oeste) y la Plaza Belgrano (este): x 21-25, fila 14', E.gobierno && E.gobierno.x === 23 && E.gobierno.y === 14);
   check('orden de norte a sur: Concejo < Gobierno < Municipalidad < Estadio < Terminal < Alto Comedero', E.concejo.y < E.gobierno.y && E.gobierno.y < E.muni.y && E.muni.y < E.estadio.y && E.estadio.y < E.terminal.y && E.terminal.y < 103);
-  check('Municipalidad pasando el Xibi Xibi (y 39-40) y estadio del Lobo (y 50-51) después', E.muni.y > 38 && E.muni.y < 41 && E.estadio.y > 49 && E.estadio.y < 52);
-  check('se dibujan los 4 edificios nuevos', ['concejo', 'municipalidad', 'estadio', 'terminal'].every(t => r.edificios.includes(t)));
+  check('Municipalidad pasando el Xibi Xibi (y 39-40) y la cancha del Lobo después', E.muni.y > 38 && E.muni.y < 41 && E.estadio.y > 44 && E.estadio.y < 56);
+  check('el estadio es grande (13 x 11) y se entra por los túneles hasta la cancha', r.estadio.ancho === 13 && r.estadio.alto === 11 && r.estadio.cancha >= 60 && r.estadio.entra);
+  check('en la cancha del Lobo salen Pokémon de tipo Lucha', r.lucha.length > 0 && r.lucha.every(t => t === 'fighting'));
+  check('se dibujan los 4 edificios nuevos', ['concejo', 'municipalidad', 'terminal'].every(t => r.edificios.includes(t)));
   check('sin errores de JS', errores.length === 0); if(errores.length) console.log(errores);
   console.log('\n' + ok + ' ok · ' + fail + ' fallan');
   await browser.close();

@@ -135,6 +135,7 @@ function aplicarProgreso(P, conAlbum = true){
   Object.keys(state).forEach(id => { state[id] = P.state[id] || {got: false, dup: 0}; });
   Object.keys(bolas).forEach(k => { bolas[k] = P.bolas[k] || 0; });
   Object.assign(maestro, P.maestro);
+  emperador = P.emperador || null;
   comprasDia = P.comprasDia || {};
   legendariosDia = P.legendariosDia || {dia: null, obtenidos: {}};
   advTomados.clear();
@@ -466,7 +467,10 @@ const NPC_CADA_MS = 24 * 3600e3;
 /* Frases de cada uno al regalar (a revisar por Zeta) */
 const NPC_FRASE = {
   millon: '¡Desde el Concejo Deliberante, para los vecinos entrenadores de Jujuy!',
-  chuli: '¡Del Intendente para los entrenadores de la ciudad!'
+  chuli: '¡Del Intendente para los entrenadores de la ciudad!',
+  gunzack: '¡Del equipo de admins, para los entrenadores de todo el mapa!',
+  joker: '¡Un regalito del admin JokeR, a seguir atrapando!',
+  mago: '¡Magia de admin: pokébolas y oro para vos!'
 };
 let npcActual = null;
 function npcBoton(cerca){
@@ -494,7 +498,8 @@ function hablarConNpc(){
       if(res.motivo === 'volve_mas_tarde') return advMensaje(`🏛️ <b>${n.nombre}</b>: ¡Ya te di tus pokébolas de hoy! Volvé mañana.`);
       return avisoServidor(res.motivo);
     }
-    const b = res.resultado.bolas, txt = Object.keys(b).map(t => `+${b[t]} ${BOLAS[t] ? BOLAS[t].nombre : t}`).join(' · ');
+    const b = res.resultado.bolas, txt = Object.keys(b).map(t => `+${b[t]} ${BOLAS[t] ? BOLAS[t].nombre : t}`).concat(res.resultado.monedas ? [`+${res.resultado.monedas} monedas 🪙`] : []).join(' · ');
+    if(res.resultado.monedas) enviarPuntaje();
     advMensaje(`🏛️ <b>${n.nombre}</b>: ${NPC_FRASE[n.id] || '¡Para los entrenadores de Jujuy!'}<br>${txt}`);
   }).catch(() => {}).then(soltar('npc'));
 }
@@ -782,8 +787,8 @@ function mundoPoner(o, ahora, saltar){
   const v = MUNDO.otros[o.id];
   // cambió de mapa o pegó un salto grande (Centro Pokémon, cueva): aparece directo, sin deslizarse
   if(!v || saltar || v.m !== o.m || Math.abs(v.x - o.x) + Math.abs(v.y - o.y) > 64)
-    MUNDO.otros[o.id] = {n: o.n, av: o.av, mo: o.mo || null, npc: o.npc || null, m: o.m, x: o.x, y: o.y, tx: o.x, ty: o.y, d: o.d, visto: ahora};
-  else Object.assign(v, {n: o.n, av: o.av, mo: o.mo || null, npc: o.npc || null, tx: o.x, ty: o.y, d: o.d, visto: ahora});
+    MUNDO.otros[o.id] = {n: o.n, av: o.av, em: o.em || null, mo: o.mo || null, npc: o.npc || null, m: o.m, x: o.x, y: o.y, tx: o.x, ty: o.y, d: o.d, visto: ahora};
+  else Object.assign(v, {n: o.n, av: o.av, em: o.em || null, mo: o.mo || null, npc: o.npc || null, tx: o.x, ty: o.y, d: o.d, visto: ahora});
 }
 /* Se llama en cada cuadro desde advRender, antes de dibujar al propio jugador (que queda arriba). */
 function dibujarOtros(ctx, camX, camY, vw, vh, escala){
@@ -811,7 +816,7 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
     const sx = o.x - camX, sy = o.y - camY;
     if(sx < -24 || sy < -32 || sx > vw + 8 || sy > vh + 8) continue;
     if(!(o.mo && dibujarMontadoOtro(ctx, sx, sy, o, camina))) dibujarEntrenador(ctx, sx, sy, o.d, camina ? Math.floor(ahora / 140) % 4 : 0, o.av);
-    nombres.push({n: o.n, px: sx, py: sy});
+    nombres.push({n: (o.em ? '👑 ' : '') + o.n, px: sx, py: sy});
     if(o.npc && Math.abs(o.x - advPx) <= 40 && Math.abs(o.y - advPy) <= 40) npcCerca = {id: o.npc, nombre: o.n};
     if(MUNDO.busca[id] && ahora < MUNDO.busca[id] && !MUNDO.buscando) bats.push({id, px: sx, py: sy});
     const g = MUNDO.globos[id];

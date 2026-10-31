@@ -36,13 +36,13 @@ const caminar = async (p, tecla, ms) => { await p.keyboard.down(tecla); await p.
   const nombresA = () => A.p.evaluate(() => [...document.querySelectorAll('#advNombres span')].filter(s => s.style.display !== 'none').map(s => s.textContent));
   check('Mayra ve a Ash en el mapa con su nombre', (await nombresB()).includes('Ash ' + suf));
   check('Ash ve a Mayra con su nombre', (await nombresA()).includes('Mayra ' + suf));
-  const otroEnA = await A.p.evaluate(() => Object.values(MUNDO.otros)[0] || null);
+  const otroEnA = await A.p.evaluate(n => Object.values(MUNDO.otros).find(o => o.n === n) || null, 'Mayra ' + suf);   // (en la plaza también pasan NPC)
   check('Ash la ve con el personaje de May', otroEnA && otroEnA.av === 'may');
   // Ash camina a la derecha y abajo: Mayra lo ve moverse
-  const antes = await B.p.evaluate(() => { const o = Object.values(MUNDO.otros)[0]; return o && [o.x, o.y]; });
+  const antes = await B.p.evaluate(n => { const o = Object.values(MUNDO.otros).find(o => o.n === n); return o && [o.x, o.y]; }, 'Ash ' + suf);
   await caminar(A.p, 'ArrowRight', 900); await caminar(A.p, 'ArrowDown', 700);
   await B.p.waitForTimeout(800);
-  const despues = await B.p.evaluate(() => { const o = Object.values(MUNDO.otros)[0]; return o && [o.x, o.y]; });
+  const despues = await B.p.evaluate(n => { const o = Object.values(MUNDO.otros).find(o => o.n === n); return o && [o.x, o.y]; }, 'Ash ' + suf);
   check('Mayra lo ve caminar', antes && despues && despues[0] > antes[0] + 10 && despues[1] > antes[1] + 5);
   const real = await A.p.evaluate(() => [advPx, advPy]);
   check('y llega a donde está de verdad (±3 px)', Math.abs(despues[0] - real[0]) <= 3 && Math.abs(despues[1] - real[1]) <= 3);

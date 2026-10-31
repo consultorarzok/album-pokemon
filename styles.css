@@ -280,6 +280,14 @@
   .adv-montbtn.puesta{background:#2d6cdf;border-color:#a9c6ff;}
   .adv-npcbtn{position:absolute;left:50%;bottom:76px;transform:translateX(-50%);z-index:4;height:44px;padding:0 18px;border-radius:22px;background:#2d6cdf;color:#fff;border:2px solid #a9c6ff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.4);white-space:nowrap;}
   .adv-npcbtn:active{transform:translateX(-50%) scale(.96);}
+  /* Pokédex y códigos sin salir de la Aventura (31/10: "hincapié en el modo Aventura") */
+  .hof-row.rango .hof-name{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;}   /* los textos largos (p. ej. el premio del Emperador) se parten en renglones y no ensanchan la página */
+  .rank-panel{min-width:0;}
+  .adv-atajos{position:absolute;left:10px;top:64px;z-index:4;display:flex;flex-direction:column;gap:8px;}
+  .adv-atajo{display:flex;flex-direction:column;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:rgba(20,26,52,.82);color:#fff;border:2px solid rgba(255,255,255,.35);cursor:pointer;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.4);}
+  .adv-atajo span{font-size:20px;line-height:1;}
+  .adv-atajo small{font-size:8.5px;white-space:nowrap;font-weight:700;margin-top:2px;letter-spacing:.2px;}
+  .adv-atajo:active{transform:scale(.95);}
   .adv-npcbtn[hidden]{display:none;}
   .adv-batbtn.buscando{background:#C81F1F;border-color:#ff9a90;animation:advBat 1s ease-in-out infinite;}
   @keyframes advBat{0%,100%{box-shadow:0 0 0 0 rgba(255,106,96,.7);}50%{box-shadow:0 0 0 10px rgba(255,106,96,0);}}

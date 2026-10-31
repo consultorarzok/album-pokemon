@@ -11,7 +11,7 @@ base = io.open('mundo5.txt', encoding='utf-8').read().split('\n')
 meta = json.load(io.open('mundo5.json', encoding='utf-8'))
 W, H = len(base[0]), len(base)
 g = [list(r) for r in base]
-CAMINABLES = set('.,@*aB"bF%CPokLENeumcvw')
+CAMINABLES = set('.,@*aB"bF%CPokLENeumcvw6')
 
 
 def R(x0, y0, x1, y1, ch):
@@ -71,11 +71,29 @@ zonas += [{'n': 'Valles · Municipalidad (Av. El Éxodo)', 'x0': 24, 'y0': 38, '
 
 # 4) Parque del Bicentenario del Éxodo (real, sobre la Éxodo) y estadio 23 de Agosto: la cancha del Lobo (Gimnasia y Esgrima)
 cartel(28, 44, 'Parque del Bicentenario del Éxodo, sobre la Av. El Éxodo.')
-limpiar(31, 49, 41, 52)
-R(32, 50, 39, 51, '3')                                 # estadio 8 x 2
-R(31, 52, 41, 52, '.')                                  # calle de la entrada, hasta la bajada del este (x 40-42)
-cartel(31, 51, 'Estadio 23 de Agosto: la cancha del Lobo, Gimnasia y Esgrima de Jujuy.')
-zonas += [{'n': 'Valles · Estadio 23 de Agosto (la cancha del Lobo)', 'x0': 30, 'y0': 48, 'x1': 42, 'y1': 53}]
+# Estadio GRANDE y transitable (Zeta 31/10: "que sea grande, se pueda entrar, ahí aparecen Pokémon tipo lucha"): 13 x 11,
+# tribunas '3' de 2 casilleros alrededor de la cancha '6' (caminable, bioma 'lucha'), túnel en el medio de cada lado.
+# Se dibuja visto desde arriba (app.js PINTORES.estadio). El viejo cementerio (ruinas, Pokémon psíquicos) se corre al este.
+for y in range(44, 49):
+    for x in range(32, 42):
+        if g[y][x] == 'u': g[y][x] = ','
+EX0, EY0, EX1, EY1 = 31, 45, 43, 55
+for y in range(EY0, EY1 + 2):
+    for x in (EX0 - 1, EX1 + 1): g[y][x] = '.'
+for x in range(EX0 - 1, EX1 + 2): g[EY1 + 1][x] = '.'
+for x in range(EX0 + 1, EX1 + 2): g[44][x] = '.'          # (la estación del tren en 30,44 queda intacta)
+R(EX0, EY0, EX1, EY1, '3')
+R(EX0 + 2, EY0 + 2, EX1 - 2, EY1 - 2, '6')                # la cancha: 9 x 7
+ECX, ECY = (EX0 + EX1) // 2, (EY0 + EY1) // 2
+for (x_, y_) in [(ECX, EY0), (ECX, EY0 + 1), (ECX, EY1), (ECX, EY1 - 1), (EX0, ECY), (EX0 + 1, ECY), (EX1, ECY), (EX1 - 1, ECY)]:
+    g[y_][x_] = '.'                                         # túneles
+for y in range(EY0, EY1 + 1):
+    pass
+for y in range(45, 53):
+    for x in range(45, 50):
+        if g[y][x] in ',".#*': g[y][x] = 'u'                # el cementerio, del otro lado del estadio
+cartel(EX0 - 1, EY0 - 1, 'Estadio 23 de Agosto: la cancha del Lobo, Gimnasia y Esgrima de Jujuy. Entrá por los túneles: en la cancha salen Pokémon de tipo Lucha.')
+zonas += [{'n': 'Valles · Estadio 23 de Agosto (la cancha del Lobo)', 'x0': EX0 + 2, 'y0': EY0 + 2, 'x1': EX1 - 2, 'y1': EY1 - 2}]
 
 # 5) sectores del camino al sur
 cartel(*libre_cerca(43, 62, 4), 'Parque Cívico de las Banderas, camino al sur. Un poco más allá empiezan los barrios de la zona sur.')

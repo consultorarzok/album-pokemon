@@ -27,7 +27,7 @@ const suf = Math.random().toString(36).slice(2, 6);
     for(let i = 0; i < 30 && !sale; i++){ await cerrarCarteles(); sale = await p.isVisible('#novedadesOverlay .reveal-panel'); if(!sale) await p.waitForTimeout(700); }
     check('aparece el cartel al entrar (después de cerrar la bienvenida)', sale);
     const t = await p.textContent('#novedadesOverlay');
-    check('explica Pelea (1 vs 1, 2 vs 2, todos contra todos), Evolución y la semana que viene', /Modo Pelea/.test(t) && /2 vs 2/.test(t) && /Todos contra todos/.test(t) && /Modo Evolución/.test(t) && /semana que viene/.test(t) && /competitividad/.test(t));
+    check('explica la economía nueva (sobre 300, quiz 30/10, tope, Arena hasta 175), el regalo de 3 sobres y lo nuevo (Alola, Semanal, NPC)', /Economía nueva/.test(t) && /300 monedas/.test(t) && /40 preguntas/.test(t) && /175/.test(t) && /3 sobres/.test(t) && /Alola/.test(t) && /Semanal/.test(t));
     if(SHOTS) await p.screenshot({path: SHOTS + '/novedades-' + w + '.png'});
     await p.click('#novedadesCierraBtn'); await p.waitForTimeout(300);
     check('se cierra con ¡A jugar!', !(await p.isVisible('#novedadesOverlay .reveal-panel')));

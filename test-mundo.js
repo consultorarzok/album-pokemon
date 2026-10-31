@@ -175,15 +175,16 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
     return null;
   });
   const tomar = await page.evaluate(({x, y}) => {
-    const antes = bolas.roja;
+    const total = () => Object.values(bolas).reduce((a, n) => a + n, 0);   // la del piso puede ser de cualquier tipo (rareza por lugar)
+    const antes = total();
     advPonerEn(x, y - 1);
     advEje = {x:0, y:1};
     for(let i = 0; i < 40; i++) advPaso1(1 / 60);
-    const media = bolas.roja;
+    const media = total();
     advPonerEn(x, y - 1);
     for(let i = 0; i < 40; i++) advPaso1(1 / 60);
     advEje = {x:0, y:0};
-    return {antes, media, fin: bolas.roja};
+    return {antes, media, fin: total()};
   }, item);
   check('levantar una pokébola del piso suma 1', tomar.media === tomar.antes + 1);
   check('la misma pokébola no se puede levantar dos veces', tomar.fin === tomar.media);
@@ -406,18 +407,18 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
        pisa el cartel de la región y el test mide cualquier cosa. Se anula
        iniciarEncuentro en vez de ADV_PROB porque advPaso1 tiene un `|| .15`
        de reserva y poner las probabilidades en 0 no alcanza. */
-    const encOriginal = iniciarEncuentro;
-    window.iniciarEncuentro = () => {};
+    const encOriginal = iniciarEncuentro, salvOriginal = aparecerSalvajes;
+    window.iniciarEncuentro = () => {}; window.aparecerSalvajes = () => {};   // los salvajes visibles también pisan el cartel
     const m = ADV_MAPS.overworld;
     let xPuente = 0;
-    for(let x = 0; x < m.cols; x++) if(m.rows[pasoY][x] === 'B'){ xPuente = x; break; }
+    for(let x = 49; x < m.cols; x++) if(m.rows[pasoY][x] === 'B'){ xPuente = x; break; }   // el puente de la frontera (la capital tiene sus propios puentes)
     advPonerEn(xPuente - 2, pasoY); advRegionAnterior = 'kanto'; advRegion = 'kanto';
     advEje = {x:1, y:0};
     for(let i = 0; i < 240; i++) advPaso1(1 / 60);
     advEje = {x:0, y:0};
     const box = document.getElementById('advZona');
     const r = {texto: box.textContent, grande: box.classList.contains('grande'), region: advRegion};
-    window.iniciarEncuentro = encOriginal;
+    window.iniciarEncuentro = encOriginal; window.aparecerSalvajes = salvOriginal;
     return r;
   }, 42);
   check('al cruzar avisa en qué región entrás ("' + cartel.texto.slice(0, 28) + '…")', cartel.grande && /JOHTO/.test(cartel.texto));

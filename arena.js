@@ -46,7 +46,7 @@ const CAMBIO_CD = 3, INVUL_ENTRADA = 1;
 const EQUIPO_MAX = 6, EQUIPO_MIN = PELEA_MIN;
 /* Premio según cómo fue la pelea: base + cada rival que tumbaste + los tuyos que quedaron
    en pie + el tiempo peleado (con tope, para que no convenga estirarla). */
-const PREMIO = {ganar:100, bonoVivos:40, bonoRapidez:20, rapidezMin:30, rapidezMax:90, perder:15, porKO:20, segPorMoneda:3, topeTiempo:60};
+const PREMIO = {ganar:economiaDe(Date.now()).ganar, bonoVivos:40, bonoRapidez:20, rapidezMin:30, rapidezMax:90, perder:15, porKO:20, segPorMoneda:3, topeTiempo:60};
 /* Ganar paga de 100 a 160 según la destreza: 100 de base + hasta 40 por los tuyos que quedaron en pie + hasta 20 por la rapidez
    (todo el bono si ganás en 30 s o menos, nada si tardás 90 s o más). Perder paga menos que ganar (tope 90). */
 const TOPE_DERROTA = 90;
