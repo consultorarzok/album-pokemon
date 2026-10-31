@@ -71,6 +71,9 @@ if meta.get('fuego_kanto'):
     kanto = ', '.join('[%d, %d]' % tuple(p) for p in meta['fuego_kanto'])
     html, n = re.subn(r'const ZONAS_FUEGO = \[[^\n]*// Kanto \(x 0-54\)', 'const ZONAS_FUEGO = [' + kanto + ',        // Kanto (x 0-54): claros en las sierras de la capital', html, count=1)
     assert n == 1, 'no se pudo reemplazar ZONAS_FUEGO de Kanto'
+if meta.get('guaridas') is not None:
+    html, n = re.subn(r'const GUARIDAS = \[.*?\];', 'const GUARIDAS = ' + json.dumps(meta['guaridas']) + ';', html, count=1)
+    assert n == 1, 'no se pudo reemplazar GUARIDAS'
 io.open(RUTA, 'w', encoding='utf-8').write(html)
 print('index.html actualizado: {}x{}, {} zonas, {} carteles, {} altares'.format(
     meta['cols'], meta['filas'], len(meta['zonas']), len(meta['carteles']), len(meta['santuarios'])))

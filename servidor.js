@@ -136,6 +136,7 @@ function aplicarProgreso(P, conAlbum = true){
   Object.keys(bolas).forEach(k => { bolas[k] = P.bolas[k] || 0; });
   Object.assign(maestro, P.maestro);
   emperador = P.emperador || null;
+  incBolas = P.incBolas || 0; incursionPendiente = P.incursionPendiente || null;
   comprasDia = P.comprasDia || {};
   legendariosDia = P.legendariosDia || {dia: null, obtenidos: {}};
   advTomados.clear();

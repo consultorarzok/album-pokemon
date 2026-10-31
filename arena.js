@@ -1291,7 +1291,7 @@ function encerrar(e){
 function empujar(e, dx, dy){ e.x += dx / G.rx; e.y += dy / G.ry; encerrar(e); }
 
 function medidas(e, img){
-  const sf = ESCALA_POKE[escalaLado(e)] * (AR && AR.zoom || 1) * (img.dataset.fb ? .25 : 1) * ((e.mon && e.mon.p.escala) || 1);   // escala: sprites de Showdown más grandes que los de siempre
+  const sf = ESCALA_POKE[escalaLado(e)] * (AR && AR.zoom || 1) * (img.dataset.fb ? .25 : 1) * ((e.mon && e.mon.p.escala) || 1);   // el legendario de la incursión tiene el mismo tamaño que todos (Zeta 31/10): sólo es más poderoso   // escala: sprites de Showdown más grandes que los de siempre
   return {w:img.naturalWidth * G.K * sf, h:img.naturalHeight * G.K * sf};
 }
 function tamanoSprite(e){
@@ -1510,7 +1510,9 @@ function calcularDanio(a, d, alc, tipoMov, pot){
 function golpear(att, def, alc, x, y){
   if(!def.mon.vivo) return false;
   if(AR.bando[att.lado] === AR.bando[def.lado]) return false;   // no se pegan entre compañeros
-  if(AR.online && def.lado !== 'yo') return false;   // en duelo, el daño de los otros lo decide SU celular (llega por golpeRemoto)
+  const jefeMio = !!(AR.raid && AR.raid.host && def.lado === 'riv');   // el daño del legendario lo decide el celular anfitrión
+  if(AR.online && def.lado !== 'yo' && !jefeMio) return false;   // en duelo, el daño de los otros lo decide SU celular (llega por golpeRemoto)
+  const dV = jefeMio ? {d:AR.slotDe.riv} : {};
   const mov = movDe(att.mon, alc), tipo = mov.tipo;
   const c = cen(def), arriba = c.y - def.h * def.s * .6, ahora = performance.now();
   const roce = def.rodando && alc === 'largo';
@@ -1519,20 +1521,25 @@ function golpear(att, def, alc, x, y){
       texto(c.x, arriba, '¡Esquivó!', '#8be9ff', 3.6);
       def.mon.en = Math.min(EN_MAX, def.mon.en + EN_PREMIO_ESQUIVE);
       if(def.lado === 'yo') sfx('esquive');
-      if(AR.online) enviarRed({k:'g', r:'esq'});
+      if(AR.online) enviarRed(Object.assign({k:'g', r:'esq'}, dV));
     }
     def.tEsq = ahora;
     return false;
   }
   if(def.invul > 0) return false;
   const res = calcularDanio(att.mon, def.mon, alc, tipo, mov.pot), d = def.mon;
+  if(att.mon.jefe && res.dmg > 0) res.dmg = Math.round(res.dmg * JEFE_ATAQUE);   // el legendario de la incursión pega más fuerte (Zeta 31/10)
   if(roce && res.dmg > 0){
     res.dmg = Math.max(1, Math.round(res.dmg * ROCE_LARGO)); res.crit = false;
     texto(c.x, arriba - u() * 4.5, '¡Lo rozó!', '#8be9ff', 3.2);
   }
-  if(res.dmg === 0){ texto(c.x, arriba, 'No afecta', '#aab', 3.4); if(AR.online) enviarRed({k:'g', r:'nada'}); return false; }
+  if(res.dmg === 0){ texto(c.x, arriba, 'No afecta', '#aab', 3.4); if(AR.online) enviarRed(Object.assign({k:'g', r:'nada'}, dV)); return false; }
   d.hp = Math.max(0, d.hp - res.dmg);
-  if(AR.online) enviarRed({k:'g', r:'hit', dmg:res.dmg, crit:res.crit, mult:res.mult, hp:d.hp, roce, tipo, alc});
+  if(AR.online) enviarRed(Object.assign({k:'g', r:'hit', dmg:res.dmg, crit:res.crit, mult:res.mult, hp:d.hp, roce, tipo, alc}, dV));
+  if(jefeMio){
+    enviarSala({t:'jefe_dmg', de:AR.slotDe[att.lado], dmg:res.dmg, hp:d.hp});
+    if(d.hp <= 0) enviarSala({t:'jefe_cae'});
+  }
   /* combo: golpes seguidos del mismo lado sin recibir */
   const cb = AR.combo;
   if(cb.lado === att.lado && ahora - cb.t < 2600) cb.n++; else { cb.lado = att.lado; cb.n = 1; }
@@ -1568,9 +1575,9 @@ function cortarAccion(e){
 
 function iniciar(e, tipo, dirPref){
   const ok = iniciarBase(e, tipo, dirPref);
-  if(ok && AR.online && e.lado === 'yo'){
+  if(ok && AR.online && (e.lado === 'yo' || (e.lado === 'riv' && AR.raid && AR.raid.host))){
     const d = e.accion && e.accion.dir;
-    enviarRed({k:'a', a:tipo, dx:d ? +d.x.toFixed(3) : 0, dy:d ? +d.y.toFixed(3) : 0});
+    enviarRed(Object.assign({k:'a', a:tipo, dx:d ? +d.x.toFixed(3) : 0, dy:d ? +d.y.toFixed(3) : 0}, e.lado === 'riv' ? {d:AR.slotDe.riv} : {}));
   }
   return ok;
 }
@@ -2152,6 +2159,7 @@ function caer(e){
     if(AR[lado].mons.every(x => !x.vivo)){
       if(AR.multi){
         if(lado === 'yo') eliminadoMulti();
+        else if(AR.raid && lado === 'riv'){ decir(`¡${AR.rivalNombre} cayó! Esperando el resultado…`); AR.esperandoResultado = true; festejo(true); }
         else decir(`${AR[lado].nombre} se quedó sin Pokémon.`);
         if(AR.fase !== 'fin') AR.fase = 'lucha';
         return;
@@ -2383,7 +2391,7 @@ function bucle(ts){
       for(const t of ['largo', 'medio', 'corto']) if(AR.hold.has(t)) iniciar(E.yo, t);
       if(AR.hold.has('esquivar')) iniciar(E.yo, 'esquivar', intent);
     }
-    const bi = AR.online ? {x:0, y:0} : botActualizar(E.riv, h);
+    const bi = (!AR.online || (AR.raid && AR.raid.host)) ? botActualizar(E.riv, h) : {x:0, y:0};   // en la incursión, el legendario lo maneja el anfitrión
     actualizarMon(E.yo, h, intent);
     AR.lados.forEach(l => { if(l !== 'yo') actualizarMon(E[l], h, l === 'riv' ? bi : {x:0, y:0}); });
     if(AR.online) seguirRemoto(h);
@@ -2517,6 +2525,7 @@ function pedirSalida(){
    Yo soy 'yo'; mi compañero 'al'; los rivales 'riv', 'r2', 'r3', 'r4'. En 2 vs 2 los rivales se ven "espejados"
    (como el duelo de siempre); en todos contra todos hay una sola cancha igual para todos. */
 function armarMulti(d, pDe){
+  if(d.modo === 'raid') return armarIncursion(d, pDe);
   const yo = d.jugadores.find(j => j.slot === d.miSlot), otros = d.jugadores.filter(j => j.slot !== d.miSlot);
   const eq = j => j.equipo.map(x => crearMon(pDe(x.id), j.slot !== d.miSlot, x));
   AR.multi = true; AR.modo = d.modo; AR.miSlot = d.miSlot;
@@ -2541,6 +2550,32 @@ function armarMulti(d, pDe){
     const orden = d.jugadores.slice().sort((a, b) => a.slot - b.slot), n = orden.length;
     orden.forEach((j, i) => { const a = Math.PI / 2 + 2 * Math.PI * i / n; AR.spawn[AR.porSlot[j.slot]] = [+(.66 * Math.cos(a)).toFixed(3), +(.5 * Math.sin(a)).toFixed(3)]; });
   }
+}
+
+/* Incursión (Zeta 31/10): los 5 entrenadores son compañeros (bando A) contra el legendario (lado 'riv', bando B).
+   El legendario tiene fuerza 90-100 y mucha más vida (jefe.vida); su "cerebro" (el bot de siempre) corre en el celular anfitrión,
+   que también decide el daño que recibe y se lo cuenta al servidor (quién le pegó cuánto) para repartir las Incursión Balls. */
+const JEFE_ATAQUE = 1.25;   // el legendario pega un 25 % más fuerte (con 1,6 su ataque largo se llevaba un Pokémon entero de un saque)
+function armarIncursion(d, pDe){
+  const yo = d.jugadores.find(j => j.slot === d.miSlot), otros = d.jugadores.filter(j => j.slot !== d.miSlot);
+  const eq = j => j.equipo.map(x => crearMon(pDe(x.id), false, x));
+  AR.multi = true; AR.modo = 'raid'; AR.miSlot = d.miSlot;
+  AR.raid = {jefe: d.jefe, host: d.hostJefe === d.miSlot};
+  AR.zoom = .64;
+  AR.estilo = ESTILOS.agresivo;
+  AR.lados = ['yo']; AR.bando = {yo:'A'}; AR.espejo = {}; AR.porSlot = {[d.miSlot]:'yo'}; AR.spawn = {}; AR.slotDe = {yo:yo.slot};
+  AR.yo = {mons:eq(yo), idx:0, act:null, nombre:yo.nombre};
+  const libres = ['al', 'r2', 'r3', 'r4'];
+  otros.forEach(j => { const l = libres.shift(); AR.lados.push(l); AR.bando[l] = 'A'; AR.espejo[l] = false; AR.porSlot[j.slot] = l; AR.slotDe[l] = j.slot; AR[l] = {mons:eq(j), idx:0, act:null, nombre:j.nombre}; });
+  const pj = pDe(d.jefe.id), jefe = crearMon(pj, true, {f:d.jefe.f, c:'jefe' + d.jefe.id});
+  jefe.max = Math.round(jefe.max * d.jefe.vida); jefe.hp = jefe.max; jefe.jefe = true;
+  AR.lados.push('riv'); AR.bando.riv = 'B'; AR.espejo.riv = false; AR.porSlot[d.jefe.slot] = 'riv'; AR.slotDe.riv = d.jefe.slot;
+  AR.riv = {mons:[jefe], idx:0, act:null, nombre:pj.name};
+  AR.rivalNombre = pj.name;
+  /* los 5 abajo en abanico, el legendario arriba al medio (igual en todos los celulares: no hay espejo) */
+  const orden = d.jugadores.slice().sort((a, b) => a.slot - b.slot);
+  orden.forEach((j, i) => { AR.spawn[AR.porSlot[j.slot]] = [+(-.7 + 1.4 * i / Math.max(1, orden.length - 1)).toFixed(3), .55]; });
+  AR.spawn.riv = [0, -.35];
 }
 
 async function luchar(mios, duelo){
@@ -2570,7 +2605,7 @@ async function luchar(mios, duelo){
   armarEscenario();
   E = {};
   AR.lados.forEach(l => { E[l] = crearEntidad(l); });
-  E.riv.bot = duelo ? null : {guion:nuevoGuion(AR.estilo), hist:[], modo:'orbitar', t:1.2, reac:0, huye:0, huyeDir:1, dirOrb:1, ejecutado:false};
+  E.riv.bot = duelo && !AR.raid ? null : {guion:nuevoGuion(AR.estilo), hist:[], modo:'orbitar', t:1.2, reac:0, huye:0, huyeDir:1, dirOrb:1, ejecutado:false};
   AR.lados.forEach(l => { E[l].x = AR.spawn[l][0]; E[l].y = AR.spawn[l][1]; AR[l].act = AR[l].mons[0]; E[l].mon = AR[l].act; });
   medir(); pintarFondo(); acomodarEscena();
   AR.lados.forEach(l => orientarYa(E[l]));
@@ -2582,7 +2617,7 @@ async function luchar(mios, duelo){
   pintarHud();
   AR.lados.forEach(l => { dibujar(E[l], 0); E[l].spr.addEventListener('load', () => dibujar(E[l], 0), {once:true}); });
   window.__arena = {estado:() => AR, ent:() => E, golpe:alc => golpear(E.riv, E.yo, alc || 'largo'), golpeDe:(de, a, alc) => golpear(E[de], E[a], alc || 'largo')};   // golpe, golpeDe: sólo para pruebas
-  decir(multi ? (AR.modo === '2v2' ? `¡2 vs 2! Tu compañero: ${AR.al ? AR.al.nombre : '—'}` : '¡Todos contra todos!') : duelo ? `¡Duelo contra ${AR.rivalNombre}!` : `¡${AR.rivalNombre} quiere pelear!`);
+  decir(multi ? (AR.modo === 'raid' ? `¡Incursión! Los 5 contra ${AR.rivalNombre}` : AR.modo === '2v2' ? `¡2 vs 2! Tu compañero: ${AR.al ? AR.al.nombre : '—'}` : '¡Todos contra todos!') : duelo ? `¡Duelo contra ${AR.rivalNombre}!` : `¡${AR.rivalNombre} quiere pelear!`);
   const aviso = $('arAviso'), tok = TOK, turbo = window.__arenaTurbo > 0 ? window.__arenaTurbo : 1;
   /* mientras cuenta, los dos ya respiran y miran al rival */
   const respira = ts => { if(tok !== TOK || !AR || AR.fase !== 'intro') return; dibujarTodos(0); requestAnimationFrame(respira); };
@@ -2730,7 +2765,8 @@ function puedeDueloRapido(){
   return true;
 }
 function abrirDueloRapido(info){ if(puedeDueloRapido()) abrirArenaBase(info); }
-function abrirArenaBase(rapido){
+function abrirIncursionArena(inc){ return abrirArenaBase(null, inc); }
+function abrirArenaBase(rapido, inc){
   const ov = $('arenaOverlay');
   const mios = kantoMios().concat(especialesMios());   // las especiales (Mewtwo Acorazado) pelean aparte
   if(mios.length < EQUIPO_MIN){
@@ -2799,7 +2835,7 @@ function abrirArenaBase(rapido){
   };
   const pintar = () => {
     root.innerHTML = `<div class="ar-pick">
-      <h2>${rapido ? `⚔️ Duelo contra ${rapido.rival.replace(/[<>&"]/g, '')}` : 'Arena Pokémon · Kanto, Johto, Hoenn y Sinnoh'}</h2>
+      <h2>${inc ? `⚔️ Incursión contra ${(DATA.find(x => x.id === inc.legendario) || {}).name || 'el legendario'}` : rapido ? `⚔️ Duelo contra ${rapido.rival.replace(/[<>&"]/g, '')}` : 'Arena Pokémon · Kanto, Johto, Hoenn y Sinnoh'}</h2>
       <p>${rapido ? `Elegí tu equipo (${EQUIPO_MIN} a ${EQUIPO_MAX}) antes de que se acabe el tiempo: si se acaba, pelea el que tenés marcado.` : `Elegí tu equipo: de ${EQUIPO_MIN} a ${EQUIPO_MAX}. Sale primero el que marcaste con el 1. Pelea tu ejemplar más fuerte (💪).`}</p>
       <div class="ar-busca"><input id="arBuscar" type="search" inputmode="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="🔎 Buscar" aria-label="Buscar Pokémon"></div>
       <div class="ar-favaviso" id="arFavInfo" hidden></div>
@@ -2807,11 +2843,11 @@ function abrirArenaBase(rapido){
       <div class="ar-pick-pie"><span id="arPickN"></span>${rapido ? `<span class="ar-cuenta" id="arCuenta" aria-live="off">${SEG_ELEGIR}</span>` : ''}
         <button class="ar-b ar-med" id="arPickCerrar"><b>${rapido ? 'Salir' : 'Cerrar'}</b></button>
         <button class="ar-b ar-med ar-go" id="arPickGo"><b>${rapido ? '¡Listo!' : '¡A pelear!'}</b></button></div>
-      ${MODO_SERVIDOR && !rapido ? `<button class="ar-b ar-duelo-btn" id="arPickDuelo"><b>👥 Duelo con un amigo${dueloPendiente ? ' · código ' + dueloPendiente : ''}</b><small>En vivo, contra su equipo real</small></button>` : ''}</div>`;
+      ${MODO_SERVIDOR && !rapido && !inc ? `<button class="ar-b ar-duelo-btn" id="arPickDuelo"><b>👥 Duelo con un amigo${dueloPendiente ? ' · código ' + dueloPendiente : ''}</b><small>En vivo, contra su equipo real</small></button>` : ''}</div>`;
     const bq = $('arBuscar'); bq.value = q;
     bq.oninput = () => { q = bq.value; pintarLista(); };       // sólo se repinta la lista: el teclado no se cierra
     $('arPickCerrar').onclick = cerrarArena;
-    $('arPickGo').onclick = () => rapido ? confirmarRapido() : luchar(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]));
+    $('arPickGo').onclick = () => inc ? pintarIncursion(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]), inc) : rapido ? confirmarRapido() : luchar(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]));
     const bd = $('arPickDuelo');
     if(bd) bd.onclick = () => pintarDuelo(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]), pintar);
     pintarLista();
@@ -2922,6 +2958,13 @@ function mensajeDuelo(m){
   if(m.t === 'rival_se_fue'){ if(AR && AR.fase !== 'fin') decir(`Se cortó la conexión de ${quien()}… esperando que vuelva.`); return; }
   if(m.t === 'rival_volvio'){ if(AR && AR.fase !== 'fin') decir(`¡${quien()} volvió!`); return; }
   if(m.t === 'jugador_fuera'){ if(AR && AR.multi) jugadorFuera(AR.porSlot[m.d], m.abandono); return; }
+  if(m.t === 'jefe_host'){
+    if(AR && AR.raid){
+      AR.raid.host = m.slot === AR.miSlot;
+      if(AR.raid.host && typeof m.hp === 'number' && E.riv && E.riv.mon) E.riv.mon.hp = Math.min(E.riv.mon.hp, m.hp);
+    }
+    return;
+  }
   if(m.t === 'reconectando'){ if(AR && AR.fase !== 'fin') decir('Se cortó tu conexión… reconectando.'); return; }
   if(m.t === 'error_red'){ if(AR && AR.fase !== 'fin') decir('Sin conexión con la sala.'); else if(AR && AR.esperandoResultado) mostrarResultadoDuelo({t:'resultado', empate:true, motivo:'sin_conexion'}); return; }
   if(m.t === 'resultado') mostrarResultadoDuelo(m);
@@ -3004,6 +3047,8 @@ function mandarPosicion(){
   AR.red.ult = ahora;
   enviarRed({k:'p', x:+E.yo.x.toFixed(4), y:+E.yo.y.toFixed(4), vx:+(E.yo.vx / G.rx).toFixed(3), vy:+(E.yo.vy / G.ry).toFixed(3),
     hp:Math.round(E.yo.mon.hp * 10) / 10, en:Math.round(E.yo.mon.en), i:AR.yo.idx});
+  if(AR.raid && AR.raid.host && E.riv && E.riv.mon) enviarRed({k:'p', d:AR.slotDe.riv, x:+E.riv.x.toFixed(4), y:+E.riv.y.toFixed(4), vx:+(E.riv.vx / G.rx).toFixed(3), vy:+(E.riv.vy / G.ry).toFixed(3),
+    hp:Math.round(E.riv.mon.hp * 10) / 10, en:Math.round(E.riv.mon.en), i:0});
 }
 
 /* Partidas con varios: el servidor lleva la cuenta de quién quedó eliminado y cuándo; yo sólo aviso que me quedé sin Pokémon. */
@@ -3040,6 +3085,7 @@ function terminarDuelo(gane){
 }
 function mostrarResultadoDuelo(m){
   if(!AR || !AR.online) return;
+  if(m.incursion) return mostrarResultadoIncursion(m);
   if(AR.fase !== 'fin'){   // terminó por el servidor (el rival abandonó, por ejemplo)
     AR.fase = 'fin'; AR.hold.clear();
     if(m.gane){ sfx('gana'); festejo(true); }
@@ -3060,6 +3106,75 @@ function mostrarResultadoDuelo(m){
   if(typeof cargarTopMaestro === 'function') cargarTopMaestro();
   pintarFin(!!m.gane, pr, subidas, aviso);
   const otra = $('arOtra'); if(otra){ otra.querySelector('b').textContent = 'Otro duelo'; }
+}
+
+/* ---- fin de la incursión: Incursión Balls y a tirarle al legendario ---- */
+function mostrarResultadoIncursion(m){
+  AR.fase = 'fin'; AR.hold.clear(); AR.esperandoResultado = false;
+  cerrarSala();
+  if(m.progreso && typeof aplicarProgreso === 'function') aplicarProgreso(m.progreso);
+  const p = DATA.find(x => x.id === m.legendario) || {name:'el legendario', id:m.legendario}, f = $('arFin');
+  sfx(m.gane ? 'gana' : 'pierde');
+  if(m.gane) festejo(true);
+  f.hidden = false;
+  if(!m.gane){
+    f.innerHTML = `<div class="ar-fin-caja" style="border-color:#F0463C"><b style="color:#F0463C">${p.name} ganó</b>
+      <span>Era demasiado fuerte esta vez. Vuelvan en la próxima apertura de la guarida.</span>
+      <button class="ar-b ar-go" id="arIncSalir"><b>Volver</b></button></div>`;
+    $('arIncSalir').onclick = () => cerrarArena();
+    return;
+  }
+  const pinta = (txt, quedan, fin) => {
+    f.innerHTML = `<div class="ar-fin-caja" style="border-color:#3DDC6E"><b style="color:#3DDC6E">¡Le ganaron a ${p.name}!</b>
+      <img src="${p.img || ''}" alt="" style="width:120px;height:120px;object-fit:contain;margin:6px auto;display:block">
+      <span>Le sacaste el <b>${m.parte}%</b> de la vida: te ganaste <b>${m.bolas} Incursión Ball${m.bolas === 1 ? '' : 's'}</b>.</span>
+      <span id="arIncTxt" style="display:block;margin-top:8px">${txt}</span>
+      ${fin ? '' : `<button class="ar-b ar-go" id="arIncTirar"><b>🎯 Tirarle una Incursión Ball (${quedan})</b></button>`}
+      <button class="ar-b ar-med" id="arIncSalir"><b>${fin ? 'Volver' : 'Después'}</b></button></div>`;
+    $('arIncSalir').onclick = () => cerrarArena();
+    const t = $('arIncTirar'); if(t) t.onclick = tirar;
+  };
+  const tirar = () => {
+    const t = $('arIncTirar'); if(t) t.disabled = true;
+    accionServidor('tirarIncursion', {}).then(res => {
+      if(!res.ok) return pinta(res.motivo === 'se_escapo' ? `${p.name} se escapó.` : 'No se pudo tirar: ' + res.motivo, 0, true);
+      const r = res.resultado;
+      if(r.atrapado){ sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con fuerza ${r.f}.`, 0, true); }
+      if(r.escapo) return pinta(`${p.name} se soltó y se escapó…`, 0, true);
+      pinta(`¡Casi! ${p.name} se soltó. Probá de nuevo.`, r.quedan, false);
+    }).catch(() => pinta('Sin conexión. Probá de nuevo.', m.bolas, false));
+  };
+  pinta(m.bolas ? `Tenés ${m.bolas} para tirarle. Cada una tiene ${Math.round((typeof INCURSIONES !== 'undefined' ? INCURSIONES.probAtrapar : .35) * 100)}% de atraparlo.` : 'No le sacaste vida: esta vez no te tocan Incursión Balls.', m.bolas, !m.bolas);
+}
+
+/* ---- sala de la incursión: entran exactamente 5 y arranca sola ---- */
+function pintarIncursion(equipo, inc){
+  const root = $('arRoot'), p = DATA.find(x => x.id === inc.legendario) || {name:'el legendario'};
+  root.innerHTML = `<div class="ar-pick ar-duelo">
+    <h2>⚔️ Incursión contra ${p.name}</h2>
+    <p>Entran <b>exactamente 5 entrenadores</b>. Cuando estén los 5, arranca sola: todos contra ${p.name}.</p>
+    <div class="ar-duelo-eq">${equipo.map(x => `<img src="${spIcono(x.id, (mejorEjemplar(x.id) || {}).s)}" alt="${x.name}" title="${x.name}" width="48" height="48">`).join('')}</div>
+    <ul class="ar-lobby-lista" id="arILista" aria-label="Entrenadores en la incursión"></ul>
+    <div class="ar-duelo-estado" id="arIEstado" role="status" aria-live="polite">Entrando a la guarida…</div>
+    <div class="ar-pick-pie"><button class="ar-b ar-med" id="arIIrse"><b>Salir</b></button></div></div>`;
+  const est = $('arIEstado'), esc = t => String(t).replace(/[<>&"]/g, '');
+  const motivo = mm => ({cerrada:'La guarida está cerrada: abre a la hora que dice el cartel.', ya_participaste:'Ya peleaste en esta apertura. Volvé en la próxima.',
+    equipo_invalido:'Elegí entre 3 y 6 Pokémon.', no_es_tuyo:'Ese Pokémon no está en tu álbum.', sin_sesion:'Volvé a entrar al juego.'})[mm] || 'No se pudo: ' + mm;
+  $('arIIrse').onclick = () => { enviarSala({t:'irse'}); cerrarSala(); cerrarArena(); };
+  const alMensaje = m => {
+    if(m.t === 'lobby'){
+      $('arILista').innerHTML = m.jugadores.map(x => `<li${x.conectado ? '' : ' class="off"'}><span><b>${esc(x.nombre)}</b>${x.id === m.yo ? ' (vos)' : ''}${x.conectado ? '' : ' · sin conexión'}</span></li>`).join('');
+      const faltan = m.incursion ? m.incursion.faltan : 5 - m.jugadores.length;
+      est.innerHTML = faltan > 0 ? `Esperando entrenadores: faltan <b>${faltan}</b>. Avisales a tus amigos que vengan a la guarida.` : '¡Están los 5! Arrancando…';
+      return;
+    }
+    if(m.t === 'empezar'){ RED.alMensaje = mensajeDuelo; luchar(null, m); return; }
+    if(m.t === 'error_red') est.textContent = 'Sin conexión con la guarida. Probá de nuevo.';
+  };
+  api('/incursion/unirse', {region:inc.region, equipo:equipo.map(x => x.id)}).then(res => {
+    if(!res.ok){ est.textContent = motivo(res.motivo); return; }
+    conectarSala(res.resultado.codigo, alMensaje);
+  }).catch(() => { est.textContent = 'Sin conexión, probá de nuevo.'; });
 }
 
 /* ---- pantalla para crear o unirse a una sala ---- */
@@ -3203,6 +3318,8 @@ document.addEventListener('keyup', e => {
 window.addEventListener('blur', () => { if(AR && AR.keys){ AR.keys.clear(); AR.hold.clear(); } });
 
 window.abrirArena = abrirArena;
+window.abrirIncursionArena = abrirIncursionArena;   // la abre la Aventura desde la puerta de la guarida
+window.__incursionPrueba = m => luchar(null, m);   // sólo para las pruebas: arranca una incursión con un mensaje "empezar" armado a mano
 window.abrirDueloRapido = abrirDueloRapido;
 window.puedeDueloRapido = puedeDueloRapido;
 })();

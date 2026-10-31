@@ -155,6 +155,187 @@ zonas = [
     {'n': 'Alto Comedero', 'x0': 30, 'y0': 99, 'x1': 48, 'y1': 118},
 ] + zonas
 
+# ---------------- guaridas de las incursiones (una por región) ----------------
+# Zeta 31/10: "un espacio grande, verde o de fuego, encerrado por árboles y rocas bien dibujados, con una puerta que se abre cuando
+# llega la hora". Claro de 9 x 7: anillo de árboles ('#') y rocas ('^'), adentro el suelo de la guarida ('8': no se pisa; ahí está el
+# legendario) y la tranquera ('7') en el medio de abajo. El suelo es verde o de fuego según la región (lo pinta app.js).
+def _alcanza(gr):
+    fl = [''.join(r) for r in gr]
+    sp_ = [(r.index('@'), y) for y, r in enumerate(fl) if '@' in r][0]
+    vis_ = {sp_}; q_ = deque([sp_])
+    while q_:
+        x, y = q_.popleft()
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            n = (x + dx, y + dy)
+            if 0 <= n[0] < W and 0 <= n[1] < H and n not in vis_ and fl[n[1]][n[0]] in CAMINABLES: vis_.add(n); q_.append(n)
+    return fl, vis_
+_fl0, _vis0 = _alcanza(g)
+_poi0 = sum(1 for y in range(H) for x in range(W) if _fl0[y][x] in 'bcLCP' and (x, y) in _vis0)
+_altares = [tuple(map(int, k.split(','))) for k in meta['santuarios']]
+GW, GH = 9, 7
+GUARIDAS_REGIONES = [('kanto', 2, 48, 3, 116, 'verde'), ('johto', 60, 102, 3, 116, 'verde'), ('hoenn', 114, 156, 3, 116, 'fuego'),
+                     ('sinnoh', 168, 210, 3, 116, 'fuego'), ('unova', 222, 264, 3, 116, 'verde'), ('kalos', 276, 319, 3, 116, 'verde'),
+                     ('alola', 2, 50, 123, 175, 'fuego')]
+guaridas = []
+for region, gx0, gx1, gy0, gy1, suelo in GUARIDAS_REGIONES:
+    cands = []
+    for y0 in range(gy0, gy1 - GH - 1):
+        for x0 in range(gx0, gx1 - GW):
+            caja = [(x, y) for y in range(y0 - 1, y0 + GH + 1) for x in range(x0 - 1, x0 + GW + 1)]
+            if not all(g[y][x] in ',"*#^ZN' for x, y in caja): continue
+            if any(max(abs(ax - (x0 + 4)), abs(ay - (y0 + 3))) < 8 for ax, ay in _altares): continue
+            cerca = sum(1 for y in range(y0 - 3, y0 + GH + 4) for x in range(x0 - 3, x0 + GW + 4) if 0 <= y < H and 0 <= x < W and g[y][x] in '.B')
+            cands.append((-cerca, y0, x0))
+    cands.sort()
+    puesta = False
+    for _, y0, x0 in cands[:80]:
+        viejo = [row[:] for row in g]
+        for y in range(y0, y0 + GH):
+            for x in range(x0, x0 + GW):
+                borde = x in (x0, x0 + GW - 1) or y in (y0, y0 + GH - 1)
+                if not borde: g[y][x] = '8'
+                else:
+                    esquina = x in (x0, x0 + GW - 1) and y in (y0, y0 + GH - 1)
+                    g[y][x] = '^' if esquina or (x + y) % 3 == 0 else '#'      # árboles con algunas rocas
+        puerta = (x0 + GW // 2, y0 + GH - 1)
+        g[puerta[1]][puerta[0]] = '7'
+        if g[puerta[1] + 1][puerta[0]] not in CAMINABLES: g[puerta[1] + 1][puerta[0]] = ','
+        fl, vis_ = _alcanza(g)
+        poi = sum(1 for y in range(H) for x in range(W) if fl[y][x] in 'bcLCP' and (x, y) in vis_)
+        if poi == _poi0 and (puerta[0], puerta[1] + 1) in vis_:
+            guaridas.append({'region': region, 'x0': x0, 'y0': y0, 'w': GW, 'h': GH, 'suelo': suelo, 'puerta': list(puerta)})
+            puesta = True
+            break
+        g[:] = viejo
+    assert puesta, 'no hubo lugar para la guarida de ' + region
+
+# ---------------- senderos y claros en los bosques (Zeta 31/10: "mucho bosque y árboles sin entrada, que tengan caminitos con sentido") ----------------
+# 1) Johto sur (el monte entero, x 60-104 / y 78-117): un camino de piedra que sigue al de la laguna hasta la ruta del sur y otro de este a oeste,
+#    con un claro en el cruce y dos claros más, con flores y piedras.
+# 2) Bolsones de árboles macizos (sin ningún casillero caminable adentro): se les abre un sendero desde el camino más cercano hasta un claro.
+RESPETAR = set('bcLCPikpqrH8723456789')   # objetos, carteles y edificios: un sendero nunca los pisa
+
+
+def sendero_recto(x0, y0, x1, y1, ch='.'):
+    """Camino de 1 casillero entre dos puntos (primero en x, después en y); no pisa objetos, agua ni rocas."""
+    x, y = x0, y0
+    while (x, y) != (x1, y1):
+        if g[y][x] in '#gsn",' or g[y][x] in CAMINABLES and g[y][x] not in RESPETAR:
+            if g[y][x] not in RESPETAR:
+                g[y][x] = ch
+        if x != x1:
+            x += 1 if x1 > x else -1
+        else:
+            y += 1 if y1 > y else -1
+    g[y1][x1] = ch if g[y1][x1] not in RESPETAR else g[y1][x1]
+
+
+def claro(cx, cy, rx=2, ry=1, flores=True):
+    """Claro de pasto limpio de árboles, con algunas flores y una piedra."""
+    for yy in range(cy - ry, cy + ry + 1):
+        for xx in range(cx - rx, cx + rx + 1):
+            if g[yy][xx] in '#gsn"' and g[yy][xx] not in RESPETAR:
+                g[yy][xx] = ','
+    if flores:
+        for dx, dy in ((-rx, 0), (rx, 0), (0, -ry), (0, ry)):
+            if g[cy + dy][cx + dx] == ',':
+                g[cy + dy][cx + dx] = '*'
+
+
+# Johto sur
+sendero_recto(79, 90, 79, 117)                 # sigue el camino de la laguna hasta la ruta del sur (fila 118)
+sendero_recto(62, 100, 103, 100)               # camino de este a oeste
+claro(79, 100, 3, 2)                           # el cruce
+claro(67, 108, 2, 1)
+claro(95, 88, 2, 1)
+claro(70, 94, 2, 1)
+claro(90, 110, 2, 1)
+sendero_recto(67, 100, 67, 108)
+sendero_recto(95, 100, 95, 88)
+sendero_recto(70, 100, 70, 94)
+sendero_recto(90, 100, 90, 110)
+# Kanto sur: un camino bajando desde la ruta de la fila 83 hasta un claro
+sendero_recto(33, 83, 33, 91)
+claro(33, 91, 2, 1)
+
+# bolsones macizos: BFS desde su centro hasta el camino más cercano que ya se alcanza a pie
+_cam = set('.,@*aB"bF%CPokLENeumcvw6')
+
+
+def _alcanzable():
+    sp0 = [(r.index('@'), y) for y, r in enumerate(map(''.join, g)) if '@' in r][0]
+    v, qq = {sp0}, deque([sp0])
+    while qq:
+        x, y = qq.popleft()
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            n = (x + dx, y + dy)
+            if 0 <= n[0] < W and 0 <= n[1] < H and n not in v and g[n[1]][n[0]] in _cam:
+                v.add(n)
+                qq.append(n)
+    return v
+
+
+def _bolsones():
+    dist = {}
+    qq = deque()
+    for y in range(H):
+        for x in range(W):
+            if g[y][x] in _cam:
+                dist[(x, y)] = 0
+                qq.append((x, y))
+    while qq:
+        x, y = qq.popleft()
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            n = (x + dx, y + dy)
+            if 0 <= n[0] < W and 0 <= n[1] < H and n not in dist:
+                dist[n] = dist[(x, y)] + 1
+                qq.append(n)
+    visto, res = set(), []
+    for y in range(4, H - 4):
+        for x in range(4, W - 4):
+            if g[y][x] in '#gsn' and dist.get((x, y), 0) >= 3 and (x, y) not in visto:
+                qq = deque([(x, y)])
+                visto.add((x, y))
+                c = []
+                while qq:
+                    cx, cy = qq.popleft()
+                    c.append((cx, cy))
+                    for dx in (-1, 0, 1):
+                        for dy in (-1, 0, 1):
+                            n = (cx + dx, cy + dy)
+                            if 4 <= n[0] < W - 4 and 4 <= n[1] < H - 4 and n not in visto and g[n[1]][n[0]] in '#gsn' and dist.get(n, 0) >= 3:
+                                visto.add(n)
+                                qq.append(n)
+                if len(c) >= 10:
+                    res.append(max(c, key=lambda p: dist[p]))
+    return res
+
+
+_dentro_guarida = lambda x, y: any(gg['x0'] - 1 <= x <= gg['x0'] + gg['w'] and gg['y0'] - 1 <= y <= gg['y0'] + gg['h'] for gg in guaridas)
+_vis0 = _alcanzable()
+for (cx, cy) in _bolsones():
+    if _dentro_guarida(cx, cy):
+        continue
+    prev, qq, fin = {(cx, cy): None}, deque([(cx, cy)]), None
+    while qq and fin is None:
+        x, y = qq.popleft()
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            n = (x + dx, y + dy)
+            if 0 <= n[0] < W and 0 <= n[1] < H and n not in prev and not _dentro_guarida(*n) and g[n[1]][n[0]] in '#gsn' + ''.join(_cam):
+                prev[n] = (x, y)
+                if n in _vis0 and g[n[1]][n[0]] in '.,"a':
+                    fin = n
+                    break
+                qq.append(n)
+    if fin is None:
+        continue
+    p = prev[fin]
+    while p is not None:
+        if g[p[1]][p[0]] in '#gsn':
+            g[p[1]][p[0]] = '.'
+        p = prev[p]
+    claro(cx, cy, 2, 1)
+
 # ---------------- validación ----------------
 filas = [''.join(r) for r in g]
 assert len(filas) == H and all(len(f) == W for f in filas)
@@ -189,5 +370,14 @@ io.open('mundo6.txt', 'w', encoding='utf-8').write('\n'.join(filas))
 out = dict(meta)
 out['zonas'] = zonas + meta['zonas']
 out['carteles'] = dict(meta['carteles'], **carteles)
+out['guaridas'] = guaridas
+# los legendarios de las incursiones no salen en los altares; si un altar se queda sin ninguno, va otro de su región
+SOLO_INC_NOMBRES = {'Mewtwo', 'Lugia', 'Rayquaza', 'Giratina', 'Kyurem', 'Xerneas', 'Necrozma'}
+REEMPLAZO = {'Xerneas': 'Zygarde'}
+for k, v in out['santuarios'].items():
+    quedan = [p for p in v['pokes'] if p not in SOLO_INC_NOMBRES]
+    v['pokes'] = quedan or [REEMPLAZO.get(p, 'Mew') for p in v['pokes']]
+# Zygarde va en La Quiaca (Zeta): sale del altar del Cerro Colorado para no repetirse
+out['santuarios']['310,68']['pokes'] = [p for p in out['santuarios']['310,68']['pokes'] if p != 'Zygarde']
 json.dump(out, io.open('mundo6.json', 'w', encoding='utf-8'), ensure_ascii=False)
 print('OK mundo6: %dx%d, %d carteles nuevos' % (W, H, len(carteles)))

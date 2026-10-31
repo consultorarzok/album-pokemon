@@ -441,8 +441,8 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   check('un solo altar en la cueva', await page.evaluate(() =>
     ADV_MAPS.cueva.rows.join('').split('').filter(c => c === 'L').length === 1));
   check('cada altar tiene sus propios legendarios', new Set(altares.flatMap(a => a.pokes)).size === altares.flatMap(a => a.pokes).length);
-  check('Mewtwo ya no comparte altar con Mew', await page.evaluate(() =>
-    ADV_MAPS.cueva.santuariosPorRegion.kanto.pokes.join() === 'Mewtwo' &&
+  check('Mewtwo ya no está en ningún altar (es de la incursión de Kanto; en la cueva van los tres pájaros)', await page.evaluate(() =>
+    ADV_MAPS.cueva.santuariosPorRegion.kanto.pokes.join() === 'Articuno,Zapdos,Moltres' &&
     !Object.values(ADV_MAPS.overworld.santuarios).some(s => s.pokes.includes('Mewtwo'))));
 
   const salida = await page.evaluate((alt) => {

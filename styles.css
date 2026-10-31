@@ -289,6 +289,7 @@
   .adv-atajo small{font-size:8.5px;white-space:nowrap;font-weight:700;margin-top:2px;letter-spacing:.2px;}
   .adv-atajo:active{transform:scale(.95);}
   .adv-npcbtn[hidden]{display:none;}
+  .adv-incbtn{bottom:128px;background:#B3212C;border-color:#ffb3b3;}   /* incursión: se abre la guarida / tirarle al legendario */
   .adv-batbtn.buscando{background:#C81F1F;border-color:#ff9a90;animation:advBat 1s ease-in-out infinite;}
   @keyframes advBat{0%,100%{box-shadow:0 0 0 0 rgba(255,106,96,.7);}50%{box-shadow:0 0 0 10px rgba(255,106,96,0);}}
   .adv-batglobos{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;}
