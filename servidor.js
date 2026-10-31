@@ -463,6 +463,11 @@ function monturaElegirServidor(clave){
 /* ---------------- NPC que regalan pokébolas (Gobernador Sadir) ---------------- */
 let npcRegalos = {};   // npc -> cuándo cobraste (ms), viene del servidor
 const NPC_CADA_MS = 24 * 3600e3;
+/* Frases de cada uno al regalar (a revisar por Zeta) */
+const NPC_FRASE = {
+  millon: '¡Desde el Concejo Deliberante, para los vecinos entrenadores de Jujuy!',
+  chuli: '¡Del Intendente para los entrenadores de la ciudad!'
+};
 let npcActual = null;
 function npcBoton(cerca){
   const b = document.getElementById('advNpcBtn');
@@ -490,7 +495,7 @@ function hablarConNpc(){
       return avisoServidor(res.motivo);
     }
     const b = res.resultado.bolas, txt = Object.keys(b).map(t => `+${b[t]} ${BOLAS[t] ? BOLAS[t].nombre : t}`).join(' · ');
-    advMensaje(`🏛️ <b>${n.nombre}</b>: ¡Para los entrenadores de Jujuy!<br>${txt}`);
+    advMensaje(`🏛️ <b>${n.nombre}</b>: ${NPC_FRASE[n.id] || '¡Para los entrenadores de Jujuy!'}<br>${txt}`);
   }).catch(() => {}).then(soltar('npc'));
 }
 (() => { const b = document.getElementById('advNpcBtn'); if(b) b.onclick = hablarConNpc; })();
