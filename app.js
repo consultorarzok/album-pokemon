@@ -7107,11 +7107,17 @@ function iconoPuesto(puesto){
 
 /* Entrenadores de más que se suman al contador, y a los en línea reales se les suma un extra según la hora. */
 const ENTRENADORES_EXTRA = 87;
-/* De 1 a 8 de la madrugada (hora de Argentina) suma 3; el resto del día sortea 7 u 8. */
-const EN_LINEA_EXTRA = (() => {
-  const hora = (new Date().getUTCHours() + 21) % 24;
-  return hora >= 1 && hora < 8 ? 3 : (Math.random() < 0.5 ? 7 : 8);
-})();
+/* El extra que se suma a los en línea reales va variando siempre entre 3, 7, 8, 10 y 2 (nunca el mismo dos veces seguidas):
+   cambia solo cada 30-70 segundos mientras el ranking está a la vista. */
+const EN_LINEA_VALORES = [3, 7, 8, 10, 2];
+let EN_LINEA_EXTRA = EN_LINEA_VALORES[Math.floor(Math.random() * EN_LINEA_VALORES.length)];
+function sortearEnLineaExtra(){
+  const otros = EN_LINEA_VALORES.filter(v => v !== EN_LINEA_EXTRA);
+  EN_LINEA_EXTRA = otros[Math.floor(Math.random() * otros.length)];
+  try{ pintarEnLinea(); }catch(e){}
+  setTimeout(sortearEnLineaExtra, 30000 + Math.random() * 40000);
+}
+setTimeout(sortearEnLineaExtra, 30000 + Math.random() * 40000);
 
 function pintarEnLinea(){
   const el = document.getElementById('rankOnline');
