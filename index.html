@@ -148,6 +148,15 @@
   <div class="adv-atajos" id="advAtajos">
     <button type="button" class="adv-atajo" id="advPokedexBtn" aria-label="Abrir la Pokédex"><span aria-hidden="true">📖</span><small>Pokédex</small></button>
     <button type="button" class="adv-atajo" id="advCodigosBtn" aria-label="Códigos: generar o ingresar un código de intercambio"><span aria-hidden="true">🎟️</span><small>Códigos</small></button>
+    <button type="button" class="adv-atajo" id="advIncInfoBtn" aria-label="Incursiones: dónde hay una abierta"><span aria-hidden="true">⚔️</span><small>Incursión</small><i class="adv-atajo-punto" id="advIncPunto" hidden></i></button>
+  </div>
+  <div class="adv-incpanel" id="advIncPanel" hidden role="dialog" aria-modal="true" aria-label="Incursiones">
+    <div class="adv-incpanel-caja">
+      <h3>⚔️ Incursiones</h3>
+      <p class="adv-inc-sub" id="advIncSub"></p>
+      <div id="advIncLista"></div>
+      <button type="button" class="adv-inc-cerrar" id="advIncCerrar">Cerrar</button>
+    </div>
   </div>
   <button class="adv-npcbtn" id="advNpcBtn" hidden></button>
   <button class="adv-npcbtn adv-incbtn" id="advIncBtn" hidden></button>

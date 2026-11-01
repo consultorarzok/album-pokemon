@@ -2222,9 +2222,9 @@ const BOLAS = {
    recibe Incursión Balls según la parte del daño que hizo (3 / 2 / 1) para tirarle. El servidor (juego.js) usa esta misma tabla. */
 const INCURSIONES = {
   duracionMin: 30, jugadores: 5, probAtrapar: .35, vidaJefe: 12,
-  /* Zeta 31/10: 4 turnos fijos al día para todos (hora de Jujuy); en cada turno abren `porTurno` guaridas, que rotan para que cada región le toque
-     cada tanto. Un solo intento por entrenador por turno (para todas las guaridas juntas). */
-  turnos: [9, 14, 19, 23], porTurno: 2,
+  /* Zeta 31/10: 4 turnos fijos al día para todos (hora de Jujuy); en cada turno abren `porTurno` (4 de las 7) guaridas, que rotan: cada región tiene
+     incursión en más de la mitad de los turnos, así hay siempre dónde jugar. Un solo intento por entrenador por turno (para todas las guaridas juntas). */
+  turnos: [9, 14, 19, 23], porTurno: 4,
   regiones: [
     {region: 'kanto',  legendario: 150},   // Mewtwo
     {region: 'johto',  legendario: 249},   // Lugia
@@ -2259,6 +2259,65 @@ function aperturaIncursion(cfg, ahora){
 }
 const diaHoraJujuy = t => { const d = new Date(t), hoy = new Date(Date.now() - 3 * 3600e3), x = new Date(t - 3 * 3600e3); const dif = Math.round((Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate()) - Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth(), hoy.getUTCDate())) / 86400e3); return (dif === 0 ? 'hoy' : dif === 1 ? 'mañana' : 'en ' + dif + ' días') + ' a las ' + d.toLocaleTimeString('es-AR', {timeZone: 'America/Argentina/Jujuy', hour: '2-digit', minute: '2-digit', hour12: false}); };
 /* "hoy 23:00", "mañana 09:00" o "vie 14:00": el cartel de la puerta cerrada siempre dice QUÉ DÍA abre (hora de Jujuy) */
+/* ---------- Botón ⚔️ "Incursión": cartel que dice dónde hay una abierta, a qué distancia queda y para qué lado, y una flecha que te guía ---------- */
+let advGuia = null;   // región de la guarida a la que te guía la flecha (o null)
+const REGION_LOCAL = {kanto: 'Valles', johto: 'Yungas', hoenn: 'Quebrada', sinnoh: 'Alta Quebrada', unova: 'Puna', kalos: 'Puna norte', alola: 'Valle de los Pericos'};
+function rumboA(gx, gy){
+  const dx = gx - advX, dy = gy - advY, dist = Math.round(Math.hypot(dx, dy));
+  const ang = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360, nombres = ['este', 'sureste', 'sur', 'suroeste', 'oeste', 'noroeste', 'norte', 'noreste'];
+  return {dist, rumbo: nombres[Math.round(ang / 45) % 8]};
+}
+function panelIncursiones(){
+  const lista = document.getElementById('advIncLista'), sub = document.getElementById('advIncSub');
+  const ahora = Date.now(), filas = GUARIDAS.map(g => { const cfg = cfgIncursion(g.region); return {g, cfg, ap: aperturaIncursion(cfg, ahora), p: DATA.find(d => d.id === cfg.legendario) || {name: '?', img: ''}}; });
+  filas.sort((a, b) => (b.ap.abierta - a.ap.abierta) || ((a.ap.proxima || 0) - (b.ap.proxima || 0)));
+  const hay = filas.filter(f => f.ap.abierta).length;
+  sub.textContent = hay ? `Abiertas ahora: ${hay}. Cierran a las ${horaJujuy(filas[0].ap.hasta)} (hora de Jujuy). Tocá "Guiarme" y te sale una flecha.` : `No hay ninguna abierta. Turnos: 09:00, 14:00, 19:00 y 23:00 (hora de Jujuy).`;
+  lista.innerHTML = filas.map(({g, cfg, ap, p}) => {
+    const r = advMapa === 'overworld' ? rumboA(g.puerta[0], g.puerta[1]) : null;
+    const donde = r ? `a ${r.dist} casilleros al ${r.rumbo}` : 'en el mapa (salí de la cueva)';
+    return `<div class="adv-inc-fila${ap.abierta ? ' abierta' : ''}"><img src="${p.img}" alt="" onerror="this.style.visibility='hidden'">` +
+      `<div class="adv-inc-texto"><b>${REGION_LOCAL[g.region] || g.region}</b> · ${p.name}<br>${ap.abierta ? '🔴 <b>ABIERTA</b> hasta las ' + horaJujuy(ap.hasta) : '🔒 abre ' + etiquetaApertura(ap.proxima)}<br><small>${donde}</small></div>` +
+      `<button type="button" data-reg="${g.region}" class="${advGuia === g.region ? 'activo' : ''}">${advGuia === g.region ? 'Quitar flecha' : 'Guiarme'}</button></div>`;
+  }).join('');
+  lista.querySelectorAll('button[data-reg]').forEach(b => b.onclick = () => {
+    advGuia = advGuia === b.dataset.reg ? null : b.dataset.reg;
+    if(advGuia) cerrarPanelIncursiones(); else panelIncursiones();
+  });
+}
+function abrirPanelIncursiones(){ teclasApretadas.clear(); advEje = {x: 0, y: 0}; panelIncursiones(); document.getElementById('advIncPanel').hidden = false; }
+function cerrarPanelIncursiones(){ document.getElementById('advIncPanel').hidden = true; }
+function actualizarPuntoIncursion(){
+  const pt = document.getElementById('advIncPunto'); if(!pt) return;
+  const ahora = Date.now(); pt.hidden = !INCURSIONES.regiones.some(r => aperturaIncursion(r, ahora).abierta);
+}
+/* La flecha dorada: sale de tu personaje y apunta a la guarida elegida, con la distancia. Se quita sola al llegar. Se dibuja en la capa de arriba. */
+function dibujarGuiaIncursion(g){
+  if(!advGuia || advMapa !== 'overworld') return;
+  const gu = GUARIDAS.find(x => x.region === advGuia); if(!gu) return;
+  const tx = gu.puerta[0] * ADV_PX + 8, ty = gu.puerta[1] * ADV_PX + 8, px = advPx + 8, py = advPy + 8, dist = Math.hypot(tx - px, ty - py) / ADV_PX;
+  if(dist < 3){ advGuia = null; return; }
+  const ang = Math.atan2(ty - py, tx - px), R0 = 34, cx = px - camGuia.x + Math.cos(ang) * R0, cy = py - camGuia.y + Math.sin(ang) * R0, lat = (Math.sin(Date.now() / 220) + 1) / 2;
+  g.save(); g.translate(cx, cy); g.rotate(ang);
+  g.fillStyle = '#1a1a1a'; g.beginPath(); g.moveTo(15 + lat * 3, 0); g.lineTo(-7, -11); g.lineTo(-2, 0); g.lineTo(-7, 11); g.closePath(); g.fill();
+  g.fillStyle = '#FFD25E'; g.beginPath(); g.moveTo(12 + lat * 3, 0); g.lineTo(-5, -8); g.lineTo(-1, 0); g.lineTo(-5, 8); g.closePath(); g.fill();
+  g.restore();
+  g.font = 'bold 9px sans-serif'; g.textAlign = 'center';
+  const txt = '⚔️ ' + Math.round(dist), w = g.measureText(txt).width + 8;
+  g.fillStyle = 'rgba(10,16,40,.85)'; g.fillRect(cx - w / 2, cy + 12, w, 12); g.fillStyle = '#fff'; g.fillText(txt, cx, cy + 21.5);
+}
+const camGuia = {x: 0, y: 0};
+/* Qué incursiones hay abiertas ahora (o cuáles abren en el próximo turno), para avisar al entrar a la Aventura */
+function avisoIncursiones(){
+  const LOCAL = {kanto: 'Valles', johto: 'Yungas', hoenn: 'Quebrada', sinnoh: 'Alta Quebrada', unova: 'Puna', kalos: 'Puna norte', alola: 'Valle de los Pericos'};   // los nombres que se ven en el mapa
+  const nombre = r => { const p = DATA.find(d => d.id === r.legendario); return (LOCAL[r.region] || REGION_LABEL[r.region] || r.region) + ' (' + (p ? p.name : '?') + ')'; };
+  const aps = INCURSIONES.regiones.map(r => [r, aperturaIncursion(r, Date.now())]);
+  const abiertas = aps.filter(([, a]) => a.abierta);
+  if(abiertas.length) return `⚔️ <b>Hay incursión abierta ahora</b> en: ${abiertas.map(([r]) => nombre(r)).join(', ')}. Cierran a las ${horaJujuy(abiertas[0][1].hasta)}.`;
+  const prox = Math.min(...aps.map(([, a]) => a.proxima || Infinity));
+  if(!isFinite(prox)) return '';
+  return `⚔️ Próxima incursión: <b>${etiquetaApertura(prox)}</b> en ${aps.filter(([, a]) => a.proxima === prox).map(([r]) => nombre(r)).join(', ')}.`;
+}
 const etiquetaApertura = t => {
   const J = 3 * 3600e3, dia = x => { const d = new Date(x - J); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); };
   const dif = Math.round((dia(t) - dia(Date.now())) / 86400e3), hora = new Date(t).toLocaleTimeString('es-AR', {timeZone: 'America/Argentina/Jujuy', hour: '2-digit', minute: '2-digit', hour12: false});
@@ -5481,6 +5540,7 @@ function nocheRender(mapa, camX, camY, vw, vh, kk, cw, chh){
     const calido = luzCirculo(r, '255,200,100', .2 * f); g.drawImage(calido, x - calido.width / 2, y - calido.height / 2);
   }
   g.globalCompositeOperation = 'source-over';
+  camGuia.x = camX; camGuia.y = camY; dibujarGuiaIncursion(g);   // la flecha de las incursiones va arriba del manto
 }
 
 function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
@@ -5544,6 +5604,8 @@ function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
   for(const k in altaAlfa) delete altaAlfa[k];
   Object.assign(altaAlfa, vistos);
   dibujarPuertasGuaridas(g, camX, camY, vw, vh);
+  camGuia.x = camX; camGuia.y = camY;
+  if(!(nocheNivel >= .01)) dibujarGuiaIncursion(g);     // de noche la flecha se dibuja arriba del manto (nocheRender)
 }
 
 /* Realce del piso (cada cuadro, sólo lo que se ve): sombras suaves de árboles, montañas y edificios,
@@ -5713,6 +5775,17 @@ function dibujarMini(){
   const px = (advPx / ADV_PX) * MINI_PX, py = (advPy / ADV_PX) * MINI_PX;
   const te = trenEstado(Date.now());
   ctx.fillStyle = '#E8631F'; ctx.fillRect(te.x * MINI_PX - 3, TREN_Y * MINI_PX - 1, 6, 3);        // el tren en el minimapa
+  /* guaridas con la incursión abierta: ⚔️ con aro dorado que late */
+  if(typeof GUARIDAS !== 'undefined'){
+    const lat = (Math.sin(Date.now() / 300) + 1) / 2, ahoraMini = Date.now();
+    for(const gu of GUARIDAS){
+      if(!aperturaIncursion(cfgIncursion(gu.region), ahoraMini).abierta) continue;
+      const gx = (gu.puerta[0] + .5) * MINI_PX, gy = (gu.puerta[1] - 2) * MINI_PX;
+      ctx.fillStyle = `rgba(255,210,70,${(.35 + .3 * lat).toFixed(2)})`; ctx.beginPath(); ctx.arc(gx, gy, 14 + lat * 5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#B3212C'; ctx.beginPath(); ctx.arc(gx, gy, 10, 0, Math.PI * 2); ctx.fill();
+      ctx.font = '13px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.fillText('⚔', gx, gy + 1);
+    }
+  }
   /* los otros que están en la Aventura (personas y bots): puntos celestes; vos: punto rojo con aro blanco que late */
   if(typeof MUNDO !== 'undefined' && MUNDO.otros){
     for(const id in MUNDO.otros){
@@ -5973,7 +6046,7 @@ function advLeerCartel(x, y){
     const cfg = cfgIncursion(gu.region), ap = aperturaIncursion(cfg, Date.now()), p = DATA.find(d => d.id === cfg.legendario) || {name: 'un legendario'};
     advMensaje(ap.abierta
       ? `⚔️ <b>¡La guarida de ${p.name} está abierta!</b> Hasta las ${horaJujuy(ap.hasta)}. Tocá <b>Incursión</b>: hasta 5 entrenadores (con 4 o 5 se le puede ganar).`
-      : `🔒 <b>Guarida de ${p.name}</b> (fuerza 90-100). Hay 4 turnos por día (09:00, 14:00, 19:00 y 23:00, hora de Jujuy) y en cada uno abren 2 guaridas. A esta le toca el ${diaHoraJujuy(ap.proxima)}.`);
+      : `🔒 <b>Guarida de ${p.name}</b> (fuerza 90-100). Hay 4 turnos por día (09:00, 14:00, 19:00 y 23:00, hora de Jujuy) y en cada uno abren 4 de las 7 guaridas. A esta le toca el ${diaHoraJujuy(ap.proxima)}.`);
     return;
   }
   if(cerradoPorEvento(x, y)){
@@ -6257,13 +6330,14 @@ function abrirAventuraAhora(){
   sacarDeZonaCerrada();
   advRender();
   advSyncHud();
-  advMensaje(textoAvisoClima() || 'Caminá hasta la <b>hierba alta</b> o el <b>lago</b> para que salgan Pokémon');
+  advMensaje((textoAvisoClima() || 'Caminá hasta la <b>hierba alta</b> o el <b>lago</b> para que salgan Pokémon') + '<br>' + avisoIncursiones());
   actualizarClima();
   // la ayuda de los mandos se retira sola: después tapa el mapa
   const ayuda = document.querySelector('.adv-ayuda');
   if(ayuda){ ayuda.classList.remove('oculta'); clearTimeout(abrirAventura._t); abrirAventura._t = setTimeout(() => ayuda.classList.add('oculta'), 9000); }
   advUltimo = performance.now();
   if(!advRaf) advRaf = requestAnimationFrame(advCiclo);
+  actualizarPuntoIncursion();
   if(typeof mundoEntrar === 'function') mundoEntrar();
 }
 
@@ -6275,7 +6349,7 @@ function cerrarAventura(){
   salvajes = [];
   if(typeof mundoSalir === 'function') mundoSalir();
   document.getElementById('advOverlay').classList.remove('show');
-  { const car = document.getElementById('advCargando'); if(car){ clearTimeout(car._t); car.hidden = true; } }
+  { const car = document.getElementById('advCargando'); if(car){ clearTimeout(car._t); car.hidden = true; } cerrarPanelIncursiones(); }
   try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }catch(e){}
 }
 
@@ -6380,6 +6454,9 @@ document.getElementById('intercambioBtn').onclick = abrirIntercambio;
 /* atajos de la Aventura: la Pokédex y los códigos se abren encima del mapa (los paneles tienen más z-index que la Aventura) */
 document.getElementById('advPokedexBtn').onclick = () => { teclasApretadas.clear(); advEje = {x: 0, y: 0}; document.getElementById('pokedexOverlay').classList.add('show'); };
 document.getElementById('advCodigosBtn').onclick = () => { teclasApretadas.clear(); advEje = {x: 0, y: 0}; abrirIntercambio(); };
+document.getElementById('advIncInfoBtn').onclick = abrirPanelIncursiones;
+document.getElementById('advIncCerrar').onclick = cerrarPanelIncursiones;
+setInterval(() => { if(advAbierto) actualizarPuntoIncursion(); }, 15000);
 document.getElementById('intercambioCloseBtn').onclick = () => document.getElementById('intercambioOverlay').classList.remove('show');
 document.getElementById('intercambioAtrasBtn').onclick = () => document.getElementById('intercambioCloseBtn').click();
 document.getElementById('canjeCodigoBtn').onclick = canjearCodigoInput;

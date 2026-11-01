@@ -321,6 +321,24 @@
   .pk-puntos i:nth-child(2){animation-delay:.2s;} .pk-puntos i:nth-child(3){animation-delay:.4s;}
   @keyframes pkPunto{40%{opacity:1;}}
   @media (prefers-reduced-motion:reduce){.pk-bola,.pk-bola::after,.pk-puntos i{animation:none;}.pk-puntos i{opacity:1;}}
+  /* Botón ⚔️ de las incursiones y su panel: dice dónde hay una abierta y guía con una flecha */
+  .adv-atajo{position:relative;}
+  .adv-atajo-punto{position:absolute;top:3px;right:3px;width:12px;height:12px;border-radius:50%;background:#E5232B;border:2px solid #fff;animation:pkPunto2 1s ease-in-out infinite;}
+  .adv-atajo-punto[hidden]{display:none;}
+  @keyframes pkPunto2{50%{transform:scale(1.35);}}
+  .adv-incpanel{position:absolute;inset:0;z-index:45;background:rgba(4,8,24,.72);display:flex;align-items:center;justify-content:center;padding:16px;}
+  .adv-incpanel[hidden]{display:none;}
+  .adv-incpanel-caja{width:min(420px,100%);max-height:86%;overflow:auto;background:#141A34;color:#fff;border:2px solid rgba(255,255,255,.3);border-radius:16px;padding:16px;font-family:'Baloo 2',sans-serif;}
+  .adv-incpanel-caja h3{margin:0 0 4px;font-size:20px;}
+  .adv-inc-sub{margin:0 0 10px;font-size:13px;opacity:.85;}
+  .adv-inc-fila{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:rgba(255,255,255,.07);margin-bottom:8px;}
+  .adv-inc-fila.abierta{background:rgba(229,35,43,.22);border:1px solid rgba(255,120,120,.6);}
+  .adv-inc-fila img{width:44px;height:44px;image-rendering:pixelated;flex:none;}
+  .adv-inc-texto{flex:1;min-width:0;font-size:14px;line-height:1.25;}
+  .adv-inc-texto b{font-size:15px;}
+  .adv-inc-fila button{flex:none;min-height:44px;padding:6px 12px;border-radius:10px;border:0;background:#FFD25E;color:#1a1a1a;font-family:inherit;font-weight:700;cursor:pointer;}
+  .adv-inc-fila button.activo{background:#19E0FF;}
+  .adv-inc-cerrar{margin-top:6px;width:100%;min-height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;font-family:inherit;font-weight:700;cursor:pointer;}
   .adv-back{position:absolute;top:10px;left:10px;z-index:3;min-height:44px;background:rgba(16,20,38,.78);color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:10px;padding:9px 15px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
   .adv-back:active{transform:scale(.97);}
   .adv-hud{position:absolute;top:10px;right:10px;z-index:3;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:62vw;}
