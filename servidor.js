@@ -788,8 +788,8 @@ function mundoPoner(o, ahora, saltar){
   const v = MUNDO.otros[o.id];
   // cambió de mapa o pegó un salto grande (Centro Pokémon, cueva): aparece directo, sin deslizarse
   if(!v || saltar || v.m !== o.m || Math.abs(v.x - o.x) + Math.abs(v.y - o.y) > 64)
-    MUNDO.otros[o.id] = {n: o.n, av: o.av, em: o.em || null, mo: o.mo || null, npc: o.npc || null, m: o.m, x: o.x, y: o.y, tx: o.x, ty: o.y, d: o.d, visto: ahora};
-  else Object.assign(v, {n: o.n, av: o.av, em: o.em || null, mo: o.mo || null, npc: o.npc || null, tx: o.x, ty: o.y, d: o.d, visto: ahora});
+    MUNDO.otros[o.id] = {n: o.n, av: o.av, em: o.em || null, rg: o.rg || 0, mo: o.mo || null, npc: o.npc || null, m: o.m, x: o.x, y: o.y, tx: o.x, ty: o.y, d: o.d, visto: ahora};
+  else Object.assign(v, {n: o.n, av: o.av, em: o.em || null, rg: o.rg || 0, mo: o.mo || null, npc: o.npc || null, tx: o.x, ty: o.y, d: o.d, visto: ahora});
 }
 /* Se llama en cada cuadro desde advRender, antes de dibujar al propio jugador (que queda arriba). */
 function dibujarOtros(ctx, camX, camY, vw, vh, escala){
@@ -804,6 +804,7 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
   }
   const nombres = [], globos = [], bats = [];
   let npcCerca = null;
+  nombres.push({n: '', r: nombreRango(rangoPropio()), px: advPx - camX, py: advPy - camY - subeMontura(montura), yo: true});   // mi propio rango, sin repetir mi nombre
   if(MUNDO.buscando) bats.push({id: null, px: advPx - camX, py: advPy - camY});
   const miGlobo = MUNDO.globos[MUNDO.yo];
   if(miGlobo && ahora < miGlobo.hasta) globos.push({txt: miGlobo.txt, px: advPx - camX, py: advPy - camY});
@@ -817,7 +818,7 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
     const sx = o.x - camX, sy = o.y - camY;
     if(sx < -24 || sy < -32 || sx > vw + 8 || sy > vh + 8) continue;
     if(!(o.mo && dibujarMontadoOtro(ctx, sx, sy, o, camina))) dibujarEntrenador(ctx, sx, sy, o.d, camina ? Math.floor(ahora / 140) % 4 : 0, o.av);
-    nombres.push({n: (o.em ? '👑 ' : '') + o.n, px: sx, py: sy});
+    nombres.push({n: (o.em ? '👑 ' : '') + o.n, r: nombreRango(o.rg), px: sx, py: sy - (o.mo ? subeMontura(o.mo) : 0)});
     if(o.npc && Math.abs(o.x - advPx) <= 40 && Math.abs(o.y - advPy) <= 40) npcCerca = {id: o.npc, nombre: o.n};
     if(MUNDO.busca[id] && ahora < MUNDO.busca[id] && !MUNDO.buscando) bats.push({id, px: sx, py: sy});
     const g = MUNDO.globos[id];
@@ -944,6 +945,10 @@ function batallaTocar(){
   }, BATALLA_BUSCA_MS);
 }
 (() => { const bb = document.getElementById('advBatBtn'); if(bb) bb.onclick = batallaTocar; })();
+/* Nombre del rango ganado (los bots y el 'Novato' no llevan cartel) */
+/* Cuánto hay que subir el cartel para que quede arriba de la cabeza del Pokémon de montura y no encima */
+function subeMontura(clave){ const m = clave && MONTURAS[clave]; return m ? Math.max(0, m.alto + (m.vuela ? 8 : 0) - 16) : 0; }
+function nombreRango(i){ const r = RANGOS_MAESTRO[i | 0]; return i > 0 && r ? r.nombre : ''; }
 function sincronizarNombres(lista, escala){
   const caja = document.getElementById('advNombres');
   if(!caja) return;
@@ -951,7 +956,13 @@ function sincronizarNombres(lista, escala){
   [...caja.children].forEach((el, i) => {
     const o = lista[i];
     if(!o){ el.style.display = 'none'; return; }
-    if(el.textContent !== o.n) el.textContent = o.n;
+    const clave = (o.r || '') + '|' + o.n;
+    if(el.dataset.k !== clave){
+      el.dataset.k = clave; el.textContent = '';
+      if(o.r){ const r = document.createElement('i'); r.className = 'rg'; r.textContent = o.r; el.appendChild(r); }
+      if(o.n) el.appendChild(document.createTextNode(o.n));
+      el.classList.toggle('solo-rg', !o.n);
+    }
     el.style.display = 'block';
     el.style.left = Math.round((o.px + 8) * escala) + 'px';
     el.style.top  = Math.round((o.py - 3) * escala) + 'px';

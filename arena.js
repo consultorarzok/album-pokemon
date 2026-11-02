@@ -1422,8 +1422,10 @@ function dibujar(e, dt){
   e.wrap.style.zIndex = Math.round(p.y) + 10;
   e.cuerpo.style.transform = `translate(${dx}px,${dy - hop}px) rotate(${rot}deg) scale(${sx},${sy})`;
   /* reflejo en el cemento: la misma figura dada vuelta, que se aleja cuando salta */
-  e.refl.parentNode.style.transform = `translate(-50%,0) translate(${dx}px,${hop - dy}px) scale(${e.flipAp * sx},${-sy})`;
-  e.refl.style.opacity = e.giroEl.style.opacity === '0' ? 0 : '';
+  if(!AR.multi){
+    e.refl.parentNode.style.transform = `translate(-50%,0) translate(${dx}px,${hop - dy}px) scale(${e.flipAp * sx},${-sy})`;
+    e.refl.style.opacity = e.giroEl.style.opacity === '0' ? 0 : '';
+  }
   const somb = 1 - Math.min(.5, (hop - dy) / (e.h || 1) * 1.6);
   e.sombra.style.transform = `translate(-50%,-50%) scale(${somb})`;
   if(dt > 0 && (e.rodando || (e.accion && ((e.accion.tipo === 'corto' && e.accion.t > .08 && e.accion.t < .3) || (e.accion.dash && !e.accion.dash.pego && e.accion.dash.t < .3))))){
@@ -1459,6 +1461,16 @@ function pintarHud(){
   pintarBotones();
 }
 
+/* cuenta regresiva de la incursión: el servidor es quien corta (a los 10 minutos); esto sólo avisa cuánto queda */
+function pintarRelojIncursion(){
+  let el = $('arRaidT');
+  if(!el){ el = document.createElement('div'); el.id = 'arRaidT'; el.className = 'ar-raid-t'; ST.appendChild(el); }
+  const seg = Math.max(0, Math.ceil((AR.raid.fin - performance.now()) / 1000));
+  if(seg === AR.raid.seg) return;
+  AR.raid.seg = seg;
+  el.textContent = '⏱ ' + Math.floor(seg / 60) + ':' + String(seg % 60).padStart(2, '0');
+  el.classList.toggle('poco', seg <= 60);
+}
 function pintarEnergia(){
   AR.lados.forEach(l => {
     const m = AR[l].act; if(!m) return;
@@ -1554,7 +1566,7 @@ function golpear(att, def, alc, x, y){
   sacudir(res.crit ? 1.5 : .7, res.crit);
   if(def.lado === 'yo') vibrar(res.crit ? [30, 20, 30] : 22);
   sfx(res.crit ? 'critico' : 'golpe');
-  AR.congela = res.crit ? .11 : .055;
+  if(!AR.multi) AR.congela = res.crit ? .11 : .055;   // con varios en pantalla los golpes llegan sin parar: el hit-stop los dejaba trabados
   clase(def, 'ar-golpe', 320);
   def.stun = res.crit ? .3 : .18;
   const dir = unit(pie(att), pie(def)), emp = u() * (alc === 'corto' ? 55 : 30) * (res.crit ? 1.4 : 1);
@@ -2402,6 +2414,7 @@ function bucle(ts){
     if(AR.fase === 'lucha') AR.tLucha += h;
     if(AR.congela > 0) break;
   }
+  if(AR.raid) pintarRelojIncursion();
   dibujarTodos(dt);
   pintarEnergia(); pintarCooldowns();
   if(AR.online) mandarPosicion();
@@ -2560,7 +2573,7 @@ function armarIncursion(d, pDe){
   const yo = d.jugadores.find(j => j.slot === d.miSlot), otros = d.jugadores.filter(j => j.slot !== d.miSlot);
   const eq = j => j.equipo.map(x => crearMon(pDe(x.id), false, x));
   AR.multi = true; AR.modo = 'raid'; AR.miSlot = d.miSlot;
-  AR.raid = {jefe: d.jefe, host: d.hostJefe === d.miSlot};
+  AR.raid = {jefe: d.jefe, host: d.hostJefe === d.miSlot, fin: performance.now() + (d.limiteMs || 600000), seg: -1};
   AR.zoom = .64;
   AR.estilo = ESTILOS.agresivo;
   AR.lados = ['yo']; AR.bando = {yo:'A'}; AR.espejo = {}; AR.porSlot = {[d.miSlot]:'yo'}; AR.spawn = {}; AR.slotDe = {yo:yo.slot};
@@ -2602,6 +2615,7 @@ async function luchar(mios, duelo){
     rivalNombre:ent.nombre
   };
   if(multi) armarMulti(duelo, pDe);
+  ST.classList.toggle('ar-liviano', !!AR.multi);   // con 3 a 6 Pokémon a la vez: sin reflejo ni desenfoques (se trababa)
   armarEscenario();
   E = {};
   AR.lados.forEach(l => { E[l] = crearEntidad(l); });
@@ -2918,7 +2932,7 @@ function esperarRapido(info, ids){
    Los equipos los arma el servidor con las figuritas reales, y los premios los paga él sólo si
    los dos celulares cuentan lo mismo al final. */
 const RED = {ws:null, codigo:null, alMensaje:null, cerrado:false, intentos:0};
-const POS_CADA_MS = 66;
+const POS_CADA_MS = 66;   // (en la incursión se manda más espaciado: ver mandarPosicion)
 
 function enviarSala(o){ if(RED.ws && RED.ws.readyState === 1) RED.ws.send(JSON.stringify(o)); }
 function enviarRed(o){ if(RED.ws && RED.ws.readyState === 1) RED.ws.send(JSON.stringify(Object.assign({t:'r'}, AR && AR.multi ? {d:AR.miSlot} : {}, o))); }
@@ -3019,7 +3033,7 @@ function golpeRemoto(m, lado){
   sacudir(m.crit ? 1.2 : .5, m.crit);
   vibrar(m.crit ? [30, 20, 30] : 22);
   sfx(m.crit ? 'critico' : 'golpe');
-  AR.congela = m.crit ? .08 : .04;
+  if(!AR.multi) AR.congela = m.crit ? .08 : .04;
   clase(def, 'ar-golpe', 320);
   if(def.accion && def.accion.tipo !== 'esquivar') cortarAccion(def);
   if(m.crit || m.mult > 1) festejo(m.crit);
@@ -3043,7 +3057,7 @@ function seguirRemoto(h){
 }
 function mandarPosicion(){
   const ahora = performance.now();
-  if(AR.fase === 'intro' || ahora - AR.red.ult < POS_CADA_MS || !E.yo.mon) return;
+  if(AR.fase === 'intro' || ahora - AR.red.ult < (AR.raid ? 100 : POS_CADA_MS) || !E.yo.mon) return;
   AR.red.ult = ahora;
   enviarRed({k:'p', x:+E.yo.x.toFixed(4), y:+E.yo.y.toFixed(4), vx:+(E.yo.vx / G.rx).toFixed(3), vy:+(E.yo.vy / G.ry).toFixed(3),
     hp:Math.round(E.yo.mon.hp * 10) / 10, en:Math.round(E.yo.mon.en), i:AR.yo.idx});

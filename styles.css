@@ -265,6 +265,9 @@
   .adv-objetos img{display:block;image-rendering:pixelated;}
   .adv-nombres{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;}
   .adv-nombres span{position:absolute;transform:translate(-50%,-100%);white-space:nowrap;max-width:40vw;overflow:hidden;text-overflow:ellipsis;background:rgba(16,20,38,.72);color:#fff;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:11px;line-height:1;padding:3px 7px;border-radius:9px;}
+  .adv-nombres span .rg{display:block;font-style:normal;color:#FFD25E;font-size:9px;letter-spacing:.2px;text-shadow:0 1px 0 rgba(0,0,0,.6);margin-bottom:2px;}
+  .adv-nombres span.solo-rg{padding:2px 6px;}
+  .adv-nombres span.solo-rg .rg{margin:0;}
   .adv-globos{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;}
   .adv-globos span{position:absolute;transform:translate(-50%,-100%);max-width:56vw;width:max-content;background:#fff;color:#14182b;font-family:'Baloo 2',sans-serif;font-weight:600;font-size:13px;line-height:1.15;padding:5px 9px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.45);text-align:center;overflow-wrap:anywhere;}
   .adv-globos span::after{content:'';position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:#fff;}
@@ -592,6 +595,14 @@
   .ar-stage::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity .18s ease-out;
     background:radial-gradient(ellipse at center, rgba(4,6,18,.18) 30%, rgba(4,6,18,.82) 100%);}
   .ar-stage.ar-lento::after{opacity:1;}
+  /* modo liviano (partidas de varios / incursión): lo que más cuesta dibujar en el celular se apaga */
+  .ar-raid-t{position:absolute;left:50%;top:2px;transform:translateX(-50%);z-index:6;pointer-events:none;font:800 11px 'Baloo 2',sans-serif;color:#FFD25E;background:rgba(10,16,40,.75);padding:2px 8px;border-radius:10px;}
+  .ar-raid-t.poco{color:#fff;background:rgba(200,30,40,.9);}
+  .ar-liviano .ar-reflejo{display:none;}
+  .ar-liviano .ar-hud,.ar-liviano .ar-log{backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;}
+  .ar-liviano .ar-p.p-humo{filter:none;}
+  .ar-liviano .ar-orbe,.ar-liviano .ar-trueno,.ar-liviano .f-hueso{filter:none;}
+  .ar-liviano .ar-bg{transition:none;}
   .ar-bg{transition:filter .18s ease-out;} .ar-lento .ar-bg{filter:saturate(.35) brightness(.62);}
   @keyframes arCarga{from{filter:drop-shadow(0 0 2px var(--tc)) brightness(1.1)}to{filter:drop-shadow(0 0 10px var(--tc)) brightness(1.6)}}
   .ar-hud{position:absolute;top:8px;width:min(44cqw,300px);background:rgba(8,12,28,.86);border:2px solid rgba(255,255,255,.28);border-radius:8px;padding:5px 8px;font-size:clamp(10px,2.3cqw,15px);line-height:1.25;z-index:7;}
