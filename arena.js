@@ -2615,8 +2615,8 @@ async function luchar(mios, duelo){
     rivalNombre:ent.nombre
   };
   if(multi) armarMulti(duelo, pDe);
-  ST.classList.toggle('ar-liviano', !!AR.multi);   // con 3 a 6 Pokémon a la vez: sin reflejo ni desenfoques (se trababa)
   armarEscenario();
+  ST.classList.toggle('ar-liviano', !!AR.multi);   // con 3 a 6 Pokémon a la vez: sin reflejo ni desenfoques (se trababa). Va DESPUÉS de armarEscenario(): ahí se crea ST
   E = {};
   AR.lados.forEach(l => { E[l] = crearEntidad(l); });
   E.riv.bot = duelo && !AR.raid ? null : {guion:nuevoGuion(AR.estilo), hist:[], modo:'orbitar', t:1.2, reac:0, huye:0, huyeDir:1, dirOrb:1, ejecutado:false};
