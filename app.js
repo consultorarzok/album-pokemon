@@ -8024,8 +8024,9 @@ const CLIMA_ESC = 2;   // el canvas es de la mitad de la pantalla: más liviano 
 let climaPart = [], climaT0 = 0, climaPaso = 0, climaQ = {t: -1e9, v: false};
 function climaVisible(){
   if(document.hidden) return false;
-  const base = document.querySelector('#advOverlay.show, #encOverlay.show, #arenaOverlay.show, #battleOverlay.show');
-  if(!base) return false;
+  /* 03/11: el clima (y la noche) SOLO se ven en el mapa de la Aventura mientras recorrés; no en encuentros, peleas ni incursiones */
+  if(!document.querySelector('#advOverlay.show')) return false;
+  if(document.querySelector('#encOverlay.show, #arenaOverlay.show, #battleOverlay.show')) return false;
   return !document.querySelector('#pokedexOverlay.show, #intercambioOverlay.show, #shopOverlay.show, #detalleOverlay.show, #specialOverlay.show, #codigoCardOverlay.show, #quizOverlay.show, #novedadesOverlay.show, #evolucionOverlay.show, #repetidasOverlay.show, #nameOverlay.show, #pinOverlay.show');
 }
 function climaReiniciar(w, h){
@@ -8058,11 +8059,11 @@ function climaDibujar(ahora){
     for(const p of climaPart){ p.x += .25 * p.v; if(p.x > w + 120) p.x = -120; const rr = 90 + p.r * 80, gr = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, rr); gr.addColorStop(0, 'rgba(236,242,248,.26)'); gr.addColorStop(1, 'rgba(236,242,248,0)'); g.fillStyle = gr; g.fillRect(p.x - rr, p.y - rr, rr * 2, rr * 2); }
   }
   if(c === 'calor'){
-    const gr = g.createLinearGradient(0, h, 0, 0); gr.addColorStop(0, 'rgba(255,140,40,.26)'); gr.addColorStop(.6, 'rgba(255,170,70,.08)'); gr.addColorStop(1, 'rgba(255,200,90,.04)');
+    const gr = g.createLinearGradient(0, h, 0, 0); gr.addColorStop(0, 'rgba(255,140,40,.08)'); gr.addColorStop(.6, 'rgba(255,170,70,.03)'); gr.addColorStop(1, 'rgba(255,200,90,.015)');
     g.fillStyle = gr; g.fillRect(0, 0, w, h);
-    g.fillStyle = 'rgba(255,214,140,.32)';
+    g.fillStyle = 'rgba(255,214,140,.16)';
     for(const p of climaPart){ p.y -= .7 * p.v; p.x += Math.sin((climaPaso + p.r * 90) / 14) * .6; if(p.y < -4){ p.y = h + 4; p.x = Math.random() * w; } g.fillRect(p.x, p.y, 1.6, 1.6); }
-    for(let k = 0; k < 5; k++){ const y = h * (.2 + k * .17) + Math.sin(climaPaso / 18 + k) * 3; g.fillStyle = 'rgba(255,255,255,.035)'; g.fillRect(0, y, w, 6); }   // ondas de calor
+    for(let k = 0; k < 5; k++){ const y = h * (.2 + k * .17) + Math.sin(climaPaso / 18 + k) * 3; g.fillStyle = 'rgba(255,255,255,.015)'; g.fillRect(0, y, w, 6); }   // ondas de calor
   }
   if(c === 'viento'){
     g.fillStyle = 'rgba(210,225,235,.07)'; g.fillRect(0, 0, w, h);
