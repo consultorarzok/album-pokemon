@@ -2227,7 +2227,7 @@ const INCURSIONES = {
   turnos: [9, 14, 19, 23], porTurno: 4,
   /* Aperturas ESPECIALES (fuera de los turnos): ventana propia con su propia clave (un intento nuevo por entrenador), abren las guaridas de `regiones` ('todas' = las 7).
      03/11 Zeta: compensación por las peleas que no arrancaban (bug de arena.js), 30 minutos desde 23:32 hora de Jujuy. */
-  extras: [{desde: 1793673436351, hasta: 1793675236351, clave: 'EXTRA-20261103', regiones: 'todas'}, {desde: 1793674724004, hasta: 1793676524004, clave: 'EXTRA-20261103B', regiones: 'todas'}],
+  extras: [{desde: 1793673436351, hasta: 1793675236351, clave: 'EXTRA-20261103', regiones: 'todas'}, {desde: 1793674724004, hasta: 1793676524004, clave: 'EXTRA-20261103B', regiones: 'todas'}, {desde: 1793676524004, hasta: 1793678324004, clave: 'EXTRA-20261103C', regiones: 'todas'}],
   regiones: [
     {region: 'kanto',  legendario: 150},   // Mewtwo
     {region: 'johto',  legendario: 249},   // Lugia
