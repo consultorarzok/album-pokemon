@@ -2225,6 +2225,9 @@ const INCURSIONES = {
   /* Zeta 31/10: 4 turnos fijos al día para todos (hora de Jujuy); en cada turno abren `porTurno` (4 de las 7) guaridas, que rotan: cada región tiene
      incursión en más de la mitad de los turnos, así hay siempre dónde jugar. Un solo intento por entrenador por turno (para todas las guaridas juntas). */
   turnos: [9, 14, 19, 23], porTurno: 4,
+  /* Aperturas ESPECIALES (fuera de los turnos): ventana propia con su propia clave (un intento nuevo por entrenador), abren las guaridas de `regiones` ('todas' = las 7).
+     03/11 Zeta: compensación por las peleas que no arrancaban (bug de arena.js), 30 minutos desde 23:32 hora de Jujuy. */
+  extras: [{desde: 1793673436351, hasta: 1793675236351, clave: 'EXTRA-20261103', regiones: 'todas'}],
   regiones: [
     {region: 'kanto',  legendario: 150},   // Mewtwo
     {region: 'johto',  legendario: 249},   // Lugia
@@ -2244,6 +2247,8 @@ let incBolas = 0, incursionPendiente = null;   // vienen del servidor
 /* ¿Qué guaridas abren en cada turno? El número de turno (día * 4 + turno del día) reparte las 7 regiones de a `porTurno`, dando la vuelta sin parar. */
 function aperturaIncursion(cfg, ahora){
   const H = 3 * 3600e3, dur = INCURSIONES.duracionMin * 60e3, T = INCURSIONES.turnos, n = INCURSIONES.regiones.length, k = INCURSIONES.porTurno;
+  const ex = (INCURSIONES.extras || []).find(e => ahora >= e.desde && ahora < e.hasta && (e.regiones === 'todas' || e.regiones.includes(cfg.region)));
+  if(ex) return {abierta: true, desde: ex.desde, hasta: ex.hasta};
   const idx = INCURSIONES.regiones.findIndex(r => r.region === cfg.region), loc = new Date(ahora - H);
   let proxima = null;
   for(let off = -1; off <= 4; off++) T.forEach((h, ti) => {
