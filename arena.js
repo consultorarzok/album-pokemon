@@ -2571,7 +2571,7 @@ function armarMulti(d, pDe){
 /* Incursión (Zeta 31/10): los 5 entrenadores son compañeros (bando A) contra el legendario (lado 'riv', bando B).
    El legendario tiene fuerza 90-100 y mucha más vida (jefe.vida); su "cerebro" (el bot de siempre) corre en el celular anfitrión,
    que también decide el daño que recibe y se lo cuenta al servidor (quién le pegó cuánto) para repartir las Incursión Balls. */
-const JEFE_ATAQUE = 1.4;   // el legendario pega un 40 % más fuerte (con 1,6 su ataque largo se llevaba un Pokémon entero de un saque; 03/11 Zeta: que sea difícil ganar)
+const JEFE_ATAQUE = 1.8;   // el legendario de la incursión pega un 80 % más fuerte (03/11 Zeta: "tiene que ser más poderoso"; antes 1,4, y antes de eso 1,6)
 function armarIncursion(d, pDe){
   const yo = d.jugadores.find(j => j.slot === d.miSlot), otros = d.jugadores.filter(j => j.slot !== d.miSlot);
   const eq = j => j.equipo.map(x => crearMon(pDe(x.id), false, x));
