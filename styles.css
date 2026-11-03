@@ -1013,3 +1013,8 @@
 .inc-suelo{position:absolute;left:12%;right:12%;bottom:6px;height:8px;border-radius:50%;background:rgba(0,0,0,.35)}
 .inc-chispa{position:absolute;left:50%;bottom:30px;font-style:normal;font-size:20px;animation:incChispa .9s ease-out forwards}
 @keyframes incChispa{from{opacity:1;transform:translate(-50%,0) scale(.6)}to{opacity:0;transform:translate(calc(-50% + var(--dx)),var(--dy)) scale(1.3)}}
+
+/* 03/11: incursión / peleas de varios en celulares: sin adornos de luz ni mezcla de capas */
+.ar-liviano .ar-pilar,.ar-liviano .ar-cono{display:none;}
+.ar-liviano .ar-aura-oscura .ar-ancla::before{display:none;}
+.ar-liviano .ar-fin,.ar-liviano .ar-equipo,.ar-liviano .ar-confirm{backdrop-filter:none;}

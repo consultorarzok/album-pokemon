@@ -1075,6 +1075,7 @@ function alCambiarTamano(){
    pluma, estrella, roca (o un cuadradito si no se pide forma). */
 function particula(x, y, col, tam, dx, dy, dur, o){
   if(!FX) return;
+  if(AR && AR.multi && FX.childElementCount > 28) return;   // 03/11: con 3 a 6 Pokémon a la vez los efectos se acumulaban (cientos de nodos animados) y la incursión iba lenta
   o = o || {};
   const f = o.forma, texto = f === 'nota' || f === 'corazon';
   const d = mk('ar-p' + (f ? ' p-' + f : ''), {left:x + 'px', top:y + 'px', width:tam + 'px', height:(f === 'chispa' ? Math.max(2, tam * .28) : tam) + 'px',
@@ -1130,7 +1131,7 @@ function chispa(x, y, tipo, k, dx, dy, dur, extra){
 
 function estallido(x, y, tipo, n, k){
   const st = elemDe(tipo), U = u();
-  n = REDUCE ? Math.ceil(n / 3) : n; k = k || 1;
+  n = REDUCE ? Math.ceil(n / 3) : (AR && AR.multi ? Math.ceil(n / 2) : n); k = k || 1;
   for(let i = 0; i < n; i++){
     const ang = Math.random() * Math.PI * 2, dist = azar(3, 9) * U * k;
     let dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist;
@@ -1365,7 +1366,8 @@ function girar(e, vista, flip){
 }
 
 function clase(e, nombre, ms){
-  e.wrap.classList.remove(nombre); void e.wrap.offsetWidth; e.wrap.classList.add(nombre);
+  if(AR && AR.multi){ if(!e.wrap.classList.contains(nombre)) e.wrap.classList.add(nombre); }   // varios en pantalla: sin reflow forzado
+  else { e.wrap.classList.remove(nombre); void e.wrap.offsetWidth; e.wrap.classList.add(nombre); }
   if(ms) setTimeout(() => e.wrap.classList.remove(nombre), ms);
 }
 
