@@ -3139,23 +3139,59 @@ function mostrarResultadoIncursion(m){
     $('arIncSalir').onclick = () => cerrarArena();
     return;
   }
-  const pinta = (txt, quedan, fin) => {
+  /* 03/11 Zeta: al terminar la incursión se ve la ESCENA de captura: el legendario, la Incursión Ball que sale volando, lo absorbe, se sacude en el piso y se ve si quedó o se soltó */
+  const pinta = (txt, quedan, fin, estado) => {
     f.innerHTML = `<div class="ar-fin-caja" style="border-color:#3DDC6E"><b style="color:#3DDC6E">¡Le ganaron a ${p.name}!</b>
-      <img src="${p.img || ''}" alt="" style="width:120px;height:120px;object-fit:contain;margin:6px auto;display:block">
+      <div class="inc-escena" id="incEsc"><img id="incLeg" class="inc-leg" src="${p.img || ''}" alt="${p.name}"><img id="incBola" class="inc-bola" src="${INC_BALL.img}" alt="Incursión Ball"><div class="inc-suelo"></div></div>
       <span>Le sacaste el <b>${m.parte}%</b> de la vida: te ganaste <b>${m.bolas} Incursión Ball${m.bolas === 1 ? '' : 's'}</b>.</span>
       <span id="arIncTxt" style="display:block;margin-top:8px">${txt}</span>
-      ${fin ? '' : `<button class="ar-b ar-go" id="arIncTirar"><b>🎯 Tirarle una Incursión Ball (${quedan})</b></button>`}
+      ${fin ? '' : `<button class="ar-b ar-go" id="arIncTirar"><b>🎯 Tirar una Incursión Ball (${quedan})</b></button>`}
       <button class="ar-b ar-med" id="arIncSalir"><b>${fin ? 'Volver' : 'Después'}</b></button></div>`;
     $('arIncSalir').onclick = () => cerrarArena();
     const t = $('arIncTirar'); if(t) t.onclick = tirar;
+    const leg = $('incLeg'), bola = $('incBola');
+    if(estado === 'atrapado'){ leg.style.display = 'none'; bola.classList.add('inc-lista'); }
+    if(estado === 'escapo'){ leg.style.display = 'none'; bola.style.display = 'none'; }
+  };
+  const espera = ms => new Promise(r => setTimeout(r, ms));
+  const animar = async r => {
+    const leg = $('incLeg'), bola = $('incBola'); if(!leg || !bola) return;
+    const T = (y, rot, esc) => `translate(-50%, ${y}px) rotate(${rot}deg) scale(${esc})`;
+    sfx('golpe');
+    await bola.animate([{transform: T(0, 0, 1)}, {transform: T(-130, 360, .85), offset: .55}, {transform: T(-98, 720, .7)}], {duration: 620, easing: 'ease-out', fill: 'forwards'}).finished;
+    sfx('critico');
+    leg.animate([{filter: 'brightness(1)', transform: 'translateX(-50%) scale(1)', opacity: 1}, {filter: 'brightness(7)', transform: 'translateX(-50%) scale(.15)', opacity: .5}, {filter: 'brightness(7)', transform: 'translateX(-50%) scale(0)', opacity: 0}], {duration: 460, fill: 'forwards'});
+    await espera(420);
+    await bola.animate([{transform: T(-98, 720, .7)}, {transform: T(0, 800, 1), offset: .6}, {transform: T(-16, 820, 1), offset: .78}, {transform: T(0, 800, 1)}], {duration: 560, easing: 'ease-in', fill: 'forwards'}).finished;
+    const sacudidas = r.atrapado ? 3 : (r.escapo ? 2 : 1);
+    for(let i = 0; i < sacudidas; i++){
+      await espera(380);
+      sfx('golpe');
+      await bola.animate([{transform: T(0, 800, 1)}, {transform: T(0, 770, 1)}, {transform: T(0, 830, 1)}, {transform: T(0, 800, 1)}], {duration: 520}).finished;
+    }
+    await espera(320);
+    if(r.atrapado){
+      bola.classList.add('inc-lista');
+      for(let i = 0; i < 8; i++){ const e = document.createElement('i'); e.className = 'inc-chispa'; e.textContent = '✨'; e.style.setProperty('--dx', (Math.cos(i * .8) * 90) + 'px'); e.style.setProperty('--dy', (Math.sin(i * .8) * 70 - 40) + 'px'); $('incEsc').appendChild(e); }
+      return;
+    }
+    /* se soltó: la bola se abre y sale el legendario */
+    sfx('pierde');
+    bola.animate([{opacity: 1, transform: T(0, 800, 1)}, {opacity: 0, transform: T(0, 800, 1.7)}], {duration: 320, fill: 'forwards'});
+    leg.animate(r.escapo
+      ? [{opacity: 0, transform: 'translateX(-50%) scale(.3)'}, {opacity: 1, transform: 'translateX(-50%) scale(1)', offset: .35}, {opacity: 1, transform: 'translateX(120%) scale(1)', offset: .7}, {opacity: 0, transform: 'translateX(220%) scale(1)'}]
+      : [{opacity: 0, transform: 'translateX(-50%) scale(.2)', filter: 'brightness(7)'}, {opacity: 1, transform: 'translateX(-50%) scale(1.08)', filter: 'brightness(1.4)'}, {opacity: 1, transform: 'translateX(-50%) scale(1)', filter: 'brightness(1)'}],
+      {duration: r.escapo ? 900 : 520, fill: 'forwards'});
+    await espera(r.escapo ? 900 : 560);
   };
   const tirar = () => {
     const t = $('arIncTirar'); if(t) t.disabled = true;
-    accionServidor('tirarIncursion', {}).then(res => {
+    accionServidor('tirarIncursion', {}).then(async res => {
       if(!res.ok) return pinta(res.motivo === 'se_escapo' ? `${p.name} se escapó.` : 'No se pudo tirar: ' + res.motivo, 0, true);
       const r = res.resultado;
-      if(r.atrapado){ sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con fuerza ${r.f}.`, 0, true); }
-      if(r.escapo) return pinta(`${p.name} se soltó y se escapó…`, 0, true);
+      try{ await animar(r); }catch(e){}
+      if(r.atrapado){ sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con fuerza ${r.f}.`, 0, true, 'atrapado'); }
+      if(r.escapo) return pinta(`${p.name} se soltó y se escapó…`, 0, true, 'escapo');
       pinta(`¡Casi! ${p.name} se soltó. Probá de nuevo.`, r.quedan, false);
     }).catch(() => pinta('Sin conexión. Probá de nuevo.', m.bolas, false));
   };

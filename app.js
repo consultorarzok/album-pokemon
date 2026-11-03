@@ -2227,7 +2227,7 @@ const INCURSIONES = {
   turnos: [9, 14, 19, 23], porTurno: 4,
   /* Aperturas ESPECIALES (fuera de los turnos): ventana propia con su propia clave (un intento nuevo por entrenador), abren las guaridas de `regiones` ('todas' = las 7).
      03/11 Zeta: compensación por las peleas que no arrancaban (bug de arena.js), 30 minutos desde 23:32 hora de Jujuy. */
-  extras: [{desde: 1793673436351, hasta: 1793675236351, clave: 'EXTRA-20261103', regiones: 'todas'}],
+  extras: [{desde: 1793673436351, hasta: 1793675236351, clave: 'EXTRA-20261103', regiones: 'todas'}, {desde: 1793674724004, hasta: 1793676524004, clave: 'EXTRA-20261103B', regiones: 'todas'}],
   regiones: [
     {region: 'kanto',  legendario: 150},   // Mewtwo
     {region: 'johto',  legendario: 249},   // Lugia
@@ -5682,15 +5682,19 @@ function advRender(){
 
   // pokébolas tiradas en el piso (las que todavía no levantó)
   const objetos = [];
-  mapa.rows.forEach((fila, y) => {
-    [...fila].forEach((ch, x) => {
-      const t = ADV_TILE[ch];
-      if(!t || !t.item || advTomados.has(advMapa + ':' + x + ',' + y)) return;
+  /* 03/11: sólo se miran los casilleros que entran en pantalla (antes se recorría TODO el mapa en cada cuadro y el juego iba lento en los celulares) */
+  const vx0 = Math.max(0, Math.floor((camX - 16) / ADV_PX) - 1), vx1 = Math.ceil((camX + vw) / ADV_PX) + 1;
+  const vy0 = Math.max(0, Math.floor((camY - 16) / ADV_PX) - 1), vy1 = Math.min(mapa.rows.length - 1, Math.ceil((camY + vh) / ADV_PX) + 1);
+  for(let y = vy0; y <= vy1; y++){
+    const fila = mapa.rows[y];
+    for(let x = vx0, xf = Math.min(fila.length - 1, vx1); x <= xf; x++){
+      const t = ADV_TILE[fila.charAt(x)];
+      if(!t || !t.item || advTomados.has(advMapa + ':' + x + ',' + y)) continue;
       const px0 = x * ADV_PX - camX, py0 = y * ADV_PX - camY;
-      if(px0 < -16 || py0 < -16 || px0 > vw || py0 > vh) return;
+      if(px0 < -16 || py0 < -16 || px0 > vw || py0 > vh) continue;
       objetos.push({tipo: t.item === 'moneda' ? 'moneda' : bolaDelPiso(x, y), px: px0, py: py0});
-    });
-  });
+    }
+  }
   calabazasDelEvento().forEach(({x, y}) => {
     const px0 = x * ADV_PX - camX, py0 = y * ADV_PX - camY;
     if(px0 >= -16 && py0 >= -16 && px0 <= vw && py0 <= vh) objetos.push({tipo: 'calabaza', px: px0, py: py0});
@@ -8017,7 +8021,7 @@ climaCv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:6
 document.body.appendChild(climaCv);
 const climaCtx = climaCv.getContext('2d');
 const CLIMA_ESC = 2;   // el canvas es de la mitad de la pantalla: más liviano en celulares
-let climaPart = [], climaT0 = 0, climaPaso = 0;
+let climaPart = [], climaT0 = 0, climaPaso = 0, climaQ = {t: -1e9, v: false};
 function climaVisible(){
   if(document.hidden) return false;
   const base = document.querySelector('#advOverlay.show, #encOverlay.show, #arenaOverlay.show, #battleOverlay.show');
@@ -8030,7 +8034,8 @@ function climaReiniciar(w, h){
 }
 function climaDibujar(ahora){
   requestAnimationFrame(climaDibujar);
-  const quiere = (CLIMA.noche || CLIMA.condicion !== 'despejado') && climaVisible();
+  if(ahora - climaQ.t > 250){ climaQ = {t: ahora, v: !!((CLIMA.noche || CLIMA.condicion !== 'despejado') && climaVisible())}; }   // 03/11: se revisa 4 veces por segundo, no en cada cuadro
+  const quiere = climaQ.v;
   if(!quiere){ if(climaCv.style.display !== 'none') climaCv.style.display = 'none'; return; }
   if(ahora - climaT0 < 40) return;   // ~25 cuadros por segundo alcanzan
   climaT0 = ahora;
