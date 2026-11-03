@@ -782,6 +782,7 @@ const ESTILOS = {
   agresivo:    {nombre:'Agresivo',    w:{acercar:2, corto:3, medio:2, largo:1.6, orbitar:1, esquivar:.5}, reflejo:.35},
   tirador:     {nombre:'Tirador',     w:{acercar:.5, corto:.6, medio:4, largo:2.5, orbitar:2, retroceder:1.5, esquivar:.6}, reflejo:.45},
   escurridizo: {nombre:'Escurridizo', w:{acercar:1, corto:1.6, medio:2, largo:1.8, orbitar:3, retroceder:1, esquivar:2}, reflejo:.65},
+  legendario:  {nombre:'Legendario',  w:{acercar:1.4, corto:3.6, medio:3, largo:2.6, orbitar:.25}, reflejo:.08},   // 03/11 Zeta: el legendario de la incursión tenía que atacar (casi no esquiva ni se aleja)
   equilibrado: {nombre:'Equilibrado', w:{acercar:1.5, corto:2, medio:2.5, largo:2, orbitar:2, retroceder:.5, esquivar:1}, reflejo:.45}
 };
 const NOMBRES_RIVAL = ['Marcos', 'Lucía', 'Nico', 'Sofi', 'Facu', 'Cami', 'Tomi', 'Vale', 'Lauti', 'Mica'];
@@ -2270,7 +2271,7 @@ function botDecidir(e){
   if(ATAQUES.includes(acc) && e.mon.en < ALC[acc].coste) acc = 'orbitar';
   b.hist.unshift(acc); b.hist.length = Math.min(3, b.hist.length);
   b.modo = acc; b.dirOrb = Math.random() < .5 ? 1 : -1;
-  b.t = {acercar:azar(.7, 1.3), orbitar:azar(1, 1.8), retroceder:azar(.6, 1), esquivar:.3, corto:.6, medio:.7, largo:1.3}[acc] * azar(.85, 1.2);
+  b.t = {acercar:azar(.7, 1.3), orbitar:azar(1, 1.8), retroceder:azar(.6, 1), esquivar:.3, corto:.6, medio:.7, largo:1.3}[acc] * azar(.85, 1.2) * (e.mon.jefe ? .55 : 1);
   b.ejecutado = false;
 }
 
@@ -2292,7 +2293,7 @@ function botActualizar(e, dt){
       }
     }
     /* reflejo: el jugador está cargando algo largo → se corre */
-    if(O.accion && O.accion.tipo === 'largo' && !b.huye && O.accion.t > .12 && Math.random() < AR.estilo.reflejo + .15){
+    if(!e.mon.jefe && O.accion && O.accion.tipo === 'largo' && !b.huye && O.accion.t > .12 && Math.random() < AR.estilo.reflejo + .15){
       b.huye = .75; b.huyeDir = Math.random() < .5 ? 1 : -1;
     }
   }
@@ -2336,7 +2337,7 @@ function despues(seg, fn){ AR.pend.push({t:seg, fn}); }
 function actualizarMon(e, dt, intent){
   const m = e.mon; if(!m) return;
   for(const k in e.cd) if(e.cd[k] > 0) e.cd[k] = Math.max(0, e.cd[k] - dt);
-  if(m.vivo) m.en = Math.min(EN_MAX, m.en + EN_REGEN * dt);
+  if(m.vivo) m.en = m.jefe ? EN_MAX : Math.min(EN_MAX, m.en + EN_REGEN * dt);   // el legendario de la incursión siempre tiene energía para atacar
   if(e.stun > 0) e.stun -= dt;
   if(e.invul > 0) e.invul -= dt;
   if(e.aparece > 0) e.aparece -= dt;
@@ -2568,14 +2569,14 @@ function armarMulti(d, pDe){
 /* Incursión (Zeta 31/10): los 5 entrenadores son compañeros (bando A) contra el legendario (lado 'riv', bando B).
    El legendario tiene fuerza 90-100 y mucha más vida (jefe.vida); su "cerebro" (el bot de siempre) corre en el celular anfitrión,
    que también decide el daño que recibe y se lo cuenta al servidor (quién le pegó cuánto) para repartir las Incursión Balls. */
-const JEFE_ATAQUE = 1.25;   // el legendario pega un 25 % más fuerte (con 1,6 su ataque largo se llevaba un Pokémon entero de un saque)
+const JEFE_ATAQUE = 1.4;   // el legendario pega un 40 % más fuerte (con 1,6 su ataque largo se llevaba un Pokémon entero de un saque; 03/11 Zeta: que sea difícil ganar)
 function armarIncursion(d, pDe){
   const yo = d.jugadores.find(j => j.slot === d.miSlot), otros = d.jugadores.filter(j => j.slot !== d.miSlot);
   const eq = j => j.equipo.map(x => crearMon(pDe(x.id), false, x));
   AR.multi = true; AR.modo = 'raid'; AR.miSlot = d.miSlot;
   AR.raid = {jefe: d.jefe, host: d.hostJefe === d.miSlot, fin: performance.now() + (d.limiteMs || 600000), seg: -1};
   AR.zoom = .64;
-  AR.estilo = ESTILOS.agresivo;
+  AR.estilo = ESTILOS.legendario;
   AR.lados = ['yo']; AR.bando = {yo:'A'}; AR.espejo = {}; AR.porSlot = {[d.miSlot]:'yo'}; AR.spawn = {}; AR.slotDe = {yo:yo.slot};
   AR.yo = {mons:eq(yo), idx:0, act:null, nombre:yo.nombre};
   const libres = ['al', 'r2', 'r3', 'r4'];
