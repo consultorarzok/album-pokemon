@@ -1617,8 +1617,11 @@ function iniciarBase(e, tipo, dirPref){
     return true;
   }
   const a = ALC[tipo];
-  if(e.cd[tipo] > 0 || m.en < a.coste) return false;
-  m.en -= a.coste; e.cd[tipo] = a.cd;
+  if(m.jefe){ /* 03/11 Zeta: el legendario de la incursión ataca siempre: sin recarga ni gasto de energía */ }
+  else{
+    if(e.cd[tipo] > 0 || m.en < a.coste) return false;
+    m.en -= a.coste; e.cd[tipo] = a.cd;
+  }
   e.accion = {tipo, t:0, dir:unit(pie(e), pie(O)), hecho:false, mov:movDe(m, tipo), obj:O.lado};
   if(tipo === 'largo'){ prepararLargo(e); sfx('carga'); }
   return true;
@@ -2267,13 +2270,14 @@ function botDecidir(e){
   if(!b.guion.length) b.guion = nuevoGuion(est);
   let acc = b.guion.shift();
   if(Math.random() < .3) acc = sortearPeso(est.w);
-  if(ATAQUES.includes(acc) && acc === b.hist[0] && acc === b.hist[1]) acc = sortearPeso(est.w, acc);
+  if(ATAQUES.includes(acc) && acc === b.hist[0] && acc === b.hist[1] && !e.mon.jefe) acc = sortearPeso(est.w, acc);
+  if(e.mon.jefe && ATAQUES.includes(acc) && Math.random() < .6) acc = 'largo';   // 03/11: el legendario usa sus especiales (ataque largo) casi siempre
   if(acc === 'corto' && d > alcance * 1.6) acc = 'acercar';
   if(acc === 'medio' && d < alcance * .7) acc = Math.random() < .5 ? 'corto' : 'retroceder';
   if(ATAQUES.includes(acc) && e.mon.en < ALC[acc].coste) acc = 'orbitar';
   b.hist.unshift(acc); b.hist.length = Math.min(3, b.hist.length);
   b.modo = acc; b.dirOrb = Math.random() < .5 ? 1 : -1;
-  b.t = {acercar:azar(.7, 1.3), orbitar:azar(1, 1.8), retroceder:azar(.6, 1), esquivar:.3, corto:.6, medio:.7, largo:1.3}[acc] * azar(.85, 1.2) * (e.mon.jefe ? .55 : 1);
+  b.t = {acercar:azar(.7, 1.3), orbitar:azar(1, 1.8), retroceder:azar(.6, 1), esquivar:.3, corto:.6, medio:.7, largo:1.3}[acc] * azar(.85, 1.2) * (e.mon.jefe ? .4 : 1);
   b.ejecutado = false;
 }
 
@@ -3211,7 +3215,7 @@ function pintarIncursion(equipo, inc){
     <div class="ar-duelo-estado" id="arIEstado" role="status" aria-live="polite">Entrando a la guarida…</div>
     <div class="ar-pick-pie"><button class="ar-b ar-go" id="arIEmpezar" disabled><b>Iniciar</b></button><button class="ar-b ar-med" id="arIIrse"><b>Salir</b></button></div></div>`;
   const est = $('arIEstado'), esc = t => String(t).replace(/[<>&"]/g, '');
-  const motivo = mm => ({cerrada:'La guarida está cerrada: abre a la hora que dice el cartel.', ya_participaste:'Ya peleaste en esta apertura. Volvé en la próxima.',
+  const motivo = mm => ({cerrada:'La guarida está cerrada: abre a la hora que dice el cartel.', ya_participaste:'Ya peleaste contra este legendario en esta apertura. Volvé en la próxima.',
     equipo_invalido:'Elegí entre 3 y 6 Pokémon.', no_es_tuyo:'Ese Pokémon no está en tu álbum.', sin_sesion:'Volvé a entrar al juego.'})[mm] || 'No se pudo: ' + mm;
   $('arIIrse').onclick = () => { enviarSala({t:'irse'}); cerrarSala(); cerrarArena(); };
   $('arIEmpezar').onclick = () => { $('arIEmpezar').disabled = true; enviarSala({t:'empezar_incursion'}); };

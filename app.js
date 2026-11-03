@@ -2221,7 +2221,7 @@ const BOLAS = {
    fijas de Jujuy durante `duracionMin`; entran EXACTAMENTE 5 entrenadores y pelean todos contra él en la Arena. Si le ganan, cada uno
    recibe Incursión Balls según la parte del daño que hizo (3 / 2 / 1) para tirarle. El servidor (juego.js) usa esta misma tabla. */
 const INCURSIONES = {
-  duracionMin: 30, jugadores: 5, probAtrapar: .35, vidaJefe: 12,
+  duracionMin: 30, jugadores: 5, probAtrapar: .35, vidaJefe: 20,
   /* Zeta 31/10: 4 turnos fijos al día para todos (hora de Jujuy); en cada turno abren `porTurno` (4 de las 7) guaridas, que rotan: cada región tiene
      incursión en más de la mitad de los turnos, así hay siempre dónde jugar. Un solo intento por entrenador por turno (para todas las guaridas juntas). */
   turnos: [9, 14, 19, 23], porTurno: 4,
@@ -8035,7 +8035,7 @@ function climaReiniciar(w, h){
 }
 function climaDibujar(ahora){
   requestAnimationFrame(climaDibujar);
-  if(ahora - climaQ.t > 250){ climaQ = {t: ahora, v: !!((CLIMA.noche || CLIMA.condicion !== 'despejado') && climaVisible())}; }   // 03/11: se revisa 4 veces por segundo, no en cada cuadro
+  if(ahora - climaQ.t > 250){ climaQ = {t: ahora, v: !!((CLIMA.noche || (CLIMA.condicion !== 'despejado' && CLIMA.condicion !== 'calor')) && climaVisible())}; }   // 03/11: se revisa 4 veces por segundo, no en cada cuadro
   const quiere = climaQ.v;
   if(!quiere){ if(climaCv.style.display !== 'none') climaCv.style.display = 'none'; return; }
   if(ahora - climaT0 < 40) return;   // ~25 cuadros por segundo alcanzan
