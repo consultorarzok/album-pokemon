@@ -2393,7 +2393,7 @@ function bucle(ts){
   /* hit-stop: un instante congelado en cada golpe */
   if(AR.congela > 0){ AR.congela -= dt; return; }
   /* cámara lenta mientras se carga un largo (entra y sale suave) */
-  const cargando = AR.lados.map(l => E[l]).some(x => x.accion && x.accion.tipo === 'largo' && !x.accion.hecho);
+  const cargando = !AR.multi && AR.lados.map(l => E[l]).some(x => x.accion && x.accion.tipo === 'largo' && !x.accion.hecho);   // 03/11: con varios siempre hay alguien cargando y cada celular iba a media velocidad por su cuenta (demoras y saltos en la incursión)
   AR.esc += ((cargando ? CAMARA_LENTA : 1) - AR.esc) * Math.min(1, dt * 12);
   ST.classList.toggle('ar-lento', AR.esc < .85);
   dt *= AR.esc;
