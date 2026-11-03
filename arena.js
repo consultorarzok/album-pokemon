@@ -2576,7 +2576,7 @@ function armarIncursion(d, pDe){
   const yo = d.jugadores.find(j => j.slot === d.miSlot), otros = d.jugadores.filter(j => j.slot !== d.miSlot);
   const eq = j => j.equipo.map(x => crearMon(pDe(x.id), false, x));
   AR.multi = true; AR.modo = 'raid'; AR.miSlot = d.miSlot;
-  AR.raid = {jefe: d.jefe, host: d.hostJefe === d.miSlot, fin: performance.now() + (d.limiteMs || 600000), seg: -1};
+  AR.raid = {jefe: d.jefe, host: d.hostJefe === d.miSlot, fin: performance.now() + (d.limiteMs || 300000), seg: -1};
   AR.zoom = .64;
   AR.estilo = ESTILOS.legendario;
   AR.lados = ['yo']; AR.bando = {yo:'A'}; AR.espejo = {}; AR.porSlot = {[d.miSlot]:'yo'}; AR.spawn = {}; AR.slotDe = {yo:yo.slot};
