@@ -2234,7 +2234,7 @@ const INCURSIONES = {
      Durante `evento` (4 h, sólo hoy): `probPool` de que aparezca un shiny famoso de la historia Pokémon (lista `pool`, fuerza 90-100) y `probPropio` de que el legendario sea shiny. */
   shiny: {
     prob: .06,
-    evento: {desde: 1793760865075, hasta: 1793775265075, probPool: .40, probPropio: .30},
+    evento: {desde: 1793760865075, hasta: 1793775265075, destacados: [6, 94], probDest: .50, probPool: .20, probPropio: .30},
     pool: [6, 130, 149, 94, 248, 197, 196, 448, 445, 373, 376, 658, 257, 350, 151, 251, 245, 243, 244, 144, 145, 146, 385, 491, 250, 382, 383, 483, 484, 643, 644]
     /* Charizard negro, Gyarados rojo (Lago de la Furia), Dragonite, Gengar, Tyranitar, Umbreon, Espeon, Lucario, Garchomp, Salamence, Metagross, Greninja, Blaziken, Milotic,
        Mew, Celebi, Suicune/Raikou/Entei, aves de Kanto, Jirachi, Darkrai, Ho-Oh, Kyogre, Groudon, Dialga, Palkia, Reshiram, Zekrom */
@@ -2291,7 +2291,7 @@ function panelIncursiones(){
   filas.sort((a, b) => (b.ap.abierta - a.ap.abierta) || ((a.ap.proxima || 0) - (b.ap.proxima || 0)));
   const hay = filas.filter(f => f.ap.abierta).length;
   const evS = eventoShinyInc();
-  sub.innerHTML = (evS ? `<b style="color:#FFD84A">✨ EVENTO SHINY hasta las ${horaJujuy(evS.hasta)}:</b> al ganar una incursión puede aparecer un <b>shiny</b> (Charizard, Gyarados, Mew, legendarios y más). <br>` : '') + (hay ? `Abiertas ahora: ${hay}. Cierran a las ${horaJujuy(filas[0].ap.hasta)} (hora de Jujuy). Tocá "Guiarme" y te sale una flecha.` : `No hay ninguna abierta. Turnos: 09:00, 14:00, 19:00 y 23:00 (hora de Jujuy).`);
+  sub.innerHTML = (evS ? `<b style="color:#FFD84A">✨ EVENTO SHINY hasta las ${horaJujuy(evS.hasta)}:</b> al ganar una incursión puede aparecer un <b>shiny</b> (<b>Charizard</b>, <b>Gengar blanco</b>, Gyarados, Mew, legendarios y más). <br>` : '') + (hay ? `Abiertas ahora: ${hay}. Cierran a las ${horaJujuy(filas[0].ap.hasta)} (hora de Jujuy). Tocá "Guiarme" y te sale una flecha.` : `No hay ninguna abierta. Turnos: 09:00, 14:00, 19:00 y 23:00 (hora de Jujuy).`);
   lista.innerHTML = filas.map(({g, cfg, ap, p}) => {
     const r = advMapa === 'overworld' ? rumboA(g.puerta[0], g.puerta[1]) : null;
     const donde = r ? `a ${r.dist} casilleros al ${r.rumbo}` : 'en el mapa (salí de la cueva)';
