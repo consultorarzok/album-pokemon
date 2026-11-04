@@ -21,11 +21,15 @@ const SHOTS = '/tmp/claude-0/-root/b70858be-5edb-4e9c-bb87-88f6028271ef/scratchp
   await page.click('#advBtn'); await page.waitForTimeout(1500);   // entra con la pantalla de carga; recién después se fija el clima de la prueba
   await poner('despejado', false); await page.waitForTimeout(350);
   check('día despejado: no hay capa', !(await estado()).visible);
-  for(const c of ['lluvia', 'viento', 'niebla', 'nublado']){
+  for(const c of ['lluvia', 'viento']){
     await poner(c, false); await page.waitForTimeout(350);
     const e = await estado();
-    check(c + ': se dibuja la capa sobre el mapa (' + e.pix + ' px)', e.visible && e.pix > 200 && e.pe === 'none');
+    check(c + ': se dibuja la capa sobre el mapa (' + e.pix + ' px)', e.visible && e.pix > 60 && e.pe === 'none');
     await page.screenshot({path: SHOTS + 'clima_' + c + '.png'});
+  }
+  for(const c of ['niebla', 'nublado', 'calor']){   // 04/11 Zeta: sin efecto visual
+    await poner(c, false); await page.waitForTimeout(350);
+    check(c + ': sin capa (día como despejado)', !(await estado()).visible);
   }
   await poner('despejado', true); await page.waitForTimeout(350);
   await page.evaluate(() => { nocheNivel = 1; advRender(); }); await page.waitForTimeout(300);

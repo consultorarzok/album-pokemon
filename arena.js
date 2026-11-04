@@ -3134,7 +3134,11 @@ function mostrarResultadoIncursion(m){
   AR.fase = 'fin'; AR.hold.clear(); AR.esperandoResultado = false;
   cerrarSala();
   if(m.progreso && typeof aplicarProgreso === 'function') aplicarProgreso(m.progreso);
-  const p = DATA.find(x => x.id === m.legendario) || {name:'el legendario', id:m.legendario}, f = $('arFin');
+  const boss = DATA.find(x => x.id === m.legendario) || {name:'el legendario', id:m.legendario}, f = $('arFin');
+  /* 03/11: lo que queda por atrapar puede ser el legendario SHINY o un shiny famoso (premioInc, f > 100 = shiny) */
+  const pi = m.premioInc || {id: m.legendario, f: m.fuerza}, esShiny = pi.f > 100, base = DATA.find(x => x.id === pi.id) || boss;
+  const p = Object.assign({}, base, {name: base.name + (esShiny ? ' ✨ SHINY' : ''), img: esShiny && typeof imgVario === 'function' ? imgVario(base) : base.img});
+  p.shinyOnerror = esShiny ? ' onerror="respaldoShiny(this)"' : '';
   sfx(m.gane ? 'gana' : 'pierde');
   if(m.gane) festejo(true);
   f.hidden = false;
@@ -3147,8 +3151,8 @@ function mostrarResultadoIncursion(m){
   }
   /* 03/11 Zeta: al terminar la incursión se ve la ESCENA de captura: el legendario, la Incursión Ball que sale volando, lo absorbe, se sacude en el piso y se ve si quedó o se soltó */
   const pinta = (txt, quedan, fin, estado) => {
-    f.innerHTML = `<div class="ar-fin-caja" style="border-color:#3DDC6E"><b style="color:#3DDC6E">¡Le ganaron a ${p.name}!</b>
-      <div class="inc-escena" id="incEsc"><img id="incLeg" class="inc-leg" src="${p.img || ''}" alt="${p.name}"><img id="incBola" class="inc-bola" src="${INC_BALL.img}" alt="Incursión Ball"><div class="inc-suelo"></div></div>
+    f.innerHTML = `<div class="ar-fin-caja" style="border-color:#3DDC6E"><b style="color:#3DDC6E">¡Le ganaron a ${boss.name}!</b>${esShiny ? `<span style="display:block;color:#FFD84A;margin-top:4px">✨ ¡Algo brilla dentro de la guarida: apareció ${p.name}!</span>` : ''}
+      <div class="inc-escena" id="incEsc"><img id="incLeg" class="inc-leg" src="${p.img || ''}" alt="${p.name}"${p.shinyOnerror}><img id="incBola" class="inc-bola" src="${INC_BALL.img}" alt="Incursión Ball"><div class="inc-suelo"></div></div>
       <span>Le sacaste el <b>${m.parte}%</b> de la vida: te ganaste <b>${m.bolas} Incursión Ball${m.bolas === 1 ? '' : 's'}</b>.</span>
       <span id="arIncTxt" style="display:block;margin-top:8px">${txt}</span>
       ${fin ? '' : `<button class="ar-b ar-go" id="arIncTirar"><b>🎯 Tirar una Incursión Ball (${quedan})</b></button>`}
@@ -3196,7 +3200,7 @@ function mostrarResultadoIncursion(m){
       if(!res.ok) return pinta(res.motivo === 'se_escapo' ? `${p.name} se escapó.` : 'No se pudo tirar: ' + res.motivo, 0, true);
       const r = res.resultado;
       try{ await animar(r); }catch(e){}
-      if(r.atrapado){ sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con fuerza ${r.f}.`, 0, true, 'atrapado'); }
+      if(r.atrapado){ sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con fuerza ${r.f > 100 ? r.f - 100 : r.f}.`, 0, true, 'atrapado'); }
       if(r.escapo) return pinta(`${p.name} se soltó y se escapó…`, 0, true, 'escapo');
       pinta(`¡Casi! ${p.name} se soltó. Probá de nuevo.`, r.quedan, false);
     }).catch(() => pinta('Sin conexión. Probá de nuevo.', m.bolas, false));

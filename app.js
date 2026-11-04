@@ -2227,7 +2227,18 @@ const INCURSIONES = {
   turnos: [9, 14, 19, 23], porTurno: 4,
   /* Aperturas ESPECIALES (fuera de los turnos): ventana propia con su propia clave (un intento nuevo por entrenador), abren las guaridas de `regiones` ('todas' = las 7).
      03/11 Zeta: compensación por las peleas que no arrancaban (bug de arena.js), 30 minutos desde 23:32 hora de Jujuy. */
-  extras: [{desde: 1793673436351, hasta: 1793675236351, clave: 'EXTRA-20261103', regiones: 'todas'}, {desde: 1793674724004, hasta: 1793676524004, clave: 'EXTRA-20261103B', regiones: 'todas'}, {desde: 1793676524004, hasta: 1793678324004, clave: 'EXTRA-20261103C', regiones: 'todas'}],
+  extras: [{desde: 1793673436351, hasta: 1793675236351, clave: 'EXTRA-20261103', regiones: 'todas'}, {desde: 1793674724004, hasta: 1793676524004, clave: 'EXTRA-20261103B', regiones: 'todas'}, {desde: 1793676524004, hasta: 1793678324004, clave: 'EXTRA-20261103C', regiones: 'todas'},
+    /* 03/11 23:55 Zeta: apertura de 4 HORAS de las 7 guaridas con shiny reforzado (ver `shiny.evento`; sólo hoy) */
+    {desde: 1793760865075, hasta: 1793775265075, clave: 'EXTRA-20261104-SHINY', regiones: 'todas'}],
+  /* SHINY de incursión (Zeta 03/11): al ganar, lo que queda por atrapar puede ser SHINY. Siempre: `prob` de que el legendario sea shiny (los legendarios sólo salen acá).
+     Durante `evento` (4 h, sólo hoy): `probPool` de que aparezca un shiny famoso de la historia Pokémon (lista `pool`, fuerza 90-100) y `probPropio` de que el legendario sea shiny. */
+  shiny: {
+    prob: .06,
+    evento: {desde: 1793760865075, hasta: 1793775265075, probPool: .40, probPropio: .30},
+    pool: [6, 130, 149, 94, 248, 197, 196, 448, 445, 373, 376, 658, 257, 350, 151, 251, 245, 243, 244, 144, 145, 146, 385, 491, 250, 382, 383, 483, 484, 643, 644]
+    /* Charizard negro, Gyarados rojo (Lago de la Furia), Dragonite, Gengar, Tyranitar, Umbreon, Espeon, Lucario, Garchomp, Salamence, Metagross, Greninja, Blaziken, Milotic,
+       Mew, Celebi, Suicune/Raikou/Entei, aves de Kanto, Jirachi, Darkrai, Ho-Oh, Kyogre, Groudon, Dialga, Palkia, Reshiram, Zekrom */
+  },
   regiones: [
     {region: 'kanto',  legendario: 150},   // Mewtwo
     {region: 'johto',  legendario: 249},   // Lugia
@@ -2400,14 +2411,14 @@ function botonIncursion(){
     b.textContent = `⚔️ Incursión contra ${p.name}`;
     b.onclick = () => { if(typeof abrirIncursionArena === 'function') abrirIncursionArena({region: g.region, legendario: cfg.legendario}); };
   } else if(modo === 'tirar'){
-    const p = DATA.find(d => d.id === incursionPendiente.id) || {name: 'el legendario'};
+    const p0 = DATA.find(d => d.id === incursionPendiente.id) || {name: 'el legendario'}, p = incursionPendiente.f > 100 ? Object.assign({}, p0, {name: p0.name + ' ✨ SHINY'}) : p0;
     b.textContent = `🎯 Tirarle a ${p.name} (${incBolas})`;
     b.onclick = () => {
       b.disabled = true;
       accionServidor('tirarIncursion', {}).then(res => {
         if(!res.ok) return advMensaje(res.motivo === 'se_escapo' ? `${p.name} se escapó.` : 'No se pudo tirar.');
         const r = res.resultado;
-        advMensaje(r.atrapado ? `✨ <b>¡Atrapaste a ${p.name}!</b> Llega con fuerza ${r.f}.` : r.escapo ? `${p.name} se soltó y se escapó…` : `¡Casi! ${p.name} se soltó. Te quedan ${r.quedan}.`);
+        advMensaje(r.atrapado ? `✨ <b>¡Atrapaste a ${p.name}!</b> Llega con fuerza ${r.f > 100 ? r.f - 100 : r.f}.` : r.escapo ? `${p.name} se soltó y se escapó…` : `¡Casi! ${p.name} se soltó. Te quedan ${r.quedan}.`);
         if(r.atrapado){ renderGrid(); updateProgress(); }
       }).catch(() => advMensaje('Sin conexión.')).then(() => { b.disabled = false; b.dataset.k = ''; });
     };
@@ -8035,7 +8046,7 @@ function climaReiniciar(w, h){
 }
 function climaDibujar(ahora){
   requestAnimationFrame(climaDibujar);
-  if(ahora - climaQ.t > 250){ climaQ = {t: ahora, v: !!((CLIMA.noche || (CLIMA.condicion !== 'despejado' && CLIMA.condicion !== 'calor')) && climaVisible())}; }   // 03/11: se revisa 4 veces por segundo, no en cada cuadro
+  if(ahora - climaQ.t > 250){ climaQ = {t: ahora, v: !!((CLIMA.noche || CLIMA.condicion === 'lluvia' || CLIMA.condicion === 'viento') && climaVisible())}; }   // 03/11: se revisa 4 veces por segundo, no en cada cuadro
   const quiere = climaQ.v;
   if(!quiere){ if(climaCv.style.display !== 'none') climaCv.style.display = 'none'; return; }
   if(ahora - climaT0 < 40) return;   // ~25 cuadros por segundo alcanzan
@@ -8047,16 +8058,11 @@ function climaDibujar(ahora){
   const g = climaCtx; g.clearRect(0, 0, w, h);
   climaPaso++;
   const c = CLIMA.condicion;
-  if(c === 'nublado'){ g.fillStyle = 'rgba(70,82,104,.22)'; g.fillRect(0, 0, w, h); }
   if(c === 'lluvia'){
     g.fillStyle = 'rgba(28,46,86,.20)'; g.fillRect(0, 0, w, h);
     g.strokeStyle = 'rgba(214,232,255,.82)'; g.lineWidth = 1.2; g.beginPath();
     for(const p of climaPart){ p.y += 9 * p.v; p.x -= 2.4 * p.v; if(p.y > h){ p.y = -10; p.x = Math.random() * (w + 40); } g.moveTo(p.x, p.y); g.lineTo(p.x - 2, p.y + 8 + 5 * p.v); }
     g.stroke();
-  }
-  if(c === 'niebla'){
-    g.fillStyle = 'rgba(214,224,236,.16)'; g.fillRect(0, 0, w, h);
-    for(const p of climaPart){ p.x += .25 * p.v; if(p.x > w + 120) p.x = -120; const rr = 90 + p.r * 80, gr = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, rr); gr.addColorStop(0, 'rgba(236,242,248,.26)'); gr.addColorStop(1, 'rgba(236,242,248,0)'); g.fillStyle = gr; g.fillRect(p.x - rr, p.y - rr, rr * 2, rr * 2); }
   }
   if(c === 'calor'){
     const gr = g.createLinearGradient(0, h, 0, 0); gr.addColorStop(0, 'rgba(255,140,40,.08)'); gr.addColorStop(.6, 'rgba(255,170,70,.03)'); gr.addColorStop(1, 'rgba(255,200,90,.015)');
@@ -8066,7 +8072,6 @@ function climaDibujar(ahora){
     for(let k = 0; k < 5; k++){ const y = h * (.2 + k * .17) + Math.sin(climaPaso / 18 + k) * 3; g.fillStyle = 'rgba(255,255,255,.015)'; g.fillRect(0, y, w, 6); }   // ondas de calor
   }
   if(c === 'viento'){
-    g.fillStyle = 'rgba(210,225,235,.07)'; g.fillRect(0, 0, w, h);
     g.strokeStyle = 'rgba(235,245,250,.38)'; g.lineWidth = 1; g.beginPath();
     for(const p of climaPart){ p.x += 11 * p.v; p.y += Math.sin(climaPaso / 9 + p.r * 6) * .6; if(p.x > w + 30){ p.x = -40; p.y = Math.random() * h; } g.moveTo(p.x, p.y); g.lineTo(p.x - 18 * p.v, p.y); }
     g.stroke();
