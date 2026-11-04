@@ -2587,7 +2587,7 @@ function armarIncursion(d, pDe){
   AR.yo = {mons:eq(yo), idx:0, act:null, nombre:yo.nombre};
   const libres = ['al', 'r2', 'r3', 'r4'];
   otros.forEach(j => { const l = libres.shift(); AR.lados.push(l); AR.bando[l] = 'A'; AR.espejo[l] = false; AR.porSlot[j.slot] = l; AR.slotDe[l] = j.slot; AR[l] = {mons:eq(j), idx:0, act:null, nombre:j.nombre}; });
-  const pj = pDe(d.jefe.id), jefe = crearMon(pj, true, {f:d.jefe.f, c:'jefe' + d.jefe.id});
+  const pj = pDe(d.jefe.id), jefe = crearMon(pj, true, {f:d.jefe.f, c:'jefe' + d.jefe.id, s:!!d.jefe.s});
   jefe.max = Math.round(jefe.max * d.jefe.vida); jefe.hp = jefe.max; jefe.jefe = true;
   AR.lados.push('riv'); AR.bando.riv = 'B'; AR.espejo.riv = false; AR.porSlot[d.jefe.slot] = 'riv'; AR.slotDe.riv = d.jefe.slot;
   AR.riv = {mons:[jefe], idx:0, act:null, nombre:pj.name};
@@ -3151,7 +3151,7 @@ function mostrarResultadoIncursion(m){
   }
   /* 03/11 Zeta: al terminar la incursión se ve la ESCENA de captura: el legendario, la Incursión Ball que sale volando, lo absorbe, se sacude en el piso y se ve si quedó o se soltó */
   const pinta = (txt, quedan, fin, estado) => {
-    f.innerHTML = `<div class="ar-fin-caja" style="border-color:#3DDC6E"><b style="color:#3DDC6E">¡Le ganaron a ${boss.name}!</b>${esShiny ? `<span style="display:block;color:#FFD84A;margin-top:4px">✨ ¡Algo brilla dentro de la guarida: apareció ${p.name}!</span>` : ''}
+    f.innerHTML = `<div class="ar-fin-caja" style="border-color:#3DDC6E"><b style="color:#3DDC6E">¡Le ganaron a ${boss.name}!</b>${esShiny ? `<span style="display:block;color:#FFD84A;margin-top:4px">✨ ¡Era SHINY!</span>` : ''}
       <div class="inc-escena" id="incEsc"><img id="incLeg" class="inc-leg" src="${p.img || ''}" alt="${p.name}"${p.shinyOnerror}><img id="incBola" class="inc-bola" src="${INC_BALL.img}" alt="Incursión Ball"><div class="inc-suelo"></div></div>
       <span>Le sacaste el <b>${m.parte}%</b> de la vida: te ganaste <b>${m.bolas} Incursión Ball${m.bolas === 1 ? '' : 's'}</b>.</span>
       <span id="arIncTxt" style="display:block;margin-top:8px">${txt}</span>
@@ -3228,6 +3228,10 @@ function pintarIncursion(equipo, inc){
     if(m.t === 'lobby'){
       $('arILista').innerHTML = m.jugadores.map(x => `<li${x.conectado ? '' : ' class="off"'}><span><b>${esc(x.nombre)}</b>${x.id === m.yo ? ' (vos)' : ''}${x.conectado ? '' : ' · sin conexión'}</span></li>`).join('');
       const faltan = m.incursion ? m.incursion.faltan : 5 - m.jugadores.length;
+      if(m.incursion && m.incursion.id){   // 04/11: el jefe de esta sala puede ser otro (shiny): el título dice contra quién se pelea de verdad
+        const pb = DATA.find(x => x.id === m.incursion.id), h2 = $('arRoot').querySelector('h2');
+        if(pb && h2) h2.textContent = '⚔️ Incursión contra ' + pb.name + (m.incursion.s ? ' ✨ SHINY' : '');
+      }
       const n = m.jugadores.length, conectados = m.jugadores.filter(x => x.conectado).length, bt = $('arIEmpezar');
       est.innerHTML = faltan > 0 ? `Hay <b>${n}</b> de 5. Esperando entrenadores: faltan <b>${faltan}</b>. Avisales a tus amigos que vengan a la guarida.${n < 4 ? ' <b>Con menos de 4 no se le puede ganar.</b>' : ''}` : '¡Están los 5! Arrancando…';
       if(bt){ bt.disabled = !conectados || faltan <= 0; bt.innerHTML = `<b>Iniciar${conectados ? ' (con ' + conectados + ')' : ''}</b>`; }
