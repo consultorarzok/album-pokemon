@@ -1569,7 +1569,7 @@ function golpear(att, def, alc, x, y){
   sacudir(res.crit ? 1.5 : .7, res.crit);
   if(def.lado === 'yo') vibrar(res.crit ? [30, 20, 30] : 22);
   sfx(res.crit ? 'critico' : 'golpe');
-  if(!AR.multi) AR.congela = res.crit ? .11 : .055;   // con varios en pantalla los golpes llegan sin parar: el hit-stop los dejaba trabados
+  /* 04/11 Zeta: sin pausa (hit-stop) en los golpes, se sentía lento */   // con varios en pantalla los golpes llegan sin parar: el hit-stop los dejaba trabados
   clase(def, 'ar-golpe', 320);
   def.stun = res.crit ? .3 : .18;
   const dir = unit(pie(att), pie(def)), emp = u() * (alc === 'corto' ? 55 : 30) * (res.crit ? 1.4 : 1);
@@ -3040,7 +3040,7 @@ function golpeRemoto(m, lado){
   sacudir(m.crit ? 1.2 : .5, m.crit);
   vibrar(m.crit ? [30, 20, 30] : 22);
   sfx(m.crit ? 'critico' : 'golpe');
-  if(!AR.multi) AR.congela = m.crit ? .08 : .04;
+
   clase(def, 'ar-golpe', 320);
   if(def.accion && def.accion.tipo !== 'esquivar') cortarAccion(def);
   if(m.crit || m.mult > 1) festejo(m.crit);
