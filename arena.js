@@ -3213,6 +3213,7 @@ function pintarIncursion(equipo, inc){
   const root = $('arRoot'), p = DATA.find(x => x.id === inc.legendario) || {name:'el legendario'};
   root.innerHTML = `<div class="ar-pick ar-duelo">
     <h2>⚔️ Incursión contra ${p.name}</h2>
+    ${typeof eventoShinyInc === 'function' && eventoShinyInc() ? '<p style="color:#FFD84A"><b>✨ EVENTO SHINY:</b> si le ganan, puede aparecer un shiny para atrapar.</p>' : ''}
     <p>Pueden entrar hasta <b>5 entrenadores</b>. Con 5 arranca sola; si no llegan, tocá <b>Iniciar</b> (podés pelear con 1 solo, pero sólo con 4 o 5 se le gana) (esperamos hasta 20 minutos). Ojo: ${p.name} es igual de fuerte para todos: con 1, 2 o 3 entrenadores no se le puede ganar; con <b>4 o 5</b> sí.</p>
     <div class="ar-duelo-eq">${equipo.map(x => `<img src="${spIcono(x.id, (mejorEjemplar(x.id) || {}).s)}" alt="${x.name}" title="${x.name}" width="48" height="48">`).join('')}</div>
     <ul class="ar-lobby-lista" id="arILista" aria-label="Entrenadores en la incursión"></ul>

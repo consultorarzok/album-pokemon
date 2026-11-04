@@ -2283,12 +2283,15 @@ function rumboA(gx, gy){
   const ang = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360, nombres = ['este', 'sureste', 'sur', 'suroeste', 'oeste', 'noroeste', 'norte', 'noreste'];
   return {dist, rumbo: nombres[Math.round(ang / 45) % 8]};
 }
+/* 04/11: evento SHINY de incursiones activo (INCURSIONES.shiny.evento) */
+function eventoShinyInc(ahora = Date.now()){ const e = INCURSIONES.shiny && INCURSIONES.shiny.evento; return e && ahora >= e.desde && ahora < e.hasta ? e : null; }
 function panelIncursiones(){
   const lista = document.getElementById('advIncLista'), sub = document.getElementById('advIncSub');
   const ahora = Date.now(), filas = GUARIDAS.map(g => { const cfg = cfgIncursion(g.region); return {g, cfg, ap: aperturaIncursion(cfg, ahora), p: DATA.find(d => d.id === cfg.legendario) || {name: '?', img: ''}}; });
   filas.sort((a, b) => (b.ap.abierta - a.ap.abierta) || ((a.ap.proxima || 0) - (b.ap.proxima || 0)));
   const hay = filas.filter(f => f.ap.abierta).length;
-  sub.textContent = hay ? `Abiertas ahora: ${hay}. Cierran a las ${horaJujuy(filas[0].ap.hasta)} (hora de Jujuy). Tocá "Guiarme" y te sale una flecha.` : `No hay ninguna abierta. Turnos: 09:00, 14:00, 19:00 y 23:00 (hora de Jujuy).`;
+  const evS = eventoShinyInc();
+  sub.innerHTML = (evS ? `<b style="color:#FFD84A">✨ EVENTO SHINY hasta las ${horaJujuy(evS.hasta)}:</b> al ganar una incursión puede aparecer un <b>shiny</b> (Charizard, Gyarados, Mew, legendarios y más). <br>` : '') + (hay ? `Abiertas ahora: ${hay}. Cierran a las ${horaJujuy(filas[0].ap.hasta)} (hora de Jujuy). Tocá "Guiarme" y te sale una flecha.` : `No hay ninguna abierta. Turnos: 09:00, 14:00, 19:00 y 23:00 (hora de Jujuy).`);
   lista.innerHTML = filas.map(({g, cfg, ap, p}) => {
     const r = advMapa === 'overworld' ? rumboA(g.puerta[0], g.puerta[1]) : null;
     const donde = r ? `a ${r.dist} casilleros al ${r.rumbo}` : 'en el mapa (salí de la cueva)';
@@ -2329,7 +2332,8 @@ function avisoIncursiones(){
   const nombre = r => { const p = DATA.find(d => d.id === r.legendario); return (LOCAL[r.region] || REGION_LABEL[r.region] || r.region) + ' (' + (p ? p.name : '?') + ')'; };
   const aps = INCURSIONES.regiones.map(r => [r, aperturaIncursion(r, Date.now())]);
   const abiertas = aps.filter(([, a]) => a.abierta);
-  if(abiertas.length) return `⚔️ <b>Hay incursión abierta ahora</b> en: ${abiertas.map(([r]) => nombre(r)).join(', ')}. Cierran a las ${horaJujuy(abiertas[0][1].hasta)}.`;
+  const evS = eventoShinyInc(), tagS = evS ? '✨ <b>EVENTO SHINY</b>: al ganar puede aparecer un shiny. ' : '';
+  if(abiertas.length) return tagS + `⚔️ <b>Hay incursión abierta ahora</b> en: ${abiertas.map(([r]) => nombre(r)).join(', ')}. Cierran a las ${horaJujuy(abiertas[0][1].hasta)}.`;
   const prox = Math.min(...aps.map(([, a]) => a.proxima || Infinity));
   if(!isFinite(prox)) return '';
   return `⚔️ Próxima incursión: <b>${etiquetaApertura(prox)}</b> en ${aps.filter(([, a]) => a.proxima === prox).map(([r]) => nombre(r)).join(', ')}.`;
@@ -2408,7 +2412,7 @@ function botonIncursion(){
   b.dataset.k = k; b.hidden = !modo;
   if(modo === 'unirse'){
     const cfg = cfgIncursion(g.region), p = DATA.find(d => d.id === cfg.legendario) || {name: ''};
-    b.textContent = `⚔️ Incursión contra ${p.name}`;
+    b.textContent = `⚔️ Incursión contra ${p.name}${eventoShinyInc() ? ' ✨' : ''}`;
     b.onclick = () => { if(typeof abrirIncursionArena === 'function') abrirIncursionArena({region: g.region, legendario: cfg.legendario}); };
   } else if(modo === 'tirar'){
     const p0 = DATA.find(d => d.id === incursionPendiente.id) || {name: 'el legendario'}, p = incursionPendiente.f > 100 ? Object.assign({}, p0, {name: p0.name + ' ✨ SHINY'}) : p0;
