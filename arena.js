@@ -2954,19 +2954,28 @@ function abrirSocket(){
   let ws;
   try{ ws = new WebSocket(url); }catch(e){ RED.alMensaje && RED.alMensaje({t:'error_red'}); return; }
   RED.ws = ws;
-  ws.onopen = () => { RED.intentos = 0; };
+  ws.onopen = () => { RED.intentos = 0; clearInterval(RED.latido); RED.latido = setInterval(() => { if(RED.ws === ws && ws.readyState === 1) try{ ws.send('{"t":"ping"}'); }catch(e){} }, 15000); };   // 04/11: latido (los celulares/NAT cortan sockets quietos)
   ws.onmessage = ev => { let m; try{ m = JSON.parse(ev.data); }catch(e){ return; } if(RED.alMensaje) RED.alMensaje(m); };
   ws.onclose = () => {
     if(RED.ws !== ws || RED.cerrado) return;
-    /* se cortó: reintenta unas veces (la sala espera 20 s antes de dar el duelo por perdido) */
-    if(RED.intentos < 5){
+    clearInterval(RED.latido);
+    /* se cortó: reintenta (la sala espera 60 s antes de sacarte). 04/11: 15 intentos, esperas de hasta 3 s (antes 5 y crecientes: ~18 s y se rendía) */
+    if(RED.intentos < 15){
       RED.intentos++;
       if(RED.alMensaje) RED.alMensaje({t:'reconectando'});
-      setTimeout(() => { if(!RED.cerrado && RED.ws === ws) abrirSocket(); }, 1200 * RED.intentos);
+      setTimeout(() => { if(!RED.cerrado && RED.ws === ws) abrirSocket(); }, Math.min(3000, 800 * RED.intentos));
     } else if(RED.alMensaje) RED.alMensaje({t:'error_red'});
   };
 }
+/* al volver a la app (se había bloqueado el celular / cambiado de app) o volver la red: si el socket está caído, reconecta YA */
+function reconectarYa(){
+  if(RED.cerrado || !RED.codigo || document.visibilityState === 'hidden') return;
+  if(!RED.ws || RED.ws.readyState > 1){ RED.intentos = 0; const viejo = RED.ws; RED.ws = null; abrirSocket(); if(RED.alMensaje) RED.alMensaje({t:'reconectando'}); }
+}
+document.addEventListener('visibilitychange', reconectarYa);
+window.addEventListener('online', reconectarYa);
 function cerrarSala(){
+  clearInterval(RED.latido);
   RED.cerrado = true;
   const ws = RED.ws; RED.ws = null;
   if(ws) try{ ws.close(1000, 'fin'); }catch(e){}

@@ -2227,7 +2227,9 @@ const INCURSIONES = {
   turnos: [9, 14, 19, 23], porTurno: 4,
   /* Aperturas ESPECIALES (fuera de los turnos): ventana propia con su propia clave (un intento nuevo por entrenador), abren las guaridas de `regiones` ('todas' = las 7).
      03/11 Zeta: compensación por las peleas que no arrancaban (bug de arena.js), 30 minutos desde 23:32 hora de Jujuy. */
-  extras: [{desde: 1793673436351, hasta: 1793675236351, clave: 'EXTRA-20261103', regiones: 'todas'}, {desde: 1793674724004, hasta: 1793676524004, clave: 'EXTRA-20261103B', regiones: 'todas'}, {desde: 1793676524004, hasta: 1793678324004, clave: 'EXTRA-20261103C', regiones: 'todas'},
+  extras: [/* 04/11 Zeta: incursión ESPECIAL en la última región (Alola): el jefe es el GENGAR BLANCO (shiny, fijo), se ve en la guarida. 3 h. Va primero: tiene prioridad sobre la apertura del evento shiny. */
+    {desde: 1793763715457, hasta: 1793774515457, clave: 'EXTRA-20261104-GENGAR', regiones: ['alola'], jefe: {id: 94, s: true}},
+    {desde: 1793673436351, hasta: 1793675236351, clave: 'EXTRA-20261103', regiones: 'todas'}, {desde: 1793674724004, hasta: 1793676524004, clave: 'EXTRA-20261103B', regiones: 'todas'}, {desde: 1793676524004, hasta: 1793678324004, clave: 'EXTRA-20261103C', regiones: 'todas'},
     /* 03/11 23:55 Zeta: apertura de 4 HORAS de las 7 guaridas con shiny reforzado (ver `shiny.evento`; sólo hoy) */
     {desde: 1793760865075, hasta: 1793775265075, clave: 'EXTRA-20261104-SHINY', regiones: 'todas'}],
   /* SHINY de incursión (Zeta 03/11): al ganar, lo que queda por atrapar puede ser SHINY. Siempre: `prob` de que el legendario sea shiny (los legendarios sólo salen acá).
@@ -2259,7 +2261,7 @@ let incBolas = 0, incursionPendiente = null;   // vienen del servidor
 function aperturaIncursion(cfg, ahora){
   const H = 3 * 3600e3, dur = INCURSIONES.duracionMin * 60e3, T = INCURSIONES.turnos, n = INCURSIONES.regiones.length, k = INCURSIONES.porTurno;
   const ex = (INCURSIONES.extras || []).find(e => ahora >= e.desde && ahora < e.hasta && (e.regiones === 'todas' || e.regiones.includes(cfg.region)));
-  if(ex) return {abierta: true, desde: ex.desde, hasta: ex.hasta};
+  if(ex) return {abierta: true, desde: ex.desde, hasta: ex.hasta, jefe: ex.jefe};
   const idx = INCURSIONES.regiones.findIndex(r => r.region === cfg.region), loc = new Date(ahora - H);
   let proxima = null;
   for(let off = -1; off <= 4; off++) T.forEach((h, ti) => {
@@ -2287,7 +2289,7 @@ function rumboA(gx, gy){
 function eventoShinyInc(ahora = Date.now()){ const e = INCURSIONES.shiny && INCURSIONES.shiny.evento; return e && ahora >= e.desde && ahora < e.hasta ? e : null; }
 function panelIncursiones(){
   const lista = document.getElementById('advIncLista'), sub = document.getElementById('advIncSub');
-  const ahora = Date.now(), filas = GUARIDAS.map(g => { const cfg = cfgIncursion(g.region); return {g, cfg, ap: aperturaIncursion(cfg, ahora), p: DATA.find(d => d.id === cfg.legendario) || {name: '?', img: ''}}; });
+  const ahora = Date.now(), filas = GUARIDAS.map(g => { const cfg = cfgIncursion(g.region); return {g, cfg, ap: aperturaIncursion(cfg, ahora), p: Object.assign({}, DATA.find(d => d.id === jefeGuarida(cfg, aperturaIncursion(cfg, ahora)).id) || {name: '?', img: ''}, aperturaIncursion(cfg, ahora).jefe ? {sh: 1} : {})}; });
   filas.sort((a, b) => (b.ap.abierta - a.ap.abierta) || ((a.ap.proxima || 0) - (b.ap.proxima || 0)));
   const hay = filas.filter(f => f.ap.abierta).length;
   const evS = eventoShinyInc();
@@ -2295,8 +2297,8 @@ function panelIncursiones(){
   lista.innerHTML = filas.map(({g, cfg, ap, p}) => {
     const r = advMapa === 'overworld' ? rumboA(g.puerta[0], g.puerta[1]) : null;
     const donde = r ? `a ${r.dist} casilleros al ${r.rumbo}` : 'en el mapa (salí de la cueva)';
-    return `<div class="adv-inc-fila${ap.abierta ? ' abierta' : ''}"><img src="${p.img}" alt="" onerror="this.style.visibility='hidden'">` +
-      `<div class="adv-inc-texto"><b>${REGION_LOCAL[g.region] || g.region}</b> · ${p.name}<br>${ap.abierta ? '🔴 <b>ABIERTA</b> hasta las ' + horaJujuy(ap.hasta) : '🔒 abre ' + etiquetaApertura(ap.proxima)}<br><small>${donde}</small></div>` +
+    return `<div class="adv-inc-fila${ap.abierta ? ' abierta' : ''}"><img src="${p.sh ? imgVario(p) : p.img}" alt="" onerror="this.style.visibility='hidden'">` +
+      `<div class="adv-inc-texto"><b>${REGION_LOCAL[g.region] || g.region}</b> · ${p.name}${p.sh ? ' ✨ BLANCO' : ''}<br>${ap.abierta ? '🔴 <b>ABIERTA</b> hasta las ' + horaJujuy(ap.hasta) : '🔒 abre ' + etiquetaApertura(ap.proxima)}<br><small>${donde}</small></div>` +
       `<button type="button" data-reg="${g.region}" class="${advGuia === g.region ? 'activo' : ''}">${advGuia === g.region ? 'Quitar flecha' : 'Guiarme'}</button></div>`;
   }).join('');
   lista.querySelectorAll('button[data-reg]').forEach(b => b.onclick = () => {
@@ -2346,6 +2348,8 @@ const etiquetaApertura = t => {
 };
 const horaJujuy = t => new Date(t).toLocaleTimeString('es-AR', {timeZone: 'America/Argentina/Jujuy', hour: '2-digit', minute: '2-digit', hour12: false});
 const cfgIncursion = region => INCURSIONES.regiones.find(r => r.region === region);
+/* quién está en la guarida ahora: el legendario de la región, o el jefe fijo de una apertura especial (Gengar blanco) */
+function jefeGuarida(cfg, ap){ return ap && ap.abierta && ap.jefe ? {id: ap.jefe.id, s: !!ap.jefe.s} : {id: cfg.legendario, s: false}; }
 function guaridaEn(x, y){ return GUARIDAS.find(g => g.puerta[0] === x && g.puerta[1] === y) || null; }
 
 const IMG_GUARIDA = {};
@@ -2355,8 +2359,9 @@ function dibujarGuaridas(ctx, camX, camY, vw, vh){
     const px = g.x0 * ADV_PX - camX, py = g.y0 * ADV_PX - camY, W_ = g.w || 13, H_ = g.h || 11;
     if(px > vw + 40 || py > vh + 40 || px < -(W_ + 1) * ADV_PX || py < -(H_ + 1) * ADV_PX) continue;
     const cfg = cfgIncursion(g.region), ap = aperturaIncursion(cfg, ahora);
-    if(!IMG_GUARIDA[cfg.legendario]){ const im = new Image(); im.crossOrigin = 'anonymous'; im.src = (DATA.find(d => d.id === cfg.legendario) || {}).img || ''; IMG_GUARIDA[cfg.legendario] = im; }
-    const im = IMG_GUARIDA[cfg.legendario], pi = g.piso || [3, 2, 7, 5];
+    const jf = jefeGuarida(cfg, ap), kimg = jf.id + (jf.s ? 's' : '');
+    if(!IMG_GUARIDA[kimg]){ const im = new Image(), dp = DATA.find(d => d.id === jf.id) || {}; im.crossOrigin = 'anonymous'; im.src = (jf.s && dp.img ? imgVario(dp) : dp.img) || ''; IMG_GUARIDA[kimg] = im; }
+    const im = IMG_GUARIDA[kimg], pi = g.piso || [3, 2, 7, 5];
     /* el legendario, a tamaño normal (2 casilleros), parado en el centro del claro */
     const lado = 2 * ADV_PX, cx = px + (pi[0] + pi[2] / 2) * ADV_PX, cy = py + (pi[1] + pi[3] / 2) * ADV_PX + Math.sin(ahora / 400) * 1.2;
     ctx.save();
@@ -2411,9 +2416,9 @@ function botonIncursion(){
   if(b.dataset.k === k) return;
   b.dataset.k = k; b.hidden = !modo;
   if(modo === 'unirse'){
-    const cfg = cfgIncursion(g.region), p = DATA.find(d => d.id === cfg.legendario) || {name: ''};
-    b.textContent = `⚔️ Incursión contra ${p.name}${eventoShinyInc() ? ' ✨' : ''}`;
-    b.onclick = () => { if(typeof abrirIncursionArena === 'function') abrirIncursionArena({region: g.region, legendario: cfg.legendario}); };
+    const cfg = cfgIncursion(g.region), jf = jefeGuarida(cfg, aperturaIncursion(cfg, Date.now())), p = DATA.find(d => d.id === jf.id) || {name: ''};
+    b.textContent = `⚔️ Incursión contra ${p.name}${jf.s ? ' ✨ BLANCO' : eventoShinyInc() ? ' ✨' : ''}`;
+    b.onclick = () => { if(typeof abrirIncursionArena === 'function') abrirIncursionArena({region: g.region, legendario: jf.id}); };
   } else if(modo === 'tirar'){
     const p0 = DATA.find(d => d.id === incursionPendiente.id) || {name: 'el legendario'}, p = incursionPendiente.f > 100 ? Object.assign({}, p0, {name: p0.name + ' ✨ SHINY'}) : p0;
     b.textContent = `🎯 Tirarle a ${p.name} (${incBolas})`;
@@ -6067,7 +6072,7 @@ function advPisar(t, x, y){
 function advLeerCartel(x, y){
   const gu = advMapa === 'overworld' && guaridaEn(x, y);
   if(gu){
-    const cfg = cfgIncursion(gu.region), ap = aperturaIncursion(cfg, Date.now()), p = DATA.find(d => d.id === cfg.legendario) || {name: 'un legendario'};
+    const cfg = cfgIncursion(gu.region), ap = aperturaIncursion(cfg, Date.now()), p = DATA.find(d => d.id === jefeGuarida(cfg, ap).id) || {name: 'un legendario'};
     advMensaje(ap.abierta
       ? `⚔️ <b>¡La guarida de ${p.name} está abierta!</b> Hasta las ${horaJujuy(ap.hasta)}. Tocá <b>Incursión</b>: hasta 5 entrenadores (con 4 o 5 se le puede ganar).`
       : `🔒 <b>Guarida de ${p.name}</b> (fuerza 90-100). Hay 4 turnos por día (09:00, 14:00, 19:00 y 23:00, hora de Jujuy) y en cada uno abren 4 de las 7 guaridas. A esta le toca el ${diaHoraJujuy(ap.proxima)}.`);
