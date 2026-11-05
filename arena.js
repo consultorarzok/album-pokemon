@@ -1812,7 +1812,8 @@ Object.assign(window.__arenaMovs, {movsEjemplar, opcionesDeAtaque});
 function crearMon(p, rival, ejFijo){
   const ej = ejFijo || (rival ? null : mejorEjemplar(p.id));
   const fz = ejFijo ? ejFijo.f : rival ? fuerzaRival() : ((ej || {}).f || 50);
-  const k = .9 + fz / 500, bst = bstDe(p), max = Math.round((60 + bst * .22) * k);
+  const k = .8 + fz / 250,   /* 05/11 Zeta: vida y daño van de ×0,80 (fuerza 1) a ×1,20 (fuerza 100); antes .9 + fz/500 (×0,90 a ×1,10) */
+     bst = bstDe(p), max = Math.round((60 + bst * .22) * k);
   /* los ataques salen del número de serie del ejemplar (siempre los mismos para esa figurita);
      el rival, como no tiene ejemplar guardado, saca unos al azar en cada pelea */
   const movs = movsEjemplar(p, ej);
