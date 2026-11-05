@@ -932,12 +932,13 @@ function renderGrid(){
 }
 
 /* ====================== CARTEL DE NOVEDADES ======================
-   Aparece UNA vez por dispositivo cuando entra al juego (después de los carteles de nombre, personaje y PIN) y
-   deja de salir pasada la fecha, porque habla de "la semana que viene". */
-const NOVEDADES_ID = '20261031', NOVEDADES_HASTA = '2026-11-07';
+   05/11 Zeta: sale DOS veces por dispositivo (la 1.ª al entrar y la 2.ª en la siguiente vez que entra), después de los carteles de nombre,
+   personaje y PIN. Se cuenta cuando el jugador lo cierra. Pasada NOVEDADES_HASTA no sale más. Para una novedad nueva se cambia NOVEDADES_ID. */
+const NOVEDADES_ID = '20261105', NOVEDADES_HASTA = '2026-11-14', NOVEDADES_VECES = 2;
+function novedadesVistas(){ try{ return localStorage.getItem('album-novedades-id') === NOVEDADES_ID ? (Number(localStorage.getItem('album-novedades-veces')) || 0) : 0; }catch(e){ return 0; } }
 function mostrarNovedades(intentos){
   try{
-    if(localStorage.getItem('album-novedades-visto') === NOVEDADES_ID) return;
+    if(novedadesVistas() >= NOVEDADES_VECES) return;
     if(new Date().toISOString().slice(0, 10) > NOVEDADES_HASTA) return;
     /* las pruebas automáticas no lo ven (taparía los botones), salvo que lo pidan */
     if(navigator.webdriver && !localStorage.getItem('album-novedades-test')) return;
@@ -951,7 +952,7 @@ function mostrarNovedades(intentos){
   document.getElementById('novedadesOverlay').classList.add('show');
 }
 document.getElementById('novedadesCierraBtn').onclick = () => {
-  try{ localStorage.setItem('album-novedades-visto', NOVEDADES_ID); }catch(e){}
+  try{ const n = novedadesVistas() + 1; localStorage.setItem('album-novedades-id', NOVEDADES_ID); localStorage.setItem('album-novedades-veces', String(n)); }catch(e){}
   document.getElementById('novedadesOverlay').classList.remove('show');
 };
 
