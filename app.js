@@ -1253,15 +1253,44 @@ function evolucionar(id, destId, serie){
   if(isSpecial(pull.p)) playSpecialSequence([pull], 0, () => showReveal([pull], titulo));
   else showReveal([pull], titulo);
 }
+
+/* ====================== FILTRO DE LISTAS (Evolucionar e Intercambio) ======================
+   Buscar por nombre, tipo y región (= generación). iniciarFiltroLista arma la barra dentro de `caja` (una vez) y la
+   deja vacía; al tocar algo llama a `alCambiar`. pasaFiltroLista(caja, p) dice si un Pokémon pasa el filtro. */
+function iniciarFiltroLista(caja, alCambiar){
+  const estilo = 'min-width:0;padding:9px;border-radius:9px;border:1px solid var(--border);background:var(--panel);color:var(--ink);font-family:inherit;font-size:13px;';
+  if(!caja.dataset.listo){
+    caja.dataset.listo = '1';
+    caja.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;';
+    const regiones = [...new Set(DATA.map(p => p.region))], tipos = [...new Set(DATA.map(p => p.type))];
+    caja.innerHTML = `<input type="search" data-f="q" placeholder="Buscar por nombre" aria-label="Buscar por nombre de Pokémon" autocomplete="off" maxlength="30" style="${estilo}flex:1 1 100%;">
+      <select data-f="tipo" aria-label="Filtrar por tipo" style="${estilo}flex:1 1 0;"><option value="all">Todos los tipos</option>${tipos.map(t => `<option value="${t}">${TYPE_LABEL[t] || t}</option>`).join('')}</select>
+      <select data-f="region" aria-label="Filtrar por región o generación" style="${estilo}flex:1 1 0;"><option value="all">Todas las regiones</option>${regiones.map(r => `<option value="${r}">${REGION_LABEL[r] || r}</option>`).join('')}</select>`;
+    let t = null;
+    caja.querySelectorAll('[data-f]').forEach(el => el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => {
+      clearTimeout(t);
+      t = setTimeout(() => caja._alCambiar(), el.tagName === 'SELECT' ? 0 : 150);
+    }));
+  }
+  caja._alCambiar = alCambiar;
+  caja.querySelectorAll('[data-f]').forEach(el => { el.value = el.dataset.f === 'q' ? '' : 'all'; });
+}
+function pasaFiltroLista(caja, p){
+  const v = k => { const el = caja.querySelector('[data-f=' + k + ']'); return el ? el.value : ''; };
+  const tipo = v('tipo') || 'all', region = v('region') || 'all', q = normalizarBusqueda(v('q'));
+  return (tipo === 'all' || p.type === tipo) && (region === 'all' || p.region === region) && (!q || normalizarBusqueda(p.name).includes(q));
+}
+
 function renderEvolucion(){
   const cont = document.getElementById('evolucionList');
   document.getElementById('evoCostos').textContent = ['Poco Común', 'Rara', 'Épico', 'Legendario']
     .map(r => (r === 'Poco Común' ? 'Común/Poco Común' : r) + ' ' + COSTO_EVOLUCION[r]).join(' · ');
   cont.innerHTML = '';
-  const lista = DATA.filter(p => state[p.id].dup > 0 && destinosEvolucion(p.id).length)
+  const lista = DATA.filter(p => state[p.id].dup > 0 && destinosEvolucion(p.id).length && pasaFiltroLista(document.getElementById('evolucionFiltro'), p))
     .sort((a, b) => Number(evolucionablesYa().includes(b)) - Number(evolucionablesYa().includes(a)) || a.id - b.id);
   if(!lista.length){
-    cont.innerHTML = '<div style="font-size:11px;color:var(--ink-dim);">Todavía no tenés repetidas de Pokémon que evolucionen. Cuando te salgan, vení acá.</div>';
+    const hay = DATA.some(p => state[p.id].dup > 0 && destinosEvolucion(p.id).length);
+    cont.innerHTML = '<div style="font-size:11px;color:var(--ink-dim);">' + (hay ? 'Ningún Pokémon coincide con ese filtro.' : 'Todavía no tenés repetidas de Pokémon que evolucionen. Cuando te salgan, vení acá.') + '</div>';
     return;
   }
   lista.forEach(p => {
@@ -1298,6 +1327,7 @@ function renderEvolucion(){
 }
 function abrirEvolucion(){
   document.getElementById('evolucionOverlay').querySelector('.reveal-panel').scrollTop = 0;
+  iniciarFiltroLista(document.getElementById('evolucionFiltro'), renderEvolucion);
   renderEvolucion();
   document.getElementById('evolucionOverlay').classList.add('show');
 }
@@ -6981,17 +7011,17 @@ function renderRankSemana(lista, cont, done){
     row.className = 'rank-row rank-row-ma' + (f.jugador === jugador ? ' me' : '');
     row.innerHTML = '<div class="rank-pos">' + iconoPuesto(f.puesto) + '<span>' + f.puesto + '</span></div>' +
       '<div class="rank-name"><span></span><small class="rank-rango"></small></div>' +
-      '<div class="rank-score">' + (colec ? f.nuevas + ' <span class="rank-sub">figuritas nuevas</span>' : f.pts + ' <span class="rank-sub">pts · ' + f.ganadas + ' ganadas</span>') + '</div>';
+      '<div class="rank-score">' + (colec ? f.nuevas + ' <span class="rank-sub">cartas abiertas</span>' : f.pts + ' <span class="rank-sub">pts · ' + f.ganadas + ' ganadas</span>') + '</div>';
     row.querySelector('.rank-name span').textContent = f.jugador;
     row.querySelector('.rank-rango').remove();
     lista.appendChild(row);
   });
   const ant = d.anterior && (colec ? d.anterior.colec : d.anterior.arena);
   done.innerHTML = '<div class="hof-title">🎁 Premios de la semana</div>' +
-    '<div class="hof-sub">' + (colec ? 'Gana el que consigue más figuritas NUEVAS abriendo sobres.' : 'Gana el que suma más puntos peleando en la Arena.') +
+    '<div class="hof-sub">' + (colec ? 'Gana el que abre más cartas en sobres: todas cuentan, aunque ya las tengas.' : 'Gana el que suma más puntos peleando en la Arena.') +
     ' Todos arrancan de cero cada lunes.<br><b>' + textoFaltaSemana(d.termina) + '</b><br>Los premios te llegan solos al entrar al juego.</div>' +
     agruparPremios(cfg.textos).map(g => '<div class="hof-row rango premio-sem"><span class="rango-pts">' + (g.desde === g.hasta ? g.desde + '°' : g.desde + '°–' + g.hasta + '°') + '</span><div class="hof-name">' + esc(g.t) + '</div></div>').join('') +
-    '<div class="hof-row rango premio-sem"><span class="rango-pts">+</span><div class="hof-name"><b>Participar</b><br><small>' + (colec ? cfg.minimo + ' figuritas nuevas' : cfg.minimo + ' peleas') + ' en la semana: ' + esc(cfg.textoMinimo) + '</small></div></div>' +
+    '<div class="hof-row rango premio-sem"><span class="rango-pts">+</span><div class="hof-name"><b>Participar</b><br><small>' + (colec ? cfg.minimo + ' cartas abiertas' : cfg.minimo + ' peleas') + ' en la semana: ' + esc(cfg.textoMinimo) + '</small></div></div>' +
     (ant && ant.length ? '<div class="hof-title" style="margin-top:14px">🏅 La semana pasada</div>' + ant.map(g => '<div class="hof-row"><span class="rango-pts">' + g.puesto + '°</span><div class="hof-name"><b>' + esc(g.nombre) + '</b></div></div>').join('') : '');
 }
 function renderRankMaestro(lista, cont, done){
@@ -7611,9 +7641,10 @@ function compartirCodigoWhatsApp(codigo, pokemonId){
 function renderIntercambioDup(){
   const cont = document.getElementById('intercambioList');
   cont.innerHTML = '';
-  const conDup = DATA.filter(p => state[p.id].dup > 0);
+  const todasDup = DATA.filter(p => state[p.id].dup > 0);
+  const conDup = todasDup.filter(p => pasaFiltroLista(document.getElementById('intercambioFiltro'), p));
   if(!conDup.length){
-    cont.innerHTML = '<div style="font-size:11px;color:var(--ink-dim);">Todavía no tenés ninguna repetida.</div>';
+    cont.innerHTML = '<div style="font-size:11px;color:var(--ink-dim);">' + (todasDup.length ? 'Ninguna repetida coincide con ese filtro.' : 'Todavía no tenés ninguna repetida.') + '</div>';
     return;
   }
   /* Cada repetida es un ejemplar con su fuerza: elegís cuál regalar y cuál
@@ -7744,6 +7775,7 @@ function abrirIntercambio(){
   document.getElementById('intercambioOverlay').querySelector('.reveal-panel').scrollTop = 0;
   document.getElementById('canjeCodigoInput').value = '';
   document.getElementById('canjeCodigoFeedback').textContent = '';
+  iniciarFiltroLista(document.getElementById('intercambioFiltro'), renderIntercambioDup);
   renderIntercambioDup();
   renderMisCodigos();
   document.getElementById('intercambioOverlay').classList.add('show');

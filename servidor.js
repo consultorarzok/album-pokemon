@@ -738,7 +738,7 @@ if(MODO_SERVIDOR) arrancarServidor();
    Mientras la Aventura está abierta, una conexión al "mundo" del servidor: cada celular cuenta
    dónde está (~5 veces por segundo, sólo si se movió; si está quieto, cada 20 s para seguir
    visible) y recibe a los demás. Es sólo para verse: no paga ni descuenta nada. */
-const MUNDO = {ws: null, abierto: false, otros: {}, ultimoEnvio: 0, ultimo: '', reintento: null, yo: null, globos: {}, buscando: false, busca: {}};
+const MUNDO = {ws: null, abierto: false, otros: {}, ultimoEnvio: 0, ultimo: '', reintento: null, yo: null, globos: {}, buscando: false, busca: {}, bots: null, desfase: 0};
 function mundoEntrar(){
   if(!MODO_SERVIDOR) return;
   MUNDO.abierto = true;
@@ -753,7 +753,7 @@ function mundoConectar(){
   ws.onmessage = ev => { let m; try{ m = JSON.parse(ev.data); }catch(e){ return; } mundoMensaje(m); };
   ws.onclose = () => {
     if(MUNDO.ws === ws) MUNDO.ws = null;
-    MUNDO.otros = {}; MUNDO.globos = {}; MUNDO.busca = {};
+    MUNDO.otros = {}; MUNDO.globos = {}; MUNDO.busca = {}; MUNDO.bots = null;
     chatMostrarBoton(false); batallaReiniciar();
     if(MUNDO.abierto){ clearTimeout(MUNDO.reintento); MUNDO.reintento = setTimeout(mundoConectar, 4000); }   // se cortó la señal: reintenta solo
   };
@@ -763,7 +763,7 @@ function mundoSalir(){
   clearTimeout(MUNDO.reintento);
   const ws = MUNDO.ws; MUNDO.ws = null;
   if(ws) try{ ws.close(); }catch(e){}
-  MUNDO.otros = {}; MUNDO.globos = {}; MUNDO.busca = {};
+  MUNDO.otros = {}; MUNDO.globos = {}; MUNDO.busca = {}; MUNDO.bots = null;
   chatMostrarBoton(false); batallaReiniciar(); npcBoton(null);
   sincronizarNombres([], 1);
   sincronizarBatGlobos([], 1);
@@ -776,13 +776,35 @@ function mundoMensaje(m){
   if(m.t === 'busca'){ if(!arenaAbierta()) MUNDO.busca[m.id] = ahora + BATALLA_BUSCA_MS; return; }
   if(m.t === 'busca_no'){ delete MUNDO.busca[m.id]; return; }
   if(m.t === 'batalla'){ batallaEmpezar(m); return; }
-  if(m.t === 'todos'){ MUNDO.yo = m.yo; MUNDO.otros = {}; (m.lista || []).forEach(o => mundoPoner(o, ahora, true)); }
+  if(m.t === 'todos'){
+    MUNDO.yo = m.yo; MUNDO.otros = {};
+    // los bots (Sadir y cía.) los mueve este celular con su ruta y el reloj del servidor: el servidor ya no les manda cada paso
+    MUNDO.bots = Array.isArray(m.bots) ? m.bots : null; MUNDO.desfase = Number.isFinite(m.ts) ? m.ts - Date.now() : 0;
+    (m.lista || []).forEach(o => { if(!(MUNDO.bots && o.id < 0)) mundoPoner(o, ahora, true); });
+    botsMover(ahora, true);
+  }
   else if(m.t === 'sal') salvajesCompartidos(m);
   else if(m.t === 'aparece'){   // el servidor te hace aparecer un Pokémon cerca (ya lo dejó entre tus opciones)
     if(advAbierto && !encuentro && !avistamientoActivo() && POR_ID_C[m.id]) aparecerSalvajes([POR_ID_C[m.id]], Math.floor((advPx + 8) / ADV_PX), Math.floor((advPy + 11) / ADV_PX), true, !!m.privado);
   }
   else if(m.t === 'p') mundoPoner(m, ahora, false);
   else if(m.t === 'sale'){ delete MUNDO.otros[m.id]; delete MUNDO.busca[m.id]; }
+}
+const BOT_DIR = {R: [1, 0, 'der'], L: [-1, 0, 'izq'], D: [0, 1, 'abajo'], U: [0, -1, 'arriba']};
+const botsRuta = new Map();   // id -> posiciones por paso (se arma una vez); misma cuenta que botEn() del servidor
+function botsMover(ahora, saltar){
+  if(!MUNDO.bots) return;
+  const t = Date.now() + MUNDO.desfase;
+  for(const b of MUNDO.bots){
+    let ruta = botsRuta.get(b.id);
+    if(!ruta){
+      ruta = [[b.x, b.y, 'abajo']]; let x = b.x, y = b.y;
+      for(const c of b.pasos){ const d = BOT_DIR[c]; x += d[0]; y += d[1]; ruta.push([x, y, d[2]]); }
+      botsRuta.set(b.id, ruta);
+    }
+    const i = Math.floor(t / b.ms) % (ruta.length - 1), a = ruta[i + 1];
+    mundoPoner({id: b.id, n: b.n, av: b.av, npc: b.npc, m: 'overworld', x: a[0] * 16, y: a[1] * 16, d: a[2], p: i % 4}, ahora, !!saltar);
+  }
 }
 function mundoPoner(o, ahora, saltar){
   const v = MUNDO.otros[o.id];
@@ -795,6 +817,7 @@ function mundoPoner(o, ahora, saltar){
 function dibujarOtros(ctx, camX, camY, vw, vh, escala){
   const ahora = performance.now();
   const ws = MUNDO.ws;
+  botsMover(ahora, false);
   if(ws && ws.readyState === 1 && ahora - MUNDO.ultimoEnvio > 200){
     const msg = JSON.stringify({k: 'p', m: advMapa, x: Math.round(advPx), y: Math.round(advPy), d: advDir, p: advPaso, mo: montura || null});
     if(msg !== MUNDO.ultimo || ahora - MUNDO.ultimoEnvio > 20000){
