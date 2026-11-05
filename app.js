@@ -6887,7 +6887,7 @@ function aplicarRegalos(){
 }
 
 /* El cartel "¡Regalo!" con las cartas de lo que llegó. */
-function mostrarRegalos({total, regaladas, ejPulls, espPulls, bolasGanadas, esAventura, esEvento, esBienvenida, mensaje}){
+function mostrarRegalos({total, regaladas, ejPulls, espPulls, bolasGanadas, esAventura, esEvento, esBienvenida, mensaje, diamantesGanados, monturasGanadas}){
   const totalBolas = Object.keys(bolasGanadas).reduce((a, t) => a + bolasGanadas[t], 0);
   const partes = [];
   if(total) partes.push('<b>' + total + '</b> monedas');
@@ -6902,6 +6902,9 @@ function mostrarRegalos({total, regaladas, ejPulls, espPulls, bolasGanadas, esAv
       .map(t => bolasGanadas[t] + ' ' + nombreBola[t])
       .join('</b>, <b>') + '</b>');
   }
+  if(monturasGanadas && monturasGanadas.length) partes.push((monturasGanadas.length > 1 ? 'las monturas <b>' : 'la montura <b>')
+    + monturasGanadas.map(id => (MONTURAS[id] || {nombre: id}).nombre).join('</b> y <b>') + '</b> 🐴');
+  if(diamantesGanados) partes.push('<b>' + diamantesGanados + '</b> 💎 diamantes');
   const cartelAventura = esAventura
     ? '<br><br>🗺️ <b>¡Regalo por el nuevo modo Aventura!</b> Salí a recorrer el mundo y usalas para atrapar Pokémon.'
     : '';

@@ -658,10 +658,11 @@ function cobrarRegalosServidor(){
     }
     const regaladas = out.pulls.map(aPull), ejPulls = out.ejemplares.map(aPull);
     const espPulls = out.especiales.map(x => ({p: ESPECIAL_POR_ID[x.id], isNew: x.isNew})).filter(x => x.p);
-    if(!out.monedas && !regaladas.length && !ejPulls.length && !espPulls.length && !Object.keys(out.bolas).length) return;
+    if(!out.monedas && !regaladas.length && !ejPulls.length && !espPulls.length && !Object.keys(out.bolas).length && !out.diamantes && !(out.monturas || []).length) return;
     enviarPuntaje();
     mostrarRegalos({total: out.monedas, regaladas, ejPulls, espPulls, bolasGanadas: out.bolas, esAventura: out.aventura,
-      esEvento: out.evento ? EVENTOS.find(e => e.slug === out.evento) : null, esBienvenida: !!out.bienvenida, mensaje: out.mensaje || ''});
+      esEvento: out.evento ? EVENTOS.find(e => e.slug === out.evento) : null, esBienvenida: !!out.bienvenida, mensaje: out.mensaje || '',
+      diamantesGanados: out.diamantes || 0, monturasGanadas: out.monturas || []});
   }).catch(() => {});
 }
 
