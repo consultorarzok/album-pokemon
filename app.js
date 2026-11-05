@@ -537,6 +537,13 @@ const PALDEA_RAW = [
 const DATA = KANTO_DATA.concat(JOHTO_RAW).concat(HOENN_RAW).concat(SINNOH_RAW)
   .concat(UNOVA_RAW).concat(KALOS_RAW).concat(ALOLA_RAW).concat(GALAR_RAW).concat(PALDEA_RAW);
 
+/* Segundo tipo de cada Pokémon (datos oficiales de PokeAPI, 526 de los 1025 tienen dos). Se guarda aparte para no tocar las listas de arriba;
+   `type` sigue siendo el primero (filtros, hábitats y quiz lo usan así) y `type2` el segundo, si existe. */
+const TIPO2 = {"1":"poison","2":"poison","3":"poison","6":"flying","12":"flying","13":"poison","14":"poison","15":"poison","16":"flying","17":"flying","18":"flying","21":"flying","22":"flying","31":"ground","34":"ground","39":"fairy","40":"fairy","41":"flying","42":"flying","43":"poison","44":"poison","45":"poison","46":"grass","47":"grass","48":"poison","49":"poison","62":"fighting","69":"poison","70":"poison","71":"poison","72":"poison","73":"poison","74":"ground","75":"ground","76":"ground","79":"psychic","80":"psychic","81":"steel","82":"steel","83":"flying","84":"flying","85":"flying","87":"ice","91":"ice","92":"poison","93":"poison","94":"poison","95":"ground","102":"psychic","103":"psychic","111":"rock","112":"rock","121":"psychic","122":"fairy","123":"flying","124":"psychic","130":"flying","131":"ice","138":"water","139":"water","140":"water","141":"water","142":"flying","144":"flying","145":"flying","146":"flying","149":"flying","163":"flying","164":"flying","165":"flying","166":"flying","167":"poison","168":"poison","169":"flying","170":"electric","171":"electric","174":"fairy","176":"flying","177":"flying","178":"flying","183":"fairy","184":"fairy","187":"flying","188":"flying","189":"flying","193":"flying","194":"ground","195":"ground","198":"flying","199":"psychic","203":"psychic","205":"steel","207":"flying","208":"ground","211":"poison","212":"steel","213":"rock","214":"fighting","215":"ice","219":"rock","220":"ground","221":"ground","222":"rock","225":"flying","226":"flying","227":"flying","228":"fire","229":"fire","230":"dragon","238":"psychic","246":"ground","247":"ground","248":"dark","249":"flying","250":"flying","251":"grass","256":"fighting","257":"fighting","259":"ground","260":"ground","267":"flying","269":"poison","270":"grass","271":"grass","272":"grass","274":"dark","275":"dark","276":"flying","277":"flying","278":"flying","279":"flying","280":"fairy","281":"fairy","282":"fairy","283":"water","284":"flying","286":"fighting","290":"ground","291":"flying","292":"ghost","298":"fairy","302":"ghost","303":"fairy","304":"rock","305":"rock","306":"rock","307":"psychic","308":"psychic","315":"poison","318":"dark","319":"dark","322":"ground","323":"ground","329":"dragon","330":"dragon","332":"dark","333":"flying","334":"flying","337":"psychic","338":"psychic","339":"ground","340":"ground","342":"dark","343":"psychic","344":"psychic","345":"grass","346":"grass","347":"bug","348":"bug","357":"flying","363":"water","364":"water","365":"water","369":"rock","373":"flying","374":"psychic","375":"psychic","376":"psychic","380":"psychic","381":"psychic","384":"flying","385":"psychic","389":"ground","391":"fighting","392":"fighting","395":"steel","396":"flying","397":"flying","398":"flying","400":"water","406":"poison","407":"poison","410":"steel","411":"steel","413":"grass","414":"flying","415":"flying","416":"flying","423":"ground","425":"flying","426":"flying","430":"flying","434":"dark","435":"dark","436":"psychic","437":"psychic","439":"fairy","441":"flying","442":"dark","443":"ground","444":"ground","445":"ground","448":"steel","451":"bug","452":"dark","453":"fighting","454":"fighting","458":"flying","459":"ice","460":"ice","461":"ice","462":"steel","464":"rock","468":"flying","469":"flying","472":"flying","473":"ground","475":"fighting","476":"steel","478":"ghost","479":"ghost","483":"dragon","484":"dragon","485":"steel","487":"dragon","494":"fire","499":"fighting","500":"fighting","519":"flying","520":"flying","521":"flying","527":"flying","528":"flying","530":"steel","536":"ground","537":"ground","540":"grass","541":"grass","542":"grass","543":"poison","544":"poison","545":"poison","546":"fairy","547":"fairy","551":"dark","552":"dark","553":"dark","557":"rock","558":"rock","559":"fighting","560":"fighting","561":"flying","564":"rock","565":"rock","566":"flying","567":"flying","580":"flying","581":"flying","585":"grass","586":"grass","587":"flying","589":"steel","590":"poison","591":"poison","592":"ghost","593":"ghost","595":"electric","596":"electric","597":"steel","598":"steel","607":"fire","608":"fire","609":"fire","618":"electric","622":"ghost","623":"ghost","624":"steel","625":"steel","627":"flying","628":"flying","629":"flying","630":"flying","632":"steel","633":"dragon","634":"dragon","635":"dragon","636":"fire","637":"fire","638":"fighting","639":"fighting","640":"fighting","642":"flying","643":"fire","644":"electric","645":"flying","646":"ice","647":"fighting","648":"psychic","649":"steel","652":"fighting","655":"psychic","658":"dark","660":"ground","661":"flying","662":"flying","663":"flying","666":"flying","667":"normal","668":"normal","675":"dark","679":"ghost","680":"ghost","681":"ghost","686":"psychic","687":"psychic","688":"water","689":"water","690":"water","691":"dragon","694":"normal","695":"normal","696":"dragon","697":"dragon","698":"ice","699":"ice","701":"flying","702":"fairy","703":"fairy","707":"fairy","708":"grass","709":"grass","710":"grass","711":"grass","714":"dragon","715":"dragon","717":"flying","718":"ground","719":"fairy","720":"ghost","721":"water","722":"flying","723":"flying","724":"ghost","727":"dark","730":"fairy","731":"flying","732":"flying","733":"flying","737":"electric","738":"electric","740":"ice","741":"flying","742":"fairy","743":"fairy","747":"water","748":"water","751":"bug","752":"bug","755":"fairy","756":"fairy","757":"fire","758":"fire","759":"fighting","760":"fighting","765":"psychic","767":"water","768":"water","769":"ground","770":"ground","774":"flying","776":"dragon","777":"steel","778":"fairy","779":"psychic","780":"dragon","781":"grass","783":"fighting","784":"fighting","785":"fairy","786":"fairy","787":"fairy","788":"fairy","791":"steel","792":"ghost","793":"poison","794":"fighting","795":"fighting","797":"flying","798":"steel","799":"dragon","801":"fairy","802":"ghost","804":"dragon","805":"steel","806":"ghost","823":"steel","825":"psychic","826":"psychic","834":"rock","838":"fire","839":"fire","840":"dragon","841":"dragon","842":"dragon","845":"water","848":"poison","849":"poison","850":"bug","851":"bug","858":"fairy","859":"fairy","860":"fairy","861":"fairy","862":"normal","866":"psychic","867":"ghost","872":"bug","873":"bug","876":"normal","877":"dark","880":"dragon","881":"ice","882":"dragon","883":"ice","884":"dragon","885":"ghost","886":"ghost","887":"ghost","890":"dragon","892":"dark","893":"grass","898":"grass","899":"psychic","900":"rock","901":"normal","902":"ghost","903":"poison","904":"poison","905":"flying","908":"dark","911":"ghost","914":"fighting","920":"dark","922":"fighting","923":"fighting","928":"normal","929":"normal","930":"normal","931":"flying","936":"psychic","937":"ghost","940":"flying","941":"flying","944":"normal","945":"normal","946":"ghost","947":"ghost","948":"grass","949":"grass","952":"fire","954":"psychic","957":"steel","958":"steel","959":"steel","962":"dark","965":"poison","966":"poison","967":"normal","969":"poison","970":"poison","973":"fighting","976":"psychic","978":"water","979":"ghost","980":"ground","981":"psychic","983":"steel","984":"fighting","985":"psychic","986":"dark","987":"fairy","988":"fighting","989":"ground","990":"steel","991":"water","992":"electric","993":"flying","994":"poison","995":"electric","996":"ice","997":"ice","998":"ice","1000":"ghost","1001":"grass","1002":"ice","1003":"ground","1004":"fire","1005":"dark","1006":"fighting","1007":"dragon","1008":"dragon","1009":"dragon","1010":"psychic","1011":"dragon","1012":"ghost","1013":"ghost","1014":"fighting","1015":"psychic","1016":"fairy","1018":"dragon","1019":"dragon","1020":"dragon","1021":"dragon","1022":"psychic","1023":"psychic","1025":"ghost"};
+const TIPO2_ESPECIAL = {10151:'flying', 10152:'flying', 10154:'fire'};   // las figuritas especiales (id > 10000) no están en PokeAPI
+DATA.forEach(p => { const t = TIPO2[p.id] || TIPO2_ESPECIAL[p.id]; if(t && t !== p.type) p.type2 = t; });
+const tiposDe = p => p.type2 ? [p.type, p.type2] : [p.type];
+
 /* Para el modo evento "sólo Kanto+Johto" (ver EVENTOS/eventoVistaActiva()
    más abajo): quién pertenece a esas dos regiones, precalculado una sola
    vez porque DATA no cambia en runtime. */
@@ -949,6 +956,32 @@ document.getElementById('novedadesCierraBtn').onclick = () => {
 };
 
 /* ====================== FICHA DE UNA FIGURITA ====================== */
+/* "Entrenar" una copia: subir la fuerza o cambiar sus ataques al azar (cuestan monedas, a propósito difícil). Los botones llaman al servidor. */
+function seccionEntrenar(p, copias){
+  const M = window.__arenaMovs;
+  if(!M) return '';
+  const ops = M.opcionesDeAtaque(p), esp = !!p.especial;
+  const nomAlc = ['Corto', 'Medio', 'Largo'];
+  return `<div class="det-sec"><b>Entrenar</b><span>Tenés 🪙 ${coins}</span></div>` + copias.map(e => {
+    const movs = M.movsEjemplar(p, e), tope = e.f >= 100;
+    return `<div class="ent-ej" data-id="${p.id}" data-c="${e.c}">
+      <div class="ent-cab"><b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}</small>
+        <button class="open-btn sec ent-fz" ${tope || coins < precioSubirFuerza(e.f) ? 'disabled' : ''}>${tope ? 'Fuerza máxima' : 'Subir fuerza · 🪙 ' + precioSubirFuerza(e.f)}</button></div>
+      <div class="ent-movs">${['corto', 'medio', 'largo'].map((alc, k) => { const m = movs[alc]; return `<div class="ent-mov"><span><small>${nomAlc[k]}</small> ${m ? m.n : '—'} <i style="color:${TYPE_COLORS[m ? m.tipo : 'normal']}">●</i></span>
+        <button class="open-btn sec ent-at" data-k="${k}" ${esp || ops[k] < 2 || coins < ENTRENAR.ataque ? 'disabled' : ''}>Cambiar · 🪙 ${ENTRENAR.ataque}</button></div>`; }).join('')}
+        <button class="open-btn sec ent-tres" ${esp || ops.some(n => n < 2) || coins < ENTRENAR.ataqueTres ? 'disabled' : ''}>Cambiar los 3 · 🪙 ${ENTRENAR.ataqueTres}</button></div>
+      ${esp ? '<small>Los ataques de las figuritas especiales no se cambian.</small>' : ''}</div>`;
+  }).join('');
+}
+document.getElementById('detalleBody').addEventListener('click', ev => {
+  const b = ev.target.closest('button'); const box = b && b.closest('.ent-ej'); if(!box || b.disabled) return;
+  const id = Number(box.dataset.id), c = box.dataset.c;
+  const p = DATA.find(x => x.id === id), nom = p ? p.name : 'esta figurita';
+  if(b.classList.contains('ent-fz')){ if(confirm('¿Subir la fuerza de ' + nom + ' N.º ' + c + '? Suma entre 1 y 3 y se cobra el precio.')) subirFuerzaServidor(id, c); }
+  else if(b.classList.contains('ent-at')){ if(confirm('¿Cambiar este ataque por otro al azar? Se cobra el precio y no se puede volver atrás.')) cambiarAtaquesServidor(id, c, [Number(b.dataset.k)]); }
+  else if(b.classList.contains('ent-tres')){ if(confirm('¿Cambiar los 3 ataques por otros al azar? Se cobra el precio y no se puede volver atrás.')) cambiarAtaquesServidor(id, c, [0, 1, 2]); }
+});
+
 function abrirDetalle(id){
   const p = DATA.find(x => x.id === id);
   if(!p || !state[id].got) return;
@@ -964,7 +997,7 @@ function abrirDetalle(id){
   document.getElementById('detalleBody').innerHTML = `
     <div class="det-arte ${vario ? 'vario' : ''}"><img src="${vario ? imgVario(p) : p.img}" alt="${p.name}"${vario ? ' onerror="respaldoShiny(this)"' : ''}></div>
     <div class="det-datos">
-      <span class="det-pill" style="background:${TYPE_COLORS[p.type]};color:${textoSobre(TYPE_COLORS[p.type])}">${TYPE_LABEL[p.type]}</span>
+      ${tiposDe(p).map(t => `<span class="det-pill" style="background:${TYPE_COLORS[t]};color:${textoSobre(TYPE_COLORS[t])}">${TYPE_LABEL[t]}</span>`).join(' ')}
       <span class="det-pill">${REGION_LABEL[p.region]}</span>${SOLO_INCURSION.has(p.id) ? '<span class="det-pill" style="background:#B3212C;color:#fff" title="Sólo se consigue venciéndolo en la incursión de su guarida">⚔️ Sólo en incursión</span>' : ''}
       <span class="det-pill">${p.rarity}</span>
       ${vario ? '<span class="det-pill det-shiny">✨ Shiny</span>' : ''}
@@ -972,6 +1005,7 @@ function abrirDetalle(id){
     <div class="det-sec"><b>Tus copias</b><span>Tenés ${copias.length}${dup > 0 ? ' (' + dup + ' repetida' + (dup === 1 ? '' : 's') + ')' : ' · sin repetidas'}</span></div>
     <div class="ej-lista det-copias" role="list" aria-label="Copias de ${p.name}">${copias.map(e =>
       `<div class="ej-chip ${claseFuerza(e.f)}" role="listitem" title="${nivelFuerza(e.f)}"><b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}${e.s ? ' · shiny' : ''}${e === mejor ? ' · ⭐ Arena' : ''}</small></div>`).join('')}</div>
+    ${MODO_SERVIDOR ? seccionEntrenar(p, copias) : ''}
     <div class="det-sec"><b>Evolución</b></div>
     <div class="det-evo">
       ${viene.length ? `<div>Viene de: ${viene.map(nombreDe).join(', ')}</div>` : ''}
@@ -1360,6 +1394,10 @@ function efectividad(atacante, defensor){
   const fila = TYPE_CHART[atacante] || {};
   return fila[defensor] === undefined ? 1 : fila[defensor];
 }
+/* Contra un Pokémon de dos tipos los multiplicadores se multiplican (hielo contra Dragón/Volador = ×4; tierra contra Volador/Eléctrico = ×0). */
+function efectividadContra(tipoAtaque, p){
+  return tiposDe(p).reduce((m, t) => m * efectividad(tipoAtaque, t), 1);
+}
 
 /* Fuerza real de cada Pokémon = "base stat total" (suma de sus 6 estadísticas
    base), bajado de los datos oficiales de PokeAPI. Va del 180 de Sunkern al 720
@@ -1420,9 +1458,8 @@ const VENTAJA = 1.6;
 
 function factorTipo(mult){
   if(mult === 0) return 0;
-  if(mult > 1) return VENTAJA;
-  if(mult < 1) return 1 / VENTAJA;
-  return 1;
+  if(mult === 1) return 1;
+  return Math.pow(VENTAJA, Math.log2(mult));   // ×2 → 1,6 · ×4 → 2,56 · ×½ → 1/1,6 · ×¼ → 1/2,56
 }
 
 /* =================== RELOJ DE LOS JUEGOS ===================

@@ -1018,3 +1018,14 @@
 .ar-liviano .ar-pilar,.ar-liviano .ar-cono{display:none;}
 .ar-liviano .ar-aura-oscura .ar-ancla::before{display:none;}
 .ar-liviano .ar-fin,.ar-liviano .ar-equipo,.ar-liviano .ar-confirm{backdrop-filter:none;}
+
+/* Entrenar (subir fuerza / cambiar ataques) */
+.ent-ej{border:1px solid var(--border);border-radius:12px;padding:10px;margin:8px 0;display:flex;flex-direction:column;gap:8px;}
+.ent-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ent-cab small{color:var(--ink-dim);font-family:'Space Mono',monospace;font-size:11px;}
+.ent-cab .open-btn{margin-left:auto;min-height:44px;}
+.ent-movs{display:flex;flex-direction:column;gap:6px;}
+.ent-mov{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;}
+.ent-mov small{color:var(--ink-dim);margin-right:4px;}
+.ent-mov .open-btn,.ent-tres{min-height:44px;font-size:12px;}
+.ent-ej button:disabled{opacity:.45;}

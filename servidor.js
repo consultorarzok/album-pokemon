@@ -50,10 +50,13 @@ const enCurso = new Set();           // jugadas esperando respuesta (evita el do
 const POR_ID_C = Object.fromEntries(DATA.map(p => [p.id, p]));
 const aPull = x => ({p: POR_ID_C[x.id], isNew: x.isNew});
 /* jugadas que pueden cambiar las figuritas: sólo ésas vuelven a dibujar el álbum entero */
-const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'tirar', 'arenaTerminar']);
+const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'cambiarAtaques', 'tirar', 'arenaTerminar']);
 
 const MENSAJES = {
   sin_monedas: 'No te alcanzan las monedas.',
+  fuerza_maxima: 'Esa figurita ya tiene la fuerza máxima.',
+  especial_sin_cambio: 'Los ataques de las figuritas especiales no se cambian.',
+  slots_invalidos: 'Elegí qué ataque cambiar.',
   sin_diamantes: 'No te alcanzan los diamantes.',
   ya_la_tenes: 'Ya tenés esa montura.',
   tienda_cerrada: 'Esta tienda todavía no está abierta para vos.',
@@ -363,6 +366,28 @@ function evolucionarServidor(id, destId, serie){
     if(isSpecial(pulls[0].p)) playSpecialSequence(pulls, 0, () => showReveal(pulls, titulo));
     else showReveal(pulls, titulo);
   }).catch(() => {}).then(soltar('evolucionar'));
+}
+
+
+/* Entrenar (05/11): subir fuerza y cambiar ataques al azar, cuestan monedas. Los precios los decide el servidor; estos son los que se muestran. */
+const ENTRENAR = {fuerza: [[40, 600], [70, 1300], [90, 2400], [99, 5000]], ataque: 1500, ataqueTres: 3500};
+const precioSubirFuerza = f => (ENTRENAR.fuerza.find(([h]) => f <= h) || ENTRENAR.fuerza[ENTRENAR.fuerza.length - 1])[1];
+function subirFuerzaServidor(id, serie){
+  if(!puedeJugar('entrenar')) return;
+  accionServidor('subirFuerza', {id, c: serie}).then(res => {
+    if(!res.ok) return avisoServidor(res.motivo);
+    const r = res.resultado;
+    avisoServidor('ok', '💪 Fuerza ' + r.antes + ' → ' + r.f + ' (−' + r.costo + ' monedas)');
+    updateCoins(); abrirDetalle(id);
+  }).catch(() => {}).then(soltar('entrenar'));
+}
+function cambiarAtaquesServidor(id, serie, slots){
+  if(!puedeJugar('entrenar')) return;
+  accionServidor('cambiarAtaques', {id, c: serie, slots}).then(res => {
+    if(!res.ok) return avisoServidor(res.motivo);
+    avisoServidor('ok', '🔀 Ataques cambiados (−' + res.resultado.costo + ' monedas)');
+    updateCoins(); abrirDetalle(id);
+  }).catch(() => {}).then(soltar('entrenar'));
 }
 
 /* "Responder y ganar": el servidor arma la pregunta y se queda con la respuesta. */
