@@ -196,7 +196,7 @@ const MOVS_CAT = [
   ['Viento Plata','bug','tornado','m'],['Viraje','water','golpe','c'],['Voltio Cruel','electric','embestida','l'],['Voto Agua','water','chorro','m'],
   ['Voto Fuego','fire','bola','m','llama'],['Voto Planta','grass','bola','m'],['Voz Cautivadora','fairy','onda','m'],['Vozarrón','normal','propia','l'],
   ['Vuelo','flying','embestida','l'],['Zumbido','bug','rayo','l'],['Bomba Ígnea','fire','rayo','l'],['V de Fuego','fire','embestida','l'],['Pulso Noche','dark','bola','m'],['Asta Drenaje','grass','golpe','c'],['Rueda Doble','steel','golpe','c'],['Shuriken de Agua','water','estrella','m','estrella'],['Ariete','normal','embestida','l'],['Látigo Ígneo','fire','golpe','c'],['Danza Llama','fire','bola','m'],['Vendaval Gélido','flying','rayo','l'],['Electormenta','electric','rayo','l'],['Llama Azul','azul','rayo','l'],['Llama Fusión','fire','rayo','l'],['Ataque Fulgor','electric','embestida','l'],['Rayo Fusión','electric','embestida','l'],['Simún de Arena','ground','rayo','l'],['Mundo Gélido','ice','bola','m'],['Sable Místico','fighting','bola','m'],['Canto Arcaico','normal','bola','m'],['Tecno Shock','normal','rayo','l'],['Plancha Voladora','fighting','embestida','l'],['Punzada Rama','grass','golpe','c'],['Ala Mortífera','flying','bola','m'],['Mil Flechas','ground','embestida','l'],['Mil Temblores','ground','embestida','l'],['Fuerza Telúrica','ground','embestida','l'],['Núcleo Castigo','dragon','rayo','l'],['Tormenta de Diamantes','rock','embestida','l'],['Paso Dimensional','psychic','bola','m'],['Chorro de Vapor','water','rayo','l'],['Puntada Sombría','ghost','golpe','c'],['Pico Cañón','flying','embestida','l'],['Danza Despertar','normal','rayo','l'],['Roca Veloz','rock','golpe','c'],['Patada Tropical','grass','golpe','c'],['Multiataque','normal','embestida','l'],['Coraza Trampa','fire','rayo','l'],['Electropunzada','electric','golpe','c'],['Anclaje','steel','golpe','c'],['Fragor Escamas','dragon','rayo','l'],['Furia Natural','fairy','bola','m'],['Meteoimpacto','steel','embestida','l'],['Rayo Umbrío','ghost','rayo','l'],['Láser Prisma','psychic','rayo','l'],['Géiser Fotónico','psychic','rayo','l'],['Cañón Floral','fairy','rayo','l'],['Robasombra','ghost','embestida','l'],['Cabeza Sorpresa','fire','rayo','l'],['Puños Plasma','electric','embestida','l'],['Ferropuño Doble','steel','golpe','c'],['Batería Asalto','grass','golpe','c'],['Balón Ígneo','fire','embestida','l'],['Disparo Certero','water','bola','m'],['Presa Maxilar','dark','golpe','c'],['Fuerza G','grass','golpe','c'],['Ácido Málico','grass','bola','m'],['Amplificador','electric','bola','m'],['Irreverencia','dark','golpe','c'],['Choque Anímico','fairy','golpe','c'],['Asalto Estelar','fighting','embestida','l'],['Rueda Aural','electric','embestida','l'],['Electropico','electric','golpe','c'],['Branquibocado','water','golpe','c'],['Dracoflechas','dragon','golpe','c'],['Cañón Dinamax','dragon','rayo','l'],['Rayo Infinito','dragon','rayo','l'],['Golpe Oscuro','dark','golpe','c'],['Electrojaula','electric','bola','m'],['Dracoenergía','dragon','rayo','l'],['Hachazo Pétreo','rock','golpe','c'],['Homenaje Póstumo','ghost','golpe','c'],['Garra Nociva','poison','golpe','c'],['Ciclón Primavera','fairy','rayo','l'],['Truco Floral','grass','golpe','c'],['Canto Ardiente','fire','bola','m'],['Danza Acuática','water','golpe','c'],['Electropalmas','electric','embestida','l'],['Proliferación','normal','golpe','c'],['Salazón','rock','golpe','c'],['Cañón Armadura','fire','rayo','l'],['Espada Lamento','fire','embestida','l'],['Fotocolisión','psychic','bola','m'],['Martillo Colosal','steel','embestida','l'],['Triple Inmersión','water','golpe','c'],['Puño Jet','water','golpe','c'],['Quemarrueda','steel','embestida','l'],['Giro Mortífero','poison','golpe','c'],['Oído Cocina','dragon','golpe','c'],['Genufendiente','dark','golpe','c'],['Asalto Espadón','dragon','embestida','l'],['Fiebre Dorada','dorado','rayo','l'],['Calamidad','dark','bola','m'],['Nitrochoque','fighting','embestida','l'],['Electroderrape','electric','rayo','l'],['Hidrovapor','water','bola','m'],['Psicohojas','psychic','golpe','c'],['Bomba Caramelo','grass','bola','m'],['Cañón Batidor','grass','bola','m'],['Garrote Liana','grass','embestida','l'],['Electrorrayo','electric','rayo','l'],['Láser Veleidoso','dragon','bola','m'],['Relámpago Súbito','electric','bola','m'],['Filo Potente','rock','embestida','l'],['Tajo Taquión','steel','bola','m'],['Teraclúster','normal','rayo','l'],['Cadena Virulenta','poison','rayo','l'],
-  ['Shuriken Gigante','water','ninja','l']   /* 07/11: Greninja desaparece y le tira un shuriken de agua enorme (ver dispararLargo) */
+  ['Shuriken Gigante','water','rayo','l']   /* 07/11: Greninja desaparece y le tira un shuriken de agua enorme (ver dispararLargo) */
 ];
 const MOVS_APR = `1 228,291,202.2,159.2,1.2,105.3,33.3,186.3/207,55,347.1,178.1,209.1,246.2,58.2,360.2/344,227,114,127,112.1,237.1,405.1,70.1;
 2 228,291,202.2,159.2,1.2,105.3,33.3,186.3/207,55,246.2,58.2,178.2,360.2,209.2,135.2/344,227,114,127,112.1,237.2,136.3;
@@ -2448,6 +2448,25 @@ function portalHoopa(x, y, U, ang){
     {transform:`translate(-50%,-50%) rotate(${ang}deg) scale(.4)`, opacity:0}], {duration:700, easing:'ease-out', fill:'forwards'});
   const q = () => p.remove(); an.finished.then(q, q);
 }
+/* Shuriken Gigante (Greninja): se esfuma en humo y lanza, derecho hacia el rival, un shuriken de agua enorme que gira. */
+function shurikenRecto(e, c, d){
+  const U = u(), L = Math.hypot(G.W, G.H), p0 = pie(e), T = 15 * U, ang = Math.atan2(d.y, d.x) * 180 / Math.PI;
+  polvo(p0.x, p0.y, 10, 1.8); estallido(p0.x, p0.y - e.h * e.s * .4, 'ghost', 8, 1);
+  e.cuerpo.style.visibility = 'hidden'; e.sombra.style.visibility = 'hidden';
+  setTimeout(() => { e.cuerpo.style.visibility = ''; e.sombra.style.visibility = ''; if(FX) polvo(p0.x, p0.y, 8, 1.4); }, 520);
+  const x0 = c.x + d.x * e.w * .3, y0 = c.y + d.y * e.h * .2, dist = L * .8, dur = 420;
+  const sh = mk('ar-shuriken', {position:'absolute', pointerEvents:'none', left:x0 + 'px', top:y0 + 'px', width:T + 'px', height:T + 'px', opacity:0,
+    background:'radial-gradient(circle, #ffffff 0 12%, #BCD2FF 13% 28%, #3B6FE0 29% 100%)',
+    clipPath:'polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%)'});
+  const an = sh.animate([
+    {transform:'translate(-50%,-50%) scale(.3) rotate(0deg)', opacity:1},
+    {transform:`translate(${d.x * dist * .08}px, ${d.y * dist * .08}px) translate(-50%,-50%) scale(1) rotate(180deg)`, opacity:1, offset:.08},
+    {transform:`translate(${d.x * dist}px, ${d.y * dist}px) translate(-50%,-50%) scale(1) rotate(1260deg)`, opacity:1, offset:.92},
+    {transform:`translate(${d.x * dist}px, ${d.y * dist}px) translate(-50%,-50%) scale(1) rotate(1300deg)`, opacity:0}], {duration:dur, easing:'linear', fill:'forwards'});
+  const q = () => sh.remove(); an.finished.then(q, q);
+  for(let i = 0; i < 12; i++) setTimeout(() => { if(!FX) return; const f = i / 12 * dist * .9; particula(x0 + d.x * f, y0 + d.y * f, elige(['#6390F0', '#BCD2FF', '#ffffff']), Math.max(2, U * 1.6), azar(-1, 1) * U, azar(-1, 1) * U, 320); }, i * (dur / 14));
+  sfx('rayo');
+}
 function manosRecto(e, c, d){
   const U = u(), oro = '#F2C14E', vio = '#8A4BFF', rosa = '#F95587';
   const ang = Math.atan2(d.y, d.x) * 180 / Math.PI, L = Math.hypot(G.W, G.H);
@@ -2548,7 +2567,7 @@ function dispararLargo(e){
   }
   if(mov.fx === 'rayo'){
     const c = cen(e), d = A.dirLock || unit(c, cen(O));
-    if(mov.n === 'Dimensión Total') manosRecto(e, c, d); else rayoTipo(e, mov, c, d);
+    if(mov.n === 'Dimensión Total') manosRecto(e, c, d); else if(mov.n === 'Shuriken Gigante') shurikenRecto(e, c, d); else rayoTipo(e, mov, c, d);
     destello(c.x + d.x * e.w * .3, c.y + d.y * e.h * .3, .9);
     e.kx -= d.x * 40 * U; e.ky -= d.y * 40 * U;
     sacudir(1.2);
