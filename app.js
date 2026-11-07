@@ -673,7 +673,11 @@ function ejemplares(id){
 }
 function mejorEjemplar(id){
   if(ESPECIAL_POR_ID[id]) return especiales[id] ? {f:especiales[id].f, c:especiales[id].c} : null;
-  return ejemplares(id).reduce((m, e) => (!m || e.f > m.f || (e.f === m.f && e.s)) ? e : m, null);
+  return ejemplarQueJuega(ejemplares(id));
+}
+/* Entre las copias juega la ⭐ favorita (elegida en la Pokédex); si no hay, la más fuerte. */
+function ejemplarQueJuega(lista){
+  return lista.find(e => e && e.fav) || lista.reduce((m, e) => (!m || e.f > m.f || (e.f === m.f && e.s)) ? e : m, null);
 }
 function sincronizarEjemplares(){
   Object.keys(state).forEach(id => { if(state[id].got || state[id].ej) ejemplares(id); });
@@ -975,6 +979,8 @@ function seccionEntrenar(p, copias){
   }).join('');
 }
 document.getElementById('detalleBody').addEventListener('click', ev => {
+  const fb = ev.target.closest('button.ej-fav');
+  if(fb){ favoritoServidor(Number(fb.dataset.id), fb.dataset.c); return; }
   const b = ev.target.closest('button'); const box = b && b.closest('.ent-ej'); if(!box || b.disabled) return;
   const id = Number(box.dataset.id), c = box.dataset.c;
   const p = DATA.find(x => x.id === id), nom = p ? p.name : 'esta figurita';
@@ -988,7 +994,7 @@ function abrirDetalle(id){
   if(!p || !state[id].got) return;
   const copias = ejemplares(id).slice().sort((a, b) => (b.f + (b.s ? 1000 : 0)) - (a.f + (a.s ? 1000 : 0)));
   const vario = copias.some(e => e.s);
-  const mejor = copias.reduce((m, e) => (!m || e.f > m.f || (e.f === m.f && e.s)) ? e : m, null);
+  const mejor = ejemplarQueJuega(copias);
   const num = '#' + String(id).padStart(3, '0');
   const nombreDe = i => (DATA.find(x => x.id === i) || {}).name || '';
   const viene = Object.keys(EVOLUCIONES).filter(o => EVOLUCIONES[o].includes(id)).map(Number);
@@ -1005,7 +1011,7 @@ function abrirDetalle(id){
     </div>
     <div class="det-sec"><b>Tus copias</b><span>Tenés ${copias.length}${dup > 0 ? ' (' + dup + ' repetida' + (dup === 1 ? '' : 's') + ')' : ' · sin repetidas'}</span></div>
     <div class="ej-lista det-copias" role="list" aria-label="Copias de ${p.name}">${copias.map(e =>
-      `<div class="ej-chip ${claseFuerza(e.f)}" role="listitem" title="${nivelFuerza(e.f)}"><b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}${e.s ? ' · shiny' : ''}${e === mejor ? ' · ⭐ Arena' : ''}</small></div>`).join('')}</div>
+      `<div class="ej-chip ${claseFuerza(e.f)}" role="listitem" title="${nivelFuerza(e.f)}"><b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}${e.s ? ' · shiny' : ''}${e === mejor ? ' · ⭐ Arena' : ''}</small>${MODO_SERVIDOR && copias.length > 1 ? `<button class="open-btn sec ej-fav" data-id="${p.id}" data-c="${e.c}">${e.fav ? '⭐ Favorita (quitar)' : '☆ Usar ésta'}</button>` : ''}</div>`).join('')}</div>
     ${MODO_SERVIDOR ? seccionEntrenar(p, copias) : ''}
     <div class="det-sec"><b>Evolución</b></div>
     <div class="det-evo">

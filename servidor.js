@@ -50,7 +50,7 @@ const enCurso = new Set();           // jugadas esperando respuesta (evita el do
 const POR_ID_C = Object.fromEntries(DATA.map(p => [p.id, p]));
 const aPull = x => ({p: POR_ID_C[x.id], isNew: x.isNew});
 /* jugadas que pueden cambiar las figuritas: sólo ésas vuelven a dibujar el álbum entero */
-const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'cambiarAtaques', 'tirar', 'arenaTerminar']);
+const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar']);
 
 const MENSAJES = {
   sin_monedas: 'No te alcanzan las monedas.',
@@ -58,6 +58,8 @@ const MENSAJES = {
   especial_sin_cambio: 'Los ataques de las figuritas especiales no se cambian.',
   slots_invalidos: 'Elegí qué ataque cambiar.',
   sin_diamantes: 'No te alcanzan los diamantes.',
+  sin_repetidas: 'Necesitás tener copias repetidas para elegir.',
+  especial_sin_repetidas: 'Las figuritas especiales son una sola.',
   ya_la_tenes: 'Ya tenés esa montura.',
   tienda_cerrada: 'Esta tienda todavía no está abierta para vos.',
   tope_diario: 'Ya compraste la de hoy.',
@@ -370,7 +372,7 @@ function evolucionarServidor(id, destId, serie){
 
 
 /* Entrenar (05/11): subir fuerza y cambiar ataques al azar, cuestan monedas. Los precios los decide el servidor; estos son los que se muestran. */
-const ENTRENAR = {fuerza: [[40, 600], [70, 1300], [90, 2400], [99, 5000]], ataque: 1500, ataqueTres: 3500};
+const ENTRENAR = {fuerza: [[40, 400], [70, 900], [90, 1700], [99, 3500]], ataque: 1000, ataqueTres: 2500};
 const precioSubirFuerza = f => (ENTRENAR.fuerza.find(([h]) => f <= h) || ENTRENAR.fuerza[ENTRENAR.fuerza.length - 1])[1];
 function subirFuerzaServidor(id, serie){
   if(!puedeJugar('entrenar')) return;
@@ -380,6 +382,14 @@ function subirFuerzaServidor(id, serie){
     avisoServidor('ok', '💪 Fuerza ' + r.antes + ' → ' + r.f + ' (−' + r.costo + ' monedas)');
     updateCoins(); abrirDetalle(id);
   }).catch(() => {}).then(soltar('entrenar'));
+}
+function favoritoServidor(id, serie){
+  if(!puedeJugar('favorito')) return;
+  accionServidor('ejemplarFavorito', {id, c: serie}).then(res => {
+    if(!res.ok) return avisoServidor(res.motivo);
+    avisoServidor('ok', res.resultado.fav ? '⭐ Ésta es la que va a pelear' : 'Volvió a pelear la más fuerte');
+    abrirDetalle(id);
+  }).catch(() => {}).then(soltar('favorito'));
 }
 function cambiarAtaquesServidor(id, serie, slots){
   if(!puedeJugar('entrenar')) return;
