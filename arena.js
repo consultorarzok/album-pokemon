@@ -2426,29 +2426,6 @@ function rayoTipo(e, mov, c, d){
 /* Estallido sobre una zona (o alrededor de uno mismo), con la forma de su elemento. */
 /* Dimensión Total (Hoopa Desatado): se abre un portal con aros dorados y violetas alrededor del rival y de los aros salen manos que le pegan con un golpe psíquico. */
 /* La mano de Hoopa Desatado, en pixel art: brazo violeta con anillos de oro y puño con nudillos (mira hacia la derecha; se gira hacia el rival). */
-const MANO_HOOPA = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 28">'
-  + '<defs><linearGradient id="t" x1="0" x2="1"><stop offset="0" stop-color="#F95587" stop-opacity="0"/><stop offset="1" stop-color="#F95587" stop-opacity=".75"/></linearGradient>'
-  + '<linearGradient id="p" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C58BF0"/><stop offset=".5" stop-color="#8E3FC4"/><stop offset="1" stop-color="#4A1670"/></linearGradient>'
-  + '<linearGradient id="o" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF0A8"/><stop offset=".5" stop-color="#F2C14E"/><stop offset="1" stop-color="#B8860B"/></linearGradient></defs>'
-  + '<path d="M0 14 L26 6 L26 22 Z" fill="url(#t)"/>'
-  + '<rect x="14" y="9" width="22" height="10" rx="5" fill="url(#p)"/>'
-  + '<ellipse cx="19" cy="14" rx="2.6" ry="9.5" fill="none" stroke="url(#o)" stroke-width="2.2"/><ellipse cx="27" cy="14" rx="2.6" ry="9.5" fill="none" stroke="url(#o)" stroke-width="2.2"/>'
-  + '<rect x="33" y="5" width="21" height="18" rx="8" fill="url(#p)" stroke="#2E0B47" stroke-width="1.2"/>'
-  + '<circle cx="53" cy="9" r="3.6" fill="url(#p)" stroke="#2E0B47" stroke-width="1"/><circle cx="55" cy="14" r="3.8" fill="url(#p)" stroke="#2E0B47" stroke-width="1"/><circle cx="53" cy="19" r="3.6" fill="url(#p)" stroke="#2E0B47" stroke-width="1"/>'
-  + '<ellipse cx="41" cy="3.6" rx="6" ry="3" fill="url(#p)" stroke="#2E0B47" stroke-width="1"/>'
-  + '<path d="M38 8 Q46 6 52 9" stroke="#F5D6FF" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".8"/>'
-  + '</svg>');
-/* Portal de Hoopa: aro dorado girando con el centro violeta oscuro. */
-function portalHoopa(x, y, U, ang){
-  const w = 11 * U, p = mk('ar-portal', {position:'absolute', pointerEvents:'none', left:x + 'px', top:y + 'px', width:w + 'px', height:w * 1.35 + 'px', borderRadius:'50%', opacity:0,
-    background:'radial-gradient(closest-side, #12002a 0 52%, #8A4BFF 62%, #FFE27A 70% 78%, #B8860B 84%, transparent 88%)', filter:'drop-shadow(0 0 ' + U + 'px #8A4BFF)'});
-  const an = p.animate([
-    {transform:`translate(-50%,-50%) rotate(${ang}deg) scale(.2)`, opacity:0},
-    {transform:`translate(-50%,-50%) rotate(${ang}deg) scale(1)`, opacity:1, offset:.2},
-    {transform:`translate(-50%,-50%) rotate(${ang}deg) scale(1)`, opacity:1, offset:.8},
-    {transform:`translate(-50%,-50%) rotate(${ang}deg) scale(.4)`, opacity:0}], {duration:700, easing:'ease-out', fill:'forwards'});
-  const q = () => p.remove(); an.finished.then(q, q);
-}
 /* Greninja se esfuma en humo y reaparece del lado opuesto de la arena, lo más lejos que pueda del rival. */
 function teletransporteNinja(e, O){
   const p0 = pie(e), U = u();
@@ -2480,27 +2457,36 @@ function shurikenRecto(e, c, d){
   for(let i = 0; i < 12; i++) setTimeout(() => { if(!FX) return; const f = i / 12 * dist * .9; particula(x0 + d.x * f, y0 + d.y * f, elige(['#6390F0', '#BCD2FF', '#ffffff']), Math.max(2, U * 1.6), azar(-1, 1) * U, azar(-1, 1) * U, 320); }, i * (dur / 14));
   sfx('rayo');
 }
+/* Las manos de Hoopa Desatado salen de su propio sprite: se borran del cuerpo (versión "sin manos", dibujada a partir del sprite) y las mismas
+   manos salen disparadas hacia el rival. Cajas [x, y, ancho, alto] de cada mano dentro de la imagen original. */
+const HOOPA_MANOS = {
+  frente:{w:131, h:126, cajas:[[26, 17, 23, 21], [96, 22, 17, 16], [111, 51, 18, 17], [4, 52, 28, 12], [17, 80, 32, 13], [96, 88, 19, 16]]},
+  espalda:{w:146, h:130, cajas:[[38, 28, 20, 15], [88, 22, 34, 25], [37, 58, 20, 16], [112, 58, 31, 12], [89, 87, 36, 14], [38, 92, 11, 11]]}
+};
 function manosRecto(e, c, d){
-  const U = u(), oro = '#F2C14E', vio = '#8A4BFF', rosa = '#F95587';
-  const ang = Math.atan2(d.y, d.x) * 180 / Math.PI, L = Math.hypot(G.W, G.H);
-  const px = c.x + d.x * e.w * .55, py = c.y + d.y * e.h * .35;   // el portal se abre delante de Hoopa
-  portalHoopa(px, py, U, 0);
-  setTimeout(() => FX && aro(px, py, oro, 7 * U), 120);
-  const n = REDUCE ? 3 : 5;
-  for(let i = 0; i < n; i++){
-    const off = (i - (n - 1) / 2) * 1.9 * U, ox = px - d.y * off, oy = py + d.x * off;
-    const m = mk('ar-mano', {position:'absolute', pointerEvents:'none', left:ox + 'px', top:oy + 'px', width:(13 * U) + 'px', height:(5.7 * U) + 'px', opacity:0,
-      backgroundImage:`url("${MANO_HOOPA}")`, backgroundSize:'100% 100%', filter:`drop-shadow(0 0 ${U * .8}px ${rosa})`});
-    const dist = L * .75;
+  const U = u(), oro = '#F2C14E', rosa = '#F95587', L = Math.hypot(G.W, G.H);
+  const vista = e.vista === 'frente' ? 'frente' : 'espalda', H = HOOPA_MANOS[vista], img = e.imgs[vista];
+  const r = img.getBoundingClientRect(), fr = FX.getBoundingClientRect();
+  if(!r.width || !H){ sfx('rayo'); return; }
+  const k = r.width / H.w, espejo = /scaleX\(-/.test(e.flip.style.transform || '');
+  const orig = img.src;
+  img.src = 'images/especial/hoopa-sinmanos-' + vista + '.png';   // el cuerpo, sin las manos
+  setTimeout(() => { if(/sinmanos/.test(img.src)) img.src = orig; }, 900);
+  H.cajas.forEach(([bx, by, bw, bh], n) => {
+    const cx = (espejo ? r.left + r.width - (bx + bw / 2) * k : r.left + (bx + bw / 2) * k) - fr.left, cy = r.top + (by + bh / 2) * k - fr.top;
+    const m = mk('ar-mano', {position:'absolute', pointerEvents:'none', left:cx + 'px', top:cy + 'px', width:bw * k + 'px', height:bh * k + 'px',
+      backgroundImage:`url("images/especial/hoopa-manos-${vista}.png")`, backgroundSize:`${H.w * k}px ${H.h * k}px`, backgroundPosition:`${-bx * k}px ${-by * k}px`,
+      imageRendering:'pixelated', filter:`drop-shadow(0 0 ${U * .8}px ${rosa})`, opacity:1});
+    const sx = espejo ? -1 : 1, dist = L * .8;
     const an = m.animate([
-      {transform:`translate(-50%,-50%) rotate(${ang}deg) scale(.3)`, opacity:0},
-      {transform:`translate(-50%,-50%) rotate(${ang}deg) scale(1)`, opacity:1, offset:.12},
-      {transform:`translate(${d.x * dist}px, ${d.y * dist}px) translate(-50%,-50%) rotate(${ang}deg) scale(1.1)`, opacity:1, offset:.9},
-      {transform:`translate(${d.x * dist}px, ${d.y * dist}px) translate(-50%,-50%) rotate(${ang}deg) scale(1.1)`, opacity:0}
-    ], {duration:520, delay:i * 55, easing:'steps(10,end)', fill:'forwards'});
+      {transform:`translate(-50%,-50%) scale(${sx},1)`, opacity:1},
+      {transform:`translate(-50%,-50%) scale(${sx * 1.25},1.25)`, opacity:1, offset:.14},
+      {transform:`translate(${d.x * dist}px, ${d.y * dist}px) translate(-50%,-50%) scale(${sx * 1.25},1.25)`, opacity:1, offset:.9},
+      {transform:`translate(${d.x * dist}px, ${d.y * dist}px) translate(-50%,-50%) scale(${sx * 1.25},1.25)`, opacity:0}
+    ], {duration:480, delay:n * 35, easing:'ease-in', fill:'forwards'});
     const q = () => m.remove(); an.finished.then(q, q);
-    setTimeout(() => { if(!FX) return; particula(ox, oy, rosa, Math.max(3, U * 1.4), d.x * 4 * U, d.y * 4 * U, 360); }, i * 55 + 60);
-  }
+    setTimeout(() => { if(!FX) return; aro(cx, cy, oro, 4 * U); for(let t = 0; t < 5; t++) setTimeout(() => FX && particula(cx + d.x * t * 5 * U, cy + d.y * t * 5 * U, rosa, Math.max(2, U * 1.2), d.x * 2 * U, d.y * 2 * U, 300), t * 40); }, n * 35);
+  });
   sfx('rayo');
 }
 /* Puño Plasma (Zeraora): cae desde el cielo con el puño cargado: rayo, anillos de plasma y golpe fuerte al aterrizar. */
@@ -2667,7 +2653,7 @@ window.__arenaMovs.probarLargo = (nombre, fx, tipo) => {
 /* Avanza el ataque en curso y define la pose del cuerpo (anticipación, golpe, recuperación). */
 function avanzarAccion(e, dt){
   const A = e.accion, O = otro(e), U = u(), vel = e.mon.st.vel;
-  A.t += dt * (A.tipo === 'largo' && !A.hecho && AR.esc < 1 ? 1 + (CARGA_EN_LENTA - 1) * (1 - AR.esc) / (1 - CAMARA_LENTA) : 1);
+  A.t += dt * (A.tipo === 'largo' && !A.hecho && AR.esc < 1 ? 1 + (CARGA_EN_LENTA - 1) * (1 - AR.esc) / (1 - CAMARA_LENTA) : 1) * (!A.hecho && A.mov && (A.mov.n === 'Puño Plasma' || A.mov.fx === 'trueno') ? 2.2 : 1);   // los largos eléctricos de rayo del cielo cargan más rápido (Zeta 07/11)
   if(A.tipo === 'esquivar'){
     const f = 1 - (A.t / ESQ.dur) * .55;
     empujar(e, A.dir.x * 86 * U * f * dt, A.dir.y * 86 * U * f * dt);
