@@ -23,8 +23,10 @@
 'use strict';
 
 const CDN = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/';
-const spFrente  = (id, v) => ESPECIAL_POR_ID[id] ? ESPECIAL_POR_ID[id].frente : v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].frente : CDN + 'versions/generation-v/black-white/animated/' + (v ? 'shiny/' : '') + id + '.gif';
-const spEspalda = (id, v) => ESPECIAL_POR_ID[id] ? ESPECIAL_POR_ID[id].espalda : v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].espalda : CDN + 'versions/generation-v/black-white/animated/back/' + (v ? 'shiny/' : '') + id + '.gif';
+/* Los GIF animados de Black/White llegan hasta el 649; de ahí en adelante (Greninja) salen los animados de Showdown. */
+const animBase = id => CDN + (id > 649 ? 'other/showdown/' : 'versions/generation-v/black-white/animated/');
+const spFrente  = (id, v) => ESPECIAL_POR_ID[id] ? ESPECIAL_POR_ID[id].frente : v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].frente : animBase(id) + (v ? 'shiny/' : '') + id + '.gif';
+const spEspalda = (id, v) => ESPECIAL_POR_ID[id] ? ESPECIAL_POR_ID[id].espalda : v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].espalda : animBase(id) + 'back/' + (v ? 'shiny/' : '') + id + '.gif';
 const spIcono   = (id, v) => ESPECIAL_POR_ID[id] ? ESPECIAL_POR_ID[id].icono : v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].icono : CDN + (v ? 'shiny/' : '') + id + '.png';
 
 /* ---------------- reglas ---------------- */
@@ -1854,7 +1856,7 @@ function encerrar(e){
 function empujar(e, dx, dy){ e.x += dx / G.rx; e.y += dy / G.ry; encerrar(e); }
 
 function medidas(e, img){
-  const sf = ESCALA_POKE[escalaLado(e)] * (AR && AR.zoom || 1) * (img.dataset.fb ? .25 : 1) * ((e.mon && e.mon.p.escala) || 1);   // el legendario de la incursión tiene el mismo tamaño que todos (Zeta 31/10): sólo es más poderoso   // escala: sprites de Showdown más grandes que los de siempre
+  const sf = ESCALA_POKE[escalaLado(e)] * (AR && AR.zoom || 1) * (img.dataset.fb ? .25 : 1) * ((e.mon && e.mon.p.escala) || 1) * (e.mon && e.mon.p.id > 649 && e.mon.p.id < 10000 ? .65 : 1);   // los animados de Showdown (desde el 650) son ~1,5× más grandes que los de Black/White   // el legendario de la incursión tiene el mismo tamaño que todos (Zeta 31/10): sólo es más poderoso   // escala: sprites de Showdown más grandes que los de siempre
   return {w:img.naturalWidth * G.K * sf, h:img.naturalHeight * G.K * sf};
 }
 function tamanoSprite(e){
