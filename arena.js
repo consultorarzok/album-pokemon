@@ -1250,7 +1250,7 @@ const MOVS_ESPECIALES = {
   10150: {corto:['Garra Acorazada','psychic','garra'], medio:['Esfera Acorazada','carmesi','bola'], largo:['Psicorrayo Total','psychic','rayo']},
   10151: {corto:['Garra Umbría','dark','garra'], medio:['Aura Oscura','dark','tornado','medialuna'], largo:['Abismo Total','dark','propia']},
   10152: {corto:['Pico Carmesí','fire','picotazo'], medio:['Llama Sombría','dark','bola','llama'], largo:['Fuego Eclipse','fire','propia']},
-  10153: {corto:['Garra Plasma','electric','garra'], medio:['Relámpago Veloz','electric','rayito'], largo:['Puño Plasma','electric','zona']},
+  10153: {corto:['Garra Plasma','electric','garra'], medio:['Bola Plasma','electric','bola'], largo:['Puño Plasma','electric','zona']},
   10154: {corto:['Garra Azul','azul','garra'], medio:['Llama Azul','azul','bola','llama'], largo:['Aliento Azul','azul','rayo']},
   10155: {corto:['Puño Hoopa','dark','golpe'], medio:['Portal Anillo','psychic','onda','anillo'], largo:['Dimensión Total','psychic','rayo']}
 };
@@ -2281,6 +2281,7 @@ function disparoMedio(e){
       if(i) despues(cada * i, f); else f();
     }
   };
+  if(mov.n === 'Bola Plasma'){ rafaga(1, 0, {tam:7, vel:125, giro:0, vida:1.4}); return; }   // Zeraora: bola eléctrica grande y rápida (Zeta 07/11)
   switch(mov.fx){
     case 'chorro':   rafaga(12, .022, () => ({tam:2.6, vel:120, ang:azar(-.03, .03), vida:1.1, orient:true})); break;
     case 'onda':     rafaga(base.forma === 'nota' || base.forma === 'corazon' ? 4 : 3, .09, i => ({tam:3, vel:70, crecer:base.forma === 'nota' || base.forma === 'corazon' ? .3 : 1.4, vida:1.3, radK:1.2, estela:false, ang:base.forma === 'anillo' || base.forma === 'arcoiris' ? 0 : azar(-.18, .18), wobble:base.forma === 'nota' ? 2 : 0})); break;
@@ -2642,6 +2643,7 @@ function dispararLargo(e){
 }
 
 /* para las pruebas (no se usa en el juego): dispara un efecto de largo alcance sobre el rival sin esperar la carga */
+window.__arenaMovs.probarMedio = () => disparoMedio(E.yo);
 window.__arenaMovs.probarLargo = (nombre, fx, tipo) => {
   const e = E.yo, O = otro(e), c = pie(O), z = {x:c.x, y:c.y, r:8.5 * u(), propia:false};
   const mov = {n:nombre, tipo, fx, forma:'bola', pot:1.4};
