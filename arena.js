@@ -1244,19 +1244,20 @@ function semillaNum(txt){ let h = 2166136261; for(const ch of String(txt)){ h ^=
    Usan los mismos efectos visuales (fx/forma) que el resto, con el color de su tipo. */
 /* 'azul' es un tipo sólo visual (color y partículas): al calcular el daño cuenta como el tipo real de abajo */
 const TIPO_REAL = {azul:'fire', dorado:'steel', carmesi:'psychic'};
+const VEL_ESPECIAL = {10153: 1.5};   // Zeraora: el más rápido de las especiales (07/11 Zeta)
 const POT_ESPECIAL = {corto:1.3, medio:1.3, largo:1.4};
 const MOVS_ESPECIALES = {
   10150: {corto:['Garra Acorazada','psychic','garra'], medio:['Esfera Acorazada','carmesi','bola'], largo:['Psicorrayo Total','psychic','rayo']},
   10151: {corto:['Garra Umbría','dark','garra'], medio:['Aura Oscura','dark','tornado','medialuna'], largo:['Abismo Total','dark','propia']},
   10152: {corto:['Pico Carmesí','fire','picotazo'], medio:['Llama Sombría','dark','bola','llama'], largo:['Fuego Eclipse','fire','propia']},
-  10153: {corto:['Garra Plasma','electric','garra'], medio:['Relámpago Veloz','electric','rayito'], largo:['Puño Plasma','electric','trueno']},
+  10153: {corto:['Garra Plasma','electric','garra'], medio:['Relámpago Veloz','electric','rayito'], largo:['Puño Plasma','electric','zona']},
   10154: {corto:['Garra Azul','azul','garra'], medio:['Llama Azul','azul','bola','llama'], largo:['Aliento Azul','azul','rayo']},
   10155: {corto:['Puño Hoopa','dark','golpe'], medio:['Portal Anillo','psychic','onda','anillo'], largo:['Dimensión Total','psychic','rayo']}
 };
 function movsDe(p, semilla, libre){
   if(p.especial && MOVS_ESPECIALES[p.id] && !libre){
     const out = {};
-    ATAQUES.forEach(alc => { const [n, tipo, fx, forma] = MOVS_ESPECIALES[p.id][alc]; out[alc] = {n, tipo, fx, forma:forma || FORMA_FX[fx] || 'bola', pot:POT_ESPECIAL[alc]}; });
+    ATAQUES.forEach(alc => { const [n, tipo, fx, forma] = MOVS_ESPECIALES[p.id][alc]; out[alc] = {n, tipo, fx, forma:forma || FORMA_FX[fx] || 'bola', pot:n === 'Puño Plasma' ? 1.7 : POT_ESPECIAL[alc]}; });
     return out;
   }
   const id = p.base || p.id, pools = id === 235 ? TODOS : APRENDE[id];
@@ -1828,7 +1829,7 @@ function crearMon(p, rival, ejFijo){
   /* los ataques salen del número de serie del ejemplar (siempre los mismos para esa figurita);
      el rival, como no tiene ejemplar guardado, saca unos al azar en cada pelea */
   const movs = movsEjemplar(p, ej);
-  return {p, bst, max, hp:max, en:EN_MAX, vivo:true, st:(ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : statsDe(p), fz, k, vario:!!(ej && ej.s), movs};
+  return {p, bst, max, hp:max, en:EN_MAX, vivo:true, st:(ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : (p.especial && VEL_ESPECIAL[p.id]) ? Object.assign({}, statsDe(p), {vel:VEL_ESPECIAL[p.id]}) : statsDe(p), fz, k, vario:!!(ej && ej.s), movs};
 }
 function crearEntidad(lado){
   const amigo = lado === 'yo' || (AR.bando && AR.bando[lado] === AR.bando.yo);
@@ -2448,12 +2449,24 @@ function portalHoopa(x, y, U, ang){
     {transform:`translate(-50%,-50%) rotate(${ang}deg) scale(.4)`, opacity:0}], {duration:700, easing:'ease-out', fill:'forwards'});
   const q = () => p.remove(); an.finished.then(q, q);
 }
-/* Shuriken Gigante (Greninja): se esfuma en humo y lanza, derecho hacia el rival, un shuriken de agua enorme que gira. */
-function shurikenRecto(e, c, d){
-  const U = u(), L = Math.hypot(G.W, G.H), p0 = pie(e), T = 15 * U, ang = Math.atan2(d.y, d.x) * 180 / Math.PI;
+/* Greninja se esfuma en humo y reaparece del lado opuesto de la arena, lo más lejos que pueda del rival. */
+function teletransporteNinja(e, O){
+  const p0 = pie(e), U = u();
+  let mejor = [];
+  for(let i = 0; i < 8; i++){
+    const ang = i / 8 * Math.PI * 2 + .2, x = Math.cos(ang) * .8, y = Math.sin(ang) * .8;
+    mejor.push({x, y, d:Math.hypot(x - O.x, (y - O.y) * 1.2)});
+  }
+  mejor.sort((a, b) => b.d - a.d);
+  const n = mejor[Math.floor(Math.random() * 3)];
   polvo(p0.x, p0.y, 10, 1.8); estallido(p0.x, p0.y - e.h * e.s * .4, 'ghost', 8, 1);
-  e.cuerpo.style.visibility = 'hidden'; e.sombra.style.visibility = 'hidden';
-  setTimeout(() => { e.cuerpo.style.visibility = ''; e.sombra.style.visibility = ''; if(FX) polvo(p0.x, p0.y, 8, 1.4); }, 520);
+  e.x = n.x; e.y = n.y; encerrar(e);
+  const p1 = pie(e);
+  setTimeout(() => { if(FX){ polvo(p1.x, p1.y, 10, 1.8); estallido(p1.x, p1.y - e.h * e.s * .4, 'ghost', 8, 1); } }, 10);
+}
+/* Shuriken Gigante (Greninja): lanza, derecho hacia el rival, un shuriken de agua enorme que gira. */
+function shurikenRecto(e, c, d){
+  const U = u(), L = Math.hypot(G.W, G.H), T = 15 * U;
   const x0 = c.x + d.x * e.w * .3, y0 = c.y + d.y * e.h * .2, dist = L * .8, dur = 420;
   const sh = mk('ar-shuriken', {position:'absolute', pointerEvents:'none', left:x0 + 'px', top:y0 + 'px', width:T + 'px', height:T + 'px', opacity:0,
     background:'radial-gradient(circle, #ffffff 0 12%, #BCD2FF 13% 28%, #3B6FE0 29% 100%)',
@@ -2490,7 +2503,20 @@ function manosRecto(e, c, d){
   }
   sfx('rayo');
 }
+/* Puño Plasma (Zeraora): cae desde el cielo con el puño cargado: rayo, anillos de plasma y golpe fuerte al aterrizar. */
+function caidaPlasma(z){
+  const U = u(), col = '#F7D02C', cy = z.y - 3 * U;
+  relampago(z.x, z.y - 2 * U); setTimeout(() => FX && relampago(z.x + azar(-2, 2) * U, z.y - 2 * U), 90);
+  flashPantalla('#fffbe0');
+  fxSimple('ar-pilar', {left:z.x + 'px', top:z.y + 'px', width:z.r * 1.8 + 'px', height:40 * U + 'px', background:`linear-gradient(to top, ${col}, #fff8 45%, transparent)`},
+    [{transform:'translate(-50%,-100%) scaleY(0)', opacity:1}, {transform:'translate(-50%,-100%) scaleY(1)', opacity:1, offset:.3}, {transform:'translate(-50%,-100%) scaleY(1) scaleX(.5)', opacity:0}], 420);
+  [[col, 1.0, 0], ['#ffffff', 1.4, 70], ['#7FD0FF', 1.8, 150]].forEach(([c, k, dl]) => setTimeout(() => FX && aro(z.x, z.y, c, z.r * k * 1.3), dl));
+  estallido(z.x, cy, 'electric', 26, 2); destello(z.x, cy, 1.6);
+  for(let i = 0; i < 10; i++){ const a = i / 10 * Math.PI * 2; particula(z.x, cy, '#fff8b0', Math.max(2, U * 1.2), Math.cos(a) * z.r * 1.4, Math.sin(a) * z.r * 1.4 * G.pz, 380, {forma:'chispa'}); }
+  sacudir(2.8, true);
+}
 function estallidoZona(z, mov){
+  if(mov.n === 'Puño Plasma'){ caidaPlasma(z); marca(z.x, z.y, z.r * 1.1, '#F7D02C'); return; }
   const tipo = mov.tipo, col = TYPE_COLORS[tipo], U = u(), n = mov.n;
   const explota = /Explosión|Autodestrucción/.test(n);
   aro(z.x, z.y, col, z.r * 1.1);
@@ -2566,7 +2592,8 @@ function dispararLargo(e){
     return;
   }
   if(mov.fx === 'rayo'){
-    const c = cen(e), d = A.dirLock || unit(c, cen(O));
+    if(mov.n === 'Shuriken Gigante') teletransporteNinja(e, O);   // Greninja aparece lejos del rival y tira desde ahí
+    const c = cen(e), d = (mov.n === 'Shuriken Gigante' ? null : A.dirLock) || unit(c, cen(O));
     if(mov.n === 'Dimensión Total') manosRecto(e, c, d); else if(mov.n === 'Shuriken Gigante') shurikenRecto(e, c, d); else rayoTipo(e, mov, c, d);
     destello(c.x + d.x * e.w * .3, c.y + d.y * e.h * .3, .9);
     e.kx -= d.x * 40 * U; e.ky -= d.y * 40 * U;
