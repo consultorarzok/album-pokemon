@@ -372,7 +372,7 @@ function evolucionarServidor(id, destId, serie){
 
 
 /* Entrenar (05/11): subir fuerza y cambiar ataques al azar, cuestan monedas. Los precios los decide el servidor; estos son los que se muestran. */
-const ENTRENAR = {fuerza: [[40, 400], [70, 900], [90, 1700], [99, 3500]], ataque: 1000, ataqueTres: 2500};
+const ENTRENAR = {fuerza: [[40, 400], [70, 900], [90, 1700], [99, 3500]], ataque: 1000, ataqueTres: 2500, especialX: 3};
 const precioSubirFuerza = f => (ENTRENAR.fuerza.find(([h]) => f <= h) || ENTRENAR.fuerza[ENTRENAR.fuerza.length - 1])[1];
 function subirFuerzaServidor(id, serie){
   if(!puedeJugar('entrenar')) return;

@@ -193,7 +193,7 @@ const MOVS_CAT = [
   ['Viento Aciago','ghost','tornado','m'],['Viento Cortante','normal','lluvia','l'],['Viento Feérico','fairy','tornado','m'],['Viento Hielo','ice','tornado','m'],
   ['Viento Plata','bug','tornado','m'],['Viraje','water','golpe','c'],['Voltio Cruel','electric','embestida','l'],['Voto Agua','water','chorro','m'],
   ['Voto Fuego','fire','bola','m','llama'],['Voto Planta','grass','bola','m'],['Voz Cautivadora','fairy','onda','m'],['Vozarrón','normal','propia','l'],
-  ['Vuelo','flying','embestida','l'],['Zumbido','bug','rayo','l'],['Bomba Ígnea','fire','rayo','l'],['V de Fuego','fire','embestida','l'],['Pulso Noche','dark','bola','m'],['Asta Drenaje','grass','golpe','c'],['Rueda Doble','steel','golpe','c'],['Shuriken de Agua','water','estrella','m','estrella'],['Ariete','normal','embestida','l'],['Látigo Ígneo','fire','golpe','c'],['Danza Llama','fire','bola','m'],['Vendaval Gélido','flying','rayo','l'],['Electormenta','electric','rayo','l'],['Llama Azul','fire','rayo','l'],['Llama Fusión','fire','rayo','l'],['Ataque Fulgor','electric','embestida','l'],['Rayo Fusión','electric','embestida','l'],['Simún de Arena','ground','rayo','l'],['Mundo Gélido','ice','bola','m'],['Sable Místico','fighting','bola','m'],['Canto Arcaico','normal','bola','m'],['Tecno Shock','normal','rayo','l'],['Plancha Voladora','fighting','embestida','l'],['Punzada Rama','grass','golpe','c'],['Ala Mortífera','flying','bola','m'],['Mil Flechas','ground','embestida','l'],['Mil Temblores','ground','embestida','l'],['Fuerza Telúrica','ground','embestida','l'],['Núcleo Castigo','dragon','rayo','l'],['Tormenta de Diamantes','rock','embestida','l'],['Paso Dimensional','psychic','bola','m'],['Chorro de Vapor','water','rayo','l'],['Puntada Sombría','ghost','golpe','c'],['Pico Cañón','flying','embestida','l'],['Danza Despertar','normal','rayo','l'],['Roca Veloz','rock','golpe','c'],['Patada Tropical','grass','golpe','c'],['Multiataque','normal','embestida','l'],['Coraza Trampa','fire','rayo','l'],['Electropunzada','electric','golpe','c'],['Anclaje','steel','golpe','c'],['Fragor Escamas','dragon','rayo','l'],['Furia Natural','fairy','bola','m'],['Meteoimpacto','steel','embestida','l'],['Rayo Umbrío','ghost','rayo','l'],['Láser Prisma','psychic','rayo','l'],['Géiser Fotónico','psychic','rayo','l'],['Cañón Floral','fairy','rayo','l'],['Robasombra','ghost','embestida','l'],['Cabeza Sorpresa','fire','rayo','l'],['Puños Plasma','electric','embestida','l'],['Ferropuño Doble','steel','golpe','c'],['Batería Asalto','grass','golpe','c'],['Balón Ígneo','fire','embestida','l'],['Disparo Certero','water','bola','m'],['Presa Maxilar','dark','golpe','c'],['Fuerza G','grass','golpe','c'],['Ácido Málico','grass','bola','m'],['Amplificador','electric','bola','m'],['Irreverencia','dark','golpe','c'],['Choque Anímico','fairy','golpe','c'],['Asalto Estelar','fighting','embestida','l'],['Rueda Aural','electric','embestida','l'],['Electropico','electric','golpe','c'],['Branquibocado','water','golpe','c'],['Dracoflechas','dragon','golpe','c'],['Cañón Dinamax','dragon','rayo','l'],['Rayo Infinito','dragon','rayo','l'],['Golpe Oscuro','dark','golpe','c'],['Electrojaula','electric','bola','m'],['Dracoenergía','dragon','rayo','l'],['Hachazo Pétreo','rock','golpe','c'],['Homenaje Póstumo','ghost','golpe','c'],['Garra Nociva','poison','golpe','c'],['Ciclón Primavera','fairy','rayo','l'],['Truco Floral','grass','golpe','c'],['Canto Ardiente','fire','bola','m'],['Danza Acuática','water','golpe','c'],['Electropalmas','electric','embestida','l'],['Proliferación','normal','golpe','c'],['Salazón','rock','golpe','c'],['Cañón Armadura','fire','rayo','l'],['Espada Lamento','fire','embestida','l'],['Fotocolisión','psychic','bola','m'],['Martillo Colosal','steel','embestida','l'],['Triple Inmersión','water','golpe','c'],['Puño Jet','water','golpe','c'],['Quemarrueda','steel','embestida','l'],['Giro Mortífero','poison','golpe','c'],['Oído Cocina','dragon','golpe','c'],['Genufendiente','dark','golpe','c'],['Asalto Espadón','dragon','embestida','l'],['Fiebre Dorada','steel','rayo','l'],['Calamidad','dark','bola','m'],['Nitrochoque','fighting','embestida','l'],['Electroderrape','electric','rayo','l'],['Hidrovapor','water','bola','m'],['Psicohojas','psychic','golpe','c'],['Bomba Caramelo','grass','bola','m'],['Cañón Batidor','grass','bola','m'],['Garrote Liana','grass','embestida','l'],['Electrorrayo','electric','rayo','l'],['Láser Veleidoso','dragon','bola','m'],['Relámpago Súbito','electric','bola','m'],['Filo Potente','rock','embestida','l'],['Tajo Taquión','steel','bola','m'],['Teraclúster','normal','rayo','l'],['Cadena Virulenta','poison','rayo','l']
+  ['Vuelo','flying','embestida','l'],['Zumbido','bug','rayo','l'],['Bomba Ígnea','fire','rayo','l'],['V de Fuego','fire','embestida','l'],['Pulso Noche','dark','bola','m'],['Asta Drenaje','grass','golpe','c'],['Rueda Doble','steel','golpe','c'],['Shuriken de Agua','water','estrella','m','estrella'],['Ariete','normal','embestida','l'],['Látigo Ígneo','fire','golpe','c'],['Danza Llama','fire','bola','m'],['Vendaval Gélido','flying','rayo','l'],['Electormenta','electric','rayo','l'],['Llama Azul','azul','rayo','l'],['Llama Fusión','fire','rayo','l'],['Ataque Fulgor','electric','embestida','l'],['Rayo Fusión','electric','embestida','l'],['Simún de Arena','ground','rayo','l'],['Mundo Gélido','ice','bola','m'],['Sable Místico','fighting','bola','m'],['Canto Arcaico','normal','bola','m'],['Tecno Shock','normal','rayo','l'],['Plancha Voladora','fighting','embestida','l'],['Punzada Rama','grass','golpe','c'],['Ala Mortífera','flying','bola','m'],['Mil Flechas','ground','embestida','l'],['Mil Temblores','ground','embestida','l'],['Fuerza Telúrica','ground','embestida','l'],['Núcleo Castigo','dragon','rayo','l'],['Tormenta de Diamantes','rock','embestida','l'],['Paso Dimensional','psychic','bola','m'],['Chorro de Vapor','water','rayo','l'],['Puntada Sombría','ghost','golpe','c'],['Pico Cañón','flying','embestida','l'],['Danza Despertar','normal','rayo','l'],['Roca Veloz','rock','golpe','c'],['Patada Tropical','grass','golpe','c'],['Multiataque','normal','embestida','l'],['Coraza Trampa','fire','rayo','l'],['Electropunzada','electric','golpe','c'],['Anclaje','steel','golpe','c'],['Fragor Escamas','dragon','rayo','l'],['Furia Natural','fairy','bola','m'],['Meteoimpacto','steel','embestida','l'],['Rayo Umbrío','ghost','rayo','l'],['Láser Prisma','psychic','rayo','l'],['Géiser Fotónico','psychic','rayo','l'],['Cañón Floral','fairy','rayo','l'],['Robasombra','ghost','embestida','l'],['Cabeza Sorpresa','fire','rayo','l'],['Puños Plasma','electric','embestida','l'],['Ferropuño Doble','steel','golpe','c'],['Batería Asalto','grass','golpe','c'],['Balón Ígneo','fire','embestida','l'],['Disparo Certero','water','bola','m'],['Presa Maxilar','dark','golpe','c'],['Fuerza G','grass','golpe','c'],['Ácido Málico','grass','bola','m'],['Amplificador','electric','bola','m'],['Irreverencia','dark','golpe','c'],['Choque Anímico','fairy','golpe','c'],['Asalto Estelar','fighting','embestida','l'],['Rueda Aural','electric','embestida','l'],['Electropico','electric','golpe','c'],['Branquibocado','water','golpe','c'],['Dracoflechas','dragon','golpe','c'],['Cañón Dinamax','dragon','rayo','l'],['Rayo Infinito','dragon','rayo','l'],['Golpe Oscuro','dark','golpe','c'],['Electrojaula','electric','bola','m'],['Dracoenergía','dragon','rayo','l'],['Hachazo Pétreo','rock','golpe','c'],['Homenaje Póstumo','ghost','golpe','c'],['Garra Nociva','poison','golpe','c'],['Ciclón Primavera','fairy','rayo','l'],['Truco Floral','grass','golpe','c'],['Canto Ardiente','fire','bola','m'],['Danza Acuática','water','golpe','c'],['Electropalmas','electric','embestida','l'],['Proliferación','normal','golpe','c'],['Salazón','rock','golpe','c'],['Cañón Armadura','fire','rayo','l'],['Espada Lamento','fire','embestida','l'],['Fotocolisión','psychic','bola','m'],['Martillo Colosal','steel','embestida','l'],['Triple Inmersión','water','golpe','c'],['Puño Jet','water','golpe','c'],['Quemarrueda','steel','embestida','l'],['Giro Mortífero','poison','golpe','c'],['Oído Cocina','dragon','golpe','c'],['Genufendiente','dark','golpe','c'],['Asalto Espadón','dragon','embestida','l'],['Fiebre Dorada','dorado','rayo','l'],['Calamidad','dark','bola','m'],['Nitrochoque','fighting','embestida','l'],['Electroderrape','electric','rayo','l'],['Hidrovapor','water','bola','m'],['Psicohojas','psychic','golpe','c'],['Bomba Caramelo','grass','bola','m'],['Cañón Batidor','grass','bola','m'],['Garrote Liana','grass','embestida','l'],['Electrorrayo','electric','rayo','l'],['Láser Veleidoso','dragon','bola','m'],['Relámpago Súbito','electric','bola','m'],['Filo Potente','rock','embestida','l'],['Tajo Taquión','steel','bola','m'],['Teraclúster','normal','rayo','l'],['Cadena Virulenta','poison','rayo','l']
 ];
 const MOVS_APR = `1 228,291,202.2,159.2,1.2,105.3,33.3,186.3/207,55,347.1,178.1,209.1,246.2,58.2,360.2/344,227,114,127,112.1,237.1,405.1,70.1;
 2 228,291,202.2,159.2,1.2,105.3,33.3,186.3/207,55,246.2,58.2,178.2,360.2,209.2,135.2/344,227,114,127,112.1,237.2,136.3;
@@ -1239,17 +1239,19 @@ function semillaNum(txt){ let h = 2166136261; for(const ch of String(txt)){ h ^=
 /* Ataques EXCLUSIVOS de las figuritas especiales (premio del álbum completo): no existen para ningún otro Pokémon y
    pegan más fuerte (pot = multiplicador del daño del alcance; el corto y el medio ×1,3, el largo ×1,4).
    Usan los mismos efectos visuales (fx/forma) que el resto, con el color de su tipo. */
+/* 'azul' es un tipo sólo visual (color y partículas): al calcular el daño cuenta como el tipo real de abajo */
+const TIPO_REAL = {azul:'fire', dorado:'steel'};
 const POT_ESPECIAL = {corto:1.3, medio:1.3, largo:1.4};
 const MOVS_ESPECIALES = {
   10150: {corto:['Garra Acorazada','psychic','garra'], medio:['Pulso Blindado','psychic','onda','anillo'], largo:['Psicorrayo Total','psychic','rayo']},
   10151: {corto:['Garra Umbría','dark','garra'], medio:['Aura Oscura','dark','tornado','medialuna'], largo:['Abismo Total','dark','propia']},
   10152: {corto:['Pico Carmesí','fire','picotazo'], medio:['Llama Sombría','dark','bola','llama'], largo:['Fuego Eclipse','fire','propia']},
   10153: {corto:['Garra Plasma','electric','garra'], medio:['Relámpago Veloz','electric','rayito'], largo:['Puño Plasma','electric','trueno']},
-  10154: {corto:['Garra Azul','dragon','garra'], medio:['Llama Azul','fire','bola','llama'], largo:['Aliento Azul','fire','rayo']},
+  10154: {corto:['Garra Azul','azul','garra'], medio:['Llama Azul','azul','bola','llama'], largo:['Aliento Azul','azul','rayo']},
   10155: {corto:['Puño Hoopa','dark','golpe'], medio:['Portal Anillo','psychic','onda','anillo'], largo:['Dimensión Total','dark','propia']}
 };
-function movsDe(p, semilla){
-  if(p.especial && MOVS_ESPECIALES[p.id]){
+function movsDe(p, semilla, libre){
+  if(p.especial && MOVS_ESPECIALES[p.id] && !libre){
     const out = {};
     ATAQUES.forEach(alc => { const [n, tipo, fx, forma] = MOVS_ESPECIALES[p.id][alc]; out[alc] = {n, tipo, fx, forma:forma || FORMA_FX[fx] || 'bola', pot:POT_ESPECIAL[alc]}; });
     return out;
@@ -1288,6 +1290,8 @@ const FORMA_MOV = {'Ascuas':'llama', 'Furia Dragón':'llama', 'Pulso Dragón':'l
   'Rayo Aurora':'arcoiris', 'Psicorrayo':'arcoiris', 'Bola Voltio':'voltio', 'Bomba Huevo':'huevo', 'Onda Vacío':'medialuna'};
 
 const PART = {
+  dorado:  {c:['#E8B923', '#FFE27A', '#FFFBE0'], g:0},
+  azul:    {c:['#2F6BFF', '#7FD0FF', '#EAF6FF'], g:-1},
   normal:  {c:['#A8A77A', '#ffffff'], g:0},
   fire:    {c:['#EE8130', '#F7D02C', '#FFF3B0'], g:-1},
   water:   {c:['#6390F0', '#BCD2FF', '#ffffff'], g:1},
@@ -1791,7 +1795,7 @@ function ataqueDeCambio(p, base, alc, n){
   if(n <= 0) return movsDe(p, base)[alc];
   const previo = ataqueDeCambio(p, base, alc, n - 1);
   for(let t = 0; t < 12; t++){
-    const c = movsDe(p, base + '#' + n + '.' + t)[alc];
+    const c = movsDe(p, base + '#' + n + '.' + t, true)[alc];   // libre: una especial que cambia deja sus ataques exclusivos y saca del repertorio de su Pokémon
     if(c && (!previo || c.n !== previo.n)) return c;
   }
   return previo;
@@ -1817,7 +1821,7 @@ function crearMon(p, rival, ejFijo){
   /* los ataques salen del número de serie del ejemplar (siempre los mismos para esa figurita);
      el rival, como no tiene ejemplar guardado, saca unos al azar en cada pelea */
   const movs = movsEjemplar(p, ej);
-  return {p, bst, max, hp:max, en:EN_MAX, vivo:true, st:statsDe(p), fz, k, vario:!!(ej && ej.s), movs};
+  return {p, bst, max, hp:max, en:EN_MAX, vivo:true, st:(ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : statsDe(p), fz, k, vario:!!(ej && ej.s), movs};
 }
 function crearEntidad(lado){
   const amigo = lado === 'yo' || (AR.bando && AR.bando[lado] === AR.bando.yo);
@@ -2087,7 +2091,7 @@ function golpear(att, def, alc, x, y){
   const jefeMio = !!(AR.raid && AR.raid.host && def.lado === 'riv');   // el daño del legendario lo decide el celular anfitrión
   if(AR.online && def.lado !== 'yo' && !jefeMio) return false;   // en duelo, el daño de los otros lo decide SU celular (llega por golpeRemoto)
   const dV = jefeMio ? {d:AR.slotDe.riv} : {};
-  const mov = movDe(att.mon, alc), tipo = mov.tipo;
+  const mov = movDe(att.mon, alc), tipo = TIPO_REAL[mov.tipo] || mov.tipo;
   const c = cen(def), arriba = c.y - def.h * def.s * .6, ahora = performance.now();
   const roce = def.rodando && alc === 'largo';
   if(def.rodando && !roce){

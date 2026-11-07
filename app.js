@@ -17,7 +17,8 @@ const TYPE_COLORS = {
   grass:'#7AC74C', ice:'#96D9D6', fighting:'#C22E28', poison:'#A33EA1',
   ground:'#E2BF65', flying:'#A98FF3', psychic:'#F95587', bug:'#A6B91A',
   rock:'#B6A136', ghost:'#735797', dragon:'#6F35FC', fairy:'#D685AD',
-  dark:'#705746', steel:'#B7B7CE'
+  dark:'#705746', steel:'#B7B7CE',
+  azul:'#3B8BFF', dorado:'#E8B923'   /* sólo de color: llama azul de Mega Charizard X (para el daño cuenta como fuego, ver TIPO_REAL en arena.js) */
 };
 const TYPE_LABEL = {
   normal:'Normal', fire:'Fuego', water:'Agua', electric:'Eléctrico', grass:'Planta',
@@ -645,7 +646,7 @@ function renderEspeciales(){
   /* misma figurita que las del álbum (.slot dentro de .grid), sólo marcada como especial */
   const estrella = '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>';
   box.innerHTML = mias.length ? '<h3 class="esp-tit">Especiales</h3><div class="grid esp-grid" role="list" aria-label="Figuritas especiales">' + mias.map(e =>
-    `<div class="slot got especial${e.aura ? ' aura-oscura' : ''}" role="listitem" aria-label="${e.name}, figurita especial, fuerza ${especiales[e.id].f}. Se usa en la Arena" title="${e.name} · fuerza ${especiales[e.id].f}">` +
+    `<div class="slot got especial${e.aura ? ' aura-oscura' : ''}" role="listitem" data-esp="${e.id}" style="cursor:pointer" aria-label="${e.name}, figurita especial, fuerza ${especiales[e.id].f}. Se usa en la Arena. Tocá para entrenarla" title="${e.name} · fuerza ${especiales[e.id].f}">` +
     `<div class="num">#${String(e.base).padStart(3,'0')}</div><div class="esp-tag">${estrella}</div>` +
     `<img src="${e.img}" alt="" loading="lazy"><div class="name">${e.name}</div>` +
     `<div class="typebar" style="background:${TYPE_COLORS[e.type]}"></div></div>`).join('') + '</div>' : '';
@@ -672,7 +673,7 @@ function ejemplares(id){
   return s.ej;
 }
 function mejorEjemplar(id){
-  if(ESPECIAL_POR_ID[id]) return especiales[id] ? {f:especiales[id].f, c:especiales[id].c} : null;
+  if(ESPECIAL_POR_ID[id]) return especiales[id] ? {f:especiales[id].f, c:especiales[id].c, sd:especiales[id].sd, rr:especiales[id].rr} : null;
   return ejemplarQueJuega(ejemplares(id));
 }
 /* Entre las copias juega la ⭐ favorita (elegida en la Pokédex); si no hay, la más fuerte. */
@@ -965,7 +966,7 @@ document.getElementById('novedadesCierraBtn').onclick = () => {
 function seccionEntrenar(p, copias){
   const M = window.__arenaMovs;
   if(!M) return '';
-  const ops = M.opcionesDeAtaque(p), esp = !!p.especial;
+  const ops = M.opcionesDeAtaque(p), esp = !!p.especial, x = esp ? ENTRENAR.especialX : 1, pAt = ENTRENAR.ataque * x, pTres = ENTRENAR.ataqueTres * x;
   const nomAlc = ['Corto', 'Medio', 'Largo'];
   return `<div class="det-sec"><b>Entrenar</b><span>Tenés 🪙 ${coins}</span></div>` + copias.map(e => {
     const movs = M.movsEjemplar(p, e), tope = e.f >= 100;
@@ -973,9 +974,9 @@ function seccionEntrenar(p, copias){
       <div class="ent-cab"><b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}</small>
         <button class="open-btn sec ent-fz" ${tope || coins < precioSubirFuerza(e.f) ? 'disabled' : ''}>${tope ? 'Fuerza máxima' : 'Subir fuerza · 🪙 ' + precioSubirFuerza(e.f)}</button></div>
       <div class="ent-movs">${['corto', 'medio', 'largo'].map((alc, k) => { const m = movs[alc]; return `<div class="ent-mov"><span><small>${nomAlc[k]}</small> ${m ? m.n : '—'} <i style="color:${TYPE_COLORS[m ? m.tipo : 'normal']}">●</i></span>
-        <button class="open-btn sec ent-at" data-k="${k}" ${esp || ops[k] < 2 || coins < ENTRENAR.ataque ? 'disabled' : ''}>Cambiar · 🪙 ${ENTRENAR.ataque}</button></div>`; }).join('')}
-        <button class="open-btn sec ent-tres" ${esp || ops.some(n => n < 2) || coins < ENTRENAR.ataqueTres ? 'disabled' : ''}>Cambiar los 3 · 🪙 ${ENTRENAR.ataqueTres}</button></div>
-      ${esp ? '<small>Los ataques de las figuritas especiales no se cambian.</small>' : ''}</div>`;
+        <button class="open-btn sec ent-at" data-k="${k}" ${ops[k] < 2 || coins < pAt ? 'disabled' : ''}>Cambiar · 🪙 ${pAt}</button></div>`; }).join('')}
+        <button class="open-btn sec ent-tres" ${ops.some(n => n < 2) || coins < pTres ? 'disabled' : ''}>Cambiar los 3 · 🪙 ${pTres}</button></div>
+      ${esp ? '<small>Si cambiás un ataque de una especial, pierde el ataque exclusivo de ese botón (y su golpe extra). Cuesta ×3.</small>' : ''}</div>`;
   }).join('');
 }
 document.getElementById('detalleBody').addEventListener('click', ev => {
@@ -983,13 +984,28 @@ document.getElementById('detalleBody').addEventListener('click', ev => {
   if(fb){ favoritoServidor(Number(fb.dataset.id), fb.dataset.c); return; }
   const b = ev.target.closest('button'); const box = b && b.closest('.ent-ej'); if(!box || b.disabled) return;
   const id = Number(box.dataset.id), c = box.dataset.c;
-  const p = DATA.find(x => x.id === id), nom = p ? p.name : 'esta figurita';
+  const p = DATA.find(x => x.id === id) || ESPECIAL_POR_ID[id], nom = p ? p.name : 'esta figurita';
   if(b.classList.contains('ent-fz')){ if(confirm('¿Subir la fuerza de ' + nom + ' N.º ' + c + '? Suma entre 1 y 3 y se cobra el precio.')) subirFuerzaServidor(id, c); }
   else if(b.classList.contains('ent-at')){ if(confirm('¿Cambiar este ataque por otro al azar? Se cobra el precio y no se puede volver atrás.')) cambiarAtaquesServidor(id, c, [Number(b.dataset.k)]); }
   else if(b.classList.contains('ent-tres')){ if(confirm('¿Cambiar los 3 ataques por otros al azar? Se cobra el precio y no se puede volver atrás.')) cambiarAtaquesServidor(id, c, [0, 1, 2]); }
 });
 
+function abrirDetalleEspecial(id){
+  const p = ESPECIAL_POR_ID[id], e = especiales[id];
+  if(!p || !e) return;
+  document.getElementById('detalleTit').textContent = p.name;
+  document.getElementById('detalleBody').innerHTML = `
+    <div class="det-arte"><img src="${p.img}" alt="${p.name}"></div>
+    <div class="det-datos">${tiposDe(p).map(t => `<span class="det-pill" style="background:${TYPE_COLORS[t]};color:${textoSobre(TYPE_COLORS[t])}">${TYPE_LABEL[t]}</span>`).join(' ')}<span class="det-pill">⭐ Especial</span></div>
+    ${MODO_SERVIDOR ? seccionEntrenar(p, [e]) : '<div class="det-sec"><b>Entrenar</b><span>Entrá con tu cuenta para entrenarla</span></div>'}`;
+  const ov = document.getElementById('detalleOverlay');
+  ov.querySelector('.reveal-panel').scrollTop = 0;
+  ov.classList.add('show');
+  document.getElementById('detalleCloseBtn').focus({preventScroll:true});
+}
+document.addEventListener('click', ev => { const t = ev.target.closest && ev.target.closest('[data-esp]'); if(t) abrirDetalleEspecial(Number(t.dataset.esp)); });
 function abrirDetalle(id){
+  if(ESPECIAL_POR_ID[id]) return abrirDetalleEspecial(id);
   const p = DATA.find(x => x.id === id);
   if(!p || !state[id].got) return;
   const copias = ejemplares(id).slice().sort((a, b) => (b.f + (b.s ? 1000 : 0)) - (a.f + (a.s ? 1000 : 0)));
