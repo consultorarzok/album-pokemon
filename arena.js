@@ -2272,6 +2272,8 @@ function proyectil(e, o){
     vida:o.vida || 1.5, vida0:o.vida || 1.5, rad:tam * .5 * (o.radK || 1), rot:0, giro:o.giro || 0, arco:o.arco || 0,
     crecer:o.crecer || 0, wobble:o.wobble || 0, homing:o.homing || 0, boom:o.boom ? {vuelta:false} : null, suelo:!!o.suelo,
     orient:!!o.orient, grupo:o.grupo, t:0, tr:0, esq:false, fade:!!o.fade, estela:o.estela !== false});
+  /* efectos pixel (pixelfx): bola de fuego / bola eléctrica / lanza de hielo siguen al proyectil; el dibujo de siempre queda invisible (sirve de golpe) */
+  if(window.PIXFX && PIXFX.activo() && !AR.multi){ const pp = AR.proys[AR.proys.length - 1]; pp.px = PIXFX.proyectil(o.tipo, o.forma); if(pp.px) el.style.opacity = '0'; }
 }
 
 function disparoMedio(e){
@@ -2508,6 +2510,7 @@ function estallidoZona(z, mov){
   const tipo = mov.tipo, col = TYPE_COLORS[tipo], U = u(), n = mov.n;
   const explota = /Explosión|Autodestrucción/.test(n);
   aro(z.x, z.y, col, z.r * 1.1);
+  if(window.PIXFX && PIXFX.activo() && !AR.multi) PIXFX.zona(z.x, z.y, tipo, z.r);   // estallido grande en pixel art según el tipo
   if(explota){
     estallido(z.x, z.y - 3 * U, 'fire', 50, 2.4); destello(z.x, z.y - 3 * U, 1.4); flashPantalla('#ffd9a0');
     setTimeout(() => PISO && aro(z.x, z.y, '#ffd28a', z.r * 1.4), 120);
@@ -2787,6 +2790,7 @@ function avanzarZonas(dt){
   });
 }
 
+function quitarProy(p){ p.el.remove(); if(p.px) p.px.parar(); }
 function avanzarProyectiles(dt){
   const U = u();
   AR.proys = AR.proys.filter(p => {
@@ -2799,7 +2803,7 @@ function avanzarProyectiles(dt){
     if(p.boom && !p.boom.vuelta && p.t > .55){ p.boom.vuelta = true; p.grupo = {pego:false}; }
     if(p.boom && p.boom.vuelta && att.mon){
       const c = cen(att), d = unit(p, c); p.vx = d.x * p.v; p.vy = d.y * p.v;
-      if(dist(p, c) < radio(att)){ p.el.remove(); return false; }
+      if(dist(p, c) < radio(att)){ quitarProy(p); return false; }
     }
     p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.giro * dt;
     let xx = p.x, yy = p.y - (p.arco ? Math.sin(Math.min(1, p.t / .6) * Math.PI) * p.arco * U : 0);
@@ -2807,6 +2811,7 @@ function avanzarProyectiles(dt){
     const esc = 1 + p.crecer * (1 - p.vida / p.vida0);
     const ang = p.orient ? Math.atan2(p.vy, p.vx) * 180 / Math.PI : p.rot;
     p.el.style.transform = `translate(-50%,-50%) translate(${xx}px,${yy}px) rotate(${ang}deg) scale(${esc})`;
+    if(p.px) p.px.mover(xx, yy, p.vx, p.vy);
     if(p.fade) p.el.style.opacity = Math.min(1, p.vida * 1.5);
     if(p.tr <= 0){
       if(p.suelo){ p.tr = .07; polvo(xx, yy, 2, 1.1); }
@@ -2819,16 +2824,16 @@ function avanzarProyectiles(dt){
       if(Math.hypot(dx, dy) <= radio(dest) * (p.suelo ? .9 : 1) + p.rad * esc){
         if(dest.rodando){ if(!p.esq){ p.esq = true; golpear(att, dest, 'medio'); } }
         else if(p.grupo.pego || dest.invul > 0){
-          if(!p.boom){ estallido(xx, yy, p.tipo, 3, .5); p.el.remove(); return false; }
+          if(!p.boom){ estallido(xx, yy, p.tipo, 3, .5); quitarProy(p); return false; }
         } else {
           p.grupo.pego = true;
           golpear(att, dest, 'medio', xx, p.suelo ? cen(dest).y : yy);
           if(p.forma === 'lodo') marca(pie(dest).x, pie(dest).y, 5 * U, TYPE_COLORS.poison);
-          if(!p.boom){ p.el.remove(); return false; }
+          if(!p.boom){ quitarProy(p); return false; }
         }
       }
     }
-    if(p.vida <= 0 || p.x < -40 || p.x > G.W + 40 || p.y < -40 || p.y > G.H + 40){ p.el.remove(); return false; }
+    if(p.vida <= 0 || p.x < -40 || p.x > G.W + 40 || p.y < -40 || p.y > G.H + 40){ quitarProy(p); return false; }
     return true;
   });
 }
