@@ -2135,6 +2135,7 @@ function golpear(att, def, alc, x, y){
   if(res.mult !== 1) setTimeout(() => AR && texto(c.x, c.y - def.h * def.s * .25, res.mult > 1 ? 'Súper efectivo' : 'Poco efectivo',
     res.mult > 1 ? '#ffd54a' : '#c9ccd8', 2.5), 120);
   if(cb.n >= 2) setTimeout(() => AR && texto(c.x, arriba - u() * 4.5, `Combo ×${cb.n}`, cb.lado === 'yo' ? '#7CF2FF' : '#FF9A9A', 2.8), 60);
+  if(window.PIXFX && PIXFX.activo()) PIXFX.golpe(x == null ? c.x : x, y == null ? c.y : y, tipo, res.crit, c.x >= cen(att).x ? 1 : -1);
   estallido(x == null ? c.x : x, y == null ? c.y : y, tipo, res.crit ? 22 : 11, res.crit ? 1.4 : 1);
   destello(x == null ? c.x : x, y == null ? c.y : y, res.crit ? 1.2 : .7);
   sacudir(res.crit ? 1.5 : .7, res.crit);
@@ -3158,6 +3159,7 @@ function armarEscenario(){
       </div>
     </div>`;
   ST = $('arStage'); SHAKE = $('arShake'); FX = $('arFx'); BG = $('arBg'); PISO = $('arPiso');
+  if(window.PIXFX && !REDUCE) PIXFX.montar(ST, Math.max(2, Math.round(u() * .85)));   // efectos pixel (pixelfx): golpes por tipo y críticos
   $('arCloseBtn').onclick = pedirSalida;
   $('arSeguir').onclick = () => { $('arConfirm').hidden = true; AR.pausa = AR.pausaAntes; };
   $('arAbandonar').onclick = () => { if(AR && AR.online) enviarSala({t:'salir'}); cerrarArena(); };

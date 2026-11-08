@@ -4858,7 +4858,18 @@ const MONTURA_HD = {
   'entei-red': {alto: 42, sinAlas: true, vistas: {frente: {w: 185, h: 300}, lado: {w: 319, h: 300}, espalda: {w: 167, h: 300}}},
   'entei-may': {alto: 35, sinAlas: true, vistas: {frente: {w: 180, h: 300}, lado: {w: 331, h: 300}, espalda: {w: 175, h: 300}}},
   'gyarados-red': {alto: 48, sinAlas: true, vistas: {frente: {w: 197, h: 300}, lado: {w: 300, h: 300}, espalda: {w: 159, h: 300}}},
-  'gyarados-may': {alto: 42, sinAlas: true, vistas: {frente: {w: 199, h: 300}, lado: {w: 278, h: 300}, espalda: {w: 178, h: 300}}}
+  'gyarados-may': {alto: 42, sinAlas: true, vistas: {frente: {w: 199, h: 300}, lado: {w: 278, h: 300}, espalda: {w: 178, h: 300}}},
+  /* 08/11: arcanine, snorlax, lapras, dragonite, hooh: jinete y Pokémon dibujados juntos (gpt-image-2); alto = px de mundo de la vista de frente */
+  'arcanine-red': {alto: 40, sinAlas: true, piernas: true, vistas: {frente: {w: 140, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 290, h: 269, piv: [[0.52,0.4]]}, espalda: {w: 128, h: 274, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'arcanine-may': {alto: 40, sinAlas: true, piernas: true, vistas: {frente: {w: 137, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 285, h: 272, piv: [[0.52,0.4]]}, espalda: {w: 126, h: 272, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'snorlax-red': {alto: 56, sinAlas: true, piernas: true, vistas: {frente: {w: 217, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 151, h: 294, piv: [[0.52,0.4]]}, espalda: {w: 205, h: 290, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'snorlax-may': {alto: 56, sinAlas: true, piernas: true, vistas: {frente: {w: 219, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 152, h: 297, piv: [[0.52,0.4]]}, espalda: {w: 207, h: 295, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'lapras-red': {alto: 44, sinAlas: true, vistas: {frente: {w: 283, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 297, h: 259, piv: [[0.52,0.4]]}, espalda: {w: 254, h: 252, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'lapras-may': {alto: 44, sinAlas: true, vistas: {frente: {w: 287, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 301, h: 272, piv: [[0.52,0.4]]}, espalda: {w: 258, h: 272, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'dragonite-red': {alto: 46, vistas: {frente: {w: 269, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 255, h: 279, piv: [[0.52,0.4]]}, espalda: {w: 272, h: 302, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'dragonite-may': {alto: 46, vistas: {frente: {w: 270, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 256, h: 290, piv: [[0.52,0.4]]}, espalda: {w: 273, h: 303, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'hooh-red': {alto: 60, vistas: {frente: {w: 314, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 263, h: 328, piv: [[0.52,0.4]]}, espalda: {w: 297, h: 306, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'hooh-may': {alto: 60, vistas: {frente: {w: 314, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 264, h: 328, piv: [[0.52,0.4]]}, espalda: {w: 297, h: 305, piv: [[0.38,0.4],[0.62,0.4]]}}}
 };
 const MONTURA_HD_IMG = {};
 function capaHD(clave, vista, capa){
@@ -4882,7 +4893,8 @@ function dibujarMontadoHD(ctx, ox, oy, dir, m, clave){
   const vista = dir === 'arriba' ? 'espalda' : (dir === 'izq' || dir === 'der') ? 'lado' : 'frente';
   const cuerpo = capaHD(clave, vista, 'cuerpo'), alas = hd.sinAlas ? null : capaHD(clave, vista, 'alas');
   if(!cuerpo || (!hd.sinAlas && !alas)) return false;
-  const V = hd.vistas[vista], alto = hd.alto, ancho = alto * V.w / V.h;
+  /* alto = px de mundo de una capa de 300 px (mismo factor para las 3 vistas: el jinete mide igual en todas y IGUAL que a pie); cada vista trae su h */
+  const V = hd.vistas[vista], kk = hd.alto / 300, alto = V.h * kk, ancho = V.w * kk;
   const t = performance.now() / 1000;
   const camina = VO ? VO.camina : !!(advEje.x || advEje.y);
   const camino = VO ? VO.camino : advCamino;
@@ -4899,6 +4911,7 @@ function dibujarMontadoHD(ctx, ox, oy, dir, m, clave){
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.translate(cx, pie);
   if(dir === 'der') ctx.scale(-1, 1);                           // la vista de costado mira a la izquierda: a la derecha se espeja
+  if(!m.vuela && !nada && camina) ctx.rotate(Math.sin(camino / 3.4) * (hd.piernas ? .06 : .035));   // de tierra: se balancea al caminar (como pasos)
   const x0 = -ancho / 2, y0 = -alto;
   if(alas) V.piv.forEach(([px, py], i) => {
     ctx.save();
@@ -4908,7 +4921,13 @@ function dibujarMontadoHD(ctx, ox, oy, dir, m, clave){
     ctx.drawImage(alas, x0, y0, ancho, alto);
     ctx.restore();
   });
-  ctx.drawImage(cuerpo, x0, y0, ancho, alto);
+  if(hd.piernas && camina && !nada){
+    /* paso de a pie (Snorlax, Arcanine): la franja de abajo (patas) se levanta alternando izquierda/derecha */
+    const fase = Math.sin(camino / 3.4), lev = Math.max(0, fase) * alto * .05, lev2 = Math.max(0, -fase) * alto * .05, yc = y0 + alto * .76;
+    ctx.save(); ctx.beginPath(); ctx.rect(x0 - 6, y0 - 6, ancho + 12, yc - y0 + 6); ctx.clip(); ctx.drawImage(cuerpo, x0, y0, ancho, alto); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(x0 - 6, yc, ancho / 2 + 6, alto); ctx.clip(); ctx.drawImage(cuerpo, x0, y0 - lev, ancho, alto); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(x0 + ancho / 2, yc, ancho / 2 + 6, alto); ctx.clip(); ctx.drawImage(cuerpo, x0, y0 - lev2, ancho, alto); ctx.restore();
+  } else ctx.drawImage(cuerpo, x0, y0, ancho, alto);
   ctx.restore();
   ctx.restore();
   ctx.imageSmoothingEnabled = false;
