@@ -20,17 +20,17 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   const r = await page.evaluate(() => {
     const m = ADV_MAPS.overworld;
     const out = {};
-    out.regiones = [regionDe(25, 60), regionDe(80, 60), regionDe(25, 119), regionDe(25, 120), regionDe(25, 150), regionDe(300, 150)];
-    out.clima = climaDe(25, 150);
-    out.zona = [advZonaDe(25, 124), advZonaDe(46, 125), advZonaDe(25, 142), advZonaDe(25, 60)];
-    out.puerta = [m.rows[119][24], m.rows[119][25], m.rows[119][26], m.rows[119][23]];
-    out.altares = Object.keys(m.santuarios).filter(k => +k.split(',')[1] >= 120).length;
+    out.regiones = [regionDe(79, 180), regionDe(134, 180), regionDe(79, 239), regionDe(79, 240), regionDe(79, 270), regionDe(200, 270)];
+    out.clima = climaDe(79, 270);
+    out.zona = [advZonaDe(79, 244), advZonaDe(100, 245), advZonaDe(79, 262), advZonaDe(79, 180)];
+    out.puerta = [m.rows[239][78], m.rows[239][79], m.rows[239][80], m.rows[239][77]];
+    out.altares = Object.keys(m.santuarios).filter(k => +k.split(',')[1] >= 240).length;
     out.pokes = [...new Set(poolBioma('hierba', 'alola').map(p => p.region))].join();
     out.legendarios = [...new Set(poolBioma('legendario', 'alola').map(p => p.name))].sort().join();
     out.cuevaAlola = !!m.santuariosPorRegion;
     out.cueva = !!ADV_MAPS.cueva.santuariosPorRegion.alola;
     // caminar de verdad: de la puerta al río, por el puente y hasta la cueva (BFS sobre advTileEn)
-    const q = [[25, 118]], vis = new Set(['25,118']); let alcanzo = {};
+    const q = [[79, 238]], vis = new Set(['79,238']); let alcanzo = {};
     while(q.length){
       const [x, y] = q.shift();
       for(const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
@@ -40,11 +40,11 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
         if(t && t.walk){ vis.add(k); q.push([nx, ny]); }
       }
     }
-    out.llegaCueva = vis.has('24,176'); out.llegaCentro = vis.has('22,125'); out.llegaAltar = ['10,127', '42,130', '10,167', '42,172'].every(k => vis.has(k));
-    out.cruzaRio = vis.has('25,150') && vis.has('25,130');
+    out.llegaCueva = vis.has('78,296'); out.llegaCentro = vis.has('76,245'); out.llegaAltar = ['64,247', '96,250', '64,287', '96,292'].every(k => vis.has(k));
+    out.cruzaRio = vis.has('79,270') && vis.has('79,250');
     // el eje norte-sur de la capital, en el orden de la realidad (pedido de Zeta)
-    const hallar = ch => { const r = []; m.rows.forEach((f, y) => [...f].forEach((c, x) => { if(c === ch && x < 54 && y < 120) r.push({x, y}); })); return r; };
-    const media = ch => { const l = hallar(ch); return l.length ? {x: l.reduce((a, p) => a + p.x, 0) / l.length, y: l.reduce((a, p) => a + p.y, 0) / l.length, n: l.length} : null; };
+    const hallar = ch => { const r = []; m.rows.forEach((f, y) => [...f].forEach((c, x) => { if(c === ch && x >= 54 && x < 108 && y >= 120 && y < 240) r.push({x, y}); })); return r; };
+    const media = ch => { const l = hallar(ch); return l.length ? {x: l.reduce((a, p) => a + p.x, 0) / l.length - 54, y: l.reduce((a, p) => a + p.y, 0) / l.length - 120, n: l.length} : null; };
     out.eje = {concejo: media('2'), gobierno: media('G'), muni: media('1'), estadio: media('3'), terminal: media('4'), casas: media('H')};
     out.edificios = edificiosDe('overworld').map(e => e.tipo);
     const t3 = hallar('3').concat(hallar('6'));
@@ -54,22 +54,22 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
       out.estadio.entra = ok; }
     out.lucha = [...new Set(poolBioma('lucha', 'kanto').map(p => p.type))];
     // pararse adentro: el juego pinta y cambia a la región nueva
-    advPonerEn(25, 150); advRender();
+    advPonerEn(79, 270); advRender();
     out.advRegion = advRegion;
-    advPonerEn(25, 60); advRender();
+    advPonerEn(79, 180); advRender();
     out.advRegionN = advRegion;
     // evento con el mapa cerrado: el sur queda clausurado
     const orig = eventoActivo;
-    window.eventoActivo = () => ({mapaCerradoDesdeX: 109, nombre: 'Prueba', fin: new Date(Date.now() + 3600e3).toISOString(), soloRegion12: true});
-    out.cerrado = [cerradoPorEvento(25, 150), cerradoPorEvento(25, 60), cerradoPorEvento(200, 60)];
+    window.eventoActivo = () => ({mapaCerradoRegiones: ['hoenn', 'sinnoh', 'unova', 'kalos', 'alola'], nombre: 'Prueba', fin: new Date(Date.now() + 3600e3).toISOString(), soloRegion12: true});
+    out.cerrado = [cerradoPorEvento(79, 270), cerradoPorEvento(79, 180), cerradoPorEvento(200, 60)];
     window.eventoActivo = orig;
-    out.abierto = cerradoPorEvento(25, 150);
+    out.abierto = cerradoPorEvento(79, 270);
     return out;
   });
   check('regionDe: norte sigue igual (kanto, johto) y el sur es alola', r.regiones.join() === 'kanto,johto,kanto,alola,alola,alola');
   check('el clima del sur es de yungas (selva)', r.clima === 'yungas');
   check('los nombres de zona del sur (' + r.zona.join(' | ') + ')', r.zona[0].startsWith('Alola') && r.zona[1] === 'Alola · Termas de Reyes' && r.zona[2].includes('San Francisco') && !r.zona[3].startsWith('Alola'));
-  check('la puerta del borde sur de San Salvador está abierta (3 de ancho)', r.puerta.slice(0, 3).every(c => c === '.') && r.puerta[3] === '#');
+  check('la puerta del borde sur de San Salvador está abierta (3 de ancho; por el medio baja la vía del tren)', r.puerta.slice(0, 3).every(c => '.|'.includes(c)) && r.puerta[3] === '#');
   check('4 altares nuevos en el sur', r.altares === 4);
   check('en Alola sólo salen Pokémon de Alola', r.pokes === 'alola');
   check('legendarios de Alola en los altares (' + r.legendarios + ')', r.legendarios.length > 0);
@@ -78,7 +78,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   check('el río se cruza por el puente (ida y vuelta)', r.cruzaRio);
   check('parado en el sur el juego sabe que está en alola y en el norte en kanto', r.advRegion === 'alola' && r.advRegionN === 'kanto');
   check('con el evento (mapa cerrado) el sur queda clausurado y el norte de Valles no', r.cerrado.join() === 'true,false,true' && r.abierto === false);
-  await page.screenshot({path: '/tmp/claude-0/-root/b70858be-5edb-4e9c-bb87-88f6028271ef/scratchpad/sur.png'});
+  await page.screenshot({path: '/tmp/claude-0/-root/81d219e0-d3bc-4c9d-a16f-dc25ce426a9f/scratchpad/sur.png'});
   const E = r.eje;
   check('Concejo en la punta norte (y 1-2, x 39-42, sobre la Av. Bolivia)', E.concejo && E.concejo.y < 3 && E.concejo.x > 38 && E.concejo.n === 8);
   check('Casa de Gobierno entre el Parque San Martín (oeste) y la Plaza Belgrano (este): x 21-25, fila 14', E.gobierno && E.gobierno.x === 23 && E.gobierno.y === 14);

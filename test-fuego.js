@@ -24,7 +24,7 @@ const suf = Math.random().toString(36).slice(2, 5);
 
   const zonas = await p.evaluate(() => ZONAS_FUEGO.map(([x, y]) => advTileEn(x, y).encuentro));
   check('las 12 zonas de fuego están en el mapa', zonas.length === 12 && zonas.every(e => e === 'fuego'));
-  const regiones = await p.evaluate(() => ZONAS_FUEGO.map(([x]) => x <= 54 ? 'kanto' : 'johto'));
+  const regiones = await p.evaluate(() => ZONAS_FUEGO.map(([x, y]) => regionDe(x, y)));
   check('6 en Kanto y 6 en Johto', regiones.filter(r => r === 'kanto').length === 6 && regiones.filter(r => r === 'johto').length === 6);
   // todas se pueden alcanzar caminando (el reparador del mapa)
   const alcanzables = await p.evaluate(() => {

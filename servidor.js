@@ -863,7 +863,7 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
   }
   const nombres = [], globos = [], bats = [];
   let npcCerca = null;
-  nombres.push({n: '', r: nombreRango(rangoPropio()), px: advPx - camX, py: advPy - camY - subeMontura(montura), yo: true});   // mi propio rango, sin repetir mi nombre
+  nombres.push({n: '', r: nombreRango(rangoPropio()), px: advPx - camX, py: advPy - camY - subeMontura(montura, avatarActual), yo: true});   // mi propio rango, sin repetir mi nombre
   if(MUNDO.buscando) bats.push({id: null, px: advPx - camX, py: advPy - camY});
   const miGlobo = MUNDO.globos[MUNDO.yo];
   if(miGlobo && ahora < miGlobo.hasta) globos.push({txt: miGlobo.txt, px: advPx - camX, py: advPy - camY});
@@ -877,7 +877,7 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
     const sx = o.x - camX, sy = o.y - camY;
     if(sx < -24 || sy < -32 || sx > vw + 8 || sy > vh + 8) continue;
     if(!(o.mo && dibujarMontadoOtro(ctx, sx, sy, o, camina))) dibujarEntrenador(ctx, sx, sy, o.d, camina ? Math.floor(ahora / 140) % 4 : 0, o.av);
-    nombres.push({n: (o.em ? '👑 ' : '') + o.n, r: nombreRango(o.rg), px: sx, py: sy - (o.mo ? subeMontura(o.mo) : 0)});
+    nombres.push({n: (o.em ? '👑 ' : '') + o.n, r: nombreRango(o.rg), px: sx, py: sy - (o.mo ? subeMontura(o.mo, o.av) : 0)});
     if(o.npc && Math.abs(o.x - advPx) <= 40 && Math.abs(o.y - advPy) <= 40) npcCerca = {id: o.npc, nombre: o.n};
     if(MUNDO.busca[id] && ahora < MUNDO.busca[id] && !MUNDO.buscando) bats.push({id, px: sx, py: sy});
     const g = MUNDO.globos[id];
@@ -1006,7 +1006,12 @@ function batallaTocar(){
 (() => { const bb = document.getElementById('advBatBtn'); if(bb) bb.onclick = batallaTocar; })();
 /* Nombre del rango ganado (los bots y el 'Novato' no llevan cartel) */
 /* Cuánto hay que subir el cartel para que quede arriba de la cabeza del Pokémon de montura y no encima */
-function subeMontura(clave){ const m = clave && MONTURAS[clave]; return m ? Math.max(0, m.alto + (m.vuela ? 8 : 0) - 16) : 0; }
+function subeMontura(clave, av){
+  const m = clave && MONTURAS[clave]; if(!m) return 0;
+  const hd = MONTURA_HD[clave + '-' + av];
+  if(hd){ const hMax = Math.max(...Object.values(hd.vistas).map(v => v.h)) * hd.alto / 300; return Math.max(0, hMax + (m.vuela ? 9 : 0) - 17); }   // arriba de la cabeza del jinete, no sobre el cuerpo
+  return Math.max(0, m.alto + (m.vuela ? 8 : 0) - 16);
+}
 function nombreRango(i){ const r = RANGOS_MAESTRO[i | 0]; return i > 0 && r ? r.nombre : ''; }
 function sincronizarNombres(lista, escala){
   const caja = document.getElementById('advNombres');

@@ -15,41 +15,64 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
     if(await page.isVisible('#battleCloseBtn')){ await page.click('#battleCloseBtn'); await page.waitForTimeout(300); }
   }
   await page.click('#advBtn'); await page.waitForTimeout(600);
-  console.log('\n— Tren Solar —');
-  const t = await page.evaluate(() => {
-    const r = {};
-    for(let t = 0; t < TREN_CICLO; t += 50){ const e = trenEstado(t); if(r.sale === undefined && e.parado && e.x === 134 && e.dir > 0) r.sale = t; if(r.llega === undefined && e.parado && e.x === 188 && e.dir > 0) r.llega = t; }
-    return r;
+  console.log('\n— Tren Solar (mundo v7: recorre TODA la grilla 3x3) —');
+  const rec = await page.evaluate(() => {
+    const r = {regiones: new Set(), fuera: 0, muestras: 0, paradas: new Set(), saltoMax: 0};
+    let ant = null;
+    for(let t = 0; t < TREN_CICLO; t += 250){
+      const e = trenEstado(t); r.muestras++;
+      const ch = ADV_MAPS.overworld.rows[Math.round(e.y)][Math.round(e.x)];
+      if(!(ADV_TILE[ch] && ADV_TILE[ch].walk)) r.fuera++;
+      r.regiones.add(regionDe(Math.round(e.x), Math.round(e.y)));
+      if(e.parado) r.paradas.add(e.est);
+      if(ant) r.saltoMax = Math.max(r.saltoMax, Math.abs(e.x - ant.x) + Math.abs(e.y - ant.y));
+      ant = e;
+    }
+    return {regiones: [...r.regiones].sort(), fuera: r.fuera, muestras: r.muestras, paradas: [...r.paradas].sort(), saltoMax: r.saltoMax, n: TREN_DATOS.paradas.length};
   });
-  check('el tren para en Purmamarca y en Humahuaca', t.sale !== undefined && t.llega !== undefined);
+  console.log('  regiones:', rec.regiones.join(','), '· paradas:', rec.paradas.join(','), '· salto máx', rec.saltoMax.toFixed(2));
+  check('el tren recorre las 7 regiones', rec.regiones.length === 7);
+  check('el tren para en las 7 estaciones', rec.paradas.length === rec.n && rec.n === 7);
+  check('en todo el recorrido va sobre casilleros caminables (vía/puente/estación)', rec.fuera === 0);
+  check('no da saltos (muestras cada 250 ms avanzan <= 1,1 casillero)', rec.saltoMax <= 1.1);
+  const paradas = await page.evaluate(() => TREN_DATOS.paradas.map(p => ({n: p.n, x: p.x, y: p.y, baja: p.baja, ok: (() => { const c = ADV_MAPS.overworld.rows[p.baja[1]][p.baja[0]]; return !!(ADV_TILE[c] && ADV_TILE[c].walk); })()})));
+  check('el lugar donde se baja en cada estación es caminable', paradas.every(p => p.ok));
   const fijar = (tt, x, y) => page.evaluate(([tt, x, y]) => { Date.now = () => tt; advPonerEn(x, y); advEje = {x:0, y:0}; }, [tt, x, y]);
-  // lejos de la estación no hay botón
-  await fijar(t.sale + 1000, 120, 42); await page.waitForTimeout(300);
+  const momento = (est) => page.evaluate(e => { let t = 0; for(const tr of TREN_TRAMOS){ if(tr.de === e) return t; t += TREN_PARADA + tr.ms; } return -1; }, est);
+  // lejos de la estación no hay botón; cerca con el tren parado, sí; en marcha, no
+  const cap = paradas[0], t0 = await momento(0);
+  await fijar(t0 + 1000, cap.x + 10, cap.y - 1); await page.waitForTimeout(300);
   check('lejos de la estación no se ofrece subir', await page.evaluate(() => document.getElementById('advTrenBtn').hidden));
-  // cerca con el tren parado: botón Subir
-  await fijar(t.sale + 1000, 134, 42); await page.waitForTimeout(300);
-  check('con el tren parado y cerca de la vía aparece "Subir"', await page.evaluate(() => !document.getElementById('advTrenBtn').hidden && /Subir/.test(document.getElementById('advTrenBtn').textContent)));
+  await fijar(t0 + 1000, cap.baja[0], cap.baja[1]); await page.waitForTimeout(300);
+  check('en la Capital, con el tren parado, aparece "Subir"', await page.evaluate(() => !document.getElementById('advTrenBtn').hidden && /Subir/.test(document.getElementById('advTrenBtn').textContent)));
   await page.click('#advTrenBtn'); await page.waitForTimeout(200);
   check('al tocar, el jugador sube al tren', await page.evaluate(() => advTrenAbordo === true));
-  // viaja: a mitad de camino entre Purmamarca y Humahuaca está en marcha, en la Alta Quebrada o en el borde
-  const tramo = t.sale + 8000 + 1000; // ya salió
-  await page.evaluate(([tt]) => { Date.now = () => tt; }, [t.sale + 9000]); await page.waitForTimeout(300);
-  const mov = await page.evaluate(() => ({x: advX, y: advY, reg: advRegion, txt: document.getElementById('advTrenBtn').textContent}));
-  check('mientras viaja avanza con el tren (x>134)', mov.x > 134);
-  check('el botón muestra que está viajando', /Viajando/.test(mov.txt));
+  // viaja por todo el ciclo: baja en cada parada del ciclo, en su lugar, y la región cambia
+  const ciclo = await page.evaluate(() => TREN_TRAMOS.map(t => t.de));
+  let bien = 0, regs = [];
+  for(let i = 1; i < ciclo.length; i++){
+    const ti = await momento(ciclo[i]);
+    await page.evaluate(([tt]) => { Date.now = () => tt; }, [ti + 500]); await page.waitForTimeout(250);
+    const lleg = await page.evaluate(() => ({reg: advRegion, txt: document.getElementById('advTrenBtn').textContent, x: advX, y: advY}));
+    regs.push(lleg.reg);
+    if(/Bajar/.test(lleg.txt)) bien++;
+  }
+  check('en cada parada del ciclo ofrece "Bajar" (' + bien + '/' + (ciclo.length - 1) + ')', bien === ciclo.length - 1);
+  check('viajando pasó por regiones distintas: ' + [...new Set(regs)].join(','), new Set(regs).size >= 6);
+  // a mitad de un tramo vertical va en marcha y el jugador sigue al tren
+  await page.evaluate(() => { const tr = TREN_TRAMOS[1]; let t = 0; for(const q of TREN_TRAMOS){ if(q === tr) break; t += TREN_PARADA + q.ms; } Date.now = () => t + TREN_PARADA + tr.ms * 0.55; });
+  await page.waitForTimeout(300);
+  const mov = await page.evaluate(() => { const e = trenEstado(Date.now()); return {viaja: /Viajando/.test(document.getElementById('advTrenBtn').textContent), dx: Math.abs(advX - e.x), dy: Math.abs(advY - e.y), hx: e.hx, hy: e.hy}; });
+  check('en marcha el botón dice "Viajando" y el jugador va pegado al tren', mov.viaja && mov.dx <= 1.5 && mov.dy <= 1.5);
   await page.evaluate(() => { advEje = {x: -1, y: 0}; }); await page.waitForTimeout(300);
-  check('arriba del tren no se camina', await page.evaluate(() => Math.abs(advX - Math.floor(trenEstado(Date.now()).x)) <= 1));
-  // llega a Humahuaca y baja
-  await page.evaluate(([tt]) => { Date.now = () => tt; }, [t.llega + 1000]); await page.waitForTimeout(300);
-  const lleg = await page.evaluate(() => ({reg: advRegion, txt: document.getElementById('advTrenBtn').textContent}));
-  check('llegó a la Alta Quebrada (región cambió)', lleg.reg === 'hoenn' || lleg.reg === 'sinnoh');
-  check('en la parada ofrece "Bajar"', /Bajar/.test(lleg.txt));
+  check('arriba del tren no se camina', await page.evaluate(() => { const e = trenEstado(Date.now()); return Math.abs(advX - e.x) <= 1.5 && Math.abs(advY - e.y) <= 1.5; }));
+  // baja en Alola
+  const ta = await momento(6);
+  await page.evaluate(([tt]) => { Date.now = () => tt; }, [ta + 500]); await page.waitForTimeout(300);
   await page.click('#advTrenBtn'); await page.waitForTimeout(300);
-  const baj = await page.evaluate(() => ({a: advTrenAbordo, y: advY, x: advX}));
-  check('bajó y quedó caminando junto a la vía', baj.a === false && baj.y === 42 && Math.abs(baj.x - 188) <= 1);
-  // en marcha no se puede subir
-  await fijar(t.sale + 9000, 150, 42); await page.waitForTimeout(300);
-  check('con el tren en marcha no se ofrece subir', await page.evaluate(() => document.getElementById('advTrenBtn').hidden));
+  const baj = await page.evaluate(() => ({a: advTrenAbordo, x: advX, y: advY, r: regionDe(advX, advY)}));
+  const alola = paradas[6];
+  check('bajó en San Pedro de Jujuy (Alola) junto a la vía', baj.a === false && baj.x === alola.baja[0] && baj.y === alola.baja[1] && baj.r === 'alola');
   check('sin errores de JS', errores.length === 0);
   if(errores.length) console.log(errores);
   console.log(`\n${ok} ok · ${fail} fallan`);

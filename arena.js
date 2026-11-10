@@ -1257,7 +1257,7 @@ const MOVS_ESPECIALES = {
 /* Ataques sumados a mano al repertorio de un Pokémon, en un botón distinto al del catálogo (10/11 Zeta: Fuego Fatuo como ataque largo
    de Gengar). Sólo entran en el sorteo cuando se CAMBIA un ataque (Entrenar) o cuando el rival saca los suyos al azar: los ejemplares
    que ya existen conservan lo que tenían. prob = chance de que salga en ese sorteo. */
-const APR_EXTRA = {94: {largo: [{n:'Fuego Fatuo', fx:'zona', prob:.25}]}};
+const APR_EXTRA = {94: {largo: [{n:'Fuego Fatuo', fx:'rayo', prob:.25}]}};
 function movExtra(id, alc, semilla){
   const l = APR_EXTRA[id] && APR_EXTRA[id][alc];
   if(!l || !(typeof semilla === 'number' || String(semilla).includes('#'))) return null;
@@ -2537,6 +2537,25 @@ function fatuoSalida(e, z){
   }
   flashPantalla('#1b1040');
 }
+/* Fuego Fatuo en línea recta: una llama azul grande sale de Gengar derecho hacia donde apunta, con estela de llamitas fantasma.
+   Le pega al primero que se cruce en la línea (el daño lo resuelve dispararLargo). */
+function fatuoRecto(e, c, d){
+  const U = u(), L = Math.hypot(G.W, G.H), x0 = c.x + d.x * e.w * .3, y0 = c.y + d.y * e.h * .2, dist = L * .85, dur = 430, T = 11 * U;
+  const orbe = mk('ar-fatuo', {position:'absolute', pointerEvents:'none', left:x0 + 'px', top:y0 + 'px', width:T + 'px', height:T + 'px', opacity:0, borderRadius:'50%',
+    background:'radial-gradient(circle, #ffffff 0 18%, #BFEBFF 19% 38%, #6FD3FF 39% 62%, #5B3FD6 63% 100%)', boxShadow:'0 0 ' + (T * .9) + 'px #6FD3FF'}, FX);
+  const an = orbe.animate([
+    {transform:'translate(-50%,-50%) scale(.4)', opacity:1},
+    {transform:`translate(${d.x * dist * .06}px, ${d.y * dist * .06}px) translate(-50%,-50%) scale(1.1)`, opacity:1, offset:.06},
+    {transform:`translate(${d.x * dist}px, ${d.y * dist}px) translate(-50%,-50%) scale(1)`, opacity:1, offset:.94},
+    {transform:`translate(${d.x * dist}px, ${d.y * dist}px) translate(-50%,-50%) scale(.6)`, opacity:0}], {duration:dur, easing:'linear', fill:'forwards'});
+  const q = () => orbe.remove(); an.finished.then(q, q);
+  const N = REDUCE ? 10 : 26;
+  for(let i = 0; i < N; i++) setTimeout(() => {
+    if(!FX) return; const f = (i / N) * dist * .92;
+    particula(x0 + d.x * f, y0 + d.y * f, FATUO[1], Math.max(7, U * 3.2), azar(-1, 1) * U, -azar(1, 4) * U, 480, {forma:'llama', s0:.7, s1:1.9, colores:FATUO, suave:true});
+  }, i * (dur * .9 / N));
+  flashPantalla('#1b1040'); sfx('rayo');
+}
 function fatuoEstalla(z){
   const U = u(), N = REDUCE ? 8 : 18;
   aro(z.x, z.y, FATUO[1], z.r * 1.15); setTimeout(() => PISO && aro(z.x, z.y, '#B88BFF', z.r * 1.35), 110);
@@ -2634,7 +2653,7 @@ function dispararLargo(e){
   if(mov.fx === 'rayo'){
     if(mov.n === 'Shuriken Gigante') teletransporteNinja(e, O);   // Greninja aparece lejos del rival y tira desde ahí
     const c = cen(e), d = (mov.n === 'Shuriken Gigante' ? null : A.dirLock) || unit(c, cen(O));
-    if(mov.n === 'Dimensión Total') manosRecto(e, c, d); else if(mov.n === 'Shuriken Gigante') shurikenRecto(e, c, d); else rayoTipo(e, mov, c, d);
+    if(mov.n === 'Fuego Fatuo') fatuoRecto(e, c, d); else if(mov.n === 'Dimensión Total') manosRecto(e, c, d); else if(mov.n === 'Shuriken Gigante') shurikenRecto(e, c, d); else rayoTipo(e, mov, c, d);
     destello(c.x + d.x * e.w * .3, c.y + d.y * e.h * .3, .9);
     e.kx -= d.x * 40 * U; e.ky -= d.y * 40 * U;
     sacudir(1.2);
@@ -2642,7 +2661,10 @@ function dispararLargo(e){
     const oc = cen(O), vx = oc.x - c.x, vy = oc.y - c.y, proj = vx * d.x + vy * d.y;
     const lat = Math.abs(vx * d.y - vy * d.x);
     if(proj > 0 && lat <= radio(O) + 2.4 * U){
-      if(golpear(e, O, 'largo', oc.x, oc.y)) marca(pie(O).x, pie(O).y, 6 * U, col);
+      if(golpear(e, O, 'largo', oc.x, oc.y)){
+        marca(pie(O).x, pie(O).y, 6 * U, col);
+        if(mov.n === 'Fuego Fatuo') setTimeout(() => FX && fatuoEstalla({x:pie(O).x, y:pie(O).y, r:7 * U}), Math.min(300, proj / (Math.hypot(G.W, G.H) * .85) * 430));   // la llama llega y estalla sobre el rival
+      }
     }
     return;
   }

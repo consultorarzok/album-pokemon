@@ -47,16 +47,18 @@ const espera = (p, fn, arg, ms = 8000) => p.waitForFunction(fn, arg, {timeout: m
     check('el cartel explica la regla', /Sólo Kanto y Johto · gana el que más Pokémon atrape/.test(await p.textContent('#eventoBannerSub')));
     await p.click('#tabEvento');
     check('la pestaña del evento muestra los premios', await espera(p, () => /Premios del Evento Halloween/.test(document.getElementById('rankDone').textContent) && /Charizard shiny/.test(document.getElementById('rankDone').textContent)));
-    /* aventura: el paso a Hoenn tiene calabazas y no se puede pasar */
-    await p.evaluate(() => { abrirAventura(); advPonerEn(105, 42); advRender(); });
+    /* aventura (mundo v7, grilla 3x3): en el borde de Kanto/Johto con las demás regiones hay calabazas y no se puede pasar */
+    const paso = await p.evaluate(() => { const L = calabazasDelEvento(); for(const c of L) for(const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx = c.x - dx, ny = c.y - dy, t = advTileEn(nx, ny); if(t && t.walk && !cerradoPorEvento(nx, ny)) return {x: nx, y: ny, dx, dy}; } return null; });
+    check('el evento deja calabazas en los pasos (' + (paso ? paso.x + ',' + paso.y : 'ninguna') + ')', !!paso);
+    await p.evaluate(({x, y}) => { abrirAventura(); advPonerEn(x, y); advRender(); }, paso);
     await p.waitForTimeout(400);
-    check('hay calabazas en el paso a Hoenn', await p.evaluate(() => [...document.querySelectorAll('#advObjetos span')].some(s => s.dataset.tipo === 'calabaza' && s.style.display !== 'none')));
-    for(let i = 0; i < 8; i++){ await p.evaluate(() => advMover(1, 0)); await p.waitForTimeout(60); }
-    check('no se puede pasar a Hoenn', await p.evaluate(() => advX < 109), await p.evaluate(() => advX));
+    check('hay calabazas en el paso a las regiones clausuradas', await p.evaluate(() => [...document.querySelectorAll('#advObjetos span')].some(s => s.dataset.tipo === 'calabaza' && s.style.display !== 'none')));
+    for(let i = 0; i < 8; i++){ await p.evaluate(d => advMover(d.dx, d.dy), paso); await p.waitForTimeout(60); }
+    check('no se puede pasar a las regiones clausuradas', await p.evaluate(() => !cerradoPorEvento(advX, advY)), await p.evaluate(() => advX + ',' + advY));
     check('avisa que está clausurado', /Clausurado por el Evento Halloween/.test(await p.textContent('#advZona')), await p.textContent('#advZona'));
     await p.screenshot({path: '/tmp/halloween-calabazas.png'});
     /* atrapar 2 */
-    const hierba = await p.evaluate(() => { const rows = ADV_MAPS.overworld.rows; for(let y = 0; y < rows.length; y++) for(let x = 0; x < 50; x++) if(rows[y][x] === '"') return {x, y}; });
+    const hierba = await p.evaluate(() => { const rows = ADV_MAPS.overworld.rows; for(let y = 0; y < rows.length; y++) for(let x = 0; x < rows[y].length; x++) if(rows[y][x] === '"' && regionDe(x, y) === 'kanto') return {x, y}; });
     for(let i = 0; i < 2; i++){
       await p.evaluate(h => salirEncuentro(ADV_TILE['"'], h.x, h.y), hierba);
       await espera(p, () => !!encuentro);
