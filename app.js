@@ -5173,7 +5173,7 @@ function dibujarMontadoHD(ctx, ox, oy, dir, m, clave){
   const flota = m.vuela ? 8 + Math.sin(t * 2.2) * 1.6 : 0;
   const trote = !m.vuela && camina ? Math.abs(Math.sin(camino / 3.4)) * 1.8 : 0;   // de tierra: saltitos al avanzar
   const nada = nadandoEnAgua(m);
-  const hundir = nada ? Math.sin(t * 2.6) * .8 : 0;   // 10/11 Zeta: no se hunde, flota entera sobre el agua   // de frente/espalda casi no se hunde: si no la montura queda tapada por el agua           // los de agua van metidos en el agua
+  const hundir = nada ? alto * HUNDE_EN_AGUA + Math.sin(t * 2.6) * .8 : 0;           // los de agua van metidos en el agua (Zeta 10/11: SE HUNDEN, así tiene que ser)   // de frente/espalda casi no se hunde: si no la montura queda tapada por el agua           // los de agua van metidos en el agua
   const cx = Math.round(ox) + 8, suelo = Math.round(oy) + 16, pie = suelo - flota - (nada ? 0 : trote) + hundir;
   if(!nada) sombraSuave(ctx, cx, suelo - 1, (vista === 'lado' ? ancho * .36 : ancho * .3) * (1 - flota * .012), 2.4, m.vuela ? .32 : .42);
   if(clave.startsWith('hooh') && camina) arcoirisHoOh(ctx, cx, pie - alto * .38, dir, t);
