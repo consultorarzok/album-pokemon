@@ -939,7 +939,7 @@ function renderGrid(){
 /* ====================== CARTEL DE NOVEDADES ======================
    05/11 Zeta: sale DOS veces por dispositivo (la 1.ª al entrar y la 2.ª en la siguiente vez que entra), después de los carteles de nombre,
    personaje y PIN. Se cuenta cuando el jugador lo cierra. Pasada NOVEDADES_HASTA no sale más. Para una novedad nueva se cambia NOVEDADES_ID. */
-const NOVEDADES_ID = '20261105', NOVEDADES_HASTA = '2026-11-14', NOVEDADES_VECES = 2;
+const NOVEDADES_ID = '20261110', NOVEDADES_HASTA = '2026-11-17', NOVEDADES_VECES = 2;
 function novedadesVistas(){ try{ return localStorage.getItem('album-novedades-id') === NOVEDADES_ID ? (Number(localStorage.getItem('album-novedades-veces')) || 0) : 0; }catch(e){ return 0; } }
 function mostrarNovedades(intentos){
   try{
