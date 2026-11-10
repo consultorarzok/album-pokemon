@@ -64,7 +64,8 @@ const AJUSTE={'Hoja Aguda':['corto','garra'],'Psicocolmillo':[null,'mordisco'],'
  'Vaho Gélido':[null,'tornado'],'Arenas Ardientes':[null,'tornado'],'Teraexplosión':[null,'estrella'],'Pirotecnia':[null,'bola','llama'],
  'Llama Embrujada':[null,'bola','llama'],'Envidia Ardiente':[null,'bola','llama'],'Voto Fuego':[null,'bola','llama'],'Fuego Fatuo':[null,'bola','llama'],
  'Giro Fuego':[null,'bola','llama'],'Electrotela':[null,'polvo'],'Bomba Huevo':['medio','bola','huevo'],'Canto':[null,'onda','nota'],
- 'Martillazo':[null,'zona'],'Onda Certera':[null,'zona']};
+ 'Martillazo':[null,'zona'],'Onda Certera':[null,'zona'],
+ 'Triple Axel':[null,'patada'],'Patada Tropical':[null,'patada'],'Electropico':[null,'picotazo'],'Presa Maxilar':[null,'mordisco'],'Branquibocado':[null,'mordisco'],'Garra Nociva':[null,'garra'],'Tajo Acuático':[null,'garra'],'Psicohojas':[null,'garra'],'Hachazo Pétreo':[null,'garra'],'Rodillo de Púas':[null,'cuerpo']};
 Object.values(CAT).forEach(c=>{const a=AJUSTE[c.es];if(!a)return;if(a[0])c.slot=a[0];if(a[1])c.fx=a[1];if(a[2])c.forma=a[2];});
 // pools por Pokémon: prioridad nivel > huevo/tutor > MT del tipo > otras MT
 const PRI={'level-up':0,'egg':1,'light-ball-egg':1,'tutor':2,'machine':2};

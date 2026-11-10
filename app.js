@@ -4855,19 +4855,19 @@ const MONTURA_HD = {
                                        lado:   {w: 317, h: 300, piv: [[.52, .40]]},
                                        espalda:{w: 300, h: 300, piv: [[.38, .40], [.62, .40]]}}},
   /* de tierra (sinAlas): un solo dibujo por vista y trota al avanzar. alto sale de medir la gorra en la vista de frente */
-  'entei-red': {alto: 42, sinAlas: true, vistas: {frente: {w: 185, h: 300}, lado: {w: 319, h: 300}, espalda: {w: 167, h: 300}}},
-  'entei-may': {alto: 35, sinAlas: true, vistas: {frente: {w: 180, h: 300}, lado: {w: 331, h: 300}, espalda: {w: 175, h: 300}}},
+  'entei-red': {alto: 42, sinAlas: true, patas: .3, vistas: {frente: {w: 185, h: 300}, lado: {w: 319, h: 300}, espalda: {w: 167, h: 300}}},
+  'entei-may': {alto: 35, sinAlas: true, patas: .3, vistas: {frente: {w: 180, h: 300}, lado: {w: 331, h: 300}, espalda: {w: 175, h: 300}}},
   'gyarados-red': {alto: 48, sinAlas: true, vistas: {frente: {w: 197, h: 300}, lado: {w: 300, h: 300}, espalda: {w: 159, h: 300}}},
   'gyarados-may': {alto: 42, sinAlas: true, vistas: {frente: {w: 199, h: 300}, lado: {w: 278, h: 300}, espalda: {w: 178, h: 300}}},
   /* 08/11: arcanine, snorlax, lapras, dragonite, hooh: jinete y Pokémon dibujados juntos (gpt-image-2); alto = px de mundo de la vista de frente */
-  'arcanine-red': {alto: 40, sinAlas: true, piernas: true, vistas: {frente: {w: 140, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 290, h: 269, piv: [[0.52,0.4]]}, espalda: {w: 128, h: 274, piv: [[0.38,0.4],[0.62,0.4]]}}},
-  'arcanine-may': {alto: 40, sinAlas: true, piernas: true, vistas: {frente: {w: 137, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 285, h: 272, piv: [[0.52,0.4]]}, espalda: {w: 126, h: 272, piv: [[0.38,0.4],[0.62,0.4]]}}},
-  'snorlax-red': {alto: 56, sinAlas: true, piernas: true, vistas: {frente: {w: 217, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 151, h: 294, piv: [[0.52,0.4]]}, espalda: {w: 205, h: 290, piv: [[0.38,0.4],[0.62,0.4]]}}},
-  'snorlax-may': {alto: 56, sinAlas: true, piernas: true, vistas: {frente: {w: 219, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 152, h: 297, piv: [[0.52,0.4]]}, espalda: {w: 207, h: 295, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'arcanine-red': {alto: 40, sinAlas: true, patas: .3, vistas: {frente: {w: 140, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 290, h: 269, piv: [[0.52,0.4]]}, espalda: {w: 128, h: 274, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'arcanine-may': {alto: 40, sinAlas: true, patas: .3, vistas: {frente: {w: 137, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 285, h: 272, piv: [[0.52,0.4]]}, espalda: {w: 126, h: 272, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'snorlax-red': {alto: 56, sinAlas: true, patas: .13, vistas: {frente: {w: 217, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 151, h: 294, piv: [[0.52,0.4]]}, espalda: {w: 205, h: 290, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'snorlax-may': {alto: 56, sinAlas: true, patas: .13, vistas: {frente: {w: 219, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 152, h: 297, piv: [[0.52,0.4]]}, espalda: {w: 207, h: 295, piv: [[0.38,0.4],[0.62,0.4]]}}},
   'lapras-red': {alto: 44, sinAlas: true, vistas: {frente: {w: 283, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 297, h: 259, piv: [[0.52,0.4]]}, espalda: {w: 254, h: 252, piv: [[0.38,0.4],[0.62,0.4]]}}},
   'lapras-may': {alto: 44, sinAlas: true, vistas: {frente: {w: 287, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 301, h: 272, piv: [[0.52,0.4]]}, espalda: {w: 258, h: 272, piv: [[0.38,0.4],[0.62,0.4]]}}},
-  'dragonite-red': {alto: 46, vistas: {frente: {w: 269, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 255, h: 279, piv: [[0.52,0.4]]}, espalda: {w: 272, h: 302, piv: [[0.38,0.4],[0.62,0.4]]}}},
-  'dragonite-may': {alto: 46, vistas: {frente: {w: 270, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 256, h: 290, piv: [[0.52,0.4]]}, espalda: {w: 273, h: 303, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'dragonite-red': {alto: 46, fundir: .3, vistas: {frente: {w: 269, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 255, h: 279, piv: [[0.52,0.4]]}, espalda: {w: 272, h: 302, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'dragonite-may': {alto: 46, fundir: .3, vistas: {frente: {w: 270, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 256, h: 290, piv: [[0.52,0.4]]}, espalda: {w: 273, h: 303, piv: [[0.38,0.4],[0.62,0.4]]}}},
   'hooh-red': {alto: 60, vistas: {frente: {w: 314, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 263, h: 328, piv: [[0.52,0.4]]}, espalda: {w: 297, h: 306, piv: [[0.38,0.4],[0.62,0.4]]}}},
   'hooh-may': {alto: 60, vistas: {frente: {w: 314, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 264, h: 328, piv: [[0.52,0.4]]}, espalda: {w: 297, h: 305, piv: [[0.38,0.4],[0.62,0.4]]}}}
 };
@@ -4877,6 +4877,96 @@ function capaHD(clave, vista, capa){
   if(!MONTURA_HD_IMG[k]){ const im = new Image(); im.src = 'images/monturas/' + k + '.png'; MONTURA_HD_IMG[k] = im; }
   const im = MONTURA_HD_IMG[k];
   return im.complete && im.naturalWidth ? im : null;
+}
+/* ---- Animación de las monturas SIN CORTES (10/11, Zeta: "parece que se rompen") ----
+   Antes las alas giraban como una capa suelta (se despegaban del cuerpo) y las patas se levantaban recortando la franja de abajo
+   (se veía el corte). Ahora cada cuadro se arma UNA vez deformando el dibujo pixel por pixel, de forma continua:
+   · patas (de tierra): la parte de abajo se acorta alternando un lado y el otro; arriba de las patas no se toca nada.
+   · alas de frente/espalda: cada columna del ala sube o baja según qué tan lejos está de la raíz (pegada al cuerpo: ahí no se mueve).
+   · ala de costado: se estira/encoge hacia arriba desde su raíz.
+   · fundir (Dragonite: sus capas de alas salieron mal recortadas): cuerpo y alas en un solo dibujo; el centro queda quieto y las puntas aletean.
+   Son 8 pasos por ciclo con sólo 5 dibujos distintos por vista; se guardan en memoria. */
+const MONT_FASES = [0, .7, 1, .7, 0, -.7, -1, -.7];
+const MONT_CUADROS = {};
+const suaveEsc = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / ((b - a) || 1e-6))); return t * t * (3 - 2 * t); };
+function datosDeImagen(im){
+  const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+  const x = c.getContext('2d', {willReadFrequently: true}); x.drawImage(im, 0, 0);
+  return x.getImageData(0, 0, c.width, c.height);
+}
+/* mueve cada columna con su propia función fila-de-destino → fila-de-origen (o -1 = vacío) */
+function deformarColumnas(src, origenDe){
+  const W = src.width, H = src.height, out = new ImageData(W, H), a = src.data, b = out.data;
+  for(let x = 0; x < W; x++){
+    const f = origenDe(x);
+    if(!f) { for(let y = 0; y < H; y++){ const i = (y * W + x) * 4; b[i] = a[i]; b[i + 1] = a[i + 1]; b[i + 2] = a[i + 2]; b[i + 3] = a[i + 3]; } continue; }
+    for(let y = 0; y < H; y++){
+      const sy = Math.round(f(y));
+      if(sy < 0 || sy >= H) continue;
+      const i = (y * W + x) * 4, j = (sy * W + x) * 4;
+      b[i] = a[j]; b[i + 1] = a[j + 1]; b[i + 2] = a[j + 2]; b[i + 3] = a[j + 3];
+    }
+  }
+  return out;
+}
+function cajaDe(d){
+  const W = d.width, H = d.height, a = d.data; let x0 = W, x1 = -1, y0 = H, y1 = -1;
+  for(let y = 0; y < H; y++) for(let x = 0; x < W; x++) if(a[(y * W + x) * 4 + 3] > 40){ if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y; }
+  return x1 < 0 ? null : {x0, x1, y0, y1};
+}
+function cuadroPaso(d, s, patas){
+  const c = cajaDe(d); if(!c) return d;
+  const h = c.y1 - c.y0 + 1, yc = c.y1 - patas * h, cx = (c.x0 + c.x1) / 2, m = (c.x1 - c.x0) * .1, L = c.y1 - yc;
+  return deformarColumnas(d, x => {
+    const wI = 1 - suaveEsc(cx - m, cx + m, x), lev = .05 * h * (Math.max(0, s) * wI + Math.max(0, -s) * (1 - wI));
+    if(lev < .5) return null;
+    return y => y <= yc ? y : (yc + (y - yc) * L / (L - lev) <= c.y1 ? yc + (y - yc) * L / (L - lev) : -1);
+  });
+}
+function cuadroAlas(d, s){            // capa de alas, de frente o de espalda
+  const W = d.width, H = d.height, a = d.data, cx = W / 2, hay = x => { for(let y = 0; y < H; y++) if(a[(y * W + x) * 4 + 3] > 40) return true; return false; };
+  const cols = []; for(let x = 0; x < W; x++) if(hay(x)) cols.push(x);
+  if(!cols.length) return d;
+  const izq = cols.filter(x => x < cx), der = cols.filter(x => x >= cx);
+  const lim = l => l.length ? [Math.min.apply(null, l), Math.max.apply(null, l)] : null, I = lim(izq), D = lim(der);
+  return deformarColumnas(d, x => {
+    let f = 0;
+    if(x < cx && I) f = (I[1] - x) / ((I[1] - I[0]) || 1); else if(x >= cx && D) f = (x - D[0]) / ((D[1] - D[0]) || 1);
+    const dy = Math.round(-s * .1 * H * Math.pow(Math.max(0, f), 1.3));
+    return dy ? (y => y - dy) : null;
+  });
+}
+function cuadroTodo(d, s, quieto){    // cuerpo y alas en un solo dibujo
+  const c = cajaDe(d); if(!c) return d;
+  const cx = (c.x0 + c.x1) / 2, medio = (c.x1 - c.x0) / 2 || 1, H = d.height;
+  return deformarColumnas(d, x => { const dy = Math.round(-s * .07 * H * suaveEsc(quieto, 1, Math.abs(x - cx) / medio)); return dy ? (y => y - dy) : null; });
+}
+function cuadroAlaLado(d, s){
+  const c = cajaDe(d); if(!c) return d;
+  const k = 1 + s * .16;
+  return deformarColumnas(d, () => (y => y > c.y1 ? -1 : c.y1 - (c.y1 - y) / k));
+}
+/* El dibujo completo (cuerpo + alas) de esa vista en la fase s. Devuelve un canvas, o null si no se pudo (se dibuja quieto). */
+function cuadroMontura(clave, vista, hd, cuerpo, alas, s){
+  const k = clave + '|' + vista + '|' + s;
+  if(k in MONT_CUADROS) return MONT_CUADROS[k];
+  let lienzo = null;
+  try{
+    const W = cuerpo.naturalWidth, H = cuerpo.naturalHeight;
+    lienzo = document.createElement('canvas'); lienzo.width = W; lienzo.height = H;
+    const x = lienzo.getContext('2d'), tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H;
+    const poner = datos => { tmp.getContext('2d').putImageData(datos, 0, 0); x.drawImage(tmp, 0, 0); };
+    if(hd.sinAlas) poner(hd.patas && s ? cuadroPaso(datosDeImagen(cuerpo), s, hd.patas) : datosDeImagen(cuerpo));
+    else if(hd.fundir){
+      x.drawImage(alas, 0, 0, W, H); x.drawImage(cuerpo, 0, 0);
+      if(vista !== 'lado' && s){ const d = cuadroTodo(x.getImageData(0, 0, W, H), s, hd.fundir); x.clearRect(0, 0, W, H); poner(d); }
+    } else {
+      const da = datosDeImagen(alas);
+      poner(!s ? da : vista === 'lado' ? cuadroAlaLado(da, s) : cuadroAlas(da, s));
+      x.drawImage(cuerpo, 0, 0);
+    }
+  }catch(e){ lienzo = null; }
+  return (MONT_CUADROS[k] = lienzo);
 }
 function dibujarMontadoOtro(ctx, ox, oy, o, camina){
   const m = MONTURAS[o.mo];
@@ -4906,28 +4996,17 @@ function dibujarMontadoHD(ctx, ox, oy, dir, m, clave){
   if(!nada) sombraSuave(ctx, cx, suelo - 1, (vista === 'lado' ? ancho * .36 : ancho * .3) * (1 - flota * .012), 2.4, m.vuela ? .32 : .42);
   ctx.save();
   if(nada){ ctx.beginPath(); ctx.rect(cx - ancho * 2, suelo - alto * 3, ancho * 4, alto * 3); ctx.clip(); }   // lo que queda abajo de la línea del agua no se ve
-  const ang = Math.sin(t * Math.PI * 2 * .9) * .11;            // aleteo suave (~6°, casi una vez por segundo)
+  /* fase del ciclo: los que vuelan aletean siempre; los de tierra pisan sólo mientras avanzan */
+  const fase = m.vuela ? MONT_FASES[Math.floor(t * 9) % 8] : (hd.patas && camina && !nada ? MONT_FASES[((Math.floor(camino / 3.4 * 8 / (Math.PI * 2)) % 8) + 8) % 8] : 0);
+  const cuadro = cuadroMontura(clave, vista, hd, cuerpo, alas, fase);
   ctx.save();
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.translate(cx, pie);
   if(dir === 'der') ctx.scale(-1, 1);                           // la vista de costado mira a la izquierda: a la derecha se espeja
-  if(!m.vuela && !nada && camina) ctx.rotate(Math.sin(camino / 3.4) * (hd.piernas ? .06 : .035));   // de tierra: se balancea al caminar (como pasos)
+  if(!m.vuela && !nada && camina) ctx.rotate(Math.sin(camino / 3.4) * .03);   // de tierra: se balancea apenas al caminar
   const x0 = -ancho / 2, y0 = -alto;
-  if(alas) V.piv.forEach(([px, py], i) => {
-    ctx.save();
-    if(V.piv.length > 1){ ctx.beginPath(); ctx.rect(i ? x0 + ancho / 2 : x0 - ancho, y0 - alto, ancho * 1.5, alto * 3); ctx.clip(); }   // cada mitad su ala
-    const gx = x0 + px * ancho, gy = y0 + py * alto;
-    ctx.translate(gx, gy); ctx.rotate(V.piv.length > 1 ? (i ? ang : -ang) : -ang * .8); ctx.translate(-gx, -gy);
-    ctx.drawImage(alas, x0, y0, ancho, alto);
-    ctx.restore();
-  });
-  if(hd.piernas && camina && !nada){
-    /* paso de a pie (Snorlax, Arcanine): la franja de abajo (patas) se levanta alternando izquierda/derecha */
-    const fase = Math.sin(camino / 3.4), lev = Math.max(0, fase) * alto * .05, lev2 = Math.max(0, -fase) * alto * .05, yc = y0 + alto * .76;
-    ctx.save(); ctx.beginPath(); ctx.rect(x0 - 6, y0 - 6, ancho + 12, yc - y0 + 6); ctx.clip(); ctx.drawImage(cuerpo, x0, y0, ancho, alto); ctx.restore();
-    ctx.save(); ctx.beginPath(); ctx.rect(x0 - 6, yc, ancho / 2 + 6, alto); ctx.clip(); ctx.drawImage(cuerpo, x0, y0 - lev, ancho, alto); ctx.restore();
-    ctx.save(); ctx.beginPath(); ctx.rect(x0 + ancho / 2, yc, ancho / 2 + 6, alto); ctx.clip(); ctx.drawImage(cuerpo, x0, y0 - lev2, ancho, alto); ctx.restore();
-  } else ctx.drawImage(cuerpo, x0, y0, ancho, alto);
+  if(cuadro) ctx.drawImage(cuadro, x0, y0, ancho, alto);
+  else { if(alas) ctx.drawImage(alas, x0, y0, ancho, alto); ctx.drawImage(cuerpo, x0, y0, ancho, alto); }   // sin cuadros: quieto, pero entero
   ctx.restore();
   ctx.restore();
   ctx.imageSmoothingEnabled = false;

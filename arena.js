@@ -179,23 +179,23 @@ const MOVS_CAT = [
   ['Rayo Confuso','ghost','onda','m'],['Rayo Hielo','ice','rayo','l'],['Rayo Meteórico','rock','rayo','l'],['Rayo Señal','bug','onda','m'],
   ['Rayo Solar','grass','rayo','l'],['Represalia','normal','golpe','c'],['Resarcimiento','dark','golpe','c'],['Residuos','poison','lodo','m'],
   ['Resplandor','psychic','rayo','l'],['Restricción','normal','latigo','c'],['Retribución','normal','golpe','c'],['Roca Afilada','rock','lluvia','l','roca'],
-  ['Rodar','rock','cuerpo','c'],['Rodillo de Púas','bug','golpe','c'],['Romperrocas','rock','rayo','l'],['Rueda Fuego','fire','cuerpo','c'],
+  ['Rodar','rock','cuerpo','c'],['Rodillo de Púas','bug','cuerpo','c'],['Romperrocas','rock','rayo','l'],['Rueda Fuego','fire','cuerpo','c'],
   ['Salmuera','water','chorro','m'],['Salpicadura','normal','burbujas','m'],['Salpicar','water','propia','l'],['Saña','normal','embestida','l'],
   ['Semilladora','grass','semillas','m'],['Sentencia','normal','rayo','l'],['Sísmico','fighting','zona','l'],['Sofoco','fire','zona','l'],
   ['Sombra Vil','ghost','bola','m'],['Somnífero','grass','polvo','m'],['Sumisión','fighting','cuerpo','c'],['Superdiente','normal','mordisco','c'],
-  ['Supersónico','normal','onda','m'],['Surf','water','propia','l'],['Tajo Acuático','water','golpe','c'],['Tajo Aéreo','flying','tornado','m','medialuna'],
+  ['Supersónico','normal','onda','m'],['Surf','water','propia','l'],['Tajo Acuático','water','garra','c'],['Tajo Aéreo','flying','tornado','m','medialuna'],
   ['Tajo Cruzado','fighting','embestida','l'],['Tajo Umbrío','dark','garra','c'],['Taladradora','ground','picotazo','c'],['Telaraña','bug','polvo','m'],
   ['Tenaza','water','garra','c'],['Teraexplosión','normal','estrella','m'],['Terratemblor','ground','suelo','m'],['Terremoto','ground','propia','l'],
   ['Testarazo','rock','embestida','l'],['Tierra Viva','ground','suelo','m'],['Tijera X','bug','garra','c'],['Tinieblas','ghost','onda','m'],
   ['Torbellino','water','tornado','m'],['Tormenta Floral','grass','lluvia','l','hoja'],['Tornado','flying','tornado','m'],['Transformación','normal','estrella','m'],
-  ['Treparrocas','normal','embestida','l'],['Triataque','normal','estrella','m','estrella'],['Triple Axel','ice','golpe','c'],['Triple Patada','fighting','patada','c'],
+  ['Treparrocas','normal','embestida','l'],['Triataque','normal','estrella','m','estrella'],['Triple Axel','ice','patada','c'],['Triple Patada','fighting','patada','c'],
   ['Triturar','dark','mordisco','c'],['Trueno','electric','trueno','l'],['Tumba Rocas','rock','piedra','m'],['Ultrapuño','fighting','golpe','c'],
   ['Vaho Gélido','ice','tornado','m'],['Vasta Fuerza','psychic','bola','m'],['Vasto Impacto','dragon','golpe','c'],['Velocidad Extrema','normal','golpe','c'],
   ['Vendaval','flying','lluvia','l','pluma'],['Vendetta','dark','golpe','c'],['Veneno X','poison','garra','c'],['Ventisca','ice','lluvia','l','cristal'],
   ['Viento Aciago','ghost','tornado','m'],['Viento Cortante','normal','lluvia','l'],['Viento Feérico','fairy','tornado','m'],['Viento Hielo','ice','tornado','m'],
   ['Viento Plata','bug','tornado','m'],['Viraje','water','golpe','c'],['Voltio Cruel','electric','embestida','l'],['Voto Agua','water','chorro','m'],
   ['Voto Fuego','fire','bola','m','llama'],['Voto Planta','grass','bola','m'],['Voz Cautivadora','fairy','onda','m'],['Vozarrón','normal','propia','l'],
-  ['Vuelo','flying','embestida','l'],['Zumbido','bug','rayo','l'],['Bomba Ígnea','fire','rayo','l'],['V de Fuego','fire','embestida','l'],['Pulso Noche','dark','bola','m'],['Asta Drenaje','grass','golpe','c'],['Rueda Doble','steel','golpe','c'],['Shuriken de Agua','water','estrella','m','estrella'],['Ariete','normal','embestida','l'],['Látigo Ígneo','fire','golpe','c'],['Danza Llama','fire','bola','m'],['Vendaval Gélido','flying','rayo','l'],['Electormenta','electric','rayo','l'],['Llama Azul','azul','rayo','l'],['Llama Fusión','fire','rayo','l'],['Ataque Fulgor','electric','embestida','l'],['Rayo Fusión','electric','embestida','l'],['Simún de Arena','ground','rayo','l'],['Mundo Gélido','ice','bola','m'],['Sable Místico','fighting','bola','m'],['Canto Arcaico','normal','bola','m'],['Tecno Shock','normal','rayo','l'],['Plancha Voladora','fighting','embestida','l'],['Punzada Rama','grass','golpe','c'],['Ala Mortífera','flying','bola','m'],['Mil Flechas','ground','embestida','l'],['Mil Temblores','ground','embestida','l'],['Fuerza Telúrica','ground','embestida','l'],['Núcleo Castigo','dragon','rayo','l'],['Tormenta de Diamantes','rock','embestida','l'],['Paso Dimensional','psychic','bola','m'],['Chorro de Vapor','water','rayo','l'],['Puntada Sombría','ghost','golpe','c'],['Pico Cañón','flying','embestida','l'],['Danza Despertar','normal','rayo','l'],['Roca Veloz','rock','golpe','c'],['Patada Tropical','grass','golpe','c'],['Multiataque','normal','embestida','l'],['Coraza Trampa','fire','rayo','l'],['Electropunzada','electric','golpe','c'],['Anclaje','steel','golpe','c'],['Fragor Escamas','dragon','rayo','l'],['Furia Natural','fairy','bola','m'],['Meteoimpacto','steel','embestida','l'],['Rayo Umbrío','ghost','rayo','l'],['Láser Prisma','psychic','rayo','l'],['Géiser Fotónico','psychic','rayo','l'],['Cañón Floral','fairy','rayo','l'],['Robasombra','ghost','embestida','l'],['Cabeza Sorpresa','fire','rayo','l'],['Puños Plasma','electric','embestida','l'],['Ferropuño Doble','steel','golpe','c'],['Batería Asalto','grass','golpe','c'],['Balón Ígneo','fire','embestida','l'],['Disparo Certero','water','bola','m'],['Presa Maxilar','dark','golpe','c'],['Fuerza G','grass','golpe','c'],['Ácido Málico','grass','bola','m'],['Amplificador','electric','bola','m'],['Irreverencia','dark','golpe','c'],['Choque Anímico','fairy','golpe','c'],['Asalto Estelar','fighting','embestida','l'],['Rueda Aural','electric','embestida','l'],['Electropico','electric','golpe','c'],['Branquibocado','water','golpe','c'],['Dracoflechas','dragon','golpe','c'],['Cañón Dinamax','dragon','rayo','l'],['Rayo Infinito','dragon','rayo','l'],['Golpe Oscuro','dark','golpe','c'],['Electrojaula','electric','bola','m'],['Dracoenergía','dragon','rayo','l'],['Hachazo Pétreo','rock','golpe','c'],['Homenaje Póstumo','ghost','golpe','c'],['Garra Nociva','poison','golpe','c'],['Ciclón Primavera','fairy','rayo','l'],['Truco Floral','grass','golpe','c'],['Canto Ardiente','fire','bola','m'],['Danza Acuática','water','golpe','c'],['Electropalmas','electric','embestida','l'],['Proliferación','normal','golpe','c'],['Salazón','rock','golpe','c'],['Cañón Armadura','fire','rayo','l'],['Espada Lamento','fire','embestida','l'],['Fotocolisión','psychic','bola','m'],['Martillo Colosal','steel','embestida','l'],['Triple Inmersión','water','golpe','c'],['Puño Jet','water','golpe','c'],['Quemarrueda','steel','embestida','l'],['Giro Mortífero','poison','golpe','c'],['Oído Cocina','dragon','golpe','c'],['Genufendiente','dark','golpe','c'],['Asalto Espadón','dragon','embestida','l'],['Fiebre Dorada','dorado','rayo','l'],['Calamidad','dark','bola','m'],['Nitrochoque','fighting','embestida','l'],['Electroderrape','electric','rayo','l'],['Hidrovapor','water','bola','m'],['Psicohojas','psychic','golpe','c'],['Bomba Caramelo','grass','bola','m'],['Cañón Batidor','grass','bola','m'],['Garrote Liana','grass','embestida','l'],['Electrorrayo','electric','rayo','l'],['Láser Veleidoso','dragon','bola','m'],['Relámpago Súbito','electric','bola','m'],['Filo Potente','rock','embestida','l'],['Tajo Taquión','steel','bola','m'],['Teraclúster','normal','rayo','l'],['Cadena Virulenta','poison','rayo','l'],
+  ['Vuelo','flying','embestida','l'],['Zumbido','bug','rayo','l'],['Bomba Ígnea','fire','rayo','l'],['V de Fuego','fire','embestida','l'],['Pulso Noche','dark','bola','m'],['Asta Drenaje','grass','golpe','c'],['Rueda Doble','steel','golpe','c'],['Shuriken de Agua','water','estrella','m','estrella'],['Ariete','normal','embestida','l'],['Látigo Ígneo','fire','golpe','c'],['Danza Llama','fire','bola','m'],['Vendaval Gélido','flying','rayo','l'],['Electormenta','electric','rayo','l'],['Llama Azul','azul','rayo','l'],['Llama Fusión','fire','rayo','l'],['Ataque Fulgor','electric','embestida','l'],['Rayo Fusión','electric','embestida','l'],['Simún de Arena','ground','rayo','l'],['Mundo Gélido','ice','bola','m'],['Sable Místico','fighting','bola','m'],['Canto Arcaico','normal','bola','m'],['Tecno Shock','normal','rayo','l'],['Plancha Voladora','fighting','embestida','l'],['Punzada Rama','grass','golpe','c'],['Ala Mortífera','flying','bola','m'],['Mil Flechas','ground','embestida','l'],['Mil Temblores','ground','embestida','l'],['Fuerza Telúrica','ground','embestida','l'],['Núcleo Castigo','dragon','rayo','l'],['Tormenta de Diamantes','rock','embestida','l'],['Paso Dimensional','psychic','bola','m'],['Chorro de Vapor','water','rayo','l'],['Puntada Sombría','ghost','golpe','c'],['Pico Cañón','flying','embestida','l'],['Danza Despertar','normal','rayo','l'],['Roca Veloz','rock','golpe','c'],['Patada Tropical','grass','patada','c'],['Multiataque','normal','embestida','l'],['Coraza Trampa','fire','rayo','l'],['Electropunzada','electric','golpe','c'],['Anclaje','steel','golpe','c'],['Fragor Escamas','dragon','rayo','l'],['Furia Natural','fairy','bola','m'],['Meteoimpacto','steel','embestida','l'],['Rayo Umbrío','ghost','rayo','l'],['Láser Prisma','psychic','rayo','l'],['Géiser Fotónico','psychic','rayo','l'],['Cañón Floral','fairy','rayo','l'],['Robasombra','ghost','embestida','l'],['Cabeza Sorpresa','fire','rayo','l'],['Puños Plasma','electric','embestida','l'],['Ferropuño Doble','steel','golpe','c'],['Batería Asalto','grass','golpe','c'],['Balón Ígneo','fire','embestida','l'],['Disparo Certero','water','bola','m'],['Presa Maxilar','dark','mordisco','c'],['Fuerza G','grass','golpe','c'],['Ácido Málico','grass','bola','m'],['Amplificador','electric','bola','m'],['Irreverencia','dark','golpe','c'],['Choque Anímico','fairy','golpe','c'],['Asalto Estelar','fighting','embestida','l'],['Rueda Aural','electric','embestida','l'],['Electropico','electric','picotazo','c'],['Branquibocado','water','mordisco','c'],['Dracoflechas','dragon','golpe','c'],['Cañón Dinamax','dragon','rayo','l'],['Rayo Infinito','dragon','rayo','l'],['Golpe Oscuro','dark','golpe','c'],['Electrojaula','electric','bola','m'],['Dracoenergía','dragon','rayo','l'],['Hachazo Pétreo','rock','garra','c'],['Homenaje Póstumo','ghost','golpe','c'],['Garra Nociva','poison','garra','c'],['Ciclón Primavera','fairy','rayo','l'],['Truco Floral','grass','golpe','c'],['Canto Ardiente','fire','bola','m'],['Danza Acuática','water','golpe','c'],['Electropalmas','electric','embestida','l'],['Proliferación','normal','golpe','c'],['Salazón','rock','golpe','c'],['Cañón Armadura','fire','rayo','l'],['Espada Lamento','fire','embestida','l'],['Fotocolisión','psychic','bola','m'],['Martillo Colosal','steel','embestida','l'],['Triple Inmersión','water','golpe','c'],['Puño Jet','water','golpe','c'],['Quemarrueda','steel','embestida','l'],['Giro Mortífero','poison','golpe','c'],['Oído Cocina','dragon','golpe','c'],['Genufendiente','dark','golpe','c'],['Asalto Espadón','dragon','embestida','l'],['Fiebre Dorada','dorado','rayo','l'],['Calamidad','dark','bola','m'],['Nitrochoque','fighting','embestida','l'],['Electroderrape','electric','rayo','l'],['Hidrovapor','water','bola','m'],['Psicohojas','psychic','garra','c'],['Bomba Caramelo','grass','bola','m'],['Cañón Batidor','grass','bola','m'],['Garrote Liana','grass','embestida','l'],['Electrorrayo','electric','rayo','l'],['Láser Veleidoso','dragon','bola','m'],['Relámpago Súbito','electric','bola','m'],['Filo Potente','rock','embestida','l'],['Tajo Taquión','steel','bola','m'],['Teraclúster','normal','rayo','l'],['Cadena Virulenta','poison','rayo','l'],
   ['Shuriken Gigante','water','rayo','l']   /* 07/11: Greninja desaparece y le tira un shuriken de agua enorme (ver dispararLargo) */
 ];
 const MOVS_APR = `1 228,291,202.2,159.2,1.2,105.3,33.3,186.3/207,55,347.1,178.1,209.1,246.2,58.2,360.2/344,227,114,127,112.1,237.1,405.1,70.1;
@@ -1254,6 +1254,20 @@ const MOVS_ESPECIALES = {
   10154: {corto:['Garra Azul','azul','garra'], medio:['Llama Azul','azul','bola','llama'], largo:['Aliento Azul','azul','rayo']},
   10155: {corto:['Puño Hoopa','dark','golpe'], medio:['Portal Anillo','psychic','onda','anillo'], largo:['Dimensión Total','psychic','rayo']}
 };
+/* Ataques sumados a mano al repertorio de un Pokémon, en un botón distinto al del catálogo (10/11 Zeta: Fuego Fatuo como ataque largo
+   de Gengar). Sólo entran en el sorteo cuando se CAMBIA un ataque (Entrenar) o cuando el rival saca los suyos al azar: los ejemplares
+   que ya existen conservan lo que tenían. prob = chance de que salga en ese sorteo. */
+const APR_EXTRA = {94: {largo: [{n:'Fuego Fatuo', fx:'zona', prob:.25}]}};
+function movExtra(id, alc, semilla){
+  const l = APR_EXTRA[id] && APR_EXTRA[id][alc];
+  if(!l || !(typeof semilla === 'number' || String(semilla).includes('#'))) return null;
+  let r = (semillaNum('x:' + id + ':' + alc + ':' + semilla) % 100000) / 100000;
+  for(const x of l){
+    if(r < x.prob){ const d = MOVS_CAT.find(c => c[0] === x.n); return d ? {n:d[0], tipo:d[1], fx:x.fx || d[2], forma:x.forma || d[4] || 'bola'} : null; }
+    r -= x.prob;
+  }
+  return null;
+}
 function movsDe(p, semilla, libre){
   if(p.especial && MOVS_ESPECIALES[p.id] && !libre){
     const out = {};
@@ -1264,11 +1278,19 @@ function movsDe(p, semilla, libre){
   const out = {};
   ATAQUES.forEach(alc => {
     const lista = (pools && pools[alc]) || [];
+    const ex = movExtra(id, alc, semilla);
+    if(ex){ out[alc] = ex; return; }
     if(!lista.length){ out[alc] = null; return; }
     const pesos = lista.map(x => PESO_PRI[Math.min(x.pr, 3)]), tot = pesos.reduce((a, b) => a + b, 0);
     let r = (semillaNum(id + ':' + alc + ':' + semilla) % 100000) / 100000 * tot, k = 0;
     while(k < lista.length - 1 && (r -= pesos[k]) >= 0) k++;
-    const x = lista[k], d = MOVS_CAT[x.i];
+    let x = lista[k], d = MOVS_CAT[x.i];
+    /* 10/11 Zeta ("que los poderes tengan sentido"): si le tocó un ataque Normal genérico de MT (Derribo, Doble Filo, Hiperrayo…) sin ser de
+       tipo Normal, y en ese botón sabe ataques de SU tipo, se queda con uno de los suyos. El resto de los ejemplares no cambia. */
+    if(x.pr >= 3 && d[1] === 'normal' && p.type !== 'normal' && p.type2 !== 'normal'){
+      const suyos = lista.filter(y => MOVS_CAT[y.i][1] === p.type || (p.type2 && MOVS_CAT[y.i][1] === p.type2));
+      if(suyos.length){ x = suyos[semillaNum('s:' + id + ':' + alc + ':' + semilla) % suyos.length]; d = MOVS_CAT[x.i]; }
+    }
     out[alc] = {n:d[0], tipo:d[1], fx:x.fx || d[2], forma:d[4] || FORMA_FX[x.fx || d[2]] || 'bola'};
   });
   return out;
@@ -1819,7 +1841,7 @@ function movsEjemplar(p, ej){
   return movs;
 }
 /* cuántos ataques distintos puede tener en cada botón (si es 1, cambiarlo no sirve) */
-const opcionesDeAtaque = p => ATAQUES.map(alc => { const l = (APRENDE[p.base || p.id] || {})[alc] || []; return new Set(l.map(x => x.i)).size; });
+const opcionesDeAtaque = p => ATAQUES.map(alc => { const id = p.base || p.id, l = (APRENDE[id] || {})[alc] || []; return new Set(l.map(x => x.i)).size + (((APR_EXTRA[id] || {})[alc] || []).length); });
 Object.assign(window.__arenaMovs, {movsEjemplar, opcionesDeAtaque});
 function crearMon(p, rival, ejFijo){
   const ej = ejFijo || (rival ? null : mejorEjemplar(p.id));
@@ -2313,7 +2335,7 @@ function disparoMedio(e){
 
 /* ---- ataques de largo alcance ---- */
 function prepararLargo(e){
-  const A = e.accion, mov = A.mov, O = otro(e), col = TYPE_COLORS[mov.tipo];
+  const A = e.accion, mov = A.mov, O = otro(e), col = mov.n === 'Fuego Fatuo' ? '#6FD3FF' : TYPE_COLORS[mov.tipo];
   e.wrap.classList.add('ar-carga'); e.rot.style.setProperty('--tc', col);
   if(mov.fx === 'rayo' || mov.fx === 'embestida'){ A.tele = [mk('ar-mira', {background:col})]; return; }
   const propia = mov.fx === 'propia';
@@ -2505,8 +2527,35 @@ function caidaPlasma(z){
   for(let i = 0; i < 10; i++){ const a = i / 10 * Math.PI * 2; particula(z.x, cy, '#fff8b0', Math.max(2, U * 1.2), Math.cos(a) * z.r * 1.4, Math.sin(a) * z.r * 1.4 * G.pz, 380, {forma:'chispa'}); }
   sacudir(2.8, true);
 }
+/* Fuego Fatuo (ulti de Gengar, 10/11 Zeta): llamas fantasma azules. Salen de Gengar, rodean al rival y se cierran sobre él. */
+const FATUO = ['#F2FBFF', '#6FD3FF', '#5B3FD6'];
+function fatuoSalida(e, z){
+  const U = u(), c = cen(e), N = REDUCE ? 3 : 6;
+  for(let i = 0; i < N; i++){
+    const a = i / N * Math.PI * 2, tx = z.x + Math.cos(a) * z.r * .95, ty = z.y + Math.sin(a) * z.r * .95 * G.pz - 3 * U;
+    particula(c.x, c.y, FATUO[1], Math.max(8, U * 4), tx - c.x, ty - c.y, 430, {forma:'llama', s0:.5, s1:1.5, colores:FATUO, suave:true, delay:i * 28, op:.95});
+  }
+  flashPantalla('#1b1040');
+}
+function fatuoEstalla(z){
+  const U = u(), N = REDUCE ? 8 : 18;
+  aro(z.x, z.y, FATUO[1], z.r * 1.15); setTimeout(() => PISO && aro(z.x, z.y, '#B88BFF', z.r * 1.35), 110);
+  for(let i = 0; i < N; i++){                       // el aro de llamas se cierra hacia el centro
+    const a = i / N * Math.PI * 2, x0 = z.x + Math.cos(a) * z.r * .95, y0 = z.y + Math.sin(a) * z.r * .95 * G.pz;
+    particula(x0, y0 - 2 * U, FATUO[1], Math.max(7, U * 3.4), (z.x - x0) * .85, (z.y - y0) * .85 - azar(4, 8) * U, 620,
+      {forma:'llama', s0:.7, s1:2.2, colores:FATUO, suave:true, delay:(i % 6) * 26});
+  }
+  for(let i = 0; i < (REDUCE ? 3 : 7); i++)           // columna de fuego azul en el centro
+    particula(z.x + azar(-2, 2) * U, z.y - 2 * U, FATUO[0], Math.max(8, U * 4.4), azar(-1.5, 1.5) * U, -azar(10, 18) * U, 700,
+      {forma:'llama', s0:.8, s1:2.8, colores:FATUO, suave:true, delay:260 + i * 45});
+  [-1, 1].forEach(s => particula(z.x + s * 2.2 * U, z.y - 13 * U, '#ff3b5c', Math.max(3, U * 1.3), 0, -U, 800, {op:1, delay:300}));   // los ojos de Gengar
+  destello(z.x, z.y - 4 * U, 1.1);
+  marca(z.x, z.y, z.r, '#3B6FE0');
+  sacudir(1.8, true);
+}
 function estallidoZona(z, mov){
   if(mov.n === 'Puño Plasma'){ caidaPlasma(z); marca(z.x, z.y, z.r * 1.1, '#F7D02C'); return; }
+  if(mov.n === 'Fuego Fatuo'){ fatuoEstalla(z); return; }
   const tipo = mov.tipo, col = TYPE_COLORS[tipo], U = u(), n = mov.n;
   const explota = /Explosión|Autodestrucción/.test(n);
   aro(z.x, z.y, col, z.r * 1.1);
@@ -2643,6 +2692,7 @@ function dispararLargo(e){
   }
   if(z.propia){ const p = pie(e); z.x = p.x; z.y = p.y; }
   sfx('lluvia');
+  if(mov.n === 'Fuego Fatuo'){ fatuoSalida(e, z); AR.zonas.push({e:e.lado, zona:z, t:0, imp:.42, mov, estalla:true}); return; }
   AR.zonas.push({e:e.lado, zona:z, t:0, imp:.05, mov, estalla:true});
 }
 
