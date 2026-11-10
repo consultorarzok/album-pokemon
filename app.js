@@ -5028,7 +5028,7 @@ const MONTURA_HD = {
   'arcanine-may': {alto: 40, sinAlas: true, patas: .3, vistas: {frente: {w: 137, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 285, h: 272, piv: [[0.52,0.4]]}, espalda: {w: 126, h: 272, piv: [[0.38,0.4],[0.62,0.4]]}}},
   'snorlax-red': {alto: 56, sinAlas: true, patas: .13, vistas: {frente: {w: 217, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 151, h: 294, piv: [[0.52,0.4]]}, espalda: {w: 205, h: 290, piv: [[0.38,0.4],[0.62,0.4]]}}},
   'snorlax-may': {alto: 56, sinAlas: true, patas: .13, vistas: {frente: {w: 219, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 152, h: 297, piv: [[0.52,0.4]]}, espalda: {w: 207, h: 295, piv: [[0.38,0.4],[0.62,0.4]]}}},
-  'lapras-red': {alto: 44, sinAlas: true, vistas: {frente: {w: 283, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 297, h: 259, piv: [[0.52,0.4]]}, espalda: {w: 254, h: 252, piv: [[0.38,0.4],[0.62,0.4]]}}},
+  'lapras-red': {alto: 44, sinAlas: true, vistas: {frente: {w: 270, h: 270, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 297, h: 259, piv: [[0.52,0.4]]}, espalda: {w: 254, h: 252, piv: [[0.38,0.4],[0.62,0.4]]}}},
   'lapras-may': {alto: 44, sinAlas: true, vistas: {frente: {w: 287, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 301, h: 272, piv: [[0.52,0.4]]}, espalda: {w: 258, h: 272, piv: [[0.38,0.4],[0.62,0.4]]}}},
   'dragonite-red': {alto: 46, fundir: .3, vistas: {frente: {w: 269, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 255, h: 279, piv: [[0.52,0.4]]}, espalda: {w: 272, h: 302, piv: [[0.38,0.4],[0.62,0.4]]}}},
   'dragonite-may': {alto: 46, fundir: .3, vistas: {frente: {w: 270, h: 300, piv: [[0.35,0.4],[0.65,0.4]]}, lado: {w: 256, h: 290, piv: [[0.52,0.4]]}, espalda: {w: 273, h: 303, piv: [[0.38,0.4],[0.62,0.4]]}}},
@@ -5193,7 +5193,18 @@ function dibujarMontadoHD(ctx, ox, oy, dir, m, clave){
   ctx.restore();
   ctx.restore();
   ctx.imageSmoothingEnabled = false;
-  if(nada && camina) espumaAlMoverse(ctx, cx, suelo, vista === 'lado' ? ancho * .36 : ancho * .28, t);
+  if(nada){
+    /* la parte hundida se adivina bajo el agua (no desaparece cortada con una raya) */
+    if(cuadro){
+      ctx.save();
+      ctx.beginPath(); ctx.rect(cx - ancho * 2, suelo, ancho * 4, alto); ctx.clip();
+      ctx.globalAlpha = .2 + Math.sin(t * 2.2) * .04; ctx.imageSmoothingEnabled = true;
+      ctx.translate(cx + Math.sin(t * 3.1) * .5, pie); if(dir === 'der') ctx.scale(-1, 1);
+      ctx.drawImage(cuadro, x0, y0, ancho, alto);
+      ctx.restore(); ctx.imageSmoothingEnabled = false;
+    }
+    aguaDeFrente(ctx, cx, suelo, vista === 'lado' ? ancho * .36 : ancho * .27, t, camina, dir);   // el mismo efecto en las 4 direcciones
+  }
   return true;
 }
 /* Surfeando arriba del agua: la montura se hunde un poco (HUNDE_EN_AGUA del alto) */
@@ -5212,6 +5223,80 @@ function nadandoEnAgua(m){
 }
 /* Agua que se abre al avanzar: estela en V finita detrás, ola chica adelante (la proa empuja) y un borde de espuma
    sobre la línea donde el cuerpo se mete en el agua, para que no se vea cortado. Sólo mientras te movés. */
+/* Quieto en el agua (10/11 Zeta): leve pero se siente el movimiento. Dos ondas que se abren desde la línea del agua y se apagan,
+   y unas motas de espuma que suben y bajan pegadas al cuerpo. */
+function ondasEnAgua(ctx, cx, y, rx, t){
+  ctx.save();
+  ctx.lineWidth = 1;
+  for(let k = 0; k < 2; k++){
+    const f = (t * .45 + k * .5) % 1, r = rx * (.75 + f * .75);
+    ctx.strokeStyle = `rgba(255,255,255,${(.5 * (1 - f)).toFixed(3)})`;
+    ctx.beginPath(); ctx.ellipse(cx, y - .5, r, r * .3, 0, 0, Math.PI * 2); ctx.stroke();
+  }
+  const n = Math.max(5, Math.round(rx * 1.1));
+  for(let i = 0; i < n; i++){
+    const u = (i + .5) / n, x = cx + (u - .5) * rx * 1.9, v = Math.sin(t * 2.4 + i * 1.9);
+    if(v < -.1) continue;
+    ctx.fillStyle = `rgba(255,255,255,${(.35 + v * .3).toFixed(3)})`;
+    ctx.fillRect(Math.round(x), Math.round(y - 1 + (v > .6 ? -1 : 0)), v > .3 ? 2 : 1, 1);
+  }
+  ctx.restore();
+}
+/* Agua para las vistas de frente y de espalda (10/11 Zeta): el cuerpo SALE del agua. Un collar de espuma lo abraza por delante
+   (media elipse, con velo de agua encima de la base), ondas que se abren, y al avanzar dos olas de proa que se abren en V hacia atrás
+   con gotitas que saltan. Leve, pero se siente. */
+function aguaDeFrente(ctx, cx, y, rx, t, camina, dir){
+  const lado = dir === 'izq' || dir === 'der', ry = rx * (lado ? .26 : .34);
+  const atras = dir === 'arriba' ? 1 : -1, bx = dir === 'izq' ? 1 : dir === 'der' ? -1 : 0;   // hacia dónde queda "atrás" en pantalla
+  ctx.save();
+  // velo de agua sobre la base del cuerpo (media elipse de adelante)
+  const g = ctx.createLinearGradient(0, y - 1, 0, y + ry + 1);
+  g.addColorStop(0, 'rgba(150,205,255,.42)'); g.addColorStop(1, 'rgba(90,150,235,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(cx, y - .5, rx * 1.02, ry, 0, 0, Math.PI); ctx.fill();
+  // ondas que se abren
+  ctx.lineWidth = 1;
+  for(let k = 0; k < 2; k++){
+    const f = (t * (camina ? .8 : .42) + k * .5) % 1, r = rx * (1.05 + f * .8);
+    ctx.strokeStyle = `rgba(255,255,255,${(.42 * (1 - f)).toFixed(3)})`;
+    ctx.beginPath(); ctx.ellipse(cx + (lado && camina ? bx * f * 5 : 0), y - .5 - (lado ? 0 : atras * f * (camina ? 3 : 0)), r, r * (lado ? .26 : .34), 0, 0, Math.PI * 2); ctx.stroke();
+  }
+  // collar de espuma: motas sobre la media elipse de adelante, que laten y corren
+  const n = Math.max(9, Math.round(rx * 2.2));
+  for(let i = 0; i <= n; i++){
+    const a = i / n * Math.PI, v = Math.sin(t * (camina ? 7 : 3) - i * 1.3) * .5 + .5;
+    if(v < .25) continue;
+    const x = cx + Math.cos(a) * rx * 1.02, yy = y - .5 + Math.sin(a) * ry * (1 + v * .12);
+    ctx.fillStyle = `rgba(255,255,255,${(.45 + v * .5).toFixed(3)})`;
+    ctx.fillRect(Math.round(x - .5), Math.round(yy - (v > .75 ? 1 : 0)), v > .5 ? 2 : 1, v > .85 ? 2 : 1);
+  }
+  if(camina){
+    // olas de proa: dos curvas que nacen a los costados y se abren hacia atrás, desfasadas
+    ctx.lineCap = 'round';
+    for(let k = 0; k < 2; k++){
+      const f = (t * 1.1 + k * .5) % 1, largo = rx * (.6 + f * .9), al = .65 * (1 - f);
+      [-1, 1].forEach(l => {
+        let x0, y0, x1, y1, qx, qy;
+        if(lado){   // de costado: nacen en la proa y se abren hacia atrás, una por arriba y otra por abajo
+          x0 = cx - bx * rx * .95; y0 = y + l * ry * .35;
+          x1 = x0 + bx * largo * 1.5; y1 = y0 + l * largo * .32; qx = x0 + bx * largo * .5; qy = y0 + l * largo * .3;
+        } else {
+          x0 = cx + l * rx * 1.0; y0 = y + ry * .25;
+          x1 = x0 + l * largo; y1 = y0 + atras * largo * .55; qx = x0 + l * largo * .7; qy = y0 + atras * largo * .12;
+        }
+        ctx.strokeStyle = `rgba(255,255,255,${al.toFixed(3)})`;
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(qx, qy, x1, y1); ctx.stroke();
+        ctx.fillStyle = `rgba(255,255,255,${(al * .9).toFixed(3)})`; ctx.fillRect(Math.round(x1), Math.round(y1), 1, 1);
+      });
+    }
+    // gotitas que saltan del collar
+    for(let i = 0; i < 5; i++){
+      const f = (t * 1.6 + i * .21) % 1, l = i % 2 ? 1 : -1;
+      const x = lado ? cx - bx * rx * (.95 - i * .16) + bx * f * 4 : cx + l * rx * (.35 + i * .13) + l * f * 3, yy = y + ry * .5 - Math.sin(f * Math.PI) * (4 + i % 3 * 1.5);
+      ctx.fillStyle = `rgba(225,243,255,${(.85 * (1 - f)).toFixed(3)})`; ctx.fillRect(Math.round(x), Math.round(yy), 1, 1);
+    }
+  }
+  ctx.restore();
+}
 function espumaAlMoverse(ctx, cx, y, rx, t){
   const dirE = VO ? VO.dir : advDir;
   const bx = dirE === 'izq' ? 1 : dirE === 'der' ? -1 : 0, by = dirE === 'arriba' ? 1 : dirE === 'abajo' ? -1 : 0;   // hacia atrás
@@ -5279,6 +5364,7 @@ function dibujarMontado(ctx, ox, oy, dir, paso, av, clave){
   ctx.imageSmoothingEnabled = false;
   if(!m.detras) jinete();
   if(nada && camina) espumaAlMoverse(ctx, cx, suelo, w * .38, t);
+  else if(nada) ondasEnAgua(ctx, cx, suelo, w * .38, t);
   return true;
 }
 function dibujarJugador(ctx, ox, oy){
