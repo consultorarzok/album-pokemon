@@ -6553,9 +6553,8 @@ function advCiclo(ahora){
   if(!advAbierto){ advRaf = null; return; }
   const dt = Math.min(.05, (ahora - advUltimo) / 1000 || 0);
   advUltimo = ahora;
-  advPaso1(dt);
-  advRender();
   advRaf = requestAnimationFrame(advCiclo);
+  try{ advPaso1(dt); advRender(); }catch(e){ console.error('advCiclo', e); }
 }
 
 /* Compatibilidad con el modo de a pasos: mueve un casillero entero. */
