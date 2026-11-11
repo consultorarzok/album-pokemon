@@ -1887,7 +1887,7 @@ const ADV_MAPS = {
       "#^^^,,,,,,,,,,,,,,,,,,,,,,,,|,,,,,,,,,,,,,,,,,,,,,a~~~~~~~a,#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,i2222.aa~~~aa~~~~~~~a,,,,,,,,,,,,,,,,,,,,,,|,,,\"#,#\"#\",,#a~~a#####,^^#",
       "#^^^,,.............,,,#,,,,,|,,#,\"\"\"\"\"\"\",,,,,,,,,,a~~~~~~~a........................................a~~~aa~~~~~~~a,,,......+vvvvvvvvvvvv+,#,,,\"#####\",#a~~a####,^^#",
       "#^^^,,.............,,,,,,,,,|,,,,\"\"\"\"\"\"aaaaaaaaaaaa~~~~~~~a................,,,..,,,,,,,#,,,,,,,,,aaa~~~aa~~~~~~~a,,c......|........,WWW,,,,###\",#,#,\"#a~~a#####^^#",
-      "#^^^,,.............,,#,#,,,,|,,,,\"\"\"\"\"\"a~~~~~~~~~~a~~~~~~~a,\",\"\"\"\",\",,,\",..,,,..,,,,i,JKJ,ddDddi,aaa~~~aa~~~~~~~a,,,......|........#####,,,\"#,,\",##\"##a~~a#####^^#",
+      "#^^^,,.............,,#,#,,,,|,,,,\"\"\"\"\"\"a~~~~~~~~~~a~~~~~~~a,\",\"\"\"\",\",,,\",..,,,..@,,,i,JKJ,ddDddi,aaa~~~aa~~~~~~~a,,,......|........#####,,,\"#,,\",##\"##a~~a#####^^#",
       "#^^^,,...pq........,,,,,,,,,|,,,,\"\"\"\"\"\"a~~~~~~~~~~a~~~~~~~a#g\"#g#\"\"\"#g\"#.,.,,,..,,,,,,,,,,,,,,,,,aaa~~~aa~~~~~~~a,,,...pq.|.....W..#######,,,###\"#,,##a~~a#####^^#",
       "#^^^#,...Pr........,,#,,,,,c|,,,,\"\"\"\"\"\"a~~~~~~~~~~a~~~~~~~a.\"\"\"#\"##\"#\"#.\"#.,,,..................,aaa~~~aa~~~~~~~a,,,...Pr.|.....i..##########,,\"\",#,#a~~a######^^#",
       "#^^^,,.............,,#,,,,,,|,,,,\"\"\"\"\"ba~~~~~~~~~~a~~~~~~~a\".*\"#\"#\"\"#g*\"\"\".,i,...,,,c,,.,,,,,,..,aaa~~~aa~~~~~~~a,,,......|........\"#############,#,aa~~a##,,*,^^#",
@@ -1897,7 +1897,7 @@ const ADV_MAPS = {
       "#^^^uuuuuuuu.|,,hhi.,,.,,.,,,h,.h\"\"\"\"\"\"a~~~~~~~~~~a~~~~~~~a\"*#g.....\"\"\"\"\"#.iPr..,*g,.,t.t,.,g*,.,aia~~~aa~~~~~~~a,,,......|.......i\"\"\"\"\"\"\"\"\"\"#####a~~a#######.#^^#",
       "#^^^uuuuuuuu.|,,,h,.,s.,,.hhh,,.,\"\"\"\"\"\"a~~~~~~~~~~a~~~~~~~a####..O..\"####\".,,,,,#n,*,.....,*,n#.,aaa~~~aa~~~~~~~a,,,,,,l,.|..................####,a~~a#######.#^^#",
       "#^^^uuLuuuuu.|uh,,,...*...I,h,,.,\"\"\"\"\"\"a~~~~~~~~~~a~~~~~~~a\"#\"#.....\"g\"g\"#.QQGQQ,,*#t.....t#*,,.,aaa~~~aa~~~~~~~a,.\"\"\"\".\".|.hlh.,,.l,.h,,lh.,###,,a~~a#######.#^^#",
-      "#^^^uuuuuuuu.|uh,,h.,,.,,.h,hhh.,\"\"\"\"\"\"a~~~~~~~~~~a~~~~~~~aXXX\".....\"##\"\"#.,,,.........z.@......,aaa~~~aa~~~~~~~a,.\"\"\"\".\".|.h,h.,s.s,.,,,,,.h#i##,a~~aa######.#^^#",
+      "#^^^uuuuuuuu.|uh,,h.,,.,,.h,hhh.,\"\"\"\"\"\"a~~~~~~~~~~a~~~~~~~aXXX\".....\"##\"\"#.,,,.........z........,aaa~~~aa~~~~~~~a,.\"\"\"\".\".|.h,h.,s.s,.,,,,,.h#i##,a~~aa######.#^^#",
       "#^^^uuuu.....|u,hlh.s,.l,.,h,hl.h\"\"\"\"\"\"a~~~~~~~~~~a~~~~~~~aXXX.\",\",,.#\"\"\"\".i,#..,,*,t.....t,*,,.,aaa~~~aa~~~~~~~a,.\"\"\"\".\".|c,,,...*...Ih,,,.,,##,##a~~a######\",^^#",
       "#^^^uuuu..i..|...................\"\"\"\"\"\"a~~~~~~~~~~a~~~~~~~aXXX\"\"#\"g\"\".*\"\"\".,,,..#n,*,.....,*,n#.,aaa~~~aa~~~~~~~a,.\"\"\"\".\".|.h,h.,,.,,.,h,,,.,\"##,u,a~~a#\"###,,,^^#",
       "#^^^uuuuuuuu.|u,h,h.,,,h,.,,,,h.,\"\"\"\"\"\"a~~~~~~~~~~a~~~~~~~aXXX#\"\"g\"\"\"L.\"#\".,,,..,*g,.,t.t,.,g*,.,aaa~~~aa~~~~~~~a,.c\"\"\".\".|.,,h.s,.,,.,,hhh.h,uuuuuaa~~aa\",\"##,^^#",
@@ -6244,10 +6244,10 @@ function miniFondo(){
   ctx.fillStyle = 'rgba(255,255,255,.55)';
   for(let i = 1; i < 3; i++){ ctx.fillRect(i * GRILLA.ancho * MINI_PX, 0, 1, cv.height); ctx.fillRect(0, i * GRILLA.alto * MINI_PX, cv.width, 1); }
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 11px sans-serif';
+  ctx.font = 'bold 30px sans-serif'; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(0,0,0,.65)';
   ctx.textAlign = 'center';
   [['U', 27, 14], ['K', 81, 14], ['S', 135, 14], ['H', 27, 134], ['C', 81, 134], ['J', 135, 134], ['A', 81, 254]].forEach(([letra, col, fila]) => {
-    ctx.fillText(letra, col * MINI_PX, fila * MINI_PX);
+    ctx.strokeText(letra, col * MINI_PX, fila * MINI_PX); ctx.fillText(letra, col * MINI_PX, fila * MINI_PX);
   });
   advMiniFondo = cv;
   return cv;
@@ -6258,10 +6258,17 @@ function dibujarMini(){
   if(!cv) return;
   if(advMapa !== 'overworld'){ cv.hidden = true; return; }   // adentro de la cueva no sirve
   cv.hidden = false;
+  const fondoMini = miniFondo();
+  if(cv.width !== fondoMini.width || cv.height !== fondoMini.height){ cv.width = fondoMini.width; cv.height = fondoMini.height; }   // el lienzo tiene que medir lo mismo que el mapa
+  if(!cv._tocable){
+    cv._tocable = true;
+    cv.addEventListener('pointerdown', ev => ev.stopPropagation());
+    cv.addEventListener('click', ev => { ev.stopPropagation(); cv.classList.toggle('grande'); });
+  }
   const ctx = cv.getContext('2d');
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, cv.width, cv.height);
-  ctx.drawImage(miniFondo(), 0, 0);
+  ctx.drawImage(fondoMini, 0, 0);
   const px = (advPx / ADV_PX) * MINI_PX, py = (advPy / ADV_PX) * MINI_PX;
   const te = trenEstado(Date.now());
   ctx.fillStyle = '#E8631F'; ctx.fillRect(te.x * MINI_PX - 3, te.y * MINI_PX - 3, 6, 6);        // el tren en el minimapa
