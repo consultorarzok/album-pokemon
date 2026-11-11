@@ -20,5 +20,20 @@ catch(e){ ({ chromium } = require(process.env.PLAYWRIGHT_PATH || '/root/.npm/_np
   console.log(JSON.stringify(r));
   const ok = r.x > 20 && r.y > 20;
   console.log(ok ? '✅ el personaje arranca en el inicio' : '❌ quedó en la esquina');
-  await b.close(); process.exit(ok ? 0 : 1);
+  // red de seguridad: ya iniciado, si queda en (1,1) o en cualquier pozo cerrado, al reabrir vuelve al inicio
+  const r2 = await p.evaluate(() => {
+    const res = [];
+    for(const [x,y] of [[1,1],[2,2],[0,0],[5,3]]){
+      advPonerEn(x,y); advPx = x*ADV_PX; advPy = y*ADV_PX;
+      const enc = advEncerrado();
+      abrirAventuraAhora();
+      res.push({x,y,enc,sale:[advPx/ADV_PX, advPy/ADV_PX]});
+    }
+    return res;
+  });
+  console.log(JSON.stringify(r2));
+  const ok2 = r2.every(o => !o.enc || (o.sale[0] > 20 && o.sale[1] > 20));
+  const okInicio = await p.evaluate(() => { advPonerEn(80,125); advPx=80*ADV_PX; advPy=125*ADV_PX; const e = advEncerrado(); return !e; });
+  console.log(ok2 && okInicio ? '✅ pozos cerrados vuelven al inicio; el inicio NO es pozo' : '❌ red de seguridad falla');
+  await b.close(); process.exit(ok && ok2 && okInicio ? 0 : 1);
 })();

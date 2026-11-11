@@ -6818,10 +6818,27 @@ function abrirAventura(){
     try{ abrirAventuraAhora(); } finally { requestAnimationFrame(() => requestAnimationFrame(terminar)); }
   }, 40));
 }
+/* red de seguridad: true si el personaje está en un pozo cerrado (menos de 400 casilleros alcanzables) y no puede salir */
+function advEncerrado(){
+  const sx = Math.floor(advPx / ADV_PX), sy = Math.floor(advPy / ADV_PX);
+  const visto = new Set([sx + ',' + sy]), cola = [[sx, sy]];
+  while(cola.length){
+    const [x, y] = cola.pop();
+    for(const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const nx = x + dx, ny = y + dy, k = nx + ',' + ny;
+      if(visto.has(k)) continue;
+      const t = advTileEn(nx, ny);
+      if(!t || !t.walk) continue;
+      visto.add(k); cola.push([nx, ny]);
+      if(visto.size >= 400) return false;
+    }
+  }
+  return true;
+}
 function abrirAventuraAhora(){
   /* 11/11: se usa advInicioHecho y NO advDibujado: el pedido de pantalla completa dispara un 'resize' en el celular que llama a advRender() antes de acá, marcaba el mapa como dibujado y el personaje quedaba trabado en la esquina (1,1) */
   const _t0 = advTileEn(Math.floor(advPx / ADV_PX), Math.floor(advPy / ADV_PX));
-  if(!advInicioHecho || (advMapa === 'overworld' && (!_t0 || !_t0.walk))){
+  if(!advInicioHecho || (advMapa === 'overworld' && (!_t0 || !_t0.walk || advEncerrado()))){
     const inicio = advBuscarTile('overworld', '@');
     advPonerEn(inicio.x, inicio.y);
     advZonaActual = '';
