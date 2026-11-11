@@ -3261,6 +3261,7 @@ let advPaso    = 0;              // cuadro de la animación de caminata
 let advCamino  = 0;              // píxeles caminados, para tirar los encuentros
 let advDescanso = 0;             // píxeles que faltan caminar hasta el próximo encuentro posible
 let advDibujado = false;
+let advInicioHecho = false;
 let advZonaTimer = null;
 let advZonaActual = '';
 let advRegionAnterior = '';
@@ -6818,11 +6819,14 @@ function abrirAventura(){
   }, 40));
 }
 function abrirAventuraAhora(){
-  if(!advDibujado){
+  /* 11/11: se usa advInicioHecho y NO advDibujado: el pedido de pantalla completa dispara un 'resize' en el celular que llama a advRender() antes de acá, marcaba el mapa como dibujado y el personaje quedaba trabado en la esquina (1,1) */
+  const _t0 = advTileEn(Math.floor(advPx / ADV_PX), Math.floor(advPy / ADV_PX));
+  if(!advInicioHecho || (advMapa === 'overworld' && (!_t0 || !_t0.walk))){
     const inicio = advBuscarTile('overworld', '@');
     advPonerEn(inicio.x, inicio.y);
     advZonaActual = '';
   }
+  advInicioHecho = true;
   sacarDeZonaCerrada();
   advRender();
   advSyncHud();
