@@ -9,7 +9,7 @@ import { createFrame, clearFrame, createFx, composite, PAL } from './vendor/core
 import * as hitSpark from './vendor/fx/impacts/hit-spark.js';
 import * as critHit from './vendor/fx/impacts/crit-hit.js';
 import * as fireball from './vendor/fx/fire/fireball.js';
-import * as ballLightning from './vendor/fx/lightning/ball-lightning.js';
+import * as bolaElectrica from './bola-electrica.js';
 import * as lightningStrike from './vendor/fx/lightning/lightning-strike.js';
 import * as iceLance from './vendor/fx/ice/ice-lance.js';
 import * as frostNova from './vendor/fx/ice/frost-nova.js';
@@ -25,7 +25,7 @@ const RAMPA = {fire: 'fire', water: 'water', grass: 'leaf', electric: 'electric'
 const paleta = tipo => PAL[RAMPA[tipo]] || null;
 
 /* poderes que viajan: sólo los de forma "bola" de estos tipos */
-const PROY = {fire: {mod: fireball, o: {}, dy: 0}, electric: {mod: ballLightning, o: {}, dy: 46}, ice: {mod: iceLance, o: {}, dy: 0}};   // dy: la bola eléctrica flota sobre su origen
+const PROY = {fire: {mod: fireball, o: {}, dy: 0}, electric: {mod: bolaElectrica, o: {}, dy: 0}, ice: {mod: iceLance, o: {}, dy: 0}};
 /* estallidos de zona: módulo, escala (px de pantalla por px del efecto) y velocidad de reproducción */
 const ZONA = {fire: {mod: smallExplosion, k: 1.5, vel: 3}, ice: {mod: frostNova, k: 1.3, vel: 2}, electric: {mod: lightningStrike, k: 1.5, vel: 2.4},
   psychic: {mod: manaBurst, k: 1.4, vel: 1.4}, ghost: {mod: darkExplosion, k: 1.5, vel: 2}, dark: {mod: darkExplosion, k: 1.5, vel: 2},

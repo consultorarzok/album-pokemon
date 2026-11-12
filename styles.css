@@ -1038,3 +1038,8 @@
 .ent-mov small{color:var(--ink-dim);margin-right:4px;}
 .ent-mov .open-btn,.ent-tres{min-height:44px;font-size:12px;}
 .ent-ej button:disabled{opacity:.45;}
+
+/* 12/11: llamas del Fuego Fatuo de Gengar (forma de fuego, azules, titilando) */
+.ar-fatuo-llama{position:absolute;left:0;top:0;pointer-events:none;z-index:100000;}
+.ar-fatuo-llama i{position:absolute;inset:0;border-radius:0 50% 50% 50%;transform:rotate(45deg);background:radial-gradient(circle at 64% 64%,#fff 0 13%,#BFEBFF 14% 30%,#6FD3FF 31% 56%,#5B3FD6 57% 100%);box-shadow:0 0 10px 2px rgba(111,211,255,.75);animation:arFatuoLlama .2s steps(3) infinite alternate;}
+@keyframes arFatuoLlama{from{transform:rotate(45deg) scale(1)}to{transform:rotate(45deg) scale(.84,1.14) skew(5deg,-5deg)}}

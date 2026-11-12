@@ -1259,18 +1259,19 @@ const MOVS_ESPECIALES = {
 /* Ataques sumados a mano al repertorio de un Pokémon, en un botón distinto al del catálogo (10/11 Zeta: Fuego Fatuo como ataque largo
    de Gengar). Sólo entran en el sorteo cuando se CAMBIA un ataque (Entrenar) o cuando el rival saca los suyos al azar: los ejemplares
    que ya existen conservan lo que tenían. prob = chance de que salga en ese sorteo. */
-const APR_EXTRA = {94: {largo: [{n:'Fuego Fatuo', fx:'rayo', prob:.25}]}};
-function movExtra(id, alc, semilla){
+const APR_EXTRA = {94: {largo: [{n:'Fuego Fatuo', fx:'rayo', prob:.25, soloVario:true}]}};   // 12/11 Zeta: sólo le puede tocar a un Gengar shiny (y sigue siendo difícil: 1 de cada 4 cambios)
+function movExtra(id, alc, semilla, vario){
   const l = APR_EXTRA[id] && APR_EXTRA[id][alc];
   if(!l || !(typeof semilla === 'number' || String(semilla).includes('#'))) return null;
   let r = (semillaNum('x:' + id + ':' + alc + ':' + semilla) % 100000) / 100000;
   for(const x of l){
+    if(x.soloVario && !vario){ r -= x.prob; continue; }
     if(r < x.prob){ const d = MOVS_CAT.find(c => c[0] === x.n); return d ? {n:d[0], tipo:d[1], fx:x.fx || d[2], forma:x.forma || d[4] || 'bola'} : null; }
     r -= x.prob;
   }
   return null;
 }
-function movsDe(p, semilla, libre){
+function movsDe(p, semilla, libre, vario){
   if(p.especial && MOVS_ESPECIALES[p.id] && !libre){
     const out = {};
     ATAQUES.forEach(alc => { const [n, tipo, fx, forma] = MOVS_ESPECIALES[p.id][alc]; out[alc] = {n, tipo, fx, forma:forma || FORMA_FX[fx] || 'bola', pot:n === 'Puño Plasma' ? 1.7 : POT_ESPECIAL[alc]}; });
@@ -1280,7 +1281,7 @@ function movsDe(p, semilla, libre){
   const out = {};
   ATAQUES.forEach(alc => {
     const lista = (pools && pools[alc]) || [];
-    const ex = movExtra(id, alc, semilla);
+    const ex = movExtra(id, alc, semilla, vario);
     if(ex){ out[alc] = ex; return; }
     if(!lista.length){ out[alc] = null; return; }
     const pesos = lista.map(x => PESO_PRI[Math.min(x.pr, 3)]), tot = pesos.reduce((a, b) => a + b, 0);
@@ -2056,21 +2057,22 @@ function movsFijos(m, base){
 /* Los ataques de UN ejemplar. La semilla base es `sd` (se congela la primera vez que sube de fuerza o cambia ataques, así subir fuerza no
    cambia los ataques) o, si nunca se tocó, serie:fuerza como siempre. `rr[k]` = cuántas veces se cambió el ataque k: cada cambio saca
    OTRO distinto del que tenía, siempre el mismo para ese contador (lo decide el servidor al cobrar, no el celular). */
-function ataqueDeCambio(p, base, alc, n){
-  if(n <= 0) return movsDe(p, base)[alc];
-  const previo = ataqueDeCambio(p, base, alc, n - 1);
+function ataqueDeCambio(p, base, alc, n, vario){
+  if(n <= 0) return movsDe(p, base, false, vario)[alc];
+  const previo = ataqueDeCambio(p, base, alc, n - 1, vario);
   for(let t = 0; t < 12; t++){
-    const c = movsDe(p, base + '#' + n + '.' + t, true)[alc];   // libre: una especial que cambia deja sus ataques exclusivos y saca del repertorio de su Pokémon
+    const c = movsDe(p, base + '#' + n + '.' + t, true, vario)[alc];   // libre: una especial que cambia deja sus ataques exclusivos y saca del repertorio de su Pokémon
     if(c && (!previo || c.n !== previo.n)) return c;
   }
   return previo;
 }
 function movsEjemplar(p, ej){
   const base = ej ? (ej.sd || (ej.c || '') + ':' + ej.f) : null;
-  let movs = movsDe(p, ej ? base : Math.random());
+  const vario = !!(ej && ej.s);
+  let movs = movsDe(p, ej ? base : Math.random(), false, vario);
   if(ej && Array.isArray(ej.rr)) ATAQUES.forEach((alc, k) => {
     const n = ej.rr[k] | 0;
-    if(n > 0){ const m = ataqueDeCambio(p, base, alc, n); if(m) movs[alc] = m; }
+    if(n > 0){ const m = ataqueDeCambio(p, base, alc, n, vario); if(m) movs[alc] = m; }
   });
   if(ej && Array.isArray(ej.m)) movs = movsFijos(ej.m, movs);
   return movs;
@@ -2593,7 +2595,15 @@ function disparoMedio(e){
 function prepararLargo(e){
   const A = e.accion, mov = A.mov, O = otro(e), col = mov.n === 'Fuego Fatuo' ? '#6FD3FF' : TYPE_COLORS[mov.tipo];
   e.wrap.classList.add('ar-carga'); e.rot.style.setProperty('--tc', col);
-  if(mov.fx === 'rayo' || mov.fx === 'embestida'){ A.tele = [mk('ar-mira', {background:col})]; return; }
+  if(mov.fx === 'rayo' || mov.fx === 'embestida'){
+    A.tele = [mk('ar-mira', {background:col})];
+    /* Fuego Fatuo (12/11 Zeta, como en el anime): mientras carga, las llamas azules aparecen de a una y giran en círculo alrededor de Gengar */
+    if(mov.n === 'Fuego Fatuo'){
+      const N = REDUCE ? 4 : 6; A.fatuo = [];
+      for(let i = 0; i < N; i++){ const el = llamaFatuo(); el.style.opacity = 0; A.tele.push(el); A.fatuo.push(el); }
+    }
+    return;
+  }
   const propia = mov.fx === 'propia';
   const c = pie(propia ? e : O), r = (propia ? 15 : (mov.fx === 'zona' ? 8.5 : 9)) * u();
   A.zona = {x:c.x, y:c.y, r, propia};
@@ -2812,6 +2822,32 @@ function fatuoRecto(e, c, d){
   }, i * (dur * .9 / N));
   flashPantalla('#1b1040'); sfx('rayo');
 }
+/* Fuego Fatuo como en el anime (12/11 Zeta): llamas azules con forma de fuego. Las que giraban alrededor de Gengar suben cada una
+   para su lado y caen de a una sobre el rival como meteoros, con estela y estallido. Devuelve cuándo cae la primera y la última (seg). */
+function llamaFatuo(){
+  const T = Math.max(14, 5.5 * u()), el = mk('ar-fatuo-llama', {width:T + 'px', height:T + 'px'});
+  el.appendChild(document.createElement('i'));
+  return el;
+}
+/* 12/11 Zeta: al soltar, cada llama sale para su lado (desde donde estaba en el círculo) y enseguida PERSIGUE al rival, como las estrellas
+   de Meteoros. La primera que llega hace el daño del ataque largo y estalla; las demás revientan al tocarlo. Se esquivan rodando. */
+function fatuoLanzar(e, c, A, O){
+  const U = u(); let llamas = A && A.fatuo;
+  if(llamas && llamas.length){ A.tele = (A.tele || []).filter(x => !llamas.includes(x)); A.fatuo = null; }   // siguen vivas después del disparo
+  else {
+    const N = REDUCE ? 4 : 6; llamas = [];
+    for(let i = 0; i < N; i++){ const a = i / N * Math.PI * 2, el = llamaFatuo(); el._a = a; el._x = c.x + Math.cos(a) * 9 * U; el._y = c.y + Math.sin(a) * 9 * U * .85; llamas.push(el); }
+  }
+  const grupo = {pego:false}, v = 105 * U;
+  llamas.forEach((el, i) => {
+    el.style.opacity = 1;
+    const tam = el.offsetWidth || 14;
+    AR.proys.push({lado:e.lado, obj:O.lado, x:el._x, y:el._y, vx:Math.cos(el._a) * v, vy:Math.sin(el._a) * v * .85, v, tipo:'fire', forma:'llama', el,
+      vida:2.4, vida0:2.4, rad:tam * .45, rot:0, giro:0, arco:0, crecer:0, wobble:0, homing:0, boom:null, suelo:false, orient:false, grupo,
+      t:-i * .05, tr:0, esq:false, fade:false, estela:true, alc:'largo', fatuo:true});
+  });
+  flashPantalla('#1b1040'); sfx('rayo');
+}
 function fatuoEstalla(z){
   const U = u(), N = REDUCE ? 8 : 18;
   aro(z.x, z.y, FATUO[1], z.r * 1.15); setTimeout(() => PISO && aro(z.x, z.y, '#B88BFF', z.r * 1.35), 110);
@@ -2909,17 +2945,19 @@ function dispararLargo(e){
   if(mov.fx === 'rayo'){
     if(mov.n === 'Shuriken Gigante') teletransporteNinja(e, O);   // Greninja aparece lejos del rival y tira desde ahí
     const c = cen(e), d = (mov.n === 'Shuriken Gigante' ? null : A.dirLock) || unit(c, cen(O));
-    if(mov.n === 'Fuego Fatuo') fatuoRecto(e, c, d); else if(mov.n === 'Dimensión Total') manosRecto(e, c, d); else if(mov.n === 'Shuriken Gigante') shurikenRecto(e, c, d); else rayoTipo(e, mov, c, d);
+    const ff = mov.n === 'Fuego Fatuo';
+    if(ff) fatuoLanzar(e, c, A, O); else if(mov.n === 'Dimensión Total') manosRecto(e, c, d); else if(mov.n === 'Shuriken Gigante') shurikenRecto(e, c, d); else rayoTipo(e, mov, c, d);
     destello(c.x + d.x * e.w * .3, c.y + d.y * e.h * .3, .9);
     e.kx -= d.x * 40 * U; e.ky -= d.y * 40 * U;
     sacudir(1.2);
     sfx('rayo');
     const oc = cen(O), vx = oc.x - c.x, vy = oc.y - c.y, proj = vx * d.x + vy * d.y;
     const lat = Math.abs(vx * d.y - vy * d.x);
+    if(ff) return;   // el daño del Fuego Fatuo lo hacen las llamas al llegar (avanzarProyectiles)
     if(proj > 0 && lat <= radio(O) + 2.4 * U){
       if(golpear(e, O, 'largo', oc.x, oc.y)){
         marca(pie(O).x, pie(O).y, 6 * U, col);
-        if(mov.n === 'Fuego Fatuo') setTimeout(() => FX && fatuoEstalla({x:pie(O).x, y:pie(O).y, r:7 * U}), Math.min(300, proj / (Math.hypot(G.W, G.H) * .85) * 430));   // la llama llega y estalla sobre el rival
+        if(mov.n === 'Fuego Fatuo') setTimeout(() => FX && fatuoEstalla({x:pie(O).x, y:pie(O).y, r:7 * U}), 430);   // las llamas llegan y estallan sobre el rival
       }
     }
     return;
@@ -3061,6 +3099,15 @@ function avanzarAccion(e, dt){
             transform:`translate(0,-50%) rotate(${ang}deg)`, opacity:A.t < .42 ? .5 : (Math.floor(A.t * 24) % 2 ? 1 : .35)});
           if(A.t >= .42) tele.style.background = '#ff3b3b';
         }
+        if(A.fatuo){
+          const N = A.fatuo.length, R = (5 + 4.5 * Math.min(1, prog * 1.5)) * U;
+          A.fatuo.forEach((el, i) => {
+            const a = i / N * Math.PI * 2 + A.t * 7, x = c.x + Math.cos(a) * R, y = c.y + Math.sin(a) * R * .85;
+            el._x = x; el._y = y; el._a = a;
+            el.style.opacity = prog > i / N * .5 ? 1 : 0;
+            el.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%) scale(${.6 + .5 * prog + Math.sin(A.t * 30 + i) * .06})`;
+          });
+        }
       } else if(tele){
         if(A.zona.propia){ const p = pie(e); A.zona.x = p.x; A.zona.y = p.y; tele.style.left = p.x + 'px'; tele.style.top = p.y + 'px'; }
         tele.style.opacity = Math.floor(A.t * 14) % 2 ? .95 : .5;
@@ -3124,8 +3171,9 @@ function avanzarProyectiles(dt){
   AR.proys = AR.proys.filter(p => {
     p.vida -= dt; p.t += dt; p.tr -= dt;
     const att = E[p.lado], dest = (E[p.obj] && E[p.obj].mon && E[p.obj].mon.vivo) ? E[p.obj] : otro(att);
-    if(p.homing && dest.mon && dest.mon.vivo){
-      const c = cen(dest), d = unit(p, c), k = Math.min(1, p.homing * dt);
+    const hom = p.fatuo ? (p.t < .2 ? 0 : 7) : p.homing;   // las llamas del Fuego Fatuo primero se abren y después persiguen
+    if(hom && dest.mon && dest.mon.vivo){
+      const c = cen(dest), d = unit(p, c), k = Math.min(1, hom * dt);
       p.vx += (d.x * p.v - p.vx) * k; p.vy += (d.y * p.v - p.vy) * k;
     }
     if(p.boom && !p.boom.vuelta && p.t > .55){ p.boom.vuelta = true; p.grupo = {pego:false}; }
@@ -3137,12 +3185,13 @@ function avanzarProyectiles(dt){
     let xx = p.x, yy = p.y - (p.arco ? Math.sin(Math.min(1, p.t / .6) * Math.PI) * p.arco * U : 0);
     if(p.wobble){ const w = Math.sin(p.t * 14) * p.wobble * U, n = Math.hypot(p.vx, p.vy) || 1; xx += -p.vy / n * w; yy += p.vx / n * w; }
     const esc = 1 + p.crecer * (1 - p.vida / p.vida0);
-    const ang = p.orient ? Math.atan2(p.vy, p.vx) * 180 / Math.PI : p.rot;
+    const ang = p.fatuo ? Math.atan2(-p.vx, p.vy) * 180 / Math.PI : p.orient ? Math.atan2(p.vy, p.vx) * 180 / Math.PI : p.rot;   // fatuo: la punta de la llama queda hacia atrás
     p.el.style.transform = `translate(-50%,-50%) translate(${xx}px,${yy}px) rotate(${ang}deg) scale(${esc})`;
     if(p.px) p.px.mover(xx, yy, p.vx, p.vy);
     if(p.fade) p.el.style.opacity = Math.min(1, p.vida * 1.5);
     if(p.tr <= 0){
       if(p.suelo){ p.tr = .07; polvo(xx, yy, 2, 1.1); }
+      else if(p.fatuo){ p.tr = .05; particula(xx, yy, FATUO[1], Math.max(6, U * 2.6), azar(-1, 1) * U, -azar(1, 3) * U, 320, {forma:'llama', s0:.85, s1:.25, colores:FATUO, suave:true, op:.9}); }
       else if(p.estela){ p.tr = .04; rastro(xx, yy, p.tipo, .8); }
     }
     for(const dest of enemigosDe(att)){
@@ -3150,12 +3199,12 @@ function avanzarProyectiles(dt){
       const c = p.suelo ? pie(dest) : cen(dest);
       const dx = c.x - xx, dy = (c.y - yy) / (p.suelo ? G.pz : 1);
       if(Math.hypot(dx, dy) <= radio(dest) * (p.suelo ? .9 : 1) + p.rad * esc){
-        if(dest.rodando){ if(!p.esq){ p.esq = true; golpear(att, dest, 'medio'); } }
+        if(dest.rodando){ if(!p.esq){ p.esq = true; golpear(att, dest, p.alc || 'medio'); } }
         else if(p.grupo.pego || dest.invul > 0){
-          if(!p.boom){ estallido(xx, yy, p.tipo, 3, .5); quitarProy(p); return false; }
+          if(!p.boom){ if(p.fatuo){ destello(xx, yy, .5); for(let k = 0; k < 4; k++) particula(xx, yy, FATUO[k % 3], Math.max(7, U * 3), azar(-5, 5) * U, -azar(3, 9) * U, 440, {forma:'llama', s0:.8, s1:1.8, colores:FATUO, suave:true}); } else estallido(xx, yy, p.tipo, 3, .5); quitarProy(p); return false; }
         } else {
           p.grupo.pego = true;
-          golpear(att, dest, 'medio', xx, p.suelo ? cen(dest).y : yy);
+          if(golpear(att, dest, p.alc || 'medio', xx, p.suelo ? cen(dest).y : yy) && p.fatuo){ marca(pie(dest).x, pie(dest).y, 6 * U, '#3B6FE0'); fatuoEstalla({x:pie(dest).x, y:pie(dest).y, r:7 * U}); }
           if(p.forma === 'lodo') marca(pie(dest).x, pie(dest).y, 5 * U, TYPE_COLORS.poison);
           if(!p.boom){ quitarProy(p); return false; }
         }
