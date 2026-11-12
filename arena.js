@@ -55,7 +55,8 @@ const TOPE_DERROTA = 90;
 /* Tamaño de los sprites respecto del píxel del fondo: más chicos que 1:1 para
    que la arena se vea grande y quede en escala con el público y los entrenadores. */
 const ESCALA_POKE = {yo:.66, riv:.6};
-const ESCALA_ENTRENADOR = .42;
+const ESCALA_ENTRENADOR = .34;   // 12/11: más chicos, para que el estadio se sienta grande
+const ZOOM_1V1 = .72;         // 12/11 Zeta: la cámara un poco más lejos en el 1 contra 1 (los Pokémon se ven 14 % más chicos y el campo rinde más)
 const VEL_BASE = 34;          // en unidades u() por segundo
 const ACEL = 11;              // qué tan rápido llega a la velocidad pedida (inercia)
 
@@ -1486,17 +1487,232 @@ function medir(){
   G.W = W; G.H = H;
   G.K = Math.max(1, Math.floor(Math.min(W / 300, H / 210) * 4) / 4);
   const ctrl = $('arCtrl');
-  const margen = ctrl && getComputedStyle(ctrl).position === 'absolute' ? Math.min(130, H * .26) : 0;
+  const margen = !ctrl || getComputedStyle(ctrl).position !== 'absolute' ? 0 : H > W ? Math.min(ctrl.offsetHeight, H * .32) : Math.min(130, H * .26);   // parado: el campo termina donde empiezan los botones
   const disp = H - margen;
-  G.rx = Math.min(W * .42, (W / 2 - 40 * G.K * ESCALA_POKE.yo) / .96);   // que un sprite en el borde no se salga de la pantalla
+  { const raiz = ST.closest('.ar-root'); if(raiz) raiz.style.setProperty('--ar-ctrl-h', (ctrl && H > W ? ctrl.offsetHeight : 0) + 'px'); }   // el cartel de la pelea va arriba de los botones
+  const zm = AR && AR.zoom || 1;
+  G.rx = Math.min(W * .46, (W / 2 - 40 * G.K * ESCALA_POKE.yo * zm) / .96);   // que un sprite en el borde no se salga de la pantalla
   /* el piso va debajo de los HUD y arriba de los controles */
   const hud = $('arHuds') || $('arHud-riv'), hudH = hud ? hud.offsetHeight + 8 : 90;
   G.hudH = hudH;
   const top = Math.max(hudH * .8, disp * .2), bajo = disp - 6;
-  G.ry = Math.min((bajo - top) / 2 / 1.07, G.rx * .8);
+  /* 12/11: el campo es más hondo (antes ry ≤ rx × 0,8) y, si sobra alto (celular parado), baja hacia los controles: arriba queda el paisaje */
+  G.ry = Math.min((bajo - top) / 2 / 1.07, G.rx * .95);
   G.cx = W / 2;
-  G.cy = top + (bajo - top) / 2;
+  const medio = top + (bajo - top) / 2, abajo = bajo - G.ry * 1.07;
+  G.cy = medio + Math.max(0, abajo - medio) * .6;
+  G.hor = Math.max(14 * G.K, G.cy - G.ry * 1.2);   // línea del horizonte de los escenarios al aire libre
   G.pz = Math.max(.5, G.ry / G.rx);
+}
+
+/* ---------------- escenarios (12/11) ----------------
+   Cuatro lugares que tocan al azar: el galpón de siempre y tres de Jujuy al aire libre
+   (Salinas Grandes al atardecer, la Quebrada de día y las Yungas de noche). Todos se
+   pintan una sola vez en el canvas chico: en la pelea no cuestan nada. */
+const ESCENAS = ['galpon', 'noche', 'ruinas'];
+const NOMBRE_ESCENA = {galpon:'El Galpón', noche:'Estadio de noche', ruinas:'Coliseo al atardecer'};
+function elegirEscena(){
+  if(ESCENAS.includes(window.__arenaEscena)) return window.__arenaEscena;
+  if(AR.online && RED.codigo) return ESCENAS[semillaNum(RED.codigo) % ESCENAS.length];   // en duelos e incursiones, todos ven el mismo lugar
+  let ult = ''; try{ ult = localStorage.getItem('arena-escena') || ''; }catch(e){}
+  const e = elige(ESCENAS.filter(x => x !== ult));                                      // nunca dos veces seguidas el mismo
+  try{ localStorage.setItem('arena-escena', e); }catch(err){}
+  return e;
+}
+/* silueta de cerros: una columna de 1 píxel por cada x, con la altura que diga alto(x) */
+function silueta(g, cw, base, alto, color){
+  g.fillStyle = color;
+  for(let x = 0; x < cw; x++){ const h = Math.max(0, Math.round(alto(x))); if(h) g.fillRect(x, base - h, 1, h); }
+}
+const ondas = (cw, A, n1, f1, n2, f2) => x => A * (.55 * (.5 + .5 * Math.sin(x / cw * 6.283 * n1 + f1)) + .45 * (.5 + .5 * Math.sin(x / cw * 6.283 * n2 + f2)));
+/* dibujar en el plano del piso: (0,0) es el centro del campo y erx su radio */
+function enPiso(g, q, fn){
+  g.save(); g.beginPath(); g.rect(0, q.hy, q.cw, q.ch - q.hy); g.clip();
+  g.translate(q.ex, q.ey); g.scale(1, q.ery / q.erx); fn(q.erx, (q.hy - q.ey) * q.erx / q.ery, (q.ch - q.ey) * q.erx / q.ery); g.restore();
+}
+function pokebolaPiso(g, r, rojo, claro, linea, alfa){
+  g.globalAlpha = alfa;
+  g.fillStyle = rojo; g.beginPath(); g.arc(0, 0, r, Math.PI, 0); g.fill();
+  g.fillStyle = claro; g.beginPath(); g.arc(0, 0, r, 0, Math.PI); g.fill();
+  g.strokeStyle = linea; g.lineWidth = 2.2; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.stroke();
+  g.beginPath(); g.moveTo(-r, 0); g.lineTo(r, 0); g.stroke();
+  g.fillStyle = claro; g.beginPath(); g.arc(0, 0, r * .32, 0, 7); g.fill(); g.stroke();
+  g.globalAlpha = 1;
+}
+function vinieta(g, q, col, r0){
+  const v = g.createRadialGradient(q.ex, q.ey, Math.min(q.erx, q.ery) * r0, q.ex, q.ey, Math.max(q.cw, q.ch) * .75);
+  v.addColorStop(0, col.replace('A', '0')); v.addColorStop(1, col.replace('A', '.6'));
+  g.fillStyle = v; g.fillRect(0, 0, q.cw, q.ch);
+}
+function cielo(g, q, paradas){
+  const c = g.createLinearGradient(0, 0, 0, q.hy);
+  paradas.forEach(([t, col]) => c.addColorStop(t, col));
+  g.fillStyle = c; g.fillRect(0, 0, q.cw, q.hy + 1);
+}
+function suelo(g, q, paradas){
+  const c = g.createLinearGradient(0, q.hy, 0, q.ch);
+  paradas.forEach(([t, col]) => c.addColorStop(t, col));
+  g.fillStyle = c; g.fillRect(0, q.hy, q.cw, q.ch - q.hy);
+}
+
+/* ---- Estadios de anime (12/11): gradas en círculo alrededor del campo redondo, muro con luces, cielo al fondo ---- */
+const mezcla = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+const rgbA = a => `rgb(${a[0]},${a[1]},${a[2]})`;
+function estadio(g, q, c){
+  const {cw, ch, ex, ey, erx, ery, hy, alt} = q, R = rng(c.sem);
+  cielo(g, q, c.cielo);
+  if(c.cieloExtra) c.cieloExtra(g, q, R);
+  const wallH = Math.max(5, Math.round(alt * .4));
+  /* muro del fondo (con ventanas o arcos) */
+  g.fillStyle = c.muro; g.fillRect(0, hy - wallH, cw, wallH + 1);
+  if(c.muroAdorno) c.muroAdorno(g, q, wallH, R);
+  /* gradas: anillos escalonados que rodean todo el campo, también por delante */
+  g.save(); g.beginPath(); g.rect(0, hy, cw, ch - hy); g.clip();
+  g.fillStyle = rgbA(c.grada0); g.fillRect(0, hy, cw, ch - hy);
+  const n = 8, B1 = 1.1, B0 = Math.max(1.3, (ey - hy) / ery), A1 = 1.16, A0 = Math.max(2.6, (cw / 2) / erx * 1.4);
+  for(let j = 0; j < n; j++){
+    const t = j / (n - 1), A = A0 + (A1 - A0) * t, B = B0 + (B1 - B0) * t;
+    g.beginPath(); g.ellipse(ex, ey, erx * A, ery * B, 0, 0, 7);
+    g.fillStyle = rgbA(mezcla(c.grada0, c.grada1, t)); g.fill();
+    g.strokeStyle = rgbA(c.riser); g.lineWidth = 1.6; g.stroke();
+  }
+  /* pasillos de escaleras: rayos desde el campo hacia afuera */
+  g.strokeStyle = rgbA(c.riser); g.lineWidth = 1.4;
+  for(let k = 0; k < 18; k++){
+    const a = k / 18 * Math.PI * 2 + .17;
+    g.beginPath(); g.moveTo(ex + Math.cos(a) * erx * A1, ey + Math.sin(a) * ery * B1);
+    g.lineTo(ex + Math.cos(a) * erx * A0, ey + Math.sin(a) * ery * B0); g.stroke();
+  }
+  g.restore();
+  /* borde de piedra + el campo */
+  enPiso(g, q, (r, y0, y1) => {
+    g.fillStyle = c.borde; g.beginPath(); g.arc(0, 0, r * 1.17, 0, 7); g.fill();
+    g.fillStyle = c.bordeSombra; g.beginPath(); g.arc(0, r * .02, r * 1.12, 0, 7); g.fill();
+    c.piso(g, r, R);
+  });
+  if(c.luces) c.luces(g, q, wallH, R);
+  /* faroles en el borde */
+  if(c.farol){
+    [[.06, 1], [.24, 1], [.5, 1], [.76, 1], [.94, 1], [-.1, 1], [1.1, 1], [-.35, .9], [1.35, .9]].forEach(([u, s]) => {
+      const a = u * Math.PI, x = Math.round(ex + Math.cos(a) * erx * 1.17), y = Math.round(ey + Math.sin(a) * ery * 1.14);
+      const h = g.createRadialGradient(x, y - 2, 0, x, y - 2, 7); h.addColorStop(0, 'rgba(255,190,90,.55)'); h.addColorStop(1, 'rgba(255,190,90,0)');
+      g.fillStyle = h; g.fillRect(x - 8, y - 10, 16, 16);
+      g.fillStyle = '#2a2230'; g.fillRect(x - 1, y - 5, 3, 5); g.fillStyle = '#ffd27a'; g.fillRect(x, y - 4, 1, 3);
+    });
+  }
+  vinieta(g, q, c.vinieta, 1.3);
+}
+const pintarNoche = (g, q) => estadio(g, q, {
+  sem: 41, cielo: [[0, '#141536'], [.5, '#463a78'], [.82, '#a8527a'], [1, '#f09a48']],
+  cieloExtra(g, q, R){ for(let i = 0; i < 6; i++){ g.fillStyle = `rgba(20,16,50,${.25 + R() * .25})`; g.fillRect(Math.round(R() * q.cw * .8), Math.round(R() * q.hy * .7), Math.round(q.cw * (.2 + R() * .3)), 1 + Math.round(R() * 2)); } },
+  muro: '#1a1730', grada0: [16, 16, 38], grada1: [66, 62, 104], riser: [8, 8, 22], borde: '#4a4668', bordeSombra: '#1e1c34',
+  muroAdorno(g, q, wh, R){
+    for(let x = 4; x < q.cw - 6; x += 9){ if(R() < .12) continue; g.fillStyle = '#f2a45a'; g.fillRect(x, q.hy - wh + 2, 5, Math.max(2, wh - 4)); g.fillStyle = 'rgba(255,200,130,.5)'; g.fillRect(x, q.hy - wh + 2, 5, 1); }
+    g.fillStyle = '#100e22'; g.fillRect(0, q.hy - wh - 1, q.cw, 1);
+  },
+  luces(g, q, wh, R){
+    const {cw, hy, ex, ey, erx, ery, alt} = q, xs = [.09, .3, .5, .7, .91], cols = ['255,176,96', '255,186,110', '255,230,170', '170,130,255', '160,120,255'];
+    xs.forEach((u, i) => {
+      const x = Math.round(cw * u), r = Math.max(3, alt * (i === 2 ? .12 : .17)), y = Math.round(hy - wh - alt * (i === 2 ? .22 : .5));
+      /* el cono de luz va del reflector al campo */
+      const tx = ex + (x - ex) * .3, ty = ey - ery * .15, ancho = erx * .55;
+      const cono = g.createLinearGradient(x, y, tx, ty); cono.addColorStop(0, `rgba(${cols[i]},.32)`); cono.addColorStop(1, `rgba(${cols[i]},0)`);
+      g.fillStyle = cono; g.beginPath(); g.moveTo(x - r * .6, y); g.lineTo(x + r * .6, y); g.lineTo(tx + ancho, ty); g.lineTo(tx - ancho, ty); g.closePath(); g.fill();
+      /* poste y reflector */
+      g.fillStyle = '#0f0d1e'; g.fillRect(x - 1, y, 3, hy + Math.round(alt * .3) - y);
+      g.fillRect(x - 3, hy + Math.round(alt * .3) - 2, 7, 3);
+      g.fillStyle = '#26233e'; g.beginPath(); g.arc(x, y, r + 1.5, 0, 7); g.fill();
+      g.fillStyle = `rgb(${cols[i]})`; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+      g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(x - Math.round(r * .5), y - Math.round(r * .5), Math.max(1, Math.round(r * .5)), 1);
+    });
+  },
+  farol: true, vinieta: 'rgba(8,4,24,A)',
+  piso(g, r, R){
+    const L = r * 1.1, base = g.createRadialGradient(0, -r * .1, 0, 0, 0, L);
+    base.addColorStop(0, '#6f6c3c'); base.addColorStop(.55, '#4d5a2e'); base.addColorStop(1, '#2c4426');
+    g.fillStyle = base; g.beginPath(); g.arc(0, 0, L, 0, 7); g.fill();
+    for(let i = 0; i < 70; i++){ const a = R() * 7, d = Math.sqrt(R()) * L * .98, x = Math.cos(a) * d, y = Math.sin(a) * d, w = r * (.04 + R() * .12);
+      g.fillStyle = R() < .5 ? 'rgba(150,116,60,.32)' : 'rgba(30,60,26,.4)'; g.beginPath(); g.ellipse(x, y, w, w * .5, R() * 3, 0, 7); g.fill(); }
+    for(let i = 0; i < 380; i++){ const a = R() * 7, d = Math.sqrt(R()) * L * .97; g.fillStyle = R() < .6 ? 'rgba(18,40,16,.5)' : 'rgba(170,190,110,.35)'; g.fillRect(Math.cos(a) * d, Math.sin(a) * d, 1, 1.5 + R() * 1.5); }
+    /* charcos de luz: naranja a la izquierda, violeta a la derecha */
+    [[-.5, -.25, '255,170,80'], [.5, -.1, '150,110,255']].forEach(([x, y, col]) => {
+      const p = g.createRadialGradient(x * r, y * r, 0, x * r, y * r, r * .75); p.addColorStop(0, `rgba(${col},.36)`); p.addColorStop(1, `rgba(${col},0)`);
+      g.fillStyle = p; g.beginPath(); g.arc(0, 0, L, 0, 7); g.fill(); g.fillRect(-L, -L, L * 2, L * 2);
+    });
+    g.strokeStyle = 'rgba(236,224,190,.7)'; g.lineWidth = 1.6; g.beginPath(); g.arc(0, 0, r, 0, 7); g.stroke();
+    g.lineWidth = 1; g.strokeStyle = 'rgba(236,224,190,.3)'; g.beginPath(); g.arc(0, 0, r * .86, 0, 7); g.stroke();
+    g.fillStyle = 'rgba(236,224,190,.34)'; g.fillRect(-r, -.6, r * 2, 1.2);
+    pokebolaPiso(g, r * .19, '#b5463c', '#ddd3b8', '#1e2030', .5);
+  }
+});
+const pintarRuinas = (g, q) => estadio(g, q, {
+  sem: 53, cielo: [[0, '#b8641c'], [.4, '#f0a030'], [1, '#ffe49a']],
+  cieloExtra(g, q, R){
+    const sx = q.cw * .5, sy = q.hy * .3, h = g.createRadialGradient(sx, sy, 0, sx, sy, q.cw * .6);
+    h.addColorStop(0, 'rgba(255,250,200,.95)'); h.addColorStop(.25, 'rgba(255,214,110,.55)'); h.addColorStop(1, 'rgba(255,190,80,0)');
+    g.fillStyle = h; g.fillRect(0, 0, q.cw, q.hy);
+    for(let i = 0; i < 7; i++){ g.fillStyle = `rgba(190,90,30,${.25 + R() * .25})`; g.fillRect(Math.round(R() * q.cw * .8), Math.round(R() * q.hy * .8), Math.round(q.cw * (.2 + R() * .35)), 1 + Math.round(R() * 2)); }
+  },
+  muro: '#6a4424', grada0: [88, 56, 26], grada1: [218, 164, 88], riser: [64, 40, 20], borde: '#f0cf8c', bordeSombra: '#b58446',
+  muroAdorno(g, q, wh, R){
+    /* arcos rotos de piedra, con la luz del atardecer detrás */
+    for(let x = 2; x < q.cw - 8; x += 12){
+      if(R() < .1) continue;
+      const h = Math.max(3, Math.round(wh * (.55 + R() * .4))), w = 7, top = q.hy - h;
+      g.fillStyle = '#ffcf70'; g.fillRect(x, top, w, h); g.beginPath(); g.arc(x + w / 2, top, w / 2, Math.PI, 0); g.fill();
+      g.fillStyle = '#3a2412'; g.fillRect(x + 1, top + 1, 2, h - 1); g.fillRect(x + w - 2, top + 1, 2, h - 1);
+    }
+    for(let x = 0; x < q.cw; x += 14 + Math.floor(R() * 20)){ const h = 3 + Math.floor(R() * wh * .7); g.fillStyle = '#6a4424'; g.fillRect(x, q.hy - wh - h, 5 + Math.floor(R() * 4), h); }
+  },
+  luces(g, q, wh, R){
+    /* rayos del sol cayendo sobre las gradas y los escombros del frente */
+    const {cw, ch, hy, ex, ey, erx, ery} = q;
+    [[-.32, .1], [.04, .14], [.4, .1]].forEach(([u, w]) => {
+      const x0 = cw * (.5 + u * .15), x1 = cw * (.5 + u * 1.3);
+      const r = g.createLinearGradient(0, hy * .3, 0, ey); r.addColorStop(0, 'rgba(255,236,160,.28)'); r.addColorStop(1, 'rgba(255,236,160,0)');
+      g.fillStyle = r; g.beginPath(); g.moveTo(x0 - 2, hy * .3); g.lineTo(x0 + 2, hy * .3); g.lineTo(x1 + cw * w, ey); g.lineTo(x1 - cw * w, ey); g.closePath(); g.fill();
+    });
+    const roca = (x, y, s) => {
+      g.fillStyle = 'rgba(50,28,10,.45)'; g.fillRect(x - s * .5, y, s * 1.7, 2);
+      g.fillStyle = '#8a5a2c'; g.beginPath(); g.moveTo(x - s * .5, y); g.lineTo(x - s * .3, y - s * .8); g.lineTo(x + s * .3, y - s); g.lineTo(x + s * .8, y - s * .35); g.lineTo(x + s, y); g.closePath(); g.fill();
+      g.fillStyle = '#e0aa5e'; g.beginPath(); g.moveTo(x - s * .3, y - s * .8); g.lineTo(x + s * .3, y - s); g.lineTo(x + s * .3, y - s * .55); g.lineTo(x - s * .1, y - s * .45); g.closePath(); g.fill();
+    };
+    const s = Math.max(9, erx * .2);
+    roca(Math.round(ex - erx * 1.3), Math.round(ey + ery * 1.05), s); roca(Math.round(ex + erx * 1.28), Math.round(ey + ery * 1.08), s * 1.2);
+    roca(Math.round(ex - erx * 1.0), Math.round(ey + ery * 1.2), s * .7);
+  },
+  farol: false, vinieta: 'rgba(70,30,6,A)',
+  piso(g, r, R){
+    const L = r * 1.1, base = g.createRadialGradient(0, 0, 0, 0, 0, L);
+    base.addColorStop(0, '#f0cc82'); base.addColorStop(.6, '#dcb468'); base.addColorStop(1, '#b88a46');
+    g.fillStyle = base; g.beginPath(); g.arc(0, 0, L, 0, 7); g.fill();
+    /* losas: anillos de piedra y cortes radiales como el piso del anime */
+    g.strokeStyle = 'rgba(110,66,24,.5)'; g.lineWidth = 1.3;
+    [1, .86, .55, .19].forEach(k => { g.beginPath(); g.arc(0, 0, r * k, 0, 7); g.stroke(); });
+    g.strokeStyle = 'rgba(255,236,176,.5)'; g.lineWidth = 1;
+    [.97, .83, .52].forEach(k => { g.beginPath(); g.arc(0, 0, r * k, 0, 7); g.stroke(); });
+    g.strokeStyle = 'rgba(110,66,24,.4)'; g.lineWidth = 1;
+    for(let k = 0; k < 16; k++){ const a = k / 16 * 6.283 + .1; g.beginPath(); g.moveTo(Math.cos(a) * r * .55, Math.sin(a) * r * .55); g.lineTo(Math.cos(a) * r, Math.sin(a) * r); g.stroke(); }
+    for(let k = 0; k < 18; k++){
+      let x = (R() * 2 - 1) * r, y = (R() * 2 - 1) * r; g.beginPath(); g.moveTo(x, y);
+      for(let j = 0; j < 4; j++){ x += (R() * 2 - 1) * r * .08; y += (R() * 2 - 1) * r * .08; g.lineTo(x, y); }
+      g.strokeStyle = 'rgba(90,50,18,.45)'; g.stroke();
+    }
+    for(let i = 0; i < 120; i++){ const a = R() * 7, d = Math.sqrt(R()) * L * .95; g.fillStyle = R() < .5 ? 'rgba(120,76,30,.35)' : 'rgba(255,240,190,.4)'; g.fillRect(Math.cos(a) * d, Math.sin(a) * d, 1 + R(), 1); }
+    const luz = g.createRadialGradient(0, -r * .1, 0, 0, 0, r * 1.2); luz.addColorStop(0, 'rgba(255,244,190,.4)'); luz.addColorStop(1, 'rgba(255,244,190,0)');
+    g.fillStyle = luz; g.beginPath(); g.arc(0, 0, L, 0, 7); g.fill();
+    g.fillStyle = 'rgba(110,66,24,.4)'; g.fillRect(-r, -.6, r * 2, 1.2);
+    pokebolaPiso(g, r * .19, '#c0623a', '#f6e4b4', '#5a3416', .6);
+  }
+});
+const PINTAR_ESCENA = {noche:pintarNoche, ruinas:pintarRuinas};
+
+/* escenarios con imagen (12/11): cx, cy, rx, ry = dónde está la cancha dentro de la imagen (en fracción del ancho/alto) */
+const ESC_IMG = {noche:{src:'images/arena/noche.webp', cx:.501, cy:.5325, rx:.3174, ry:.1348, base:'#0d0b1c'},
+  ruinas:{src:'images/arena/ruinas.webp', cx:.5, cy:.576, rx:.365, ry:.156, base:'#6a4a1e'}};
+function imgEscena(ei){
+  if(!ei.im){ ei.im = new Image(); ei.im.onload = () => { ei.ok = true; try{ if(AR && BG && BG.isConnected) pintarFondo(); }catch(e){} }; ei.im.src = ei.src; }
+  return ei.ok ? ei.im : null;
 }
 
 function pintarFondo(){
@@ -1506,6 +1722,22 @@ function pintarFondo(){
   g.imageSmoothingEnabled = false;
   const ex = G.cx / K, ey = G.cy / K, erx = G.rx / K, ery = G.ry / K;
   const R = rng(7);
+  /* escenarios ilustrados: la imagen se acomoda para que su cancha redonda caiga justo sobre la del juego */
+  const ei = ESC_IMG[AR && AR.escena], im = ei && imgEscena(ei);
+  if(im){
+    g.fillStyle = ei.base; g.fillRect(0, 0, cw, ch);
+    const sx = erx / (ei.rx * im.width), sy = ery / (ei.ry * im.height);
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    g.drawImage(im, ex - ei.cx * im.width * sx, ey - ei.cy * im.height * sy, im.width * sx, im.height * sy);
+    g.imageSmoothingEnabled = false;
+    return;
+  }
+  const pintar = PINTAR_ESCENA[AR && AR.escena];
+  if(pintar){ const hy = Math.round(G.hor / K), alt = lim((G.hor - G.hudH * .92) / K, Math.min(hy * .7, 12), ery * .62);   // alt: lo que se ve de paisaje entre los carteles y el horizonte
+    /* adornos: en las cuatro esquinas del campo (siempre entran) y, si la pantalla es ancha, también a los costados */
+    const lug = [[-.86, -.9], [.86, -.92], [-.84, .9], [.86, .88]].map(([a, b]) => [ex + erx * a, ey + ery * b]);
+    if(cw / 2 > erx * 1.4) lug.push([ex - erx * 1.3, ey - ery * .2], [ex + erx * 1.32, ey + ery * .1], [ex - erx * 1.5, ey + ery * .6], [ex + erx * 1.52, ey - ery * .6]);
+    pintar(g, {cw, ch, ex, ey, erx, ery, hy, alt, lug}); posterizar(g, cw, ch); return; }
 
   g.fillStyle = '#04050a'; g.fillRect(0, 0, cw, ch);
 
@@ -1617,14 +1849,16 @@ function acomodarEscena(){
   Object.assign(cono.style, {left:G.cx + 'px', top:(ly + tam * .3) + 'px', height:(G.cy + G.ry * .9 - ly) + 'px', width:(G.rx * 2.3) + 'px'});
   const motas = ST.querySelector('.ar-motas');
   if(motas && !motas.childElementCount && !REDUCE){
-    for(let i = 0; i < 16; i++){
+    const afuera = AR.escena !== 'galpon';
+    for(let i = 0; i < (afuera ? 12 : 16); i++){
       const m = document.createElement('i');
-      m.style.left = azar(30, 70) + '%'; m.style.top = azar(5, 90) + '%';
+      m.style.left = (afuera ? azar(2, 98) : azar(30, 70)) + '%'; m.style.top = azar(5, 90) + '%';
       m.style.animationDuration = azar(5, 11) + 's'; m.style.animationDelay = -azar(0, 10) + 's';
       motas.appendChild(m);
     }
   }
-  if(motas) Object.assign(motas.style, {left:G.cx + 'px', top:(ly + tam) + 'px', height:(G.cy - ly) + 'px', width:(G.rx * 1.2) + 'px'});
+  if(motas) Object.assign(motas.style, AR.escena === 'galpon' ? {left:G.cx + 'px', top:(ly + tam) + 'px', height:(G.cy - ly) + 'px', width:(G.rx * 1.2) + 'px'}
+    : {left:G.cx + 'px', top:(G.cy - G.ry * 1.3) + 'px', height:(G.ry * 2.5) + 'px', width:Math.min(G.W, G.rx * 2.4) + 'px'});   // al aire libre: sal que vuela, polvo o luciérnagas por todo el campo
 }
 
 function alCambiarTamano(){
@@ -1853,6 +2087,7 @@ function crearMon(p, rival, ejFijo){
   const movs = movsEjemplar(p, ej);
   return {p, bst, max, hp:max, en:EN_MAX, vivo:true, st:(ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : (p.especial && VEL_ESPECIAL[p.id]) ? Object.assign({}, statsDe(p), {vel:VEL_ESPECIAL[p.id]}) : statsDe(p), fz, k, vario:!!(ej && ej.s), movs};
 }
+const POSE_0 = {};
 function crearEntidad(lado){
   const amigo = lado === 'yo' || (AR.bando && AR.bando[lado] === AR.bando.yo);
   const w = $('arMon-' + lado);
@@ -1885,7 +2120,9 @@ function empujar(e, dx, dy){ e.x += dx / G.rx; e.y += dy / G.ry; encerrar(e); }
 
 function medidas(e, img){
   const sf = ESCALA_POKE[escalaLado(e)] * (AR && AR.zoom || 1) * (img.dataset.fb ? .25 : 1) * ((e.mon && e.mon.p.escala) || 1) * (e.mon && e.mon.p.id > 649 && e.mon.p.id < 10000 ? .65 : 1);   // los animados de Showdown (desde el 650) son ~1,5× más grandes que los de Black/White   // el legendario de la incursión tiene el mismo tamaño que todos (Zeta 31/10): sólo es más poderoso   // escala: sprites de Showdown más grandes que los de siempre
-  return {w:img.naturalWidth * G.K * sf, h:img.naturalHeight * G.K * sf};
+  let k = G.K * sf;
+  if(!img.dataset.fb && !(e.mon && e.mon.p.id > 649)){ const dpr = window.devicePixelRatio || 1, n = Math.round(k * dpr) / dpr; if(n > 0 && Math.abs(n / k - 1) <= .15) k = n; }   // 12/11: pixel art sin píxeles desparejos (sólo si el tamaño casi no cambia)
+  return {w:img.naturalWidth * k, h:img.naturalHeight * k};
 }
 function tamanoSprite(e){
   for(const v of ['frente', 'espalda']){
@@ -2010,8 +2247,14 @@ function dibujar(e, dt){
     sy += b * .028; sx -= b * .014;
   }
   if(e.giroT > 0){ hop += Math.sin((1 - e.giroT / .22) * Math.PI) * e.h * .12; if(dt > 0) e.giroT -= dt; }
-  if(e.pose){ sx *= e.pose.sx || 1; sy *= e.pose.sy || 1; rot += (e.pose.rot || 0) * e.cara; dx += (e.pose.dx || 0) * e.cara; dy += e.pose.dy || 0; }
-  if(e.stun > 0){ rot -= e.cara * 12 * Math.min(1, e.stun / .2); dx += azar(-1, 1) * e.h * .03; }
+  /* 12/11: la pose del ataque ya no salta de un cuadro al otro: se llega a ella en ~3 cuadros (se lee la toma de impulso y el remate) */
+  {
+    const q = e.pose || POSE_0, a = e.poseS || (e.poseS = {sx:1, sy:1, rot:0, dx:0, dy:0}), k = dt > 0 ? 1 - Math.exp(-dt * 26 / (AR.esc || 1)) : 0;
+    a.sx += ((q.sx || 1) - a.sx) * k; a.sy += ((q.sy || 1) - a.sy) * k; a.rot += ((q.rot || 0) - a.rot) * k;
+    a.dx += ((q.dx || 0) - a.dx) * k; a.dy += ((q.dy || 0) - a.dy) * k;
+    sx *= a.sx; sy *= a.sy; rot += a.rot * e.cara; dx += a.dx * e.cara; dy += a.dy;
+  }
+  if(e.stun > 0){ const g = Math.min(1, e.stun / .2); rot -= e.cara * 12 * g; dx += azar(-1, 1) * e.h * .03; sx *= 1 - .09 * g; sy *= 1 + .07 * g; }   // el que recibe el golpe se encoge
   e.wrap.style.transform = `translate(${p.x}px,${p.y}px) scale(${e.s})`;
   e.wrap.style.zIndex = Math.round(p.y) + 10;
   e.cuerpo.style.transform = `translate(${dx}px,${dy - hop}px) rotate(${rot}deg) scale(${sx},${sy})`;
@@ -3236,6 +3479,8 @@ function armarEscenario(){
       </div>
     </div>`;
   ST = $('arStage'); SHAKE = $('arShake'); FX = $('arFx'); BG = $('arBg'); PISO = $('arPiso');
+  if(!AR.escena) AR.escena = elegirEscena();
+  ST.classList.add('esc-' + AR.escena);
   if(window.PIXFX && !REDUCE) PIXFX.montar(ST, Math.max(2, Math.round(u() * .85)));   // efectos pixel (pixelfx): golpes por tipo y críticos
   $('arCloseBtn').onclick = pedirSalida;
   $('arSeguir').onclick = () => { $('arConfirm').hidden = true; AR.pausa = AR.pausaAntes; };
@@ -3308,7 +3553,7 @@ function armarMulti(d, pDe){
   const eq = j => j.equipo.map(x => crearMon(pDe(x.id), j.slot !== d.miSlot, x));
   AR.multi = true; AR.modo = d.modo; AR.miSlot = d.miSlot;
   /* más gente en la cancha = cámara más lejos (todo se ve más chico) para que haya lugar para pelear */
-  AR.zoom = d.modo === '2v2' ? .78 : ({3:.86, 4:.76, 5:.68})[d.jugadores.length] || .72;
+  AR.zoom = d.modo === '2v2' ? .66 : ({3:.72, 4:.66, 5:.6})[d.jugadores.length] || .62;   // 12/11: todo ~15 % más chico (estadio grande)
   AR.lados = ['yo']; AR.bando = {yo:d.modo === '2v2' ? yo.bando : 'yo'}; AR.espejo = {}; AR.porSlot = {[d.miSlot]:'yo'}; AR.spawn = {};
   AR.yo = {mons:eq(yo), idx:0, act:null, nombre:yo.nombre}; AR.slotDe = {yo:yo.slot};
   const nombresRival = [], libres = ['riv', 'r2', 'r3', 'r4'];
@@ -3339,7 +3584,7 @@ function armarIncursion(d, pDe){
   const eq = j => j.equipo.map(x => crearMon(pDe(x.id), false, x));
   AR.multi = true; AR.modo = 'raid'; AR.miSlot = d.miSlot;
   AR.raid = {jefe: d.jefe, host: d.hostJefe === d.miSlot, fin: performance.now() + (d.limiteMs || 300000), seg: -1};
-  AR.zoom = .64;
+  AR.zoom = .56;
   AR.estilo = ESTILOS.legendario;
   AR.lados = ['yo']; AR.bando = {yo:'A'}; AR.espejo = {}; AR.porSlot = {[d.miSlot]:'yo'}; AR.spawn = {}; AR.slotDe = {yo:yo.slot};
   AR.yo = {mons:eq(yo), idx:0, act:null, nombre:yo.nombre};
@@ -3372,7 +3617,7 @@ async function luchar(mios, duelo){
   AR = {
     yo:  {mons:duelo && !multi ? duelo.yo.equipo.map(x => crearMon(pDe(x.id), false, x)) : mios ? mios.map(p => crearMon(p)) : [], idx:0, act:null, nombre:window.__yoNombre || 'Vos'},
     riv: {mons:duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
-    zoom:1, lados:['yo', 'riv'], bando:{yo:'A', riv:'B'}, espejo:{riv:true}, porSlot:{}, miSlot:null, multi:false, modo:'1v1', spawn:{yo:[.55, .35], riv:[-.55, -.2]},
+    zoom:ZOOM_1V1, lados:['yo', 'riv'], bando:{yo:'A', riv:'B'}, espejo:{riv:true}, porSlot:{}, miSlot:null, multi:false, modo:'1v1', spawn:{yo:[.55, .35], riv:[-.55, -.2]},
     online:!!duelo, red:{ult:0, obj:{}},
     estilo:ESTILOS[estilo], proys:[], zonas:[], pend:[], hold:new Set(), keys:new Set(), joy:{x:0, y:0},
     fase:'intro', tLucha:0, esc:1, pausa:false, pausaAntes:false, cambioCd:0, cambioRiv:3, ult:0, congela:0,

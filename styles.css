@@ -502,7 +502,7 @@
   .ar-stage{position:relative;flex:1 1 auto;min-height:0;width:100%;container-type:inline-size;overflow:hidden;touch-action:none;}
   .ar-shake{position:absolute;inset:0;z-index:0;isolation:isolate;}
   .ar-bg{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
-  .ar-lineas{position:absolute;inset:0;pointer-events:none;z-index:6;background:repeating-linear-gradient(0deg,rgba(0,0,0,.10) 0 1px,transparent 1px 3px);}
+  .ar-lineas{position:absolute;inset:0;pointer-events:none;z-index:6;background:repeating-linear-gradient(0deg,rgba(0,0,0,.06) 0 1px,transparent 1px 3px);}
   .ar-fx{position:absolute;inset:0;pointer-events:none;z-index:100000;}
   .ar-p,.ar-orbe,.ar-flash,.ar-txt,.ar-tajo,.ar-rayo,.ar-zona,.ar-mira{position:absolute;pointer-events:none;}
   .ar-p{image-rendering:pixelated;}
@@ -633,7 +633,10 @@
   .ar-aviso{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);z-index:12;pointer-events:none;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:clamp(36px,12cqw,96px);color:#FFD54A;text-shadow:0 4px 0 #000,0 0 18px #000;white-space:nowrap;}
   .ar-aviso.pop{animation:arPop .5s steps(6,end) both;}
   @keyframes arPop{from{transform:translate(-50%,-50%) scale(2.2);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
-  .ar-ctrl{position:relative;flex:0 0 auto;height:min(240px,36dvh);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 12px 10px;background:linear-gradient(#070a18,#0b1030);touch-action:none;}
+  /* 12/11: los controles flotan sobre el escenario (sin franja azul): el estadio sigue por debajo */
+  .ar-ctrl{position:absolute;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:6px 12px 10px;background:none;pointer-events:none;touch-action:none;}
+  .ar-ctrl > *{pointer-events:auto;} .ar-hint{pointer-events:none;}
+  @media (orientation:portrait){ .ar-log{bottom:calc(var(--ar-ctrl-h, 180px) + 8px) !important;} }
   .ar-joy{width:min(176px,34dvh,36vw);aspect-ratio:1;display:flex;align-items:center;justify-content:center;touch-action:none;flex:0 0 auto;}
   .ar-joy .base{position:relative;width:78%;aspect-ratio:1;border-radius:50%;border:3px solid rgba(255,255,255,.35);background:rgba(20,28,64,.6);}
   .ar-joy .knob{position:absolute;left:50%;top:50%;width:42%;aspect-ratio:1;margin:-21% 0 0 -21%;border-radius:50%;background:#e8ecff;border:3px solid #5a6bd0;box-shadow:0 3px 0 rgba(0,0,0,.4);}
@@ -734,7 +737,7 @@
   .ar-x{width:44px;height:44px;} .ar-son{top:58px;width:38px;height:38px;}
   .ar-log{font-size:13px;padding:5px 12px;border-radius:10px;background:rgba(5,8,20,.72);backdrop-filter:blur(2px);animation:arLogIn .18s ease-out;}
   @keyframes arLogIn{from{opacity:0;transform:translateX(-50%) translateY(6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-  .ar-ctrl{padding:8px 14px calc(12px + env(safe-area-inset-bottom));gap:14px;background:linear-gradient(#070a18,#0d1336);border-top:2px solid rgba(90,107,208,.35);box-shadow:0 -8px 22px rgba(0,0,0,.45);}
+  .ar-ctrl{padding:8px 14px calc(12px + env(safe-area-inset-bottom));gap:14px;}
   .ar-joy .base{border-color:rgba(255,255,255,.28);background:radial-gradient(circle,rgba(40,54,120,.55),rgba(14,20,48,.7));box-shadow:inset 0 0 18px rgba(0,0,0,.55),0 0 0 4px rgba(90,107,208,.12);}
   .ar-joy .knob{background:radial-gradient(circle at 35% 30%,#fff,#c9d2ff 60%,#8f9ee8);box-shadow:0 5px 10px rgba(0,0,0,.5);transition:box-shadow .12s;}
   .ar-btns{gap:8px;max-width:330px;}
@@ -1020,6 +1023,8 @@
 
 /* 03/11: incursión / peleas de varios en celulares: sin adornos de luz ni mezcla de capas */
 .ar-liviano .ar-pilar,.ar-liviano .ar-cono{display:none;}
+/* escenarios al aire libre (12/11): sin lámpara; cada uno con su aire */
+.ar-stage:not(.esc-galpon) .ar-lampara,.ar-stage:not(.esc-galpon) .ar-cono{display:none;}
 .ar-liviano .ar-aura-oscura .ar-ancla::before{display:none;}
 .ar-liviano .ar-fin,.ar-liviano .ar-equipo,.ar-liviano .ar-confirm{backdrop-filter:none;}
 
