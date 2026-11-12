@@ -5638,7 +5638,7 @@ function avistamientoActivo(){
    pedazo del mapa y la cámara sigue al jugador). */
 function advEscala(ancho, alto){
   const chico = Math.min(ancho, alto);
-  let base = chico < 420 ? 2.3 : chico < 700 ? 2.7 : 3.2;   // Zeta 27/10: con mejor gráfico se ve más terreno (antes 3 / 3,4 / 4)
+  let base = chico < 420 ? 1.85 : chico < 700 ? 2.2 : 2.7;   // 12/11 Zeta: la cámara un poco más lejos (antes 2,3 / 2,7 / 3,2)   // Zeta 27/10: con mejor gráfico se ve más terreno (antes 3 / 3,4 / 4)
   /* El avistamiento ya no pasa siempre pegado al altar (RADIO_AVISTAMIENTO):
      la cámara se aleja lo que haga falta para que jugador y altar-plataforma
      entren los dos en pantalla, con aire, en vez de un alejamiento fijo que
@@ -5999,6 +5999,32 @@ function luzCirculo(r, rgb, a){        // círculo de luz: parejo adentro y con 
   return LUZ_CACHE[k] = c;
 }
 const FAROL_RADIO = 3.4 * ADV_PX;
+/* ---------- Reflectores del Estadio 23 de Agosto (12/11 Zeta): 4 torres altas, una en cada esquina, que de noche alumbran
+   bien toda la cancha y un poco afuera. reflectoresEstadio() da dónde está el foco de cada una y el centro de la cancha (px de mundo). */
+function reflectoresEstadio(){
+  if(reflectoresEstadio._r !== undefined) return reflectoresEstadio._r;
+  const b = bloqueEstadio(); if(!b) return reflectoresEstadio._r = null;
+  const A = b.afuera, C = b.cancha, T = ADV_PX;
+  const cx = (C.x0 + C.x1 + 1) * T / 2, cy = (C.y0 + C.y1 + 1) * T / 2, rx = (C.x1 - C.x0 + 1) * T / 2, ry = (C.y1 - C.y0 + 1) * T / 2;
+  const torres = [[A.x0, A.y0], [A.x1, A.y0], [A.x0, A.y1], [A.x1, A.y1]].map(([x, y]) => ({bx: x * T + 8, by: y * T + 13, fx: x * T + 8, fy: y * T + 13 - 30}));
+  return reflectoresEstadio._r = {cx, cy, rx, ry, torres};
+}
+function dibujarReflectores(ctx, camX, camY, vw, vh){
+  const R = reflectoresEstadio(); if(!R) return;
+  for(const t of R.torres){
+    const x = Math.round(t.bx - camX), y = Math.round(t.by - camY);
+    if(x < -20 || x > vw + 20 || y < -4 || y - 40 > vh) continue;
+    const haciaDer = t.fx < R.cx ? 1 : -1;
+    pinta(ctx, 'rgba(0,0,0,.28)', x - 4, y, 9, 2);                         // sombra al pie
+    pinta(ctx, '#5B616C', x - 3, y - 3, 7, 3);                             // base de hormigón
+    pinta(ctx, '#8B929E', x - 1, y - 30, 3, 28);                           // el poste
+    pinta(ctx, '#B9C0CB', x - 1, y - 30, 1, 28);
+    for(let k = 0; k < 4; k++) pinta(ctx, '#6C727D', x - 2, y - 8 - k * 6, 5, 1);   // travesaños
+    pinta(ctx, '#3D424B', x - 6, y - 38, 13, 9);                           // el panel de focos, inclinado hacia la cancha
+    for(let i = 0; i < 3; i++) for(let j = 0; j < 2; j++) pinta(ctx, CLIMA.noche ? '#FFF6C8' : '#E6E9EE', x - 5 + i * 4, y - 37 + j * 4, 3, 3);
+    pinta(ctx, '#2B2F36', haciaDer > 0 ? x + 6 : x - 7, y - 36, 1, 6);
+  }
+}
 function nocheRender(mapa, camX, camY, vw, vh, kk, cw, chh){
   const cv = document.getElementById('advNoche');
   if(!cv) return;
@@ -6029,6 +6055,29 @@ function nocheRender(mapa, camX, camY, vw, vh, kk, cw, chh){
     const hoyo = luzCirculo(r, '255,255,255', .6 * f); g.drawImage(hoyo, x - hoyo.width / 2, y - hoyo.height / 2);
     g.globalCompositeOperation = 'source-over';          // …y se le suma un tono cálido
     const calido = luzCirculo(r, '255,200,100', .2 * f); g.drawImage(calido, x - calido.width / 2, y - calido.height / 2);
+  }
+  /* los 4 reflectores del estadio: la cancha queda bien iluminada (y un poco alrededor) y se ven los haces desde cada torre */
+  const RF = reflectoresEstadio();
+  if(RF && RF.cx - camX > -RF.rx * 2.2 && RF.cx - camX < vw + RF.rx * 2.2 && RF.cy - camY > -RF.ry * 3 && RF.cy - camY < vh + RF.ry * 3){
+    const ox = RF.cx - camX, oy = RF.cy - camY, rad = Math.max(RF.rx, RF.ry) + ADV_PX * 2.6;
+    g.save(); g.translate(ox, oy); g.scale(1, (RF.ry + ADV_PX * 2.6) / rad);
+    g.globalCompositeOperation = 'destination-out';
+    let gr = g.createRadialGradient(0, 0, rad * .45, 0, 0, rad);
+    gr.addColorStop(0, `rgba(255,255,255,${.92 * f})`); gr.addColorStop(.72, `rgba(255,255,255,${.7 * f})`); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.beginPath(); g.arc(0, 0, rad, 0, 7); g.fill();
+    g.restore();
+    g.globalCompositeOperation = 'source-over';
+    for(const t of RF.torres){
+      const lx = t.fx - camX, ly = t.fy - 4 - camY, tx = ox + (t.fx - RF.cx) * .28, ty = oy + (t.fy + 30 - RF.cy) * .28;
+      const dx = tx - lx, dy = ty - ly, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, ab = RF.ry * .95;
+      const haz = g.createLinearGradient(lx, ly, tx, ty);
+      haz.addColorStop(0, `rgba(255,246,205,${.5 * f})`); haz.addColorStop(.6, `rgba(255,246,205,${.16 * f})`); haz.addColorStop(1, 'rgba(255,246,205,0)');
+      g.fillStyle = haz; g.beginPath(); g.moveTo(lx - nx * 3, ly - ny * 3); g.lineTo(lx + nx * 3, ly + ny * 3); g.lineTo(tx + nx * ab, ty + ny * ab); g.lineTo(tx - nx * ab, ty - ny * ab); g.closePath(); g.fill();
+      g.globalCompositeOperation = 'destination-out';
+      const hoyo = luzCirculo(FAROL_RADIO * .8, '255,255,255', .8 * f); g.drawImage(hoyo, lx - hoyo.width / 2, ly - hoyo.height / 2);
+      g.globalCompositeOperation = 'source-over';
+      const brillo = luzCirculo(FAROL_RADIO * .55, '255,244,190', .55 * f); g.drawImage(brillo, lx - brillo.width / 2, ly - brillo.height / 2);
+    }
   }
   g.globalCompositeOperation = 'source-over';
   camGuia.x = camX; camGuia.y = camY; dibujarGuiaIncursion(g);   // la flecha de las incursiones va arriba del manto
@@ -6207,6 +6256,7 @@ function advRender(){
 
   if(advMapa === 'overworld') dibujarTren(ctx, camX, camY, vw, vh);
   if(advMapa === 'overworld') dibujarGuaridas(ctx, camX, camY, vw, vh);
+  if(advMapa === 'overworld') dibujarReflectores(ctx, camX, camY, vw, vh);
   botonIncursion();
   if(typeof dibujarOtros === 'function') dibujarOtros(ctx, camX, camY, vw, vh, escala);   // Aventura en vivo (servidor.js)
   dibujarJugador(ctx, advPx - camX, advPy - camY);
@@ -7441,12 +7491,11 @@ function pintarSubMaestro(){
     sub.id = 'rankSub'; sub.className = 'rank-sub-tabs';
     document.getElementById('rankList').parentNode.insertBefore(sub, document.getElementById('rankList'));
   }
-  sub.hidden = (rankTab !== 'maestro' && rankTab !== 'hoy') || !semanalActivo();
+  sub.hidden = rankTab !== 'hoy' || !semanalActivo();   // 12/11 Zeta: las vistas de la semana van SÓLO en Semanal (en Maestros se repetían)
   if(sub.hidden) return;
   /* La pestaña Semanal (antes "Hoy") sólo tiene las dos vistas de la semana; el histórico queda en Maestros. */
   const op = [['semana', '⚔️ Arena'], ['colec', '📦 Sobres']];
-  if(rankTab === 'maestro') op.push(['historico', '👑 Histórico']);
-  else if(subMaestro === 'historico') subMaestro = 'semana';
+  if(subMaestro === 'historico') subMaestro = 'semana';
   sub.innerHTML = op.map(o => '<button type="button" class="rank-subchip' + (subMaestro === o[0] ? ' on' : '') + '" data-sub="' + o[0] + '">' + o[1] + '</button>').join('');
   sub.querySelectorAll('button').forEach(b => b.onclick = () => { subMaestro = b.dataset.sub; renderRank(); });
 }
@@ -7488,8 +7537,7 @@ function renderRankSemana(lista, cont, done){
     (ant && ant.length ? '<div class="hof-title" style="margin-top:14px">🏅 La semana pasada</div>' + ant.map(g => '<div class="hof-row"><span class="rango-pts">' + g.puesto + '°</span><div class="hof-name"><b>' + esc(g.nombre) + '</b></div></div>').join('') : '');
 }
 function renderRankMaestro(lista, cont, done){
-  pintarSubMaestro();
-  if(semanalActivo() && subMaestro !== 'historico') return renderRankSemana(lista, cont, done);
+  /* 12/11 Zeta: Maestros muestra sólo el ranking de siempre de la Arena; lo de la semana (Arena y Sobres) está en Semanal y no se repite acá */
   return renderRankMaestroHistorico(lista, cont, done);
 }
 function renderRankMaestroHistorico(lista, cont, done){
@@ -7828,7 +7876,7 @@ let hofAbierto = false;
 
 function renderRank(){
   pintarEnLinea();
-  if(rankTab !== 'maestro' && rankTab !== 'hoy'){ const sb = document.getElementById('rankSub'); if(sb) sb.hidden = true; }
+  if(rankTab !== 'hoy'){ const sb = document.getElementById('rankSub'); if(sb) sb.hidden = true; }
   const lista = document.getElementById('rankList');
   const done  = document.getElementById('rankDone');
   const cont  = document.getElementById('rankCount');
