@@ -636,6 +636,8 @@ const ESPECIALES = [
    frente:'images/especial/hoopa-desatado-frente.gif', espalda:'images/especial/hoopa-desatado-espalda.gif'}
 ];
 const ESPECIAL_POR_ID = Object.fromEntries(ESPECIALES.map(e => [e.id, e]));
+/* 12/11: el segundo tipo de las especiales no se estaba aplicando (la lista de arriba sólo recorría DATA): Lugia y Ho-Oh Apex son también Volador, Mega Charizard X también Fuego y Hoopa también Psíquico */
+ESPECIALES.forEach(e => { const t = TIPO2_ESPECIAL[e.id]; if(t && t !== e.type) e.type2 = t; });
 let especiales = {};   // id -> {f, c}: las especiales que tiene el jugador
 function especialesMios(){ return ESPECIALES.filter(e => especiales[e.id]); }
 function renderEspeciales(){
