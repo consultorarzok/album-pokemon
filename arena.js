@@ -24,7 +24,8 @@
 
 const CDN = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/';
 /* Los GIF animados de Black/White llegan hasta el 649; de ahí en adelante (Greninja) salen los animados de Showdown. */
-const animBase = id => CDN + (id > 649 ? 'other/showdown/' : 'versions/generation-v/black-white/animated/');
+const esHD = id => id > 649;
+const animBase = id => CDN + (esHD(id) ? 'other/showdown/' : 'versions/generation-v/black-white/animated/');
 const spFrente  = (id, v) => ESPECIAL_POR_ID[id] ? ESPECIAL_POR_ID[id].frente : v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].frente : animBase(id) + (v ? 'shiny/' : '') + id + '.gif';
 const spEspalda = (id, v) => ESPECIAL_POR_ID[id] ? ESPECIAL_POR_ID[id].espalda : v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].espalda : animBase(id) + 'back/' + (v ? 'shiny/' : '') + id + '.gif';
 const spIcono   = (id, v) => ESPECIAL_POR_ID[id] ? ESPECIAL_POR_ID[id].icono : v && SHINY_PROPIO[id] ? SHINY_PROPIO[id].icono : CDN + (v ? 'shiny/' : '') + id + '.png';
@@ -1998,7 +1999,7 @@ function tajos(x, y, color, dir){
 function destello(x, y, k){
   if(!FX) return;
   const f = mk('ar-flash', {left:x + 'px', top:y + 'px', width:(10 * u() * (k || 1)) + 'px', height:(10 * u() * (k || 1)) + 'px'});
-  const a = f.animate([{transform:'translate(-50%,-50%) scale(.2)', opacity:.95}, {transform:'translate(-50%,-50%) scale(2.6)', opacity:0}],
+  const a = f.animate([{transform:'translate(-50%,-50%) scale(.2)', opacity:.6}, {transform:'translate(-50%,-50%) scale(2.2)', opacity:0}],
     {duration:380, easing:'steps(6,end)'});
   const q = () => f.remove(); a.finished.then(q, q);
 }
@@ -2119,9 +2120,9 @@ function encerrar(e){
 function empujar(e, dx, dy){ e.x += dx / G.rx; e.y += dy / G.ry; encerrar(e); }
 
 function medidas(e, img){
-  const sf = ESCALA_POKE[escalaLado(e)] * (AR && AR.zoom || 1) * (img.dataset.fb ? .25 : 1) * ((e.mon && e.mon.p.escala) || 1) * (e.mon && e.mon.p.id > 649 && e.mon.p.id < 10000 ? .65 : 1);   // los animados de Showdown (desde el 650) son ~1,5× más grandes que los de Black/White   // el legendario de la incursión tiene el mismo tamaño que todos (Zeta 31/10): sólo es más poderoso   // escala: sprites de Showdown más grandes que los de siempre
+  const sf = ESCALA_POKE[escalaLado(e)] * (AR && AR.zoom || 1) * (img.dataset.fb ? .25 : 1) * ((e.mon && e.mon.p.escala) || 1) * (e.mon && esHD(e.mon.p.id) && e.mon.p.id < 10000 ? .65 : 1);   // los animados de Showdown (desde el 650) son ~1,5× más grandes que los de Black/White   // el legendario de la incursión tiene el mismo tamaño que todos (Zeta 31/10): sólo es más poderoso   // escala: sprites de Showdown más grandes que los de siempre
   let k = G.K * sf;
-  if(!img.dataset.fb && !(e.mon && e.mon.p.id > 649)){ const dpr = window.devicePixelRatio || 1, n = Math.round(k * dpr) / dpr; if(n > 0 && Math.abs(n / k - 1) <= .15) k = n; }   // 12/11: pixel art sin píxeles desparejos (sólo si el tamaño casi no cambia)
+  if(!img.dataset.fb && !(e.mon && esHD(e.mon.p.id))){ const dpr = window.devicePixelRatio || 1, n = Math.round(k * dpr) / dpr; if(n > 0 && Math.abs(n / k - 1) <= .15) k = n; }   // 12/11: pixel art sin píxeles desparejos (sólo si el tamaño casi no cambia)
   return {w:img.naturalWidth * k, h:img.naturalHeight * k};
 }
 function tamanoSprite(e){
@@ -2231,30 +2232,42 @@ function dibujar(e, dt){
 
   let sx = 1, sy = 1, rot = 0, dx = 0, dy = 0, hop = 0;
   const t = performance.now() / 1000;
+  const cans = e.mon && e.mon.vivo && e.mon.max ? lim((.35 - e.mon.hp / e.mon.max) / .25, 0, 1) : 0;   // 12/11: cansancio con menos de 35 % de vida
   if(mov > .15 && !e.rodando){
     e.fase += dt * (5.5 + 5 * mov);
     const s = Math.abs(Math.sin(e.fase * Math.PI));
-    hop = s * Math.min(1, mov) * e.h * .09;
-    const sq = (1 - s) * .07 * Math.min(1, mov);
+    hop = s * Math.min(1, mov) * e.h * .14;                 // 12/11: pasos más marcados
+    const sq = (1 - s) * .12 * Math.min(1, mov) - s * .05 * Math.min(1, mov);   // se aplasta al pisar y se estira en el aire
     sx += sq; sy -= sq;
-    rot += lim(e.rvx / vmax, -1.2, 1.2) * 9;
+    rot += lim(e.rvx / vmax, -1.2, 1.2) * 14;
     if(dt > 0){
       e.polvoT -= dt;
       if(e.polvoT <= 0 && s < .25){ e.polvoT = .18; polvo(p.x, p.y, 2, .9); }
     }
   } else {
-    const b = Math.sin(t * 3.1 + (e.lado === 'yo' ? 0 : 1.7));
-    sy += b * .028; sx -= b * .014;
+    /* quieto: respira; con poca vida jadea rápido y se encorva */
+    const b = Math.sin(t * (3.1 + 4.5 * cans) + (e.lado === 'yo' ? 0 : 1.7));
+    sy += b * (.036 + .03 * cans); sx -= b * (.018 + .015 * cans);
   }
+  if(cans > 0){ sy *= 1 - .07 * cans; sx *= 1 + .04 * cans; rot += e.cara * 7 * cans; }
+  /* arranque y frenada: el cuerpo se queda atrás al salir y se va de punta al frenar */
+  if(dt > 0){
+    const ac = lim((mov - (e.movAnt || 0)) / dt / 6, -1, 1); e.movAnt = mov;
+    e.acS = (e.acS || 0) + (ac - (e.acS || 0)) * (1 - Math.exp(-dt * 14));
+    if(e.acS < -.35 && !e.frenoT && !e.rodando){ e.frenoT = .3; polvo(p.x, p.y, 3, 1); }
+    if(e.frenoT) e.frenoT = Math.max(0, e.frenoT - dt);
+  }
+  if(!e.rodando){ const a = e.acS || 0; rot -= e.cara * a * 9; sx *= 1 + Math.abs(a) * .06; sy *= 1 - Math.abs(a) * .05; }
   if(e.giroT > 0){ hop += Math.sin((1 - e.giroT / .22) * Math.PI) * e.h * .12; if(dt > 0) e.giroT -= dt; }
   /* 12/11: la pose del ataque ya no salta de un cuadro al otro: se llega a ella en ~3 cuadros (se lee la toma de impulso y el remate) */
   {
     const q = e.pose || POSE_0, a = e.poseS || (e.poseS = {sx:1, sy:1, rot:0, dx:0, dy:0}), k = dt > 0 ? 1 - Math.exp(-dt * 26 / (AR.esc || 1)) : 0;
     a.sx += ((q.sx || 1) - a.sx) * k; a.sy += ((q.sy || 1) - a.sy) * k; a.rot += ((q.rot || 0) - a.rot) * k;
     a.dx += ((q.dx || 0) - a.dx) * k; a.dy += ((q.dy || 0) - a.dy) * k;
-    sx *= a.sx; sy *= a.sy; rot += a.rot * e.cara; dx += a.dx * e.cara; dy += a.dy;
+    const GP = 1.4;   // 12/11: las poses de ataque se exageran (más impulso y más estirón)
+    sx *= 1 + (a.sx - 1) * GP; sy *= 1 + (a.sy - 1) * GP; rot += a.rot * GP * e.cara; dx += a.dx * GP * e.cara; dy += a.dy;
   }
-  if(e.stun > 0){ const g = Math.min(1, e.stun / .2); rot -= e.cara * 12 * g; dx += azar(-1, 1) * e.h * .03; sx *= 1 - .09 * g; sy *= 1 + .07 * g; }   // el que recibe el golpe se encoge
+  if(e.stun > 0){ const g = Math.min(1, e.stun / .2); rot -= e.cara * 20 * g; dx += azar(-1, 1) * e.h * .05 - e.cara * e.w * .08 * g; hop += e.h * .07 * g; sx *= 1 - .14 * g; sy *= 1 + .1 * g; }   // el que recibe el golpe se encoge
   e.wrap.style.transform = `translate(${p.x}px,${p.y}px) scale(${e.s})`;
   e.wrap.style.zIndex = Math.round(p.y) + 10;
   e.cuerpo.style.transform = `translate(${dx}px,${dy - hop}px) rotate(${rot}deg) scale(${sx},${sy})`;
@@ -2401,9 +2414,9 @@ function golpear(att, def, alc, x, y){
     res.mult > 1 ? '#ffd54a' : '#c9ccd8', 2.5), 120);
   if(cb.n >= 2) setTimeout(() => AR && texto(c.x, arriba - u() * 4.5, `Combo ×${cb.n}`, cb.lado === 'yo' ? '#7CF2FF' : '#FF9A9A', 2.8), 60);
   if(window.PIXFX && PIXFX.activo()) PIXFX.golpe(x == null ? c.x : x, y == null ? c.y : y, tipo, res.crit, c.x >= cen(att).x ? 1 : -1);
-  estallido(x == null ? c.x : x, y == null ? c.y : y, tipo, res.crit ? 22 : 11, res.crit ? 1.4 : 1);
-  destello(x == null ? c.x : x, y == null ? c.y : y, res.crit ? 1.2 : .7);
-  sacudir(res.crit ? 1.5 : .7, res.crit);
+  estallido(x == null ? c.x : x, y == null ? c.y : y, tipo, res.crit ? 12 : 6, res.crit ? 1 : .75);   // 12/11 Zeta: efectos del golpe más suaves, que se entienda la pelea
+  destello(x == null ? c.x : x, y == null ? c.y : y, res.crit ? .8 : .5);
+  sacudir(res.crit ? .9 : .4, false);
   if(def.lado === 'yo') vibrar(res.crit ? [30, 20, 30] : 22);
   sfx(res.crit ? 'critico' : 'golpe');
   /* 04/11 Zeta: sin pausa (hit-stop) en los golpes, se sentía lento */   // con varios en pantalla los golpes llegan sin parar: el hit-stop los dejaba trabados
@@ -2607,7 +2620,7 @@ function relampagoEntre(x0, y0, x1, y1, grosor, col){
 }
 function relampago(x, y){ relampagoEntre(x + azar(-8, 8) * u(), -10, x, y); }
 function flashPantalla(col){
-  fxSimple('ar-flash-pant', {background:col || '#fff'}, [{opacity:.55}, {opacity:0}], 220);
+  fxSimple('ar-flash-pant', {background:col || '#fff'}, [{opacity:.28}, {opacity:0}], 220);
 }
 
 function haz(c, ang, largo, alto, fondo, sombra, dur, cls){
