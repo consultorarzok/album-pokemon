@@ -6203,18 +6203,20 @@ function advRender(){
   const mapa = ADV_MAPS[advMapa];
   const anchoCss = cv.clientWidth  || window.innerWidth;
   const altoCss  = cv.clientHeight || window.innerHeight;
-  const dprE = Math.min(window.devicePixelRatio || 1, advDprMax);
+  const dprE = advDprLienzo();
   /* cada píxel de mundo = un número ENTERO de píxeles del dispositivo: el piso queda parejo y nítido */
   const escala = Math.max(1, Math.round(advEscala(anchoCss, altoCss) * dprE)) / dprE;
 
   /* Resolución real de pantalla: el canvas tiene los píxeles del dispositivo y el dibujo se hace en
      "píxeles de mundo" con una transformación. Así los personajes y los Pokémon salen nítidos (no
      achicados a 14 px) y las sombras y la luz son suaves; el piso sigue siendo pixel art. */
-  const dpr = Math.min(window.devicePixelRatio || 1, advDprMax);
+  const dpr = dprE;
   const vw = Math.ceil(anchoCss / escala);
   const vh = Math.ceil(altoCss  / escala);
   const cw = Math.round(anchoCss * dpr), chh = Math.round(altoCss * dpr);
   if(cv.width !== cw || cv.height !== chh){ cv.width = cw; cv.height = chh; }
+  const pix = advNivel > 0 ? 'pixelated' : '';   // nivel liviano: el lienzo es más chico y se agranda SIN desenfoque (queda nítido, estilo píxel)
+  if(cv._pix !== pix){ cv._pix = pix; cv.style.imageRendering = pix; const al = document.getElementById('advAlto'); if(al) al.style.imageRendering = pix; }
   const kk = escala * dpr;
 
   // durante el avistamiento la cámara no sigue solo al jugador: se centra
@@ -6631,11 +6633,20 @@ function advLeerCartel(x, y){
   if(txt) advMensaje(txt);
 }
 
-/* 13/11 (Zeta: "muy tildado"): calidad adaptativa. Si el teléfono no llega a ~30 cuadros por segundo, el lienzo baja de resolución
-   de a escalones (2,5 → 2 → 1,5 → 1) hasta que ande fluido; y parado (sin caminar) se dibuja a 30 cuadros en vez de 60. */
-let advDprMax = 2.5, advLentos = 0, advMedia = 16, advPosPrev = '', advQuietoDesde = 0, advSalto = false;
+/* 13/11 (Zeta: "muy tildado", y después "bajó la calidad de imagen"): calidad adaptativa en 3 niveles.
+   Nivel 0 = resolución completa. Nivel 1 = el lienzo tiene la MITAD de píxeles por lado y nivel 2 un TERCIO; se agrandan sin desenfoque
+   (image-rendering: pixelated), así el piso queda igual de nítido y los personajes se ven un poco más "de píxel" en vez de borrosos.
+   Si el teléfono no llega a ~30 cuadros por segundo caminando, sube un nivel UNA vez y lo recuerda (localStorage 'adv-nivel'): no vuelve a pegar el tirón en cada partida.
+   Parado (sin caminar) se dibuja a 30 cuadros en vez de 60. */
+let advNivel = 0, advLentos = 0, advMedia = 16, advPosPrev = '', advQuietoDesde = 0, advSalto = false, advAbiertoT = 0;
+try{ advNivel = Math.max(0, Math.min(2, Number(localStorage.getItem('adv-nivel')) || 0)); }catch(e){}
+function advDprLienzo(){
+  const real = window.devicePixelRatio || 1;
+  if(advNivel <= 0) return Math.min(real, 2.5);
+  return Math.max(1, real / (advNivel + 1));
+}
 function advCiclo(ahora){
-  if(!advAbierto){ advRaf = null; return; }
+  if(!advAbierto){ advRaf = null; advAbiertoT = 0; return; }
   const real = (ahora - advUltimo) || 16;
   const dt = Math.min(.05, real / 1000 || 0);
   advUltimo = ahora;
@@ -6646,8 +6657,10 @@ function advCiclo(ahora){
   if(quieto){ advSalto = !advSalto; if(advSalto){ try{ advPaso1(dt); }catch(e){ console.error('advCiclo', e); } return; } }
   else {
     advMedia += (Math.min(real, 200) - advMedia) * .08;
-    if(advMedia > 34 && advDprMax > 1){
-      if(++advLentos > 40){ advLentos = 0; advMedia = 16; advDprMax = advDprMax > 2 ? 2 : advDprMax > 1.5 ? 1.5 : 1; }
+    if(!advAbiertoT) advAbiertoT = ahora;
+    const puedeBajar = advNivel < 2 && advDprLienzo() > 1 && ahora - advAbiertoT > 3000;   // los primeros segundos no cuentan (se están armando el mapa y los dibujos)
+    if(advMedia > 34 && puedeBajar){
+      if(++advLentos > 60){ advLentos = 0; advMedia = 16; advNivel++; try{ localStorage.setItem('adv-nivel', String(advNivel)); }catch(e){} }
     } else advLentos = 0;
   }
   try{ advPaso1(dt); advRender(); }catch(e){ console.error('advCiclo', e); }
