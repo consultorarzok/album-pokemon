@@ -6988,11 +6988,11 @@ function renderTienda(){
   titX.innerHTML = '🔁 Cambiar pokébolas · las mejores se consiguen cambiando las de abajo';
   lista.appendChild(titX);
   CANJES_BOLAS.forEach(c => {
-    const de = BOLAS[c.de], a = BOLAS[c.a], max = Math.floor((bolas[c.de] || 0) / c.cuesta);
+    const de = BOLAS[c.de], a = BOLAS[c.a], quedan = c.a === 'maestra' ? Math.max(0, CANJE_MAESTRA_POR_DIA - maestrasCambiadasHoy()) : Infinity, max = Math.min(Math.floor((bolas[c.de] || 0) / c.cuesta), quedan);
     const fila = document.createElement('div');
     fila.className = 'shop-row';
     fila.innerHTML = `<img class="bola-ico" src="${a.img}" alt="">
-      <span class="txt"><b>${c.cuesta} ${de.nombre} → 1 ${a.nombre}</b>Tenés ${bolas[c.de]} ${de.nombre} y ${bolas[c.a]} ${a.nombre}</span>`;
+      <span class="txt"><b>${c.cuesta} ${de.nombre} → 1 ${a.nombre}</b>Tenés ${bolas[c.de]} ${de.nombre} y ${bolas[c.a]} ${a.nombre}${c.a === 'maestra' ? '<br><b style="display:inline">' + (quedan > 0 ? 'Hoy podés cambiar ' + quedan + ' más (máx. ' + CANJE_MAESTRA_POR_DIA + ' por día)' : 'Hoy ya cambiaste las ' + CANJE_MAESTRA_POR_DIA + ' del día · volvé mañana') + '</b>' : ''}</span>`;
     const caja = document.createElement('span'); caja.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
     const b1 = document.createElement('button'); b1.className = 'open-btn'; b1.style.padding = '7px 12px'; b1.textContent = 'Cambiar 1'; b1.disabled = max < 1; b1.onclick = () => canjearBolas(c.de, 1);
     caja.appendChild(b1);
@@ -7033,13 +7033,20 @@ function renderTienda(){
 }
 
 /* 13/11 Zeta: cambiar pokébolas (copia de CANJES_BOLAS del servidor, juego.js): 10 rojas → 1 azul · 6 azules → 1 ultra · 5 ultras → 1 maestra (300 rojas = 1 maestra: tienen que ser DIFÍCILES) */
+/* Tope diario de maestras cambiadas (Zeta 13/11): 5 por día. canjesDia = {claveDeDía: cuántas}, como comprasDia. */
+const CANJE_MAESTRA_POR_DIA = 5;
+let canjesDia = {};
+try{ canjesDia = JSON.parse(localStorage.getItem('album-canjes-dia') || '{}') || {}; }catch(e){}
+const maestrasCambiadasHoy = () => (canjesDia && canjesDia[claveCooldownCompra()]) || 0;
 const CANJES_BOLAS = [{de: 'roja', a: 'azul', cuesta: 10}, {de: 'azul', a: 'ultra', cuesta: 6}, {de: 'ultra', a: 'maestra', cuesta: 5}];
 function canjearBolas(de, veces){
   if(MODO_SERVIDOR) return canjearBolasServidor(de, veces);
   const c = CANJES_BOLAS.find(x => x.de === de); if(!c) return;
   const n = Math.max(1, Math.min(100, veces | 0)), gasto = c.cuesta * n;
   if((bolas[de] || 0) < gasto) return;
+  if(c.a === 'maestra' && maestrasCambiadasHoy() + n > CANJE_MAESTRA_POR_DIA) return;
   bolas[de] -= gasto; bolas[c.a] = (bolas[c.a] || 0) + n;
+  if(c.a === 'maestra'){ canjesDia = {[claveCooldownCompra()]: maestrasCambiadasHoy() + n}; try{ localStorage.setItem('album-canjes-dia', JSON.stringify(canjesDia)); }catch(e){} }
   saveProgress(); renderTienda();
   document.getElementById('shopFeedback').innerHTML = `Cambiaste ${gasto} <b>${BOLAS[de].nombre}</b> por ${n} <b>${BOLAS[c.a].nombre}</b>`;
 }

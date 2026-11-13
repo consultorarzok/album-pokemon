@@ -63,7 +63,7 @@ const MENSAJES = {
   especial_sin_repetidas: 'Las figuritas especiales son una sola.',
   ya_la_tenes: 'Ya tenés esa montura.',
   tienda_cerrada: 'Esta tienda todavía no está abierta para vos.',
-  tope_diario: 'Ya compraste la de hoy.',
+  tope_diario: 'Ya llegaste al tope de hoy (se renueva mañana).',
   pocas_repetidas: 'Necesitás 3 repetidas para canjear.',
   pocas_repetidas_evo: 'No te alcanzan las repetidas para evolucionar.',
   no_evoluciona: 'Ese Pokémon no evoluciona en eso.',
@@ -144,6 +144,7 @@ function aplicarProgreso(P, conAlbum = true){
   emperador = P.emperador || null;
   incBolas = P.incBolas || 0; incursionPendiente = P.incursionPendiente || null;
   comprasDia = P.comprasDia || {};
+  canjesDia = P.canjesDia || {};
   legendariosDia = P.legendariosDia || {dia: null, obtenidos: {}};
   advTomados.clear();
   (P.tomados || []).forEach(k => advTomados.add(k));
