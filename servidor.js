@@ -906,12 +906,13 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
     if(!(o.mo && dibujarMontadoOtro(ctx, sx, sy, o, camina))) dibujarEntrenador(ctx, sx, sy, o.d, camina ? Math.floor(ahora / 140) % 4 : 0, o.av);
     /* el compañero del otro jugador: va atrás suyo a la misma distancia que el mío, sin correr los cálculos del rastro (le alcanza con seguirlo con correa) */
     if(o.co && !o.mo && typeof companeroSpriteDe === 'function'){
-      const v = {abajo: [0, 1], arriba: [0, -1], izq: [-1, 0], der: [1, 0]}[o.d] || [0, 1], dist = 10 + alturaMundoPoke(o.co) * .75;
-      if(o.fx == null || o.fco !== o.co){ o.fx = o.x - v[0] * dist; o.fy = o.y - v[1] * dist; o.fco = o.co; o.fdir = o.d; }
+      const v = {abajo: [0, 1], arriba: [0, -1], izq: [-1, 0], der: [1, 0]}[o.d] || [0, 1], dist = Math.round(10 + alturaMundoPoke(o.co) * .75);
+      if(o.fx == null || o.fco !== o.co){ o.fx = o.x - v[0] * dist; o.fy = o.y - v[1] * dist; o.fco = o.co; o.fdir = o.d; o.frx = o.fx - o.x; o.fry = o.fy - o.y; o.fk = 0; o.ftm = 0; }
       const ddx = o.x - o.fx, ddy = o.y - o.fy, dd = Math.hypot(ddx, ddy);
-      o.fmueve = false;
-      if(dd > dist + .2){ const k = (dd - dist) / dd; o.fx += ddx * k; o.fy += ddy * k; o.fmueve = true; o.fdir = Math.abs(ddx) > Math.abs(ddy) ? (ddx < 0 ? 'izq' : 'der') : (ddy < 0 ? 'arriba' : 'abajo'); }
-      const cs = companeroSpriteDe(o.co, o.fx, o.fy, o.fdir || o.d, o.fmueve, camX, camY);
+      if(dd > dist + .2){ const k = (dd - dist) / dd; o.fx += ddx * k; o.fy += ddy * k; o.ftm = ahora; o.fdir = Math.abs(ddx) > Math.abs(ddy) ? (ddx < 0 ? 'izq' : 'der') : (ddy < 0 ? 'arriba' : 'abajo'); }
+      o.frx += (o.fx - o.x - o.frx) * .3; o.fry += (o.fy - o.y - o.fry) * .3;   // desfase suave respecto del personaje dibujado (sin heredar su redondeo)
+      o.fk += ((ahora - o.ftm < 220 ? 1 : 0) - o.fk) * .2;
+      const cs = companeroSpriteDe(o.co, Math.round(sx) + o.frx, Math.round(sy) + o.fry, o.fdir || o.d, o.fk);
       if(cs){ companeros.push(cs); sombraSuave(ctx, cs.px + 8, cs.py + 15, cs.vuela ? 3.6 : 4.4, cs.vuela ? 1.3 : 1.7, cs.vuela ? .28 : .38); }
     }
     nombres.push({n: (o.em ? '👑 ' : '') + o.n, r: nombreRango(o.rg), px: sx, py: sy - (o.mo ? subeMontura(o.mo, o.av) : 0)});

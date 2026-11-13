@@ -5754,7 +5754,7 @@ function sincronizarSprites(lista, escala, idCaja){
     const hMundo = Math.max(6.5, Math.min((o.tope || 34) * (o.mult || 1), 17 * Math.pow(m / 1.7, .62) * (o.mult || 1)));
     const bb = im._bb || {l: 0, r: nw, t: 0, b: nh};
     const z = hMundo * escala / Math.max(1, bb.b - bb.t);
-    const flota = (o.flota ? Math.sin(t * (o.frec || 2.4)) * (o.bob || 1.6) * escala : 0) + (o.salto ? Math.abs(Math.sin(t * 9)) * 2.4 * escala : 0);   // salto: el compañero da saltitos al caminar
+    const flota = (o.flota ? Math.sin(t * (o.frec || 2.4)) * (o.bob || 1.6) * escala : 0) + ((o.salto || 0) * Math.abs(Math.sin(t * 9)) * 2.4 * escala);   // salto: el compañero da saltitos al caminar
     im.style.display = 'block';
     im.style.width = Math.round(nw * z) + 'px'; im.style.height = Math.round(nh * z) + 'px';
     im.style.left = Math.round((o.px + 8) * escala + (nw / 2 - (bb.l + bb.r) / 2) * z) + 'px';
@@ -6329,8 +6329,8 @@ function advRender(){
   });
   if(legendarioVisible && legendarioVisible.mapa === advMapa && Date.now() < legendarioVisible.hasta)
     sprites.push({p: legendarioVisible.p, px: legendarioVisible.x * ADV_PX - camX, py: legendarioVisible.y * ADV_PX - camY, mult: 1.3, flota: true});
-  companeroActualizar();
-  { const cs = companeroSprite(camX, camY); sincronizarSprites(cs ? [cs] : [], escala, 'advCompa'); if(cs){ sombraSuave(ctx, Math.round(cs.px + 8), Math.round(cs.py + 15), cs.vuela ? 3.6 : 4.4, cs.vuela ? 1.3 : 1.7, cs.vuela ? .28 : .38); } }
+  companeroActualizar(camX, camY);
+  { const cs = companeroSprite(); sincronizarSprites(cs ? [cs] : [], escala, 'advCompa'); if(cs){ sombraSuave(ctx, Math.round(cs.px + 8), Math.round(cs.py + 15), cs.vuela ? 3.6 : 4.4, cs.vuela ? 1.3 : 1.7, cs.vuela ? .28 : .38); } }
   sincronizarSprites(sprites, escala);
 
   if(advMapa === 'overworld') dibujarTren(ctx, camX, camY, vw, vh);
@@ -6537,44 +6537,54 @@ function rastroAvanzar(){
   const ult = advRastro[advRastro.length - 1];
   if(!ult){ advRastro.push({x: advPx, y: advPy, s: 0}); advRastroS = 0; return; }
   const d = Math.hypot(advPx - ult.x, advPy - ult.y);
-  if(d < 1) return;
+  if(d < .25) return;
   advRastroS += d; advRastro.push({x: advPx, y: advPy, s: advRastroS});
   if(advRastro.length > 400) advRastro.splice(0, 200);
 }
-function companeroActualizar(){
+function companeroActualizar(camX, camY){
   if(!companero || !companeroHabs[companero] || !state[companero] || !state[companero].got || montura || advTrenAbordo){ advFollow.listo = false; return; }
   if(!advRastro.length) advRastro.push({x: advPx, y: advPy, s: advRastroS});
-  const objetivo = advRastroS - companeroDist();
+  const ultR = advRastro[advRastro.length - 1], sCabeza = advRastroS + Math.hypot(advPx - ultR.x, advPy - ultR.y);
+  advRastro.push({x: advPx, y: advPy, s: sCabeza});   // cabeza provisoria = donde estás ahora (se saca al final)
+  const objetivo = sCabeza - companeroDist();
   let a = advRastro[0], b = a;
   for(let i = advRastro.length - 1; i >= 0; i--){ if(advRastro[i].s <= objetivo){ a = advRastro[i]; b = advRastro[Math.min(advRastro.length - 1, i + 1)]; break; } }
   let x, y;
   if(objetivo <= advRastro[0].s){ x = advPx; y = advPy + (advRastro.length < 2 ? COMPA_DIST * .6 : 0); if(advRastro.length >= 2){ x = advRastro[0].x; y = advRastro[0].y; } }
   else { const f = b.s > a.s ? (objetivo - a.s) / (b.s - a.s) : 0; x = a.x + (b.x - a.x) * f; y = a.y + (b.y - a.y) * f; }
-  const dx = x - advFollow.x, dy = y - advFollow.y;
-  if(!advFollow.listo){ advFollow.x = x; advFollow.y = y; advFollow.listo = true; advFollow.mueve = false; }
+  advRastro.pop();
+  const ahora = performance.now();
+  if(!advFollow.listo){ advFollow.x = x; advFollow.y = y; advFollow.listo = true; advFollow.rx = x - advPx; advFollow.ry = y - advPy; advFollow.k = 0; advFollow.tMov = 0; }
   else {
-    const mov = Math.hypot(dx, dy);
-    advFollow.mueve = mov > .05;
-    if(mov > .05) advFollow.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'izq' : 'der') : (dy < 0 ? 'arriba' : 'abajo');
+    const dx = x - advFollow.x, dy = y - advFollow.y, mov = Math.hypot(dx, dy);
+    if(mov > .05){ advFollow.tMov = ahora; advFollow.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'izq' : 'der') : (dy < 0 ? 'arriba' : 'abajo'); }
     advFollow.x = x; advFollow.y = y;
+    /* dónde está respecto del personaje: se suaviza, así no hereda el redondeo de cada cuadro (la causa del temblor, sobre todo en diagonal) */
+    advFollow.rx += (x - advPx - advFollow.rx) * .3; advFollow.ry += (y - advPy - advFollow.ry) * .3;
   }
+  /* "se mueve" con memoria: no se apaga entre cuadros (antes el saltito se prendía y apagaba cada tanto) y sube/baja de a poco */
+  advFollow.mueve = ahora - advFollow.tMov < 220;
+  advFollow.k += ((advFollow.mueve ? 1 : 0) - advFollow.k) * .2;
+  /* posición en pantalla: pegada a donde se DIBUJA el personaje (en píxeles de mundo enteros) más el desfase suave */
+  advFollow.sx = Math.round(advPx - camX) + advFollow.rx; advFollow.sy = Math.round(advPy - camY) + advFollow.ry;
 }
 /* El compañero se ve SIEMPRE de frente (espejado hacia donde camina): el dibujo de espalda de muchos Pokémon es otro estilo y otro tamaño. Los voladores y fantasmas flotan un poquito. */
 const COMPANERO_FLOTA = id => { const p = DATA.find(d => d.id === id); return !!p && (tiposDe(p).includes('flying') || p.type === 'ghost' || [81, 82, 109, 110, 358, 425, 426, 437, 436, 479, 560].includes(id)); };
 /* Arma el sprite de un compañero (el mío o el de otro jugador). La posición va REDONDEADA a píxel de mundo, igual que el personaje en el canvas: si no, se veía temblar
    respecto de él al caminar (el personaje se dibuja en píxeles enteros y el compañero en píxeles sueltos). El vuelo es un vaivén suave, sin vibrar. */
-function companeroSpriteDe(id, x, y, dir, mueve, camX, camY){
+function companeroSpriteDe(id, sx, sy, dir, k){
   const p = DATA.find(d => d.id === id); if(!p) return null;
   const t = Date.now() / 1000, vuela = COMPANERO_FLOTA(id), flip = dir === 'der';
-  let giro = 0, sy = 1;
-  if(mueve && vuela){ giro = (flip ? 1 : -1) * 5 + Math.sin(t * 4) * 1.5; }
-  else if(mueve){ giro = Math.sin(t * 8) * 4; sy = 1 - Math.abs(Math.cos(t * 8)) * .05; }
-  return {p, px: Math.round(x - camX), py: Math.round(y - camY), espalda: false, flip, salto: mueve && !vuela, alza: vuela ? (mueve ? 6 : 4.5) : 0,
-          flota: vuela, frec: mueve ? 3.4 : 2.2, bob: mueve ? 1.5 : 1.0, giro, sy, mult: 1, tope: 34, vuela};   // mismo tamaño que el Pokémon salvaje del mapa (curva suave de su altura real respecto a los 17 px / 1,7 m del entrenador)
+  k = Math.max(0, Math.min(1, k || 0));   // 0 = quieto · 1 = caminando/volando (cambia de a poco, nunca de golpe)
+  let giro = 0, sy2 = 1;
+  if(vuela) giro = (flip ? 1 : -1) * 5 * k + Math.sin(t * 4) * 1.5 * k;
+  else { giro = Math.sin(t * 8) * 4 * k; sy2 = 1 - Math.abs(Math.cos(t * 8)) * .05 * k; }
+  return {p, px: sx, py: sy, espalda: false, flip, salto: vuela ? 0 : k, alza: vuela ? 4.5 + 2 * k : 0,
+          flota: vuela, frec: 2.2 + 1.2 * k, bob: 1.0 + .5 * k, giro, sy: sy2, mult: 1, tope: 34, vuela};   // mismo tamaño que el Pokémon salvaje del mapa (curva suave de su altura real respecto a los 17 px / 1,7 m del entrenador)
 }
-function companeroSprite(camX, camY){
+function companeroSprite(){
   if(!advFollow.listo || !companero) return null;
-  return companeroSpriteDe(companero, advFollow.x, advFollow.y, advFollow.dir, advFollow.mueve, camX, camY);
+  return companeroSpriteDe(companero, advFollow.sx, advFollow.sy, advFollow.dir, advFollow.k);
 }
 const companeroTextoBoton = id => !companeroHabs[id] ? `🐾 Habilitar de compañero · ${companeroPrecioDe(id).toLocaleString('es-AR')} 🪙` : (companero === id ? '🐾 Dejar de llevarlo de compañero' : '🐾 Llevar de compañero en la Aventura');
 const RAREZA_ORDEN = {'Común': 0, 'Poco Común': 1, 'Rara': 2, 'Épico': 3, 'Legendario': 4};
