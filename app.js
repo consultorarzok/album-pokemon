@@ -5725,8 +5725,8 @@ function cuerpoDeSprite(im){
     return x1 < 0 ? null : {l: x0, r: x1 + 1, t: y0, b: y1 + 1};
   }catch(e){ return null; }
 }
-function sincronizarSprites(lista, escala){
-  const caja = document.getElementById('advSprites');
+function sincronizarSprites(lista, escala, idCaja){
+  const caja = document.getElementById(idCaja || 'advSprites');
   if(!caja) return;
   while(caja.children.length < lista.length){
     const im = document.createElement('img');
@@ -5760,7 +5760,7 @@ function sincronizarSprites(lista, escala){
     im.style.left = Math.round((o.px + 8) * escala + (nw / 2 - (bb.l + bb.r) / 2) * z) + 'px';
     im.style.top = Math.round((o.py + 14.5 - (o.alza || 0)) * escala + (nh - bb.b) * z - flota) + 'px';
     im.style.opacity = o.parpadea && Math.floor(t * 4) % 2 === 0 ? '.45' : '1';
-    im.style.transform = (o.flip ? 'scaleX(-1) ' : '') + (o.giro ? 'rotate(' + o.giro.toFixed(1) + 'deg) ' : '') + (o.sy && o.sy !== 1 ? 'scaleY(' + o.sy.toFixed(3) + ')' : '');
+    im.style.transform = 'translate(-50%,-100%) ' + (o.flip ? 'scaleX(-1) ' : '') + (o.giro ? 'rotate(' + o.giro.toFixed(1) + 'deg) ' : '') + (o.sy && o.sy !== 1 ? 'scaleY(' + o.sy.toFixed(3) + ')' : '');   // el translate es el del CSS (.adv-sprites img): sin él salta
     im.style.transformOrigin = '50% 100%';
   });
 }
@@ -6330,7 +6330,7 @@ function advRender(){
   if(legendarioVisible && legendarioVisible.mapa === advMapa && Date.now() < legendarioVisible.hasta)
     sprites.push({p: legendarioVisible.p, px: legendarioVisible.x * ADV_PX - camX, py: legendarioVisible.y * ADV_PX - camY, mult: 1.3, flota: true});
   companeroActualizar();
-  { const cs = companeroSprite(camX, camY); if(cs){ sprites.push(cs); sombraSuave(ctx, Math.round(cs.px + 8), Math.round(cs.py + 15), cs.vuela ? 3.6 : 4.4, cs.vuela ? 1.3 : 1.7, cs.vuela ? .28 : .38); } }
+  { const cs = companeroSprite(camX, camY); sincronizarSprites(cs ? [cs] : [], escala, 'advCompa'); if(cs){ sombraSuave(ctx, Math.round(cs.px + 8), Math.round(cs.py + 15), cs.vuela ? 3.6 : 4.4, cs.vuela ? 1.3 : 1.7, cs.vuela ? .28 : .38); } }
   sincronizarSprites(sprites, escala);
 
   if(advMapa === 'overworld') dibujarTren(ctx, camX, camY, vw, vh);
@@ -6516,11 +6516,11 @@ function encuentroDe(t){ return t && (t.encuentro || (t.pinta === 'agua' && mont
    y de espaldas / espejado según hacia dónde vas. Se elige desde la ficha del Pokémon. Sólo los que tienen animación limpia (Gen 1-5) y no son gigantes. */
 let companero = null, companeroHabs = {};   // companeroHabs = {id: true}: las especies habilitadas (cada una se paga una vez, según su rareza)
 try{ const c = Number(localStorage.getItem('album-companero')); if(c) companero = c; companeroHabs = JSON.parse(localStorage.getItem('album-companero-habs') || '{}') || {}; }catch(e){}
-/* Los que NO conviene poner de compañero (revisados uno por uno en 13/11 viendo cómo se ven en el mapa): sin animación (Mesprit), gigantes (más de 4,5 m),
-   peces y bichos marinos (se ven flotando sobre el pasto), anguilas / muy largos y chatos, Unown y aves con las alas desplegadas. Misma lista en el servidor (COMPANERO_NO). */
-const COMPANERO_NO = new Set([6,11,14,17,18,23,24,50,51,59,60,63,64,65,72,73,74,79,86,87,90,91,95,102,116,117,118,119,120,129,130,131,134,138,140,143,147,149,170,171,191,201,204,205,206,208,211,223,226,230,237,244,247,249,250,266,268,270,287,289,307,317,318,319,320,321,336,339,340,345,346,349,350,364,365,366,367,368,369,370,372,382,384,385,412,413,442,446,450,455,456,457,458,481,483,489,490,492,497,535,541,544,550,564,592,593,594,597,598,602,603,604,618]);
+/* Compañeros: lista CORTA (203) de los más conocidos y los que mejor se ven en el mapa (revisados a ojo el 13/11): caminan en 2 o 4 patas, o vuelan con las alas desplegadas.
+   Nada de sentados / echados / posados / sin patas, ni peces, ni gigantes, ni los que ya son monturas. Misma lista en el servidor (COMPANERO_OK). */
+const COMPANERO_OK = new Set([1,2,3,4,5,7,8,9,12,15,22,25,26,31,34,35,36,37,38,39,40,41,42,52,53,54,55,56,57,58,66,67,68,77,78,92,93,94,106,107,112,113,115,123,124,125,126,127,128,133,135,136,137,142,144,145,146,150,151,152,153,154,155,156,157,158,159,160,169,172,175,176,179,180,181,183,184,185,186,196,197,212,214,215,216,217,227,228,229,243,245,246,248,251,252,253,254,255,256,257,258,259,260,280,281,282,302,304,305,306,309,310,329,330,333,334,335,354,359,371,373,374,375,376,380,381,383,387,388,389,390,391,392,393,394,395,396,397,398,403,404,405,407,443,444,445,447,448,461,464,466,467,468,469,470,471,472,473,475,485,487,488,491,493,494,495,496,498,499,500,501,502,503,508,510,523,530,534,549,567,570,571,586,587,609,610,611,612,623,625,628,633,634,635,637,641,642,643,644,645,646,647,649]);
 const COMPANERO_PRECIOS = {'Común': 5000, 'Poco Común': 8000, 'Rara': 15000, 'Épico': 30000, 'Legendario': 60000};   // por rareza (el precio que vale es el del servidor)
-const puedeCompanero = id => id >= 1 && id <= 649 && !COMPANERO_NO.has(id);
+const puedeCompanero = id => COMPANERO_OK.has(id);
 const companeroPrecioDe = id => COMPANERO_PRECIOS[(DATA.find(p => p.id === id) || {}).rarity] || 15000;
 let advRastro = [], advRastroS = 0, advFollow = {x: 0, y: 0, dir: 'abajo', mueve: false, listo: false};
 const COMPA_DIST = 12;   // px de mundo que va detrás tuyo (los grandes van un poco más lejos: ver companeroDist)
