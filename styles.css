@@ -1063,3 +1063,10 @@
 .ar-fatuo-llama{position:absolute;left:0;top:0;pointer-events:none;z-index:100000;}
 .ar-fatuo-llama i{position:absolute;inset:0;border-radius:0 50% 50% 50%;transform:rotate(45deg);background:radial-gradient(circle at 64% 64%,#fff 0 13%,#BFEBFF 14% 30%,#6FD3FF 31% 56%,#5B3FD6 57% 100%);box-shadow:0 0 10px 2px rgba(111,211,255,.75);animation:arFatuoLlama .2s steps(3) infinite alternate;}
 @keyframes arFatuoLlama{from{transform:rotate(45deg) scale(1)}to{transform:rotate(45deg) scale(.84,1.14) skew(5deg,-5deg)}}
+
+/* 13/11: tienda — saldo, subtítulos y chips de precio (jerarquía clara, sin repetir el saldo) */
+.shop-saldo{display:inline-block;margin-left:6px;padding:1px 9px;border-radius:999px;background:#F4C744;color:#1B2140;font-weight:800;font-size:12px;}
+.shop-sub{display:block;font-size:11px;font-weight:600;opacity:.7;margin-top:2px;}
+.shop-chips{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 4px;}
+.shop-chip{display:inline-block;padding:2px 7px;border-radius:999px;background:#fff;border:1.5px solid #cfd6ee;font-size:10.5px;line-height:1.3;}
+.shop-chip b{display:inline;margin-left:2px;}

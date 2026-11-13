@@ -6524,7 +6524,8 @@ const puedeCompanero = id => id >= 1 && id <= 649 && !COMPANERO_NO.has(id);
 const companeroPrecioDe = id => COMPANERO_PRECIOS[(DATA.find(p => p.id === id) || {}).rarity] || 15000;
 let advRastro = [], advRastroS = 0, advFollow = {x: 0, y: 0, dir: 'abajo', mueve: false, listo: false};
 const COMPA_DIST = 12;   // px de mundo que va detrás tuyo (los grandes van un poco más lejos: ver companeroDist)
-const companeroDist = () => { const m = ((ALTURA_DM[(companero || 1) - 1] || 12) / 10), h = Math.max(6.5, Math.min(17.6, 17 * Math.pow(m / 1.7, .62) * .8)); return 11 + h * .8; };
+const alturaMundoPoke = id => Math.max(6.5, Math.min(34, 17 * Math.pow(((ALTURA_DM[id - 1] || 12) / 10) / 1.7, .62)));   // alto en px de mundo (el entrenador mide 17): igual que sincronizarSprites
+const companeroDist = () => 10 + alturaMundoPoke(companero || 1) * .75;   // los grandes van un poco más lejos
 function rastroReiniciar(){
   /* 13/11 Zeta: el compañero va SIEMPRE atrás, nunca al costado: al arrancar (o después de entrar a un mapa) se pone detrás tuyo según hacia dónde mirás */
   advRastro = []; advRastroS = 0; advFollow.listo = false;
@@ -6570,7 +6571,7 @@ function companeroSprite(camX, camY){
   if(mov && vuela){ giro = (flip ? 1 : -1) * 7 + Math.sin(t * 12) * 3; sy = 1 + Math.sin(t * 22) * .08; }
   else if(mov){ giro = Math.sin(t * 9) * 6; sy = 1 - Math.abs(Math.cos(t * 9)) * .07; }
   return {p, px: advFollow.x - camX, py: advFollow.y - camY, espalda: false, flip, salto: mov && !vuela, alza: vuela ? (mov ? 6.5 : 4.5) : 0,
-          flota: vuela, frec: mov ? 7 : 2.4, bob: mov ? 1.9 : 1.1, giro, sy, mult: .8, tope: 22, vuela};
+          flota: vuela, frec: mov ? 7 : 2.4, bob: mov ? 1.9 : 1.1, giro, sy, mult: 1, tope: 34, vuela};   // mismo tamaño que el Pokémon salvaje del mapa (curva suave de su altura real respecto a los 17 px / 1,7 m del entrenador)
 }
 const companeroTextoBoton = id => !companeroHabs[id] ? `🐾 Habilitar de compañero · ${companeroPrecioDe(id).toLocaleString('es-AR')} 🪙` : (companero === id ? '🐾 Dejar de llevarlo de compañero' : '🐾 Llevar de compañero en la Aventura');
 function companeroRefrescarUI(){
@@ -6985,7 +6986,7 @@ function renderTienda(){
   const comprables = Object.keys(BOLAS).filter(t => t === 'roja' || (t === 'maestra' && evTienda && evTienda.cooldownCompraMaestraMin));
   const titC = document.createElement('div');
   titC.style.cssText = "font-family:'Baloo 2',sans-serif;font-size:13px;margin:2px 0 8px;";
-  titC.innerHTML = '🪙 Comprar · tenés <b>' + coins + '</b> monedas';
+  titC.innerHTML = '🪙 Comprar <span class="shop-saldo">' + coins.toLocaleString('es-AR') + ' monedas</span>';
   lista.appendChild(titC);
   comprables.forEach(tipo => {
     const b = BOLAS[tipo];
@@ -7007,7 +7008,7 @@ function renderTienda(){
   /* 13/11 Zeta: las azules, ultra y maestra ya no se compran: se CAMBIAN por las de abajo (CANJES_BOLAS, igual que el servidor) */
   const titX = document.createElement('div');
   titX.style.cssText = "font-family:'Baloo 2',sans-serif;font-size:13px;margin:14px 0 8px;";
-  titX.innerHTML = '🔁 Cambiar pokébolas · las mejores se consiguen cambiando las de abajo';
+  titX.innerHTML = '🔁 Cambiar pokébolas <span class="shop-sub">las mejores se consiguen cambiando las de abajo</span>';
   lista.appendChild(titX);
   CANJES_BOLAS.forEach(c => {
     const de = BOLAS[c.de], a = BOLAS[c.a], quedan = c.a === 'maestra' ? Math.max(0, CANJE_MAESTRA_POR_DIA - maestrasCambiadasHoy()) : Infinity, max = Math.min(Math.floor((bolas[c.de] || 0) / c.cuesta), quedan);
@@ -7029,8 +7030,9 @@ function renderTienda(){
   lista.appendChild(titK);
   { const fila = document.createElement('div'); fila.className = 'shop-row';
     const cuantos = Object.keys(companeroHabs).length;
+    const chips = [['Común', 'Común'], ['Poco común', 'Poco Común'], ['Rara', 'Rara'], ['Épico', 'Épico'], ['Legendario', 'Legendario']].map(([t, k]) => `<span class="shop-chip">${t} <b>${COMPANERO_PRECIOS[k].toLocaleString('es-AR')}</b></span>`).join('');
     fila.innerHTML = `<span class="bola-ico" style="font-size:30px;display:flex;align-items:center;justify-content:center;">🐾</span>
-      <span class="txt"><b>Compañero de aventura</b>Un Pokémon tuyo te sigue por el mapa. Cada uno se habilita <b style="display:inline">una vez</b> desde su ficha (📖 Pokédex) y el precio sale de su rareza:<br>Común ${COMPANERO_PRECIOS['Común'].toLocaleString('es-AR')} · Poco común ${COMPANERO_PRECIOS['Poco Común'].toLocaleString('es-AR')} · Rara ${COMPANERO_PRECIOS['Rara'].toLocaleString('es-AR')} · Épico ${COMPANERO_PRECIOS['Épico'].toLocaleString('es-AR')} · Legendario ${COMPANERO_PRECIOS['Legendario'].toLocaleString('es-AR')} 🪙${cuantos ? '<br>Ya habilitaste ' + cuantos : ''}</span>`;
+      <span class="txt"><b>Compañero de aventura</b>Un Pokémon tuyo te sigue por el mapa. Se habilita <b style="display:inline">una vez por Pokémon</b> desde su ficha (📖 Pokédex) y el precio sale de su rareza (en 🪙):<span class="shop-chips">${chips}</span>${cuantos ? 'Ya habilitaste ' + cuantos : ''}</span>`;
     lista.appendChild(fila); }
   if(tiendaDiamantes()){
     const tit = document.createElement('div');
