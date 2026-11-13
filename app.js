@@ -5754,13 +5754,14 @@ function sincronizarSprites(lista, escala){
     const hMundo = Math.max(6.5, Math.min((o.tope || 34) * (o.mult || 1), 17 * Math.pow(m / 1.7, .62) * (o.mult || 1)));
     const bb = im._bb || {l: 0, r: nw, t: 0, b: nh};
     const z = hMundo * escala / Math.max(1, bb.b - bb.t);
-    const flota = (o.flota ? Math.sin(t * 2.4) * 1.6 * escala : 0) + (o.salto ? Math.abs(Math.sin(t * 9)) * 1.7 * escala : 0);   // salto: el compañero da saltitos al caminar
+    const flota = (o.flota ? Math.sin(t * (o.frec || 2.4)) * (o.bob || 1.6) * escala : 0) + (o.salto ? Math.abs(Math.sin(t * 9)) * 2.4 * escala : 0);   // salto: el compañero da saltitos al caminar
     im.style.display = 'block';
     im.style.width = Math.round(nw * z) + 'px'; im.style.height = Math.round(nh * z) + 'px';
     im.style.left = Math.round((o.px + 8) * escala + (nw / 2 - (bb.l + bb.r) / 2) * z) + 'px';
     im.style.top = Math.round((o.py + 14.5 - (o.alza || 0)) * escala + (nh - bb.b) * z - flota) + 'px';
     im.style.opacity = o.parpadea && Math.floor(t * 4) % 2 === 0 ? '.45' : '1';
-    im.style.transform = o.flip ? 'scaleX(-1)' : '';
+    im.style.transform = (o.flip ? 'scaleX(-1) ' : '') + (o.giro ? 'rotate(' + o.giro.toFixed(1) + 'deg) ' : '') + (o.sy && o.sy !== 1 ? 'scaleY(' + o.sy.toFixed(3) + ')' : '');
+    im.style.transformOrigin = '50% 100%';
   });
 }
 
@@ -6329,7 +6330,7 @@ function advRender(){
   if(legendarioVisible && legendarioVisible.mapa === advMapa && Date.now() < legendarioVisible.hasta)
     sprites.push({p: legendarioVisible.p, px: legendarioVisible.x * ADV_PX - camX, py: legendarioVisible.y * ADV_PX - camY, mult: 1.3, flota: true});
   companeroActualizar();
-  { const cs = companeroSprite(camX, camY); if(cs) sprites.push(cs); }
+  { const cs = companeroSprite(camX, camY); if(cs){ sprites.push(cs); sombraSuave(ctx, Math.round(cs.px + 8), Math.round(cs.py + 15), cs.vuela ? 3.6 : 4.4, cs.vuela ? 1.3 : 1.7, cs.vuela ? .28 : .38); } }
   sincronizarSprites(sprites, escala);
 
   if(advMapa === 'overworld') dibujarTren(ctx, camX, camY, vw, vh);
@@ -6522,7 +6523,8 @@ const COMPANERO_PRECIOS = {'Común': 5000, 'Poco Común': 8000, 'Rara': 15000, '
 const puedeCompanero = id => id >= 1 && id <= 649 && !COMPANERO_NO.has(id);
 const companeroPrecioDe = id => COMPANERO_PRECIOS[(DATA.find(p => p.id === id) || {}).rarity] || 15000;
 let advRastro = [], advRastroS = 0, advFollow = {x: 0, y: 0, dir: 'abajo', mueve: false, listo: false};
-const COMPA_DIST = 12;   // px de mundo que va detrás tuyo
+const COMPA_DIST = 12;   // px de mundo que va detrás tuyo (los grandes van un poco más lejos: ver companeroDist)
+const companeroDist = () => { const m = ((ALTURA_DM[(companero || 1) - 1] || 12) / 10), h = Math.max(6.5, Math.min(17.6, 17 * Math.pow(m / 1.7, .62) * .8)); return 11 + h * .8; };
 function rastroReiniciar(){ advRastro = []; advRastroS = 0; advFollow.listo = false; }
 function rastroAvanzar(){
   const ult = advRastro[advRastro.length - 1];
@@ -6535,7 +6537,7 @@ function rastroAvanzar(){
 function companeroActualizar(){
   if(!companero || !companeroHabs[companero] || !state[companero] || !state[companero].got || montura || advTrenAbordo){ advFollow.listo = false; return; }
   if(!advRastro.length) advRastro.push({x: advPx, y: advPy, s: advRastroS});
-  const objetivo = advRastroS - COMPA_DIST;
+  const objetivo = advRastroS - companeroDist();
   let a = advRastro[0], b = a;
   for(let i = advRastro.length - 1; i >= 0; i--){ if(advRastro[i].s <= objetivo){ a = advRastro[i]; b = advRastro[Math.min(advRastro.length - 1, i + 1)]; break; } }
   let x, y;
@@ -6551,11 +6553,18 @@ function companeroActualizar(){
   }
 }
 /* El compañero se ve SIEMPRE de frente (espejado hacia donde camina): el dibujo de espalda de muchos Pokémon es otro estilo y otro tamaño. Los voladores y fantasmas flotan un poquito. */
-const COMPANERO_FLOTA = id => { const p = DATA.find(d => d.id === id); return !!p && (p.type === 'flying' || p.type2 === 'flying' || p.type === 'ghost' || [81, 82, 109, 110, 358, 425, 426, 437, 436, 479, 560].includes(id)); };
+const COMPANERO_FLOTA = id => { const p = DATA.find(d => d.id === id); return !!p && (tiposDe(p).includes('flying') || p.type === 'ghost' || [81, 82, 109, 110, 358, 425, 426, 437, 436, 479, 560].includes(id)); };
 function companeroSprite(camX, camY){
   if(!advFollow.listo || !companero) return null;
   const p = DATA.find(d => d.id === companero); if(!p) return null;
-  return {p, px: advFollow.x - camX, py: advFollow.y - camY, espalda: false, flip: advFollow.dir === 'der', salto: advFollow.mueve && !COMPANERO_FLOTA(companero), alza: COMPANERO_FLOTA(companero) ? 3 : 0, flota: COMPANERO_FLOTA(companero), mult: .8, tope: 22};
+  const t = Date.now() / 1000, vuela = COMPANERO_FLOTA(companero), mov = advFollow.mueve, flip = advFollow.dir === 'der';
+  /* 13/11 Zeta: que se note que camina o que vuela. Camina: saltitos, balanceo y un poco de aplastarse al pisar. Vuela: sube más alto, aletea (se estira rápido),
+     se inclina hacia donde va y su sombra queda abajo en el piso. */
+  let giro = 0, sy = 1;
+  if(mov && vuela){ giro = (flip ? 1 : -1) * 7 + Math.sin(t * 12) * 3; sy = 1 + Math.sin(t * 22) * .08; }
+  else if(mov){ giro = Math.sin(t * 9) * 6; sy = 1 - Math.abs(Math.cos(t * 9)) * .07; }
+  return {p, px: advFollow.x - camX, py: advFollow.y - camY, espalda: false, flip, salto: mov && !vuela, alza: vuela ? (mov ? 6.5 : 4.5) : 0,
+          flota: vuela, frec: mov ? 7 : 2.4, bob: mov ? 1.9 : 1.1, giro, sy, mult: .8, tope: 22, vuela};
 }
 const companeroTextoBoton = id => !companeroHabs[id] ? `🐾 Habilitar de compañero · ${companeroPrecioDe(id).toLocaleString('es-AR')} 🪙` : (companero === id ? '🐾 Dejar de llevarlo de compañero' : '🐾 Llevar de compañero en la Aventura');
 function companeroRefrescarUI(){
