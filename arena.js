@@ -57,6 +57,7 @@ const TOPE_DERROTA = 90;
    que la arena se vea grande y quede en escala con el público y los entrenadores. */
 const ESCALA_POKE = {yo:.66, riv:.6};
 const ESCALA_ENTRENADOR = .34;   // 12/11: más chicos, para que el estadio se sienta grande
+const CAMPO_CHICO = .85;       // 13/11 Zeta: cancha 15 % más chica en 1v1 y 2v2
 const ZOOM_1V1 = .72;         // 12/11 Zeta: la cámara un poco más lejos en el 1 contra 1 (los Pokémon se ven 14 % más chicos y el campo rinde más)
 const VEL_BASE = 34;          // en unidades u() por segundo
 const ACEL = 11;              // qué tan rápido llega a la velocidad pedida (inercia)
@@ -1512,6 +1513,10 @@ function medir(){
   G.hudH = hudH;
   const top = Math.max(hudH * .8, disp * .2), bajo = disp - 6;
   /* 12/11: el campo es más hondo (antes ry ≤ rx × 0,8) y, si sobra alto (celular parado), baja hacia los controles: arriba queda el paisaje */
+  /* 13/11 Zeta: en el 1 contra 1 y el 2 contra 2 la cancha es un poco más chica (hay menos que dibujar y los Pokémon se encuentran antes);
+     todos contra todos e incursión siguen con la cancha grande. */
+  const campo = AR && (AR.modo === '1v1' || AR.modo === '2v2') ? CAMPO_CHICO : 1;
+  G.rx *= campo;
   G.ry = Math.min((bajo - top) / 2 / 1.07, G.rx * .95);
   G.cx = W / 2;
   const medio = top + (bajo - top) / 2, abajo = bajo - G.ry * 1.07;
