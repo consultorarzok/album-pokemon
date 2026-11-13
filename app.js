@@ -7445,6 +7445,8 @@ const REGALOS = [
   { id: 'zeta-acorazado-especial-20261022', para: 'zeta centeno', monedas: 0, especiales: [{id:10150, f:100}] },
   /* 13/11/2026: Pikachu de Ash (edición especial, 6 ataques) SÓLO para la cuenta principal de Zeta (la del Mostaza se sacó a pedido: no llegó y prefirió no arriesgar mandárselo a otra persona). */
   { id: 'pikachu-ash-zeta-mostaza-20261113', para: 'zeta centeno', monedas: 0, especiales: [{id:10156, f:100}] },
+  /* 13/11/2026: pedido de Zeta — 20.000 monedas para El Mago, El Pela y JokeR (nombres confirmados en la base: 'el mago', 'el pela', 'joker'; sin variantes para no mandarle a otra persona). */
+  { id: 'monedas-20000-mago-pela-joker-20261113', para: ['el mago', 'el pela', 'joker'], monedas: 20000 },
   { id: 'todos-2500-bolas-20260907', para: '*', monedas: 2500,
     bolas: {roja: 25, azul: 50, ultra: 20, maestra: 10}, aventura: true },
   { id: 'matias-bolas-kanto-20260908', para: 'matias', monedas: 0,
