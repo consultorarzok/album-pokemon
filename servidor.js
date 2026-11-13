@@ -53,6 +53,7 @@ const aPull = x => ({p: POR_ID_C[x.id], isNew: x.isNew});
 const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar']);
 
 const MENSAJES = {
+  sin_habilitar: 'Primero habilitá al compañero en la tienda 🛒', ya_habilitado: 'El compañero ya está habilitado', se_consigue_canjeando: 'Esa pokébola se consigue cambiando las de abajo', sin_bolas: 'No te alcanzan las pokébolas para ese cambio', canje_invalido: 'Ese cambio no existe',
   sin_monedas: 'No te alcanzan las monedas.',
   fuerza_maxima: 'Esa figurita ya tiene la fuerza máxima.',
   especial_sin_cambio: 'Los ataques de las figuritas especiales no se cambian.',
@@ -151,6 +152,7 @@ function aplicarProgreso(P, conAlbum = true){
   if(servidorListo && !premioAlbumPedido && Object.keys(state).every(id => state[id].got)){ premioAlbumPedido = true; setTimeout(cobrarRegalosServidor, 3000); }
   eventosServidor = P.eventos || {};
   diamantes = P.diamantes || 0; monturas = P.monturas || {}; montura = P.montura || null;
+  companeroHab = !!(P.companero && P.companero.hab); companero = (P.companero && P.companero.id) || null;
   npcRegalos = P.npc || {};
   if(typeof actualizarBotonMontura === 'function') actualizarBotonMontura();
   saveProgress();   // queda una copia en el navegador para que la próxima vez arranque rápido
@@ -478,6 +480,21 @@ function comprarBolaServidor(tipo){
   }).catch(() => {}).then(soltar('comprar'));
 }
 
+function companeroHabilitarServidor(){
+  if(!puedeJugar('compa')) return;
+  accionServidor('companeroHabilitar', {}).then(res => {
+    if(!res.ok) return avisoServidor(res.motivo);
+    companeroRefrescarUI();
+    document.getElementById('shopFeedback').innerHTML = '¡Compañero habilitado! Elegí quién te sigue desde la ficha de un Pokémon (📖 Pokédex).';
+  }).catch(() => {}).then(soltar('compa'));
+}
+function companeroElegirServidor(id){
+  if(!puedeJugar('compa')) return;
+  accionServidor('companeroElegir', {id}).then(res => {
+    if(!res.ok) return avisoServidor(res.motivo);
+    rastroReiniciar(); companeroRefrescarUI();
+  }).catch(() => {}).then(soltar('compa'));
+}
 function canjearBolasServidor(de, veces){
   if(!puedeJugar('canje')) return;
   accionServidor('canjearBolas', {de, veces}).then(res => {

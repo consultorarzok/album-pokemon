@@ -1040,9 +1040,9 @@ function abrirDetalle(id){
       ${va.length ? va.map(d => `<div>→ <b>${d.name}</b> · cuesta ${costoEvolucion(d.id)} repetidas${dup >= costoEvolucion(d.id) ? ' <span class="det-ok">¡Ya podés!</span>' : ' (te faltan ' + (costoEvolucion(d.id) - dup) + ')'}</div>`).join('') : '<div>No evoluciona.</div>'}
     </div>
     ${va.length ? '<button class="open-btn sec" id="detalleEvolBtn" style="margin-top:10px;">Ir a Evolucionar</button>' : ''}
-    ${puedeCompanero(id) ? `<button class="open-btn sec" id="detalleCompBtn" style="margin-top:10px;">${companero === id ? '🐾 Dejar de llevarlo de compañero' : '🐾 Llevar de compañero en la Aventura'}</button>` : ''}`;
+    ${puedeCompanero(id) ? `<button class="open-btn sec" id="detalleCompBtn" data-id="${id}" style="margin-top:10px;">${companeroTextoBoton(id)}</button>` : ''}`;
   const cb = document.getElementById('detalleCompBtn');
-  if(cb) cb.onclick = () => { companeroElegir(companero === id ? null : id); cb.textContent = companero === id ? '🐾 Dejar de llevarlo de compañero' : '🐾 Llevar de compañero en la Aventura'; };
+  if(cb) cb.onclick = () => { if(!companeroHab) companeroHabilitar(); else companeroElegir(companero === id ? null : id); };
   const eb = document.getElementById('detalleEvolBtn');
   if(eb) eb.onclick = () => { cerrarDetalle(); document.getElementById('pokedexCloseBtn').click(); abrirEvolucion(); };
   const ov = document.getElementById('detalleOverlay');
@@ -6513,8 +6513,9 @@ function encuentroDe(t){ return t && (t.encuentro || (t.pinta === 'agua' && mont
 /* ====================== COMPAÑERO (13/11 Zeta) ======================
    Un Pokémon de tu álbum te sigue por la Aventura, caminando detrás tuyo por el mismo camino (el rastro de tus pasos), con saltitos al andar
    y de espaldas / espejado según hacia dónde vas. Se elige desde la ficha del Pokémon. Sólo los que tienen animación limpia (Gen 1-5) y no son gigantes. */
-let companero = null;
-try{ const c = Number(localStorage.getItem('album-companero')); if(c) companero = c; }catch(e){}
+let companero = null, companeroHab = false;
+const COMPANERO_PRECIO = 20000;   // 13/11 Zeta: habilitar al compañero cuesta caro (el precio que vale es el del servidor, juego.js)
+try{ const c = Number(localStorage.getItem('album-companero')); if(c) companero = c; companeroHab = localStorage.getItem('album-companero-hab') === '1'; }catch(e){}
 const puedeCompanero = id => id >= 1 && id <= 649 && (ALTURA_DM[id - 1] || 12) <= 45;
 let advRastro = [], advRastroS = 0, advFollow = {x: 0, y: 0, dir: 'abajo', mueve: false, listo: false};
 const COMPA_DIST = 12;   // px de mundo que va detrás tuyo
@@ -6528,7 +6529,7 @@ function rastroAvanzar(){
   if(advRastro.length > 400) advRastro.splice(0, 200);
 }
 function companeroActualizar(){
-  if(!companero || !state[companero] || !state[companero].got || montura || advTrenAbordo){ advFollow.listo = false; return; }
+  if(!companeroHab || !companero || !state[companero] || !state[companero].got || montura || advTrenAbordo){ advFollow.listo = false; return; }
   if(!advRastro.length) advRastro.push({x: advPx, y: advPy, s: advRastroS});
   const objetivo = advRastroS - COMPA_DIST;
   let a = advRastro[0], b = a;
@@ -6550,10 +6551,26 @@ function companeroSprite(camX, camY){
   const p = DATA.find(d => d.id === companero); if(!p) return null;
   return {p, px: advFollow.x - camX, py: advFollow.y - camY, espalda: advFollow.dir === 'arriba', flip: advFollow.dir === 'der', salto: advFollow.mueve, mult: .8, tope: 22};
 }
+const companeroTextoBoton = id => !companeroHab ? `🐾 Habilitar compañero · ${COMPANERO_PRECIO.toLocaleString('es-AR')} 🪙` : (companero === id ? '🐾 Dejar de llevarlo de compañero' : '🐾 Llevar de compañero en la Aventura');
+function companeroRefrescarUI(){
+  const cb = document.getElementById('detalleCompBtn'); if(cb) cb.textContent = companeroTextoBoton(Number(cb.dataset.id));
+  if(document.getElementById('shopOverlay').classList.contains('show')) renderTienda();
+}
 function companeroElegir(id){
+  if(!companeroHab) return;
+  if(MODO_SERVIDOR) return companeroElegirServidor(id || null);
   companero = id || null;
   try{ if(id) localStorage.setItem('album-companero', String(id)); else localStorage.removeItem('album-companero'); }catch(e){}
-  rastroReiniciar();
+  rastroReiniciar(); companeroRefrescarUI();
+}
+function companeroHabilitar(){
+  if(companeroHab) return;
+  if(coins < COMPANERO_PRECIO){ const f = document.getElementById('shopFeedback'); if(f) f.textContent = 'Te faltan monedas: habilitar al compañero cuesta ' + COMPANERO_PRECIO.toLocaleString('es-AR') + ' 🪙'; if(typeof avisoServidor === 'function') avisoServidor('sin_monedas'); return; }
+  if(!confirm('¿Habilitar al compañero de aventura por ' + COMPANERO_PRECIO.toLocaleString('es-AR') + ' monedas? Después elegís cuál de tus Pokémon te acompaña (no se devuelve).')) return;
+  if(MODO_SERVIDOR) return companeroHabilitarServidor();
+  coins -= COMPANERO_PRECIO; companeroHab = true;
+  try{ localStorage.setItem('album-companero-hab', '1'); }catch(e){}
+  updateCoins(); saveProgress(); companeroRefrescarUI();
 }
 
 function advPaso1(dt){
@@ -6983,6 +7000,17 @@ function renderTienda(){
     fila.appendChild(caja);
     lista.appendChild(fila);
   });
+  /* 13/11 Zeta: habilitar al compañero de aventura (cuesta caro, una sola vez) */
+  const titK = document.createElement('div');
+  titK.style.cssText = "font-family:'Baloo 2',sans-serif;font-size:13px;margin:14px 0 8px;";
+  titK.innerHTML = '🐾 Compañero de aventura';
+  lista.appendChild(titK);
+  { const fila = document.createElement('div'); fila.className = 'shop-row';
+    fila.innerHTML = `<span class="bola-ico" style="font-size:30px;display:flex;align-items:center;justify-content:center;">🐾</span>
+      <span class="txt"><b>Compañero de aventura</b>${companeroHab ? 'Habilitado ✔ · elegí quién te sigue desde la ficha de cada Pokémon (📖 Pokédex)' : 'Un Pokémon tuyo te sigue por el mapa mientras caminás. Se habilita una sola vez.'}</span>`;
+    const btn = document.createElement('button'); btn.className = 'open-btn'; btn.style.padding = '9px 14px';
+    btn.textContent = companeroHab ? '✔' : COMPANERO_PRECIO.toLocaleString('es-AR') + ' 🪙'; btn.disabled = companeroHab || coins < COMPANERO_PRECIO;
+    btn.onclick = companeroHabilitar; fila.appendChild(btn); lista.appendChild(fila); }
   if(tiendaDiamantes()){
     const tit = document.createElement('div');
     tit.style.cssText = "font-family:'Baloo 2',sans-serif;font-size:13px;margin:14px 0 8px;";
