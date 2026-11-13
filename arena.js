@@ -60,7 +60,7 @@ const ESCALA_ENTRENADOR = .34;   // 12/11: más chicos, para que el estadio se s
 const CAMPO_CHICO = .85;       // 13/11 Zeta: cancha 15 % más chica en 1v1 y 2v2
 const ZOOM_1V1 = .72;         // 12/11 Zeta: la cámara un poco más lejos en el 1 contra 1 (los Pokémon se ven 14 % más chicos y el campo rinde más)
 const ZONA_CENTRO = 1.3, ZONA_BORDE = .4;   // 13/11 Zeta: en el centro de la zona pega más que en la punta
-const RADIO_ZONA = 3;          // 13/11 Zeta: ataques de zona con el radio al triple
+const RADIO_ZONA = 2;          // 13/11 Zeta: ataques de zona con el radio al DOBLE (primero lo pidió triple, después lo bajó un punto)
 const VEL_BASE = 34;          // en unidades u() por segundo
 const ACEL = 11;              // qué tan rápido llega a la velocidad pedida (inercia)
 
@@ -3052,7 +3052,7 @@ function dispararLargo(e){
       AR.zonas.push({e:e.lado, zona:z, t:0, imp:.55, mov, lluvia:true});
       return;
     }
-    const n = REDUCE ? 6 : (AR.multi ? 12 : 22);   // el radio es el triple: más piedras para cubrirlo
+    const n = REDUCE ? 6 : (AR.multi ? 10 : 16);   // el radio es el doble: más piedras para cubrirlo
     for(let i = 0; i < n; i++){
       const p = dentroCampo(z.x + azar(-z.r, z.r) * .9, z.y + azar(-z.r, z.r) * G.pz * .9), tx = p.x, ty = p.y;
       const tam = Math.max(8, (mov.n === 'Avalancha' ? 5.2 : mov.forma === 'roca' ? 3.4 : 2.4) * U);   // Avalancha: pedruscos grandes
