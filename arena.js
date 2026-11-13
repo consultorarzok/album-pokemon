@@ -59,6 +59,8 @@ const ESCALA_POKE = {yo:.66, riv:.6};
 const ESCALA_ENTRENADOR = .34;   // 12/11: más chicos, para que el estadio se sienta grande
 const CAMPO_CHICO = .85;       // 13/11 Zeta: cancha 15 % más chica en 1v1 y 2v2
 const ZOOM_1V1 = .72;         // 12/11 Zeta: la cámara un poco más lejos en el 1 contra 1 (los Pokémon se ven 14 % más chicos y el campo rinde más)
+const ZONA_CENTRO = 1.3, ZONA_BORDE = .4;   // 13/11 Zeta: en el centro de la zona pega más que en la punta
+const RADIO_ZONA = 3;          // 13/11 Zeta: ataques de zona con el radio al triple
 const VEL_BASE = 34;          // en unidades u() por segundo
 const ACEL = 11;              // qué tan rápido llega a la velocidad pedida (inercia)
 
@@ -2394,7 +2396,7 @@ function calcularDanio(a, d, alc, tipoMov, pot){
 }
 
 /* Devuelve true si el golpe pegó (false: esquivado, protegido o inmune). */
-function golpear(att, def, alc, x, y){
+function golpear(att, def, alc, x, y, fz){
   if(!def.mon.vivo) return false;
   if(AR.bando[att.lado] === AR.bando[def.lado]) return false;   // no se pegan entre compañeros
   const jefeMio = !!(AR.raid && AR.raid.host && def.lado === 'riv');   // el daño del legendario lo decide el celular anfitrión
@@ -2416,6 +2418,7 @@ function golpear(att, def, alc, x, y){
   if(def.invul > 0) return false;
   const res = calcularDanio(att.mon, def.mon, alc, tipo, mov.pot), d = def.mon;
   if(att.mon.jefe && res.dmg > 0) res.dmg = Math.round(res.dmg * JEFE_ATAQUE);   // el legendario de la incursión pega más fuerte (Zeta 31/10)
+  if(fz && res.dmg > 0) res.dmg = Math.max(1, Math.round(res.dmg * fz));   // 13/11 Zeta: en los ataques de zona, el centro pega más que la punta
   if(roce && res.dmg > 0){
     res.dmg = Math.max(1, Math.round(res.dmg * ROCE_LARGO)); res.crit = false;
     texto(c.x, arriba - u() * 4.5, '¡Lo rozó!', '#8be9ff', 3.2);
@@ -2626,7 +2629,7 @@ function prepararLargo(e){
     return;
   }
   const propia = mov.fx === 'propia';
-  const c = pie(propia ? e : O), r = (propia ? 15 : (mov.fx === 'zona' ? 8.5 : 9)) * u();
+  const c = pie(propia ? e : O), r = (propia ? 15 : (mov.fx === 'zona' ? 8.5 : 9)) * u() * (['propia', 'zona', 'lluvia'].includes(mov.fx) ? RADIO_ZONA : 1);   // 13/11 Zeta: los ataques de lugar (Terremoto, Avalancha…) con el radio al triple
   A.zona = {x:c.x, y:c.y, r, propia};
   A.tele = [mk('ar-zona', {left:c.x + 'px', top:c.y + 'px', width:r * 2 + 'px', height:r * 2 * G.pz + 'px', borderColor:col}, PISO)];
 }
@@ -2885,6 +2888,62 @@ function fatuoEstalla(z){
   marca(z.x, z.y, z.r, '#3B6FE0');
   sacudir(1.8, true);
 }
+/* 13/11 Zeta: el piso se parte y las rocas afiladas se levantan del suelo, como en el anime (Terremoto, Magnitud, Fisura, Roca Afilada).
+   Las rocas salen en ola desde el centro hacia afuera. */
+const dentroCampo = (x, y) => ({x:Math.max(6, Math.min(G.W - 6, x)), y:Math.max(G.cy - G.ry, Math.min(G.cy + G.ry, y))});
+function grietaIrregular(x, y, largo, grosor, ang, delay, dur){
+  if(!FX || !PISO) return;
+  const pts = [], N = 9;
+  for(let i = 0; i <= N; i++) pts.push(`${(i / N * 100).toFixed(1)}% ${(50 + (i % 2 ? -1 : 1) * azar(8, 42) * (1 - i / N * .6)).toFixed(1)}%`);
+  for(let i = N; i >= 0; i--) pts.push(`${(i / N * 100).toFixed(1)}% ${(50 + (i % 2 ? 1 : -1) * azar(8, 42) * (1 - i / N * .6) * .6).toFixed(1)}%`);
+  const d = mk('ar-grieta2', {left:x + 'px', top:y + 'px', width:largo + 'px', height:grosor + 'px', clipPath:`polygon(${pts.join(',')})`}, PISO);
+  const t = `translate(0,-50%) rotate(${ang}deg) scaleY(${G.pz}) `;
+  const a = d.animate([{transform:t + 'scaleX(0)', opacity:1}, {transform:t + 'scaleX(1)', opacity:1, offset:.18}, {transform:t + 'scaleX(1)', opacity:1, offset:.8}, {transform:t + 'scaleX(1)', opacity:0}],
+    {duration:dur || 2200, delay:delay || 0, easing:'steps(7,end)', fill:'both'});
+  const q = () => d.remove(); a.finished.then(q, q);
+}
+function picoRoca(x, y, alto, ancho, delay){
+  if(!FX) return;
+  const U = u();
+  const hoyo = mk('ar-hoyo', {left:x + 'px', top:y + 'px', width:ancho * 2.2 + 'px', height:ancho * 2.2 * G.pz + 'px'}, PISO);
+  const ah = hoyo.animate([{opacity:0, transform:'translate(-50%,-50%) scale(.3)'}, {opacity:1, transform:'translate(-50%,-50%) scale(1)', offset:.2}, {opacity:1, transform:'translate(-50%,-50%) scale(1)', offset:.8}, {opacity:0, transform:'translate(-50%,-50%) scale(1)'}],
+    {duration:1900, delay, fill:'both'});
+  const qh = () => hoyo.remove(); ah.finished.then(qh, qh);
+  const claro = elige(['#c2b48c', '#b3a47c', '#d0c39c']), oscuro = elige(['#6b5f45', '#5a5039', '#76694c']);
+  const giro = azar(-14, 14);
+  const p = mk('ar-pico', {left:x + 'px', top:y + 'px', width:ancho + 'px', height:alto + 'px',
+    background:`linear-gradient(100deg, ${claro} 0 48%, ${oscuro} 52% 100%)`});
+  const t = `translate(-50%,-100%) rotate(${giro}deg)`;
+  const a = p.animate([{transform:`${t} scaleY(0)`, opacity:1}, {transform:`${t} scaleY(1.12)`, opacity:1, offset:.14}, {transform:`${t} scaleY(1)`, opacity:1, offset:.2},
+    {transform:`${t} scaleY(1)`, opacity:1, offset:.72}, {transform:`${t} scaleY(0)`, opacity:1}],
+    {duration:1500, delay, easing:'steps(6,end)', fill:'both'});
+  const q = () => p.remove(); a.finished.then(q, q);
+  setTimeout(() => { if(FX){ polvo(x, y, 2, .8); estallido(x, y - 1 * U, 'rock', 3, .8); } }, delay + 40);
+}
+function partirPiso(z, modo){
+  const U = u(), light = REDUCE || (AR && AR.multi);
+  const grietas = light ? 6 : 13, picos = REDUCE ? 8 : (light ? 14 : 26);
+  if(modo === 'fisura'){                                   // una abertura grande bajo el rival: se traga todo
+    const hueco = mk('ar-abismo', {left:z.x + 'px', top:z.y + 'px', width:z.r * 1.6 + 'px', height:z.r * 1.6 * G.pz + 'px'}, PISO);
+    const ah = hueco.animate([{transform:'translate(-50%,-50%) scale(.05)', opacity:1}, {transform:'translate(-50%,-50%) scale(1)', opacity:1, offset:.3},
+      {transform:'translate(-50%,-50%) scale(1)', opacity:1, offset:.85}, {transform:'translate(-50%,-50%) scale(.6)', opacity:0}], {duration:2300, easing:'steps(8,end)', fill:'forwards'});
+    const qh = () => hueco.remove(); ah.finished.then(qh, qh);
+    for(let i = 0; i < (light ? 4 : 7); i++){ const g = -40 + i * 360 / 7 + azar(-12, 12); grietaIrregular(z.x, z.y, z.r * azar(1.1, 1.5), Math.max(5, U * 2.2), g, i * 30, 2300); }
+  } else {
+    for(let i = 0; i < grietas; i++) grietaIrregular(z.x, z.y, z.r * azar(.85, 1.25), Math.max(4, U * 1.6), i / grietas * 360 + azar(-14, 14), azar(0, 120), 2300);
+  }
+  const roca = modo === 'roca';
+  const n = roca ? Math.round(picos * .8) : picos;
+  for(let i = 0; i < n; i++){
+    const f = Math.sqrt((i + .5) / n) * (modo === 'fisura' ? 1.05 : .95), a = i * 2.39996 + azar(-.3, .3);   // reparto parejo en espiral
+    const p = dentroCampo(z.x + Math.cos(a) * z.r * f, z.y + Math.sin(a) * z.r * f * G.pz);
+    const alto = U * azar(roca ? 9 : 6, roca ? 16 : 12) * (1.15 - f * .35), ancho = alto * azar(.32, .46);
+    picoRoca(p.x, p.y, alto, ancho, 120 + f * 420 + azar(0, 80));
+  }
+  if(!light){ for(let k = 0; k < 3; k++) setTimeout(() => PISO && aro(z.x, z.y, k % 2 ? '#c9b98a' : '#8a7a55', z.r * (.7 + k * .3)), k * 160); }
+  for(let i = 0; i < (light ? 6 : 16); i++){ const a = azar(0, 6.28), d = Math.sqrt(Math.random()) * z.r; setTimeout(() => FX && polvo(z.x + Math.cos(a) * d, z.y + Math.sin(a) * d * G.pz, 2, 1.2), azar(100, 600)); }
+  for(let k = 0; k < 4; k++) setTimeout(() => FX && sacudir(1.9 - k * .3, k === 0), k * 170);
+}
 function estallidoZona(z, mov){
   if(mov.n === 'Puño Plasma'){ caidaPlasma(z); marca(z.x, z.y, z.r * 1.1, '#F7D02C'); return; }
   if(mov.n === 'Fuego Fatuo'){ fatuoEstalla(z); return; }
@@ -2928,7 +2987,9 @@ function estallidoZona(z, mov){
   } else if(tipo === 'fighting'){                           // Sísmico: lo levanta y lo estampa contra el piso
     impacto(z.x, z.y - 4 * U, '#ff8a5c', 2.2); polvo(z.x, z.y, 12, 1.6);
     estallido(z.x, z.y - 3 * U, 'rock', 12, 1.2);
-  } else if(tipo === 'ground'){                             // Terremoto/Fisura: grietas que salen de uno
+  } else if(tipo === 'ground'){                             // Terremoto / Magnitud / Fisura: el piso se parte y se levantan rocas afiladas
+    partirPiso(z, n === 'Fisura' ? 'fisura' : 'tierra');
+  } else if(tipo === 'ground' && !/^(Terremoto|Magnitud|Fisura)$/.test(n)){   // el resto de los de tierra: grietas que salen del centro
     for(let i = 0; i < 7; i++){
       const a = i / 7 * Math.PI * 2 + azar(-.2, .2);
       fxSimple('ar-grieta', {left:z.x + 'px', top:z.y + 'px', width:z.r * azar(.9, 1.3) + 'px', height:Math.max(3, U * 1.1) + 'px'},
@@ -2985,20 +3046,25 @@ function dispararLargo(e){
   }
   const z = A.zona;
   if(mov.fx === 'lluvia'){
-    const n = REDUCE ? 4 : 10;
+    if(mov.n === 'Roca Afilada'){   // clava piedras muy afiladas: salen del suelo (como en el anime)
+      partirPiso(z, 'roca'); sfx('lluvia');
+      AR.zonas.push({e:e.lado, zona:z, t:0, imp:.55, mov, lluvia:true});
+      return;
+    }
+    const n = REDUCE ? 6 : (AR.multi ? 12 : 22);   // el radio es el triple: más piedras para cubrirlo
     for(let i = 0; i < n; i++){
-      const tx = z.x + azar(-z.r, z.r) * .85, ty = z.y + azar(-z.r, z.r) * G.pz * .85;
-      const tam = Math.max(8, (mov.forma === 'roca' ? 3.4 : 2.4) * U);
+      const p = dentroCampo(z.x + azar(-z.r, z.r) * .9, z.y + azar(-z.r, z.r) * G.pz * .9), tx = p.x, ty = p.y;
+      const tam = Math.max(8, (mov.n === 'Avalancha' ? 5.2 : mov.forma === 'roca' ? 3.4 : 2.4) * U);   // Avalancha: pedruscos grandes
       const o = mk('ar-orbe f-' + mov.forma, {width:tam + 'px', height:tam + 'px', left:tx + 'px', top:'0px', opacity:0});
       o.style.setProperty('--c', (mov.n === 'Danza Pétalo' || mov.n === 'Tormenta Floral') ? elige(['#FFB3D9', '#FF7FBF', '#ffffff']) : elige(elemDe(tipo).c));
       const a = o.animate([
         {transform:'translate(-50%,-50%) translateY(0) rotate(0)', opacity:1},
         {transform:`translate(-50%,-50%) translateY(${ty}px) rotate(200deg)`, opacity:1}
-      ], {duration:320, delay:i * 50, easing:'steps(7,start)', fill:'forwards'});
+      ], {duration:320, delay:i * 38, easing:'steps(7,start)', fill:'forwards'});
       a.finished.then(() => { o.remove(); estallido(tx, ty, tipo, 4, .65); if(tipo === 'rock') polvo(tx, ty, 2); }, () => o.remove());
     }
     sfx('lluvia');
-    AR.zonas.push({e:e.lado, zona:z, t:0, imp:.32 + n * .05, mov, lluvia:true});
+    AR.zonas.push({e:e.lado, zona:z, t:0, imp:.32 + n * .038, mov, lluvia:true});
     return;
   }
   if(mov.fx === 'trueno'){
@@ -3035,12 +3101,14 @@ function dispararLargo(e){
 
 /* para las pruebas (no se usa en el juego): dispara un efecto de largo alcance sobre el rival sin esperar la carga */
 window.__arenaMovs.probarMedio = () => disparoMedio(E.yo);
-window.__arenaMovs.probarLargo = (nombre, fx, tipo) => {
-  const e = E.yo, O = otro(e), c = pie(O), z = {x:c.x, y:c.y, r:8.5 * u(), propia:false};
-  const mov = {n:nombre, tipo, fx, forma:'bola', pot:1.4};
+window.__arenaMovs.probarLargo = (nombre, fx, tipo, forma) => {
+  const e = E.yo, O = otro(e), c = pie(O), z = {x:c.x, y:c.y, r:(fx === 'propia' ? 15 : 9) * u() * RADIO_ZONA, propia:false};
+  const mov = {n:nombre, tipo, fx, forma:forma || 'bola', pot:1.4};
   e.accion = {tipo:'largo', mov, zona:z, t:0, hecho:true};
   dispararLargo(e);
   setTimeout(() => { e.accion = null; }, 50);
+  const cura = setInterval(() => { for(const k of ['yo', 'riv']) if(E[k] && E[k].mon){ E[k].mon.hp = E[k].mon.max; E[k].mon.vivo = true; } }, 120);   // sólo para las pruebas: nadie se debilita mientras se miran los efectos
+  setTimeout(() => clearInterval(cura), 4000);
 };
 
 /* Avanza el ataque en curso y define la pose del cuerpo (anticipación, golpe, recuperación). */
@@ -3179,7 +3247,11 @@ function avanzarZonas(dt){
       for(const O of enemigosDe(att)){
         if(!O.mon || !O.mon.vivo) continue;
         const p = pie(O), dx = p.x - z.zona.x, dy = (p.y - z.zona.y) / G.pz;
-        if(Math.hypot(dx, dy) <= z.zona.r) golpear(att, O, 'largo');
+        const dist = Math.hypot(dx, dy);
+        if(dist <= z.zona.r){
+          const cae = ['propia', 'zona', 'lluvia'].includes(z.mov.fx);
+          golpear(att, O, 'largo', undefined, undefined, cae ? ZONA_CENTRO - (ZONA_CENTRO - ZONA_BORDE) * (dist / z.zona.r) : 0);   // centro 1,3x · punta 0,4x
+        }
       }
     }
     return false;
