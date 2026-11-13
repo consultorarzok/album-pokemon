@@ -6152,8 +6152,19 @@ function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
    y brillos que se mueven en el agua. El mapa de fondo sigue siendo el de siempre. */
 const ALTO_SOMBRA = {'#': [9.5, 3.4, .30], 'H': [11, 3.4, .30], 'G': [11, 3.6, .30], 'K': [11, 3.6, .30], 'D': [11, 3.6, .30], 'I': [11, 3.6, .30],
   'O': [9, 3, .28], '^': [11, 3.6, .30], 'Z': [11, 3.6, .30], 'V': [11, 3.6, .30], 'M': [10, 3.4, .26], 'T': [8, 2.6, .26], 'i': [5.5, 2, .24], 'p': [10, 3, .26], 'q': [10, 3, .26], 'r': [10, 3, .26]};
+const SOMBRA_ESC = 4, SOMBRAS_C = {};
+function spriteSombra(ch, sh){
+  if(SOMBRAS_C[ch]) return SOMBRAS_C[ch];
+  const rx = sh[0], ry = sh[1], w = Math.ceil(rx * 2 * SOMBRA_ESC) + 2, h = Math.ceil(ry * 2 * SOMBRA_ESC) + 2;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); g.translate(w / 2, h / 2); g.scale(SOMBRA_ESC, SOMBRA_ESC);
+  sombraSuave(g, 0, 0, rx, ry, sh[2]);
+  return SOMBRAS_C[ch] = c;
+}
+const OLA_COLOR = [.14, .22, .30, .38].map(a => `rgba(235,248,255,${a})`);
 function advRealce(ctx, mapa, camX, camY, vw, vh){
-  const t = Date.now() / 1000;
+  const t = Date.now() / 1000, olas = [];
+  ctx.imageSmoothingEnabled = true;
   const x0 = Math.max(0, Math.floor(camX / ADV_PX) - 1), x1 = Math.min(mapa.cols - 1, Math.ceil((camX + vw) / ADV_PX) + 1);
   const y0 = Math.max(0, Math.floor(camY / ADV_PX) - 1), y1 = Math.min(mapa.rows.length - 1, Math.ceil((camY + vh) / ADV_PX) + 1);
   for(let y = y0; y <= y1; y++){
@@ -6161,18 +6172,29 @@ function advRealce(ctx, mapa, camX, camY, vw, vh){
     for(let x = x0; x <= x1; x++){
       const ch = fila[x], ox = x * ADV_PX - camX, oy = y * ADV_PX - camY;
       const sh = ALTO_SOMBRA[ch];
-      if(sh && !(abajo && ALTO_SOMBRA[abajo[x]])) sombraSuave(ctx, ox + 9, oy + ADV_PX + 1.5, sh[0], sh[1], sh[2]);   // cae hacia abajo y un poco a la derecha
+      if(sh && !(abajo && ALTO_SOMBRA[abajo[x]])){   // cae hacia abajo y un poco a la derecha
+        const sp = spriteSombra(ch, sh);   // 13/11: sombra ya pintada una vez (antes: un degradado nuevo por árbol por cuadro)
+        ctx.drawImage(sp, ox + 9 - sp.width / 2 / SOMBRA_ESC, oy + ADV_PX + 1.5 - sp.height / 2 / SOMBRA_ESC, sp.width / SOMBRA_ESC, sp.height / SOMBRA_ESC);
+      }
       else if(ch === '~'){
         const f = (x * 7 + y * 13) % 5, ph = t * .9 + x * 1.3 + y * .7;
         for(let k = 0; k < 2; k++){
           const a = (Math.sin(ph + k * 2.4) + 1) / 2;
           if(a < .35) continue;
-          ctx.fillStyle = `rgba(235,248,255,${(.10 + .26 * a).toFixed(3)})`;
-          ctx.beginPath(); ctx.ellipse(ox + 3 + ((f * 3 + k * 7) % 11), oy + 4 + ((f * 5 + k * 6) % 9), 2.3, .55, 0, 0, Math.PI * 2); ctx.fill();
+          const nivel = Math.min(3, Math.floor((a - .35) / .65 * 4));   // 13/11: 4 niveles de brillo, un solo trazo por nivel (antes: un trazo y un color nuevos por cada ola)
+          const ex = ox + 3 + ((f * 3 + k * 7) % 11), ey = oy + 4 + ((f * 5 + k * 6) % 9);
+          (olas[nivel] || (olas[nivel] = [])).push(ex, ey);
         }
       }
     }
   }
+  for(let n = 0; n < olas.length; n++){
+    const L = olas[n]; if(!L) continue;
+    ctx.fillStyle = OLA_COLOR[n]; ctx.beginPath();
+    for(let i = 0; i < L.length; i += 2){ ctx.moveTo(L[i] + 2.3, L[i + 1]); ctx.ellipse(L[i], L[i + 1], 2.3, .55, 0, 0, Math.PI * 2); }
+    ctx.fill();
+  }
+  ctx.imageSmoothingEnabled = false;
 }
 
 function advRender(){
@@ -6181,14 +6203,14 @@ function advRender(){
   const mapa = ADV_MAPS[advMapa];
   const anchoCss = cv.clientWidth  || window.innerWidth;
   const altoCss  = cv.clientHeight || window.innerHeight;
-  const dprE = Math.min(window.devicePixelRatio || 1, 2.5);
+  const dprE = Math.min(window.devicePixelRatio || 1, advDprMax);
   /* cada píxel de mundo = un número ENTERO de píxeles del dispositivo: el piso queda parejo y nítido */
   const escala = Math.max(1, Math.round(advEscala(anchoCss, altoCss) * dprE)) / dprE;
 
   /* Resolución real de pantalla: el canvas tiene los píxeles del dispositivo y el dibujo se hace en
      "píxeles de mundo" con una transformación. Así los personajes y los Pokémon salen nítidos (no
      achicados a 14 px) y las sombras y la luz son suaves; el piso sigue siendo pixel art. */
-  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  const dpr = Math.min(window.devicePixelRatio || 1, advDprMax);
   const vw = Math.ceil(anchoCss / escala);
   const vh = Math.ceil(altoCss  / escala);
   const cw = Math.round(anchoCss * dpr), chh = Math.round(altoCss * dpr);
@@ -6609,11 +6631,25 @@ function advLeerCartel(x, y){
   if(txt) advMensaje(txt);
 }
 
+/* 13/11 (Zeta: "muy tildado"): calidad adaptativa. Si el teléfono no llega a ~30 cuadros por segundo, el lienzo baja de resolución
+   de a escalones (2,5 → 2 → 1,5 → 1) hasta que ande fluido; y parado (sin caminar) se dibuja a 30 cuadros en vez de 60. */
+let advDprMax = 2.5, advLentos = 0, advMedia = 16, advPosPrev = '', advQuietoDesde = 0, advSalto = false;
 function advCiclo(ahora){
   if(!advAbierto){ advRaf = null; return; }
-  const dt = Math.min(.05, (ahora - advUltimo) / 1000 || 0);
+  const real = (ahora - advUltimo) || 16;
+  const dt = Math.min(.05, real / 1000 || 0);
   advUltimo = ahora;
   advRaf = requestAnimationFrame(advCiclo);
+  const pos = advPx + ',' + advPy;
+  if(pos !== advPosPrev){ advPosPrev = pos; advQuietoDesde = ahora; }
+  const quieto = ahora - advQuietoDesde > 400;
+  if(quieto){ advSalto = !advSalto; if(advSalto){ try{ advPaso1(dt); }catch(e){ console.error('advCiclo', e); } return; } }
+  else {
+    advMedia += (Math.min(real, 200) - advMedia) * .08;
+    if(advMedia > 34 && advDprMax > 1){
+      if(++advLentos > 40){ advLentos = 0; advMedia = 16; advDprMax = advDprMax > 2 ? 2 : advDprMax > 1.5 ? 1.5 : 1; }
+    } else advLentos = 0;
+  }
   try{ advPaso1(dt); advRender(); }catch(e){ console.error('advCiclo', e); }
 }
 
