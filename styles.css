@@ -661,6 +661,12 @@
   .ar-act .cd{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(255,255,255,.28);pointer-events:none;}
   .ar-act.sinEn{opacity:.5;} .ar-act:active{background:#252f70;}
   .ar-act.eqp{grid-column:1;grid-row:2;} .ar-act.esq{grid-column:2 / span 2;grid-row:2;border-color:#8be9ff;}
+  /* 13/11: el Pikachu de Ash tiene 6 ataques: una fila más de botones (más chicos) y Equipo / Esquivar bajan a la tercera */
+  .ar-act[hidden]{display:none !important;}
+  .ar-seis .ar-act{height:44px;} .ar-seis .ar-act small{display:none;} .ar-seis .ar-act b{font-size:10px;}
+  .ar-seis .ar-act.ex{grid-row:2;} #arB-largo2{grid-column:1;} #arB-medio2{grid-column:2;} #arB-corto2{grid-column:3;}
+  .ar-seis .ar-act.eqp,.ar-seis .ar-act.esq{grid-row:3;height:38px;}
+  .ar-seis .ar-btns{max-width:320px;}
   .ar-act:disabled{opacity:.35;cursor:not-allowed;}
   .ar-b{min-height:52px;border-radius:10px;border:2px solid #3a4680;background:#161d44;color:#f2f4ff;font-family:'Baloo 2',sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 8px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
   .ar-b b{font-size:14px;line-height:1.15;text-align:center;} .ar-b small{font-size:11px;color:#aab3d9;}

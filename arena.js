@@ -38,11 +38,18 @@ const ALC = {
   medio: {etq:'Medio', poder:34, coste:16, cd:1.0},
   largo: {etq:'Largo', poder:64, coste:34, cd:2.4}
 };
+ALC.corto2 = ALC.corto; ALC.medio2 = ALC.medio; ALC.largo2 = ALC.largo;   // los ataques extra del Pikachu de Ash
 /* Mientras alguien carga el largo el juego va en cámara lenta, pero la carga avanza
    más rápido que el resto: da tiempo de reaccionar, no de pasear. Esquivar rodando
    adentro del ataque sólo lo roza (media pegada): para salvarse hay que salir. */
 const CAMARA_LENTA = .5, CARGA_EN_LENTA = 1.4, ROCE_LARGO = .5;
 const ATAQUES = ['corto', 'medio', 'largo'];
+/* 13/11 Zeta: el Pikachu de Ash (especial) tiene 6 ataques: 4 básicos (2 cortos y 2 medios) y 2 ultis (largos). Los extras se llaman
+   corto2 / medio2 / largo2 y se comportan igual que su base (energía, recarga, efecto): `base()` los lleva a corto / medio / largo. */
+const EXTRAS = ['corto2', 'medio2', 'largo2'];
+const base = a => a ? String(a).replace(/2$/, '') : a;
+const ORDEN_BOTONES = ['corto', 'corto2', 'medio', 'medio2', 'largo', 'largo2'];
+const slotsDe = m => ORDEN_BOTONES.filter(k => ATAQUES.includes(k) || (m && m.movs && m.movs[k]));
 const ESQ = {coste:12, cd:1.3, dur:.30};
 const EN_MAX = 100, EN_REGEN = 14, EN_PREMIO_ESQUIVE = 18;
 const CAMBIO_CD = 3, INVUL_ENTRADA = 1;
@@ -1251,12 +1258,16 @@ function semillaNum(txt){ let h = 2166136261; for(const ch of String(txt)){ h ^=
 const TIPO_REAL = {azul:'fire', dorado:'steel', carmesi:'psychic'};
 const VEL_ESPECIAL = {10153: 1.5};   // Zeraora: el más rápido de las especiales (07/11 Zeta)
 const POT_ESPECIAL = {corto:1.3, medio:1.3, largo:1.4};
+const ENERGIA_ESPECIAL = {10156: 1.5};   // 13/11 Zeta: el Pikachu de Ash tiene más energía que los demás (150 en vez de 100) para poder usar sus 6 ataques
 const MOVS_ESPECIALES = {
   10150: {corto:['Garra Acorazada','psychic','garra'], medio:['Esfera Acorazada','carmesi','bola'], largo:['Psicorrayo Total','psychic','rayo']},
   10151: {corto:['Garra Umbría','dark','garra'], medio:['Aura Oscura','dark','tornado','medialuna'], largo:['Abismo Total','dark','propia']},
   10152: {corto:['Pico Carmesí','fire','picotazo'], medio:['Llama Sombría','dark','bola','llama'], largo:['Fuego Eclipse','fire','propia']},
   10153: {corto:['Garra Plasma','electric','garra'], medio:['Bola Plasma','electric','bola'], largo:['Puño Plasma','electric','zona']},
   10154: {corto:['Garra Azul','azul','garra'], medio:['Llama Azul','azul','bola','llama'], largo:['Aliento Azul','azul','rayo']},
+  /* Pikachu de Ash (anime): Ataque Rápido, Cola Férrea, Rayo, Bola Voltio y, de ulti, Trueno y Placaje Eléctrico */
+  10156: {corto:['Ataque Rápido','normal','golpe'], corto2:['Cola Férrea','steel','golpe'], medio:['Rayo','electric','rayito'], medio2:['Bola Voltio','electric','bola','voltio'],
+          largo:['Trueno','electric','trueno'], largo2:['Placaje Eléctrico','electric','embestida']},
   10155: {corto:['Puño Hoopa','dark','golpe'], medio:['Portal Anillo','psychic','onda','anillo'], largo:['Dimensión Total','psychic','rayo']}
 };
 /* Ataques sumados a mano al repertorio de un Pokémon, en un botón distinto al del catálogo (10/11 Zeta: Fuego Fatuo como ataque largo
@@ -1278,7 +1289,7 @@ function movExtra(id, alc, semilla, vario){
 function movsDe(p, semilla, libre, vario){
   if(p.especial && MOVS_ESPECIALES[p.id] && !libre){
     const out = {};
-    ATAQUES.forEach(alc => { const [n, tipo, fx, forma] = MOVS_ESPECIALES[p.id][alc]; out[alc] = {n, tipo, fx, forma:forma || FORMA_FX[fx] || 'bola', pot:n === 'Puño Plasma' ? 1.7 : POT_ESPECIAL[alc]}; });
+    Object.keys(MOVS_ESPECIALES[p.id]).forEach(alc => { const [n, tipo, fx, forma] = MOVS_ESPECIALES[p.id][alc]; out[alc] = {n, tipo, fx, forma:forma || FORMA_FX[fx] || 'bola', pot:n === 'Puño Plasma' ? 1.7 : POT_ESPECIAL[base(alc)]}; });
     return out;
   }
   const id = p.base || p.id, pools = id === 235 ? TODOS : APRENDE[id];
@@ -2099,7 +2110,7 @@ function movsEjemplar(p, ej){
   return movs;
 }
 /* cuántos ataques distintos puede tener en cada botón (si es 1, cambiarlo no sirve) */
-const opcionesDeAtaque = p => ATAQUES.map(alc => { const id = p.base || p.id, l = (APRENDE[id] || {})[alc] || []; return new Set(l.map(x => x.i)).size + (((APR_EXTRA[id] || {})[alc] || []).length); });
+const opcionesDeAtaque = p => p.id === 10156 ? [1, 1, 1] : ATAQUES.map(alc => { const id = p.base || p.id, l = (APRENDE[id] || {})[alc] || []; return new Set(l.map(x => x.i)).size + (((APR_EXTRA[id] || {})[alc] || []).length); });
 Object.assign(window.__arenaMovs, {movsEjemplar, opcionesDeAtaque});
 function crearMon(p, rival, ejFijo){
   const ej = ejFijo || (rival ? null : mejorEjemplar(p.id));
@@ -2109,7 +2120,8 @@ function crearMon(p, rival, ejFijo){
   /* los ataques salen del número de serie del ejemplar (siempre los mismos para esa figurita);
      el rival, como no tiene ejemplar guardado, saca unos al azar en cada pelea */
   const movs = movsEjemplar(p, ej);
-  return {p, bst, max, hp:max, en:EN_MAX, vivo:true, st:(ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : (p.especial && VEL_ESPECIAL[p.id]) ? Object.assign({}, statsDe(p), {vel:VEL_ESPECIAL[p.id]}) : statsDe(p), fz, k, vario:!!(ej && ej.s), movs};
+  const enMax = EN_MAX * (ENERGIA_ESPECIAL[p.id] || 1);
+  return {p, bst, max, hp:max, en:enMax, enMax, vivo:true, st:(ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : (p.especial && VEL_ESPECIAL[p.id]) ? Object.assign({}, statsDe(p), {vel:VEL_ESPECIAL[p.id]}) : statsDe(p), fz, k, vario:!!(ej && ej.s), movs};
 }
 const POSE_0 = {};
 function crearEntidad(lado){
@@ -2120,7 +2132,7 @@ function crearEntidad(lado){
     sombra:w.querySelector('.ar-sombra'), refl:w.querySelector('.ar-reflejo img'),
     vista:amigo ? 'espalda' : 'frente', vistaQ:null, flipAp:1, girando:false, giroT:0,
     x:0, y:0, vx:0, vy:0, rvx:0, rvy:0, px:null, py:null, kx:0, ky:0, fase:0, polvoT:0, fantT:0, cara:amigo ? -1 : 1,
-    quieto:0, pose:null, accion:null, cd:{corto:0, medio:0, largo:0, esq:0}, stun:0, invul:0, tEsq:0,
+    quieto:0, pose:null, accion:null, cd:{corto:0, medio:0, largo:0, corto2:0, medio2:0, largo2:0, esq:0}, stun:0, invul:0, tEsq:0,
     rodando:false, w:40, h:40, s:1, mon:null, aparece:0, bot:null};
   /* el sprite que se ve: de frente o de espalda según hacia dónde mira */
   Object.defineProperty(e, 'spr', {get(){ return this.imgs[this.vista]; }});
@@ -2145,8 +2157,9 @@ function empujar(e, dx, dy){ e.x += dx / G.rx; e.y += dy / G.ry; encerrar(e); }
 /* Alto real del dibujo (px del GIF, sin transparencia) y altura oficial (dm) de los Pokémon de Teselia y Kalos. Sacado de PokeAPI + los GIF. */
 const TAM_NUEVOS = {};
 `494 54 4;495 37 6;496 56 8;497 69 33;498 39 5;499 56 10;500 72 16;501 36 5;502 55 8;504 40 5;505 68 11;506 42 4;507 49 9;508 69 12;509 48 4;510 62 11;511 41 6;512 68 11;513 43 6;514 58 10;515 43 6;516 57 10;517 31 6;518 62 11;519 36 3;520 56 6;521 74 12;522 61 8;523 72 16;524 36 4;525 50 9;526 75 17;527 36 4;528 53 9;529 48 3;530 64 7;531 52 11;532 48 6;533 71 12;534 62 14;535 28 5;536 47 8;537 63 15;538 52 13;539 58 14;540 35 3;541 42 5;542 74 12;543 34 4;544 43 12;545 84 25;546 28 3;547 53 7;548 43 5;549 67 11;550 38 10;551 26 7;552 60 10;553 70 15;554 35 6;555 63 13;556 68 10;557 34 3;558 63 14;559 39 6;560 60 11;561 83 14;562 39 5;563 74 17;564 37 7;565 59 12;566 40 5;567 75 14;568 38 6;569 68 19;570 45 7;571 63 16;572 50 4;573 56 5;574 38 4;575 52 7;576 72 15;577 29 3;578 46 6;579 54 10;580 40 5;581 63 13;582 36 4;583 58 11;584 62 13;585 49 6;586 76 19;587 42 4;588 41 5;589 67 10;590 32 2;591 54 6;592 57 12;593 66 22;594 76 12;595 32 1;596 53 8;597 36 6;598 66 10;599 40 3;600 50 6;601 58 6;602 16 2;603 63 12;604 63 21;605 45 5;606 62 10;607 37 3;608 48 6;609 66 10;610 44 6;611 58 10;612 82 18;613 35 5;614 72 26;615 68 11;616 34 4;617 56 8;618 41 7;619 43 9;620 66 14;621 71 16;622 54 10;623 77 28;624 44 5;625 71 16;626 56 16;627 48 5;628 74 15;629 59 5;630 69 12;631 54 14;632 31 3;633 48 8;634 56 14;635 79 18;636 46 11;637 68 16;638 76 21;639 58 19;640 69 20;641 76 15;642 76 15;643 82 32;644 90 29;645 76 15;646 74 30;647 57 14;648 52 6;649 68 15;650 62 4;651 66 7;652 106 16;653 59 4;654 86 10;655 110 15;656 51 3;657 56 6;658 74 15;659 90 4;660 99 10;661 42 3;662 62 7;663 103 12;664 55 3;665 43 3;666 91 12;667 60 6;668 97 15;669 68 1;670 85 2;671 96 11;672 62 9;673 83 17;674 62 6;675 100 21;676 83 12;677 58 3;678 72 6;679 72 8;680 71 8;681 90 17;682 50 2;683 80 8;684 48 4;685 69 8;686 50 4;687 98 15;688 70 5;689 105 13;690 72 5;691 129 18;692 50 5;693 80 13;694 52 5;695 77 10;696 66 8;697 106 25;698 88 13;699 122 27;700 85 10;701 70 8;702 48 2;703 50 3;704 49 3;705 75 8;706 101 20;707 81 2;708 55 4;709 108 15;710 50 4;711 82 9;712 60 10;713 56 20;714 69 5;715 97 15;716 126 30;717 106 58;718 105 50;719 82 7;720 59 5;721 91 17`.split(';').forEach(l => { const [i, alto, dm] = l.split(' ').map(Number); TAM_NUEVOS[i] = {alto, dm}; });
+TAM_NUEVOS[10156] = {alto:59, dm:6};   // Pikachu de Ash: un poco más grande que un Pikachu común (4 dm)
 /* Los nuevos se ven SIEMPRE de frente (espejado según hacia dónde miran): su dibujo de espalda es otro estilo y otro tamaño. */
-const soloFrente = e => !!(e.mon && e.mon.p.id >= 494 && e.mon.p.id < 10000);
+const soloFrente = e => !!(e.mon && ((e.mon.p.id >= 494 && e.mon.p.id < 10000) || e.mon.p.id === 10156));
 function medidas(e, img){
   const sf = ESCALA_POKE[escalaLado(e)] * (AR && AR.zoom || 1) * (img.dataset.fb ? .25 : 1) * ((e.mon && e.mon.p.escala) || 1) * (e.mon && esHD(e.mon.p.id) && e.mon.p.id < 10000 ? .65 : 1);   // los animados de Showdown (desde el 650) son ~1,5× más grandes que los de Black/White   // el legendario de la incursión tiene el mismo tamaño que todos (Zeta 31/10): sólo es más poderoso   // escala: sprites de Showdown más grandes que los de siempre
   let k = G.K * sf;
@@ -2314,7 +2327,7 @@ function dibujar(e, dt){
   }
   const somb = 1 - Math.min(.5, (hop - dy) / (e.h || 1) * 1.6);
   e.sombra.style.transform = `translate(-50%,-50%) scale(${somb})`;
-  if(dt > 0 && (e.rodando || (e.accion && ((e.accion.tipo === 'corto' && e.accion.t > .08 && e.accion.t < .3) || (e.accion.dash && !e.accion.dash.pego && e.accion.dash.t < .3))))){
+  if(dt > 0 && (e.rodando || (e.accion && ((base(e.accion.tipo) === 'corto' && e.accion.t > .08 && e.accion.t < .3) || (e.accion.dash && !e.accion.dash.pego && e.accion.dash.t < .3))))){
     e.fantT -= dt;
     if(e.fantT <= 0){ e.fantT = e.rodando ? .11 : .05; fantasma(e, TYPE_COLORS[e.mon.p.type], e.rodando); }
   }
@@ -2362,7 +2375,7 @@ function pintarEnergia(){
   AR.lados.forEach(l => {
     const m = AR[l].act; if(!m) return;
     if(AR.multi && l !== 'yo') return;                    // 13/11: en partidas de varios sólo se ve MI barra de energía (las demás están ocultas)
-    const w = Math.round(m.en / EN_MAX * 50) * 2;         // de a 2 %: menos escrituras por segundo
+    const w = Math.round(m.en / (m.enMax || EN_MAX) * 50) * 2;         // de a 2 %: menos escrituras por segundo
     if(AR['_en' + l] === w) return; AR['_en' + l] = w;
     $('arHud-' + l).querySelector('.en i').style.width = w + '%';
   });
@@ -2373,7 +2386,10 @@ function decir(txt){ const l = $('arLog'); if(l) l.textContent = txt; }
 function pintarBotones(){
   const m = AR.yo.act; if(!m) return;
   const col = TYPE_COLORS[m.p.type];
-  ATAQUES.forEach(k => {
+  const seis = slotsDe(m).length > 3, ctrl = $('arCtrl');
+  if(ctrl && ctrl.classList.contains('ar-seis') !== seis){ ctrl.classList.toggle('ar-seis', seis); try{ medir(); }catch(err){} }
+  EXTRAS.forEach(k => { const bx = $('arB-' + k); if(bx) bx.hidden = !(m.movs && m.movs[k]); });
+  slotsDe(m).forEach(k => {
     const b = $('arB-' + k); if(!b) return;
     const n = nombreAtaque(m, k), el = b.querySelector('b');
     el.textContent = n;
@@ -2393,7 +2409,7 @@ function pintarCooldowns(){
     b.classList.toggle('sinEn', m.en < coste);
     b.classList.toggle('listo', cd <= 0 && m.en >= coste);
   };
-  ATAQUES.forEach(k => set('arB-' + k, e.cd[k], ALC[k].cd, ALC[k].coste));
+  slotsDe(m).forEach(k => set('arB-' + k, e.cd[k], ALC[k].cd, ALC[k].coste));
   set('arB-esquivar', e.cd.esq, ESQ.cd, ESQ.coste);
   const cb = $('arB-equipo');
   if(cb) cb.disabled = !AR.yo.mons.some((x, i) => x.vivo && i !== AR.yo.idx) || AR.cambioCd > 0;
@@ -2418,11 +2434,11 @@ function golpear(att, def, alc, x, y, fz){
   const dV = jefeMio ? {d:AR.slotDe.riv} : {};
   const mov = movDe(att.mon, alc), tipo = TIPO_REAL[mov.tipo] || mov.tipo;
   const c = cen(def), arriba = c.y - def.h * def.s * .6, ahora = performance.now();
-  const roce = def.rodando && alc === 'largo';
+  const roce = def.rodando && base(alc) === 'largo';
   if(def.rodando && !roce){
     if(ahora - def.tEsq > 400){
       texto(c.x, arriba, '¡Esquivó!', '#8be9ff', 3.6);
-      def.mon.en = Math.min(EN_MAX, def.mon.en + EN_PREMIO_ESQUIVE);
+      def.mon.en = Math.min(def.mon.enMax || EN_MAX, def.mon.en + EN_PREMIO_ESQUIVE);
       if(def.lado === 'yo') sfx('esquive');
       if(AR.online) enviarRed(Object.assign({k:'g', r:'esq'}, dV));
     }
@@ -2462,7 +2478,7 @@ function golpear(att, def, alc, x, y, fz){
   /* 04/11 Zeta: sin pausa (hit-stop) en los golpes, se sentía lento */   // con varios en pantalla los golpes llegan sin parar: el hit-stop los dejaba trabados
   clase(def, 'ar-golpe', 320);
   def.stun = res.crit ? .3 : .18;
-  const dir = unit(pie(att), pie(def)), emp = u() * (alc === 'corto' ? 55 : 30) * (res.crit ? 1.4 : 1);
+  const dir = unit(pie(att), pie(def)), emp = u() * (base(alc) === 'corto' ? 55 : 30) * (res.crit ? 1.4 : 1);
   def.kx = dir.x * emp; def.ky = dir.y * emp; def.vx = def.vy = 0;
   if(def.accion && def.accion.tipo !== 'esquivar') cortarAccion(def);
   if(res.crit || res.mult > 1) festejo(res.crit);
@@ -2489,6 +2505,7 @@ function iniciar(e, tipo, dirPref){
 function iniciarBase(e, tipo, dirPref){
   const m = e.mon;
   if(!m || !m.vivo || e.accion || e.stun > 0 || e.aparece > 0 || AR.pausa || AR.fase !== 'lucha') return false;
+  if(tipo !== 'esquivar' && !ATAQUES.includes(tipo) && !(m.movs && m.movs[tipo])) return false;   // ataque extra que este Pokémon no tiene
   const O = tipo !== 'esquivar' && dirPref && (dirPref.x || dirPref.y) && e.lado !== 'yo' ? objetivoPorDir(e, dirPref) : otro(e);
   if(tipo === 'esquivar'){
     if(e.cd.esq > 0 || m.en < ESQ.coste) return false;
@@ -2513,7 +2530,7 @@ function iniciarBase(e, tipo, dirPref){
     m.en -= a.coste; e.cd[tipo] = a.cd;
   }
   e.accion = {tipo, t:0, dir:unit(pie(e), pie(O)), hecho:false, mov:movDe(m, tipo), obj:O.lado};
-  if(tipo === 'largo'){ prepararLargo(e); sfx('carga'); }
+  if(base(tipo) === 'largo'){ prepararLargo(e); sfx('carga'); }
   return true;
 }
 
@@ -3183,7 +3200,7 @@ window.__arenaMovs.probarLargo = (nombre, fx, tipo, forma) => {
 /* Avanza el ataque en curso y define la pose del cuerpo (anticipación, golpe, recuperación). */
 function avanzarAccion(e, dt){
   const A = e.accion, O = otro(e), U = u(), vel = e.mon.st.vel;
-  A.t += dt * (A.tipo === 'largo' && !A.hecho && AR.esc < 1 ? 1 + (CARGA_EN_LENTA - 1) * (1 - AR.esc) / (1 - CAMARA_LENTA) : 1) * (!A.hecho && A.mov && (A.mov.n === 'Puño Plasma' || A.mov.fx === 'trueno') ? 2.2 : 1);   // los largos eléctricos de rayo del cielo cargan más rápido (Zeta 07/11)
+  A.t += dt * (base(A.tipo) === 'largo' && !A.hecho && AR.esc < 1 ? 1 + (CARGA_EN_LENTA - 1) * (1 - AR.esc) / (1 - CAMARA_LENTA) : 1) * (!A.hecho && A.mov && (A.mov.n === 'Puño Plasma' || A.mov.fx === 'trueno') ? 2.2 : 1);   // los largos eléctricos de rayo del cielo cargan más rápido (Zeta 07/11)
   if(A.tipo === 'esquivar'){
     const f = 1 - (A.t / ESQ.dur) * .55;
     empujar(e, A.dir.x * 86 * U * f * dt, A.dir.y * 86 * U * f * dt);
@@ -3192,7 +3209,7 @@ function avanzarAccion(e, dt){
     return;
   }
   const fx = A.mov.fx;
-  if(A.tipo === 'corto'){
+  if(base(A.tipo) === 'corto'){
     if(A.t < .09){
       const d = unit(pie(e), pie(O));
       empujar(e, -d.x * 14 * U * dt, -d.y * 14 * U * dt);
@@ -3225,7 +3242,7 @@ function avanzarAccion(e, dt){
     }
     return;
   }
-  if(A.tipo === 'medio'){
+  if(base(A.tipo) === 'medio'){
     if(A.mov.n === 'Tumba Rocas'){                       // se agacha, la arranca y la levanta
       if(A.t < .14) e.pose = {sx:1.16, sy:.8, rot:-8};
       else if(A.t < .28) e.pose = {sx:.9, sy:1.15, dy:-e.h * .08, rot:10};
@@ -3243,7 +3260,7 @@ function avanzarAccion(e, dt){
     if(A.t >= .4){ e.accion = null; e.pose = null; }
     return;
   }
-  if(A.tipo === 'largo'){
+  if(base(A.tipo) === 'largo'){
     if(A.t < .62){
       const prog = A.t / .62;
       e.pose = {sx:1 + Math.sin(A.t * 50) * .04 * prog, sy:1 - .08 * prog, dy:-e.h * .08 * prog, dx:azar(-1, 1) * e.w * .03 * prog};
@@ -3424,7 +3441,7 @@ function sacar(lado, idx){
   eq.idx = idx; eq.act = eq.mons[idx]; e.mon = eq.act;
   e.giroEl.getAnimations().forEach(a => a.cancel()); e.girando = false; e.giroT = 0;
   e.accion = null; e.pose = null; e.rodando = false; e.stun = 0; e.kx = e.ky = 0; e.vx = e.vy = 0;
-  e.cd = {corto:.3, medio:.3, largo:.6, esq:0};
+  e.cd = {corto:.3, medio:.3, largo:.6, corto2:.3, medio2:.3, largo2:.6, esq:0};
   e.invul = INVUL_ENTRADA; e.aparece = .45;
   if(e.bot) e.bot.t = .5;
   e.wrap.classList.remove('ar-golpe', 'ar-rodar', 'ar-carga');
@@ -3523,7 +3540,7 @@ function botActualizar(e, dt){
       }
     }
     /* reflejo: el jugador está cargando algo largo → se corre */
-    if(!e.mon.jefe && O.accion && O.accion.tipo === 'largo' && !b.huye && O.accion.t > .12 && Math.random() < AR.estilo.reflejo + .15){
+    if(!e.mon.jefe && O.accion && base(O.accion.tipo) === 'largo' && !b.huye && O.accion.t > .12 && Math.random() < AR.estilo.reflejo + .15){
       b.huye = .75; b.huyeDir = Math.random() < .5 ? 1 : -1;
     }
   }
@@ -3567,7 +3584,7 @@ function despues(seg, fn){ AR.pend.push({t:seg, fn}); }
 function actualizarMon(e, dt, intent){
   const m = e.mon; if(!m) return;
   for(const k in e.cd) if(e.cd[k] > 0) e.cd[k] = Math.max(0, e.cd[k] - dt);
-  if(m.vivo) m.en = m.jefe ? EN_MAX : Math.min(EN_MAX, m.en + EN_REGEN * dt);   // el legendario de la incursión siempre tiene energía para atacar
+  if(m.vivo) m.en = m.jefe ? (m.enMax || EN_MAX) : Math.min(m.enMax || EN_MAX, m.en + EN_REGEN * (m.enMax || EN_MAX) / EN_MAX * dt);   // el legendario de la incursión siempre tiene energía para atacar
   if(e.stun > 0) e.stun -= dt;
   if(e.invul > 0) e.invul -= dt;
   if(e.aparece > 0) e.aparece -= dt;
@@ -3580,7 +3597,7 @@ function actualizarMon(e, dt, intent){
   /* caminar con inercia: la velocidad se acerca a la pedida, no salta de golpe */
   let factor = 1;
   const A = e.accion;
-  if(A) factor = A.tipo === 'medio' ? .5 : (A.tipo === 'largo' ? .3 : 0);
+  if(A) factor = base(A.tipo) === 'medio' ? .5 : (base(A.tipo) === 'largo' ? .3 : 0);
   if(e.stun > 0) factor = 0;
   const v = velMax(e) * factor, n = Math.min(1, Math.hypot(intent.x, intent.y));
   const ang = Math.atan2(intent.y, intent.x);
@@ -3622,7 +3639,7 @@ function bucle(ts){
   /* hit-stop: un instante congelado en cada golpe */
   if(AR.congela > 0){ AR.congela -= dt; return; }
   /* cámara lenta mientras se carga un largo (entra y sale suave) */
-  const cargando = !AR.multi && AR.lados.map(l => E[l]).some(x => x.accion && x.accion.tipo === 'largo' && !x.accion.hecho);   // 03/11: con varios siempre hay alguien cargando y cada celular iba a media velocidad por su cuenta (demoras y saltos en la incursión)
+  const cargando = !AR.multi && AR.lados.map(l => E[l]).some(x => x.accion && base(x.accion.tipo) === 'largo' && !x.accion.hecho);   // 03/11: con varios siempre hay alguien cargando y cada celular iba a media velocidad por su cuenta (demoras y saltos en la incursión)
   AR.esc += ((cargando ? CAMARA_LENTA : 1) - AR.esc) * Math.min(1, dt * 12);
   ST.classList.toggle('ar-lento', AR.esc < .85);
   dt *= AR.esc;
@@ -3691,6 +3708,9 @@ function armarEscenario(){
         <button class="ar-act" id="arB-largo" data-a="largo"><i class="cd"></i><b></b><small>Largo · ⚡${ALC.largo.coste}</small></button>
         <button class="ar-act" id="arB-medio" data-a="medio"><i class="cd"></i><b></b><small>Medio · ⚡${ALC.medio.coste}</small></button>
         <button class="ar-act" id="arB-corto" data-a="corto"><i class="cd"></i><b></b><small>Corto · ⚡${ALC.corto.coste}</small></button>
+        <button class="ar-act ex" id="arB-largo2" data-a="largo2" hidden><i class="cd"></i><b></b><small>Largo 2 · ⚡${ALC.largo.coste}</small></button>
+        <button class="ar-act ex" id="arB-medio2" data-a="medio2" hidden><i class="cd"></i><b></b><small>Medio 2 · ⚡${ALC.medio.coste}</small></button>
+        <button class="ar-act ex" id="arB-corto2" data-a="corto2" hidden><i class="cd"></i><b></b><small>Corto 2 · ⚡${ALC.corto.coste}</small></button>
         <button class="ar-act esq" id="arB-esquivar" data-a="esquivar"><i class="cd"></i><b>Esquivar</b><small>⚡${ESQ.coste}</small></button>
         <button class="ar-act eqp" id="arB-equipo" data-a="equipo"><i class="cd"></i><b>Equipo</b><small>Cambiar</small></button>
       </div>
@@ -4047,7 +4067,7 @@ function abrirArenaBase(rapido, inc){
       <b>${(mejorEjemplar(p.id) || {}).s ? '✨ ' : ''}${p.name}</b><small>${tiposDe(p).map(t => TYPE_LABEL[t]).join(' / ')} · ${bstDe(p)} · 💪${(mejorEjemplar(p.id) || {}).f || 50}</small>
       <small class="ar-st">Crít. ${Math.round(s.crit * 100)}% ×${s.critMult.toFixed(1)}</small>
       <small class="ar-st">Veloc. ${'★'.repeat(Math.max(1, Math.round((s.vel - .65) / .14)))}</small>
-      <small class="ar-movs">${(id => id === 132 ? 'Transformación: copia al rival' : (mv => ATAQUES.map(a => mv[a] ? mv[a].n : '').filter(Boolean).join(' · '))(crearMon(p).movs))(p.base || p.id)}</small></button>`;
+      <small class="ar-movs">${(id => id === 132 ? 'Transformación: copia al rival' : (mv => ORDEN_BOTONES.map(a => mv[a] ? mv[a].n : '').filter(Boolean).join(' · '))(crearMon(p).movs))(p.base || p.id)}</small></button>`;
   };
   const actualizarPie = () => {
     $('arPickN').textContent = `${sel.length} de ${EQUIPO_MAX}`;
@@ -4604,7 +4624,7 @@ function cerrarArena(){
 }
 
 /* ---------------- teclado ---------------- */
-const TECLAS_ACC = {j:'corto', z:'corto', k:'medio', x:'medio', l:'largo', c:'largo', ' ':'esquivar', shift:'esquivar'};
+const TECLAS_ACC = {j:'corto', z:'corto', k:'medio', x:'medio', l:'largo', c:'largo', u:'corto2', i:'medio2', o:'largo2', ' ':'esquivar', shift:'esquivar'};
 document.addEventListener('keydown', e => {
   const ov = $('arenaOverlay');
   if(!ov || !ov.classList.contains('show')) return;

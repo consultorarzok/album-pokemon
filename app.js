@@ -633,7 +633,10 @@ const ESPECIALES = [
    frente:'images/especial/mega-charizard-x-frente.gif', espalda:'images/especial/mega-charizard-x-espalda.gif'},
   {id:10155, base:720, escala:0.85, name:'Hoopa Desatado', type:'dark', rarity:'Legendario', region:'kanto', especial:true, bst:780,
    img:'images/especial/hoopa-desatado-arte.png', icono:'images/especial/hoopa-desatado-icono.png',
-   frente:'images/especial/hoopa-desatado-frente.gif', espalda:'images/especial/hoopa-desatado-espalda.gif'}
+   frente:'images/especial/hoopa-desatado-frente.gif', espalda:'images/especial/hoopa-desatado-espalda.gif'},
+  {id:10156, base:25, name:'Pikachu de Ash', type:'electric', rarity:'Legendario', region:'kanto', especial:true, bst:780,
+   img:'images/especial/pikachu-ash-arte.png', icono:'images/especial/pikachu-ash-icono.png',
+   frente:'images/especial/pikachu-ash-frente.gif', espalda:'images/especial/pikachu-ash-espalda.gif'}
 ];
 const ESPECIAL_POR_ID = Object.fromEntries(ESPECIALES.map(e => [e.id, e]));
 /* 12/11: el segundo tipo de las especiales no se estaba aplicando (la lista de arriba sólo recorría DATA): Lugia y Ho-Oh Apex son también Volador, Mega Charizard X también Fuego y Hoopa también Psíquico */
