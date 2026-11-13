@@ -873,8 +873,8 @@ function mundoPoner(o, ahora, saltar){
   const v = MUNDO.otros[o.id];
   // cambió de mapa o pegó un salto grande (Centro Pokémon, cueva): aparece directo, sin deslizarse
   if(!v || saltar || v.m !== o.m || Math.abs(v.x - o.x) + Math.abs(v.y - o.y) > 64)
-    MUNDO.otros[o.id] = {n: o.n, av: o.av, em: o.em || null, rg: o.rg || 0, mo: o.mo || null, npc: o.npc || null, m: o.m, x: o.x, y: o.y, tx: o.x, ty: o.y, d: o.d, visto: ahora};
-  else Object.assign(v, {n: o.n, av: o.av, em: o.em || null, rg: o.rg || 0, mo: o.mo || null, npc: o.npc || null, tx: o.x, ty: o.y, d: o.d, visto: ahora});
+    MUNDO.otros[o.id] = {n: o.n, av: o.av, em: o.em || null, rg: o.rg || 0, mo: o.mo || null, co: o.co || null, npc: o.npc || null, m: o.m, x: o.x, y: o.y, tx: o.x, ty: o.y, d: o.d, visto: ahora};
+  else Object.assign(v, {n: o.n, av: o.av, em: o.em || null, rg: o.rg || 0, mo: o.mo || null, co: o.co || null, npc: o.npc || null, tx: o.x, ty: o.y, d: o.d, visto: ahora});
 }
 /* Se llama en cada cuadro desde advRender, antes de dibujar al propio jugador (que queda arriba). */
 function dibujarOtros(ctx, camX, camY, vw, vh, escala){
@@ -882,13 +882,13 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
   const ws = MUNDO.ws;
   botsMover(ahora, false);
   if(ws && ws.readyState === 1 && ahora - MUNDO.ultimoEnvio > 200){
-    const msg = JSON.stringify({k: 'p', m: advMapa, x: Math.round(advPx), y: Math.round(advPy), d: advDir, p: advPaso, mo: montura || null});
+    const msg = JSON.stringify({k: 'p', m: advMapa, x: Math.round(advPx), y: Math.round(advPy), d: advDir, p: advPaso, mo: montura || null, c: (companero && companeroHabs[companero]) ? companero : null});
     if(msg !== MUNDO.ultimo || ahora - MUNDO.ultimoEnvio > 20000){
       try{ ws.send(msg); }catch(e){}
       MUNDO.ultimo = msg; MUNDO.ultimoEnvio = ahora;
     }
   }
-  const nombres = [], globos = [], bats = [];
+  const nombres = [], globos = [], bats = [], companeros = [];
   let npcCerca = null;
   nombres.push({n: '', r: nombreRango(rangoPropio()), px: advPx - camX, py: advPy - camY - subeMontura(montura, avatarActual), yo: true});   // mi propio rango, sin repetir mi nombre
   if(MUNDO.buscando) bats.push({id: null, px: advPx - camX, py: advPy - camY});
@@ -904,6 +904,16 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
     const sx = o.x - camX, sy = o.y - camY;
     if(sx < -24 || sy < -32 || sx > vw + 8 || sy > vh + 8) continue;
     if(!(o.mo && dibujarMontadoOtro(ctx, sx, sy, o, camina))) dibujarEntrenador(ctx, sx, sy, o.d, camina ? Math.floor(ahora / 140) % 4 : 0, o.av);
+    /* el compañero del otro jugador: va atrás suyo a la misma distancia que el mío, sin correr los cálculos del rastro (le alcanza con seguirlo con correa) */
+    if(o.co && !o.mo && typeof companeroSpriteDe === 'function'){
+      const v = {abajo: [0, 1], arriba: [0, -1], izq: [-1, 0], der: [1, 0]}[o.d] || [0, 1], dist = 10 + alturaMundoPoke(o.co) * .75;
+      if(o.fx == null || o.fco !== o.co){ o.fx = o.x - v[0] * dist; o.fy = o.y - v[1] * dist; o.fco = o.co; o.fdir = o.d; }
+      const ddx = o.x - o.fx, ddy = o.y - o.fy, dd = Math.hypot(ddx, ddy);
+      o.fmueve = false;
+      if(dd > dist + .2){ const k = (dd - dist) / dd; o.fx += ddx * k; o.fy += ddy * k; o.fmueve = true; o.fdir = Math.abs(ddx) > Math.abs(ddy) ? (ddx < 0 ? 'izq' : 'der') : (ddy < 0 ? 'arriba' : 'abajo'); }
+      const cs = companeroSpriteDe(o.co, o.fx, o.fy, o.fdir || o.d, o.fmueve, camX, camY);
+      if(cs){ companeros.push(cs); sombraSuave(ctx, cs.px + 8, cs.py + 15, cs.vuela ? 3.6 : 4.4, cs.vuela ? 1.3 : 1.7, cs.vuela ? .28 : .38); }
+    }
     nombres.push({n: (o.em ? '👑 ' : '') + o.n, r: nombreRango(o.rg), px: sx, py: sy - (o.mo ? subeMontura(o.mo, o.av) : 0)});
     if(o.npc && Math.abs(o.x - advPx) <= 40 && Math.abs(o.y - advPy) <= 40) npcCerca = {id: o.npc, nombre: o.n};
     if(MUNDO.busca[id] && ahora < MUNDO.busca[id] && !MUNDO.buscando) bats.push({id, px: sx, py: sy});
@@ -911,6 +921,7 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
     if(g && ahora < g.hasta) globos.push({txt: g.txt, px: sx, py: sy});
   }
   for(const id in MUNDO.globos) if(ahora >= MUNDO.globos[id].hasta) delete MUNDO.globos[id];
+  sincronizarSprites(companeros, escala, 'advCompaOtros');
   sincronizarNombres(nombres, escala);
   sincronizarGlobos(globos, escala);
   sincronizarBatGlobos(bats, escala);

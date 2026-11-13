@@ -6561,17 +6561,20 @@ function companeroActualizar(){
 }
 /* El compañero se ve SIEMPRE de frente (espejado hacia donde camina): el dibujo de espalda de muchos Pokémon es otro estilo y otro tamaño. Los voladores y fantasmas flotan un poquito. */
 const COMPANERO_FLOTA = id => { const p = DATA.find(d => d.id === id); return !!p && (tiposDe(p).includes('flying') || p.type === 'ghost' || [81, 82, 109, 110, 358, 425, 426, 437, 436, 479, 560].includes(id)); };
+/* Arma el sprite de un compañero (el mío o el de otro jugador). La posición va REDONDEADA a píxel de mundo, igual que el personaje en el canvas: si no, se veía temblar
+   respecto de él al caminar (el personaje se dibuja en píxeles enteros y el compañero en píxeles sueltos). El vuelo es un vaivén suave, sin vibrar. */
+function companeroSpriteDe(id, x, y, dir, mueve, camX, camY){
+  const p = DATA.find(d => d.id === id); if(!p) return null;
+  const t = Date.now() / 1000, vuela = COMPANERO_FLOTA(id), flip = dir === 'der';
+  let giro = 0, sy = 1;
+  if(mueve && vuela){ giro = (flip ? 1 : -1) * 5 + Math.sin(t * 4) * 1.5; }
+  else if(mueve){ giro = Math.sin(t * 8) * 4; sy = 1 - Math.abs(Math.cos(t * 8)) * .05; }
+  return {p, px: Math.round(x - camX), py: Math.round(y - camY), espalda: false, flip, salto: mueve && !vuela, alza: vuela ? (mueve ? 6 : 4.5) : 0,
+          flota: vuela, frec: mueve ? 3.4 : 2.2, bob: mueve ? 1.5 : 1.0, giro, sy, mult: 1, tope: 34, vuela};   // mismo tamaño que el Pokémon salvaje del mapa (curva suave de su altura real respecto a los 17 px / 1,7 m del entrenador)
+}
 function companeroSprite(camX, camY){
   if(!advFollow.listo || !companero) return null;
-  const p = DATA.find(d => d.id === companero); if(!p) return null;
-  const t = Date.now() / 1000, vuela = COMPANERO_FLOTA(companero), mov = advFollow.mueve, flip = advFollow.dir === 'der';
-  /* 13/11 Zeta: que se note que camina o que vuela. Camina: saltitos, balanceo y un poco de aplastarse al pisar. Vuela: sube más alto, aletea (se estira rápido),
-     se inclina hacia donde va y su sombra queda abajo en el piso. */
-  let giro = 0, sy = 1;
-  if(mov && vuela){ giro = (flip ? 1 : -1) * 7 + Math.sin(t * 12) * 3; sy = 1 + Math.sin(t * 22) * .08; }
-  else if(mov){ giro = Math.sin(t * 9) * 6; sy = 1 - Math.abs(Math.cos(t * 9)) * .07; }
-  return {p, px: advFollow.x - camX, py: advFollow.y - camY, espalda: false, flip, salto: mov && !vuela, alza: vuela ? (mov ? 6.5 : 4.5) : 0,
-          flota: vuela, frec: mov ? 7 : 2.4, bob: mov ? 1.9 : 1.1, giro, sy, mult: 1, tope: 34, vuela};   // mismo tamaño que el Pokémon salvaje del mapa (curva suave de su altura real respecto a los 17 px / 1,7 m del entrenador)
+  return companeroSpriteDe(companero, advFollow.x, advFollow.y, advFollow.dir, advFollow.mueve, camX, camY);
 }
 const companeroTextoBoton = id => !companeroHabs[id] ? `🐾 Habilitar de compañero · ${companeroPrecioDe(id).toLocaleString('es-AR')} 🪙` : (companero === id ? '🐾 Dejar de llevarlo de compañero' : '🐾 Llevar de compañero en la Aventura');
 const RAREZA_ORDEN = {'Común': 0, 'Poco Común': 1, 'Rara': 2, 'Épico': 3, 'Legendario': 4};
