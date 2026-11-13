@@ -580,6 +580,7 @@
   .ar-ent-sprite{position:absolute;transform:translate(-50%,-100%);background:url(images/red_walk.png) no-repeat;background-size:400% 400%;image-rendering:pixelated;}
   .ar-ent-sprite.riv{background-position:0 66.667%;filter:hue-rotate(150deg) saturate(1.3) brightness(.7);}
   .ar-ent-sprite.yo{background-position:0 33.333%;filter:brightness(.75);}
+  .ar-ent-sprite{display:none;}   /* 13/11 Zeta: sin los entrenadores al costado de la cancha, sólo los Pokémon */
   .ar-mon{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;will-change:transform;}
   .ar-sombra{position:absolute;left:0;top:0;transform:translate(-50%,-50%);border-radius:50%;background:rgba(0,0,0,.5);width:40px;height:10px;}
   .ar-ancla{position:absolute;left:0;top:0;transform:translate(-50%,-100%);}
@@ -606,6 +607,15 @@
   .ar-liviano .ar-p.p-humo{filter:none;}
   .ar-liviano .ar-orbe,.ar-liviano .ar-trueno,.ar-liviano .f-hueso{filter:none;}
   .ar-liviano .ar-bg{transition:none;}
+  /* 13/11 muy liviano (se prende solo si el celular no llega): sin brillos, sin mezclas de capas, sin sombras de caja en la pelea */
+  .ar-liviano2 .ar-fx *,.ar-liviano2 .ar-fant,.ar-liviano2 .ar-cuerpo,.ar-liviano2 .ar-mon *:not(.ar-rot){filter:none !important;}
+  .ar-liviano2 .ar-carga .ar-rot{animation-name:arCargaLiv;} @keyframes arCargaLiv{from{filter:brightness(1.1)}to{filter:brightness(1.7)}}   /* la señal de carga queda, sin el halo */
+  .ar-liviano2 .ar-pilar,.ar-liviano2 .ar-cono,.ar-liviano2 .ar-ancla::before{mix-blend-mode:normal !important;}
+  .ar-liviano2 .ar-ancla::before{display:none;}
+  .ar-liviano2.ar-lento .ar-bg,.ar-liviano.ar-lento .ar-bg{filter:none;}
+  .ar-liviano2 .ar-barra.en i,.ar-liviano2 .ar-act{box-shadow:none;}
+  .ar-liviano .ar-act .cd{transition:none;}
+  .ar-act{contain:layout paint;} .ar-hud{contain:layout;}
   .ar-bg{transition:filter .18s ease-out;} .ar-lento .ar-bg{filter:saturate(.35) brightness(.62);}
   @keyframes arCarga{from{filter:drop-shadow(0 0 2px var(--tc)) brightness(1.1)}to{filter:drop-shadow(0 0 10px var(--tc)) brightness(1.6)}}
   .ar-hud{position:absolute;top:8px;width:min(44cqw,300px);background:rgba(8,12,28,.86);border:2px solid rgba(255,255,255,.28);border-radius:8px;padding:5px 8px;font-size:clamp(10px,2.3cqw,15px);line-height:1.25;z-index:7;}

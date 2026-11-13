@@ -1394,6 +1394,26 @@ let ST = null, SHAKE = null, FX = null, BG = null, PISO = null;
 let E = {};          // entidades en pantalla: E.yo y E.riv
 let G = {W:360, H:480, K:1, cx:180, cy:300, rx:150, ry:110, pz:.7};
 let RAF = 0, RO = null;
+/* 13/11 (Zeta: peleas e incursión "tildadas"): modo liviano que se prende solo. LIV = 0 normal, 1 liviano (sin desenfoques ni reflejo),
+   2 muy liviano (además sin brillos, sin estelas y con menos partículas). Se mide el tiempo de cada cuadro; si el celular no llega,
+   sube un nivel y lo recuerda para la próxima pelea (localStorage 'arena-liviano'). */
+let LIV = 0, LIV_MEDIA = 16, LIV_LENTOS = 0;
+try{ LIV = Math.min(2, Number(localStorage.getItem('arena-liviano')) || 0); }catch(e){}
+function aplicarLiviano(){
+  if(!ST) return;
+  ST.classList.toggle('ar-liviano', !!(AR && AR.multi) || LIV >= 1);
+  ST.classList.toggle('ar-liviano2', LIV >= 2);
+}
+function medirFluidez(ms){
+  if(LIV >= 2 || !AR || AR.fase !== 'lucha' || AR.pausa || document.hidden) return;
+  if(ms > 250){ return; }                                  // un corte largo (cambio de pestaña, carga) no cuenta
+  LIV_MEDIA += (ms - LIV_MEDIA) * .06;
+  if(LIV_MEDIA > 26){                                      // menos de ~38 cuadros por segundo sostenido
+    if(++LIV_LENTOS > 45){ LIV_LENTOS = 0; LIV_MEDIA = 16; LIV = Math.max(LIV, AR.multi ? 1 : 0) + 1; if(LIV > 2) LIV = 2;
+      try{ localStorage.setItem('arena-liviano', String(LIV)); }catch(e){}
+      aplicarLiviano(); }
+  } else LIV_LENTOS = 0;
+}
 
 const $ = id => document.getElementById(id);
 const azar = (a, b) => a + Math.random() * (b - a);
@@ -1874,7 +1894,7 @@ function alCambiarTamano(){
    pluma, estrella, roca (o un cuadradito si no se pide forma). */
 function particula(x, y, col, tam, dx, dy, dur, o){
   if(!FX) return;
-  if(AR && AR.multi && FX.childElementCount > 28) return;   // 03/11: con 3 a 6 Pokémon a la vez los efectos se acumulaban (cientos de nodos animados) y la incursión iba lenta
+  if(AR && (AR.multi || LIV) && FX.childElementCount > (LIV >= 2 ? 14 : 28)) return;   // 03/11: con 3 a 6 Pokémon a la vez los efectos se acumulaban (cientos de nodos animados) y la incursión iba lenta
   o = o || {};
   const f = o.forma, texto = f === 'nota' || f === 'corazon';
   const d = mk('ar-p' + (f ? ' p-' + f : ''), {left:x + 'px', top:y + 'px', width:tam + 'px', height:(f === 'chispa' ? Math.max(2, tam * .28) : tam) + 'px',
@@ -2017,7 +2037,7 @@ function marca(x, y, r, col){
 /* Copia del sprite que se desvanece: estela al esquivar o embestir. Al esquivar
    va suave (pocas copias, tenues y sin brillo) para no tapar la pelea. */
 function fantasma(e, col, suave){
-  if(!PISO || REDUCE || !e.spr.naturalWidth) return;
+  if(!PISO || REDUCE || LIV >= 2 || !e.spr.naturalWidth) return;   // muy liviano: sin estela (crea imágenes con brillo y obliga a medir la pantalla)
   const s = ST.getBoundingClientRect(), r = e.spr.getBoundingClientRect();
   if(!r.width) return;
   const g = document.createElement('img');
@@ -2327,8 +2347,10 @@ function pintarRelojIncursion(){
 function pintarEnergia(){
   AR.lados.forEach(l => {
     const m = AR[l].act; if(!m) return;
-    const i = $('arHud-' + l).querySelector('.en i'), w = (m.en / EN_MAX * 100).toFixed(0) + '%';
-    if(i.style.width !== w) i.style.width = w;
+    if(AR.multi && l !== 'yo') return;                    // 13/11: en partidas de varios sólo se ve MI barra de energía (las demás están ocultas)
+    const w = Math.round(m.en / EN_MAX * 50) * 2;         // de a 2 %: menos escrituras por segundo
+    if(AR['_en' + l] === w) return; AR['_en' + l] = w;
+    $('arHud-' + l).querySelector('.en i').style.width = w + '%';
   });
 }
 
@@ -2352,7 +2374,8 @@ function pintarCooldowns(){
   const e = E.yo, m = e.mon; if(!m) return;
   const set = (id, cd, tot, coste) => {
     const b = $(id); if(!b) return;
-    b.querySelector('.cd').style.height = (cd > 0 ? Math.min(1, cd / tot) * 100 : 0).toFixed(0) + '%';
+    const c = b._cd || (b._cd = b.querySelector('.cd')), v = cd > 0 ? Math.ceil(Math.min(1, cd / tot) * 50) * 2 : 0;   // 13/11: de a 2 % y sólo si cambió (antes se escribía en cada cuadro y la pantalla recalculaba todo)
+    if(c._v !== v){ c._v = v; c.style.height = v + '%'; }
     b.classList.toggle('sinEn', m.en < coste);
     b.classList.toggle('listo', cd <= 0 && m.en >= coste);
   };
@@ -3454,6 +3477,7 @@ function bucle(ts){
   const tok = TOK;
   RAF = requestAnimationFrame(bucle);
   let dt = AR.ult ? (ts - AR.ult) / 1000 : 0; AR.ult = ts;
+  if(dt > 0) medirFluidez(dt * 1000);
   dt = Math.min(.05, Math.max(0, dt)) * (window.__arenaTurbo > 0 ? window.__arenaTurbo : 1);
   if(AR.pausa || !dt){ dibujarTodos(0); return; }
   /* hit-stop: un instante congelado en cada golpe */
@@ -3688,7 +3712,7 @@ async function luchar(mios, duelo){
   };
   if(multi) armarMulti(duelo, pDe);
   armarEscenario();
-  ST.classList.toggle('ar-liviano', !!AR.multi);   // con 3 a 6 Pokémon a la vez: sin reflejo ni desenfoques (se trababa). Va DESPUÉS de armarEscenario(): ahí se crea ST
+  aplicarLiviano();   // 13/11: liviano en partidas de varios o si el celular viene lento. Antes: toggle('ar-liviano', !!AR.multi); con 3 a 6 Pokémon a la vez: sin reflejo ni desenfoques (se trababa). Va DESPUÉS de armarEscenario(): ahí se crea ST
   E = {};
   AR.lados.forEach(l => { E[l] = crearEntidad(l); });
   E.riv.bot = duelo && !AR.raid ? null : {guion:nuevoGuion(AR.estilo), hist:[], modo:'orbitar', t:1.2, reac:0, huye:0, huyeDir:1, dirOrb:1, ejecutado:false};
