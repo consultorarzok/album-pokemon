@@ -1042,7 +1042,7 @@ function abrirDetalle(id){
     ${va.length ? '<button class="open-btn sec" id="detalleEvolBtn" style="margin-top:10px;">Ir a Evolucionar</button>' : ''}
     ${puedeCompanero(id) ? `<button class="open-btn sec" id="detalleCompBtn" data-id="${id}" style="margin-top:10px;">${companeroTextoBoton(id)}</button>` : ''}`;
   const cb = document.getElementById('detalleCompBtn');
-  if(cb) cb.onclick = () => { if(!companeroHab) companeroHabilitar(); else companeroElegir(companero === id ? null : id); };
+  if(cb) cb.onclick = () => { if(!companeroHabs[id]) companeroHabilitar(id); else companeroElegir(companero === id ? null : id); };
   const eb = document.getElementById('detalleEvolBtn');
   if(eb) eb.onclick = () => { cerrarDetalle(); document.getElementById('pokedexCloseBtn').click(); abrirEvolucion(); };
   const ov = document.getElementById('detalleOverlay');
@@ -5758,7 +5758,7 @@ function sincronizarSprites(lista, escala){
     im.style.display = 'block';
     im.style.width = Math.round(nw * z) + 'px'; im.style.height = Math.round(nh * z) + 'px';
     im.style.left = Math.round((o.px + 8) * escala + (nw / 2 - (bb.l + bb.r) / 2) * z) + 'px';
-    im.style.top = Math.round((o.py + 14.5) * escala + (nh - bb.b) * z - flota) + 'px';
+    im.style.top = Math.round((o.py + 14.5 - (o.alza || 0)) * escala + (nh - bb.b) * z - flota) + 'px';
     im.style.opacity = o.parpadea && Math.floor(t * 4) % 2 === 0 ? '.45' : '1';
     im.style.transform = o.flip ? 'scaleX(-1)' : '';
   });
@@ -6513,10 +6513,14 @@ function encuentroDe(t){ return t && (t.encuentro || (t.pinta === 'agua' && mont
 /* ====================== COMPAÑERO (13/11 Zeta) ======================
    Un Pokémon de tu álbum te sigue por la Aventura, caminando detrás tuyo por el mismo camino (el rastro de tus pasos), con saltitos al andar
    y de espaldas / espejado según hacia dónde vas. Se elige desde la ficha del Pokémon. Sólo los que tienen animación limpia (Gen 1-5) y no son gigantes. */
-let companero = null, companeroHab = false;
-const COMPANERO_PRECIO = 20000;   // 13/11 Zeta: habilitar al compañero cuesta caro (el precio que vale es el del servidor, juego.js)
-try{ const c = Number(localStorage.getItem('album-companero')); if(c) companero = c; companeroHab = localStorage.getItem('album-companero-hab') === '1'; }catch(e){}
-const puedeCompanero = id => id >= 1 && id <= 649 && (ALTURA_DM[id - 1] || 12) <= 45;
+let companero = null, companeroHabs = {};   // companeroHabs = {id: true}: las especies habilitadas (cada una se paga una vez, según su rareza)
+try{ const c = Number(localStorage.getItem('album-companero')); if(c) companero = c; companeroHabs = JSON.parse(localStorage.getItem('album-companero-habs') || '{}') || {}; }catch(e){}
+/* Los que NO conviene poner de compañero (revisados uno por uno en 13/11 viendo cómo se ven en el mapa): sin animación (Mesprit), gigantes (más de 4,5 m),
+   peces y bichos marinos (se ven flotando sobre el pasto), anguilas / muy largos y chatos, Unown y aves con las alas desplegadas. Misma lista en el servidor (COMPANERO_NO). */
+const COMPANERO_NO = new Set([72,73,90,95,116,117,118,119,129,130,142,144,145,146,169,170,171,193,201,208,211,223,226,230,249,250,318,319,320,321,336,339,340,349,350,366,367,368,369,370,384,456,457,458,469,481,483,550,592,593,594,602,603,604,618]);
+const COMPANERO_PRECIOS = {'Común': 5000, 'Poco Común': 8000, 'Rara': 15000, 'Épico': 30000, 'Legendario': 60000};   // por rareza (el precio que vale es el del servidor)
+const puedeCompanero = id => id >= 1 && id <= 649 && !COMPANERO_NO.has(id);
+const companeroPrecioDe = id => COMPANERO_PRECIOS[(DATA.find(p => p.id === id) || {}).rarity] || 15000;
 let advRastro = [], advRastroS = 0, advFollow = {x: 0, y: 0, dir: 'abajo', mueve: false, listo: false};
 const COMPA_DIST = 12;   // px de mundo que va detrás tuyo
 function rastroReiniciar(){ advRastro = []; advRastroS = 0; advFollow.listo = false; }
@@ -6529,7 +6533,7 @@ function rastroAvanzar(){
   if(advRastro.length > 400) advRastro.splice(0, 200);
 }
 function companeroActualizar(){
-  if(!companeroHab || !companero || !state[companero] || !state[companero].got || montura || advTrenAbordo){ advFollow.listo = false; return; }
+  if(!companero || !companeroHabs[companero] || !state[companero] || !state[companero].got || montura || advTrenAbordo){ advFollow.listo = false; return; }
   if(!advRastro.length) advRastro.push({x: advPx, y: advPy, s: advRastroS});
   const objetivo = advRastroS - COMPA_DIST;
   let a = advRastro[0], b = a;
@@ -6546,30 +6550,33 @@ function companeroActualizar(){
     advFollow.x = x; advFollow.y = y;
   }
 }
+/* El compañero se ve SIEMPRE de frente (espejado hacia donde camina): el dibujo de espalda de muchos Pokémon es otro estilo y otro tamaño. Los voladores y fantasmas flotan un poquito. */
+const COMPANERO_FLOTA = id => { const p = DATA.find(d => d.id === id); return !!p && (p.type === 'flying' || p.type2 === 'flying' || p.type === 'ghost' || [81, 82, 109, 110, 358, 425, 426, 437, 436, 479, 560].includes(id)); };
 function companeroSprite(camX, camY){
   if(!advFollow.listo || !companero) return null;
   const p = DATA.find(d => d.id === companero); if(!p) return null;
-  return {p, px: advFollow.x - camX, py: advFollow.y - camY, espalda: advFollow.dir === 'arriba', flip: advFollow.dir === 'der', salto: advFollow.mueve, mult: .8, tope: 22};
+  return {p, px: advFollow.x - camX, py: advFollow.y - camY, espalda: false, flip: advFollow.dir === 'der', salto: advFollow.mueve && !COMPANERO_FLOTA(companero), alza: COMPANERO_FLOTA(companero) ? 3 : 0, flota: COMPANERO_FLOTA(companero), mult: .8, tope: 22};
 }
-const companeroTextoBoton = id => !companeroHab ? `🐾 Habilitar compañero · ${COMPANERO_PRECIO.toLocaleString('es-AR')} 🪙` : (companero === id ? '🐾 Dejar de llevarlo de compañero' : '🐾 Llevar de compañero en la Aventura');
+const companeroTextoBoton = id => !companeroHabs[id] ? `🐾 Habilitar de compañero · ${companeroPrecioDe(id).toLocaleString('es-AR')} 🪙` : (companero === id ? '🐾 Dejar de llevarlo de compañero' : '🐾 Llevar de compañero en la Aventura');
 function companeroRefrescarUI(){
   const cb = document.getElementById('detalleCompBtn'); if(cb) cb.textContent = companeroTextoBoton(Number(cb.dataset.id));
   if(document.getElementById('shopOverlay').classList.contains('show')) renderTienda();
 }
 function companeroElegir(id){
-  if(!companeroHab) return;
+  if(id && !companeroHabs[id]) return;
   if(MODO_SERVIDOR) return companeroElegirServidor(id || null);
   companero = id || null;
   try{ if(id) localStorage.setItem('album-companero', String(id)); else localStorage.removeItem('album-companero'); }catch(e){}
   rastroReiniciar(); companeroRefrescarUI();
 }
-function companeroHabilitar(){
-  if(companeroHab) return;
-  if(coins < COMPANERO_PRECIO){ const f = document.getElementById('shopFeedback'); if(f) f.textContent = 'Te faltan monedas: habilitar al compañero cuesta ' + COMPANERO_PRECIO.toLocaleString('es-AR') + ' 🪙'; if(typeof avisoServidor === 'function') avisoServidor('sin_monedas'); return; }
-  if(!confirm('¿Habilitar al compañero de aventura por ' + COMPANERO_PRECIO.toLocaleString('es-AR') + ' monedas? Después elegís cuál de tus Pokémon te acompaña (no se devuelve).')) return;
-  if(MODO_SERVIDOR) return companeroHabilitarServidor();
-  coins -= COMPANERO_PRECIO; companeroHab = true;
-  try{ localStorage.setItem('album-companero-hab', '1'); }catch(e){}
+function companeroHabilitar(id){
+  if(!puedeCompanero(id) || companeroHabs[id]) return;
+  const precio = companeroPrecioDe(id), nombre = (DATA.find(p => p.id === id) || {}).name || '';
+  if(coins < precio){ if(typeof avisoServidor === 'function') avisoServidor('sin_monedas'); const f = document.getElementById('shopFeedback'); if(f) f.textContent = 'Te faltan monedas: habilitar a ' + nombre + ' de compañero cuesta ' + precio.toLocaleString('es-AR') + ' 🪙'; return; }
+  if(!confirm('¿Habilitar a ' + nombre + ' como compañero de aventura por ' + precio.toLocaleString('es-AR') + ' monedas? (cada Pokémon se habilita una sola vez; no se devuelve)')) return;
+  if(MODO_SERVIDOR) return companeroHabilitarServidor(id);
+  coins -= precio; companeroHabs[id] = true;
+  try{ localStorage.setItem('album-companero-habs', JSON.stringify(companeroHabs)); }catch(e){}
   updateCoins(); saveProgress(); companeroRefrescarUI();
 }
 
@@ -7006,11 +7013,10 @@ function renderTienda(){
   titK.innerHTML = '🐾 Compañero de aventura';
   lista.appendChild(titK);
   { const fila = document.createElement('div'); fila.className = 'shop-row';
+    const cuantos = Object.keys(companeroHabs).length;
     fila.innerHTML = `<span class="bola-ico" style="font-size:30px;display:flex;align-items:center;justify-content:center;">🐾</span>
-      <span class="txt"><b>Compañero de aventura</b>${companeroHab ? 'Habilitado ✔ · elegí quién te sigue desde la ficha de cada Pokémon (📖 Pokédex)' : 'Un Pokémon tuyo te sigue por el mapa mientras caminás. Se habilita una sola vez.'}</span>`;
-    const btn = document.createElement('button'); btn.className = 'open-btn'; btn.style.padding = '9px 14px';
-    btn.textContent = companeroHab ? '✔' : COMPANERO_PRECIO.toLocaleString('es-AR') + ' 🪙'; btn.disabled = companeroHab || coins < COMPANERO_PRECIO;
-    btn.onclick = companeroHabilitar; fila.appendChild(btn); lista.appendChild(fila); }
+      <span class="txt"><b>Compañero de aventura</b>Un Pokémon tuyo te sigue por el mapa. Cada uno se habilita <b style="display:inline">una vez</b> desde su ficha (📖 Pokédex) y el precio sale de su rareza:<br>Común ${COMPANERO_PRECIOS['Común'].toLocaleString('es-AR')} · Poco común ${COMPANERO_PRECIOS['Poco Común'].toLocaleString('es-AR')} · Rara ${COMPANERO_PRECIOS['Rara'].toLocaleString('es-AR')} · Épico ${COMPANERO_PRECIOS['Épico'].toLocaleString('es-AR')} · Legendario ${COMPANERO_PRECIOS['Legendario'].toLocaleString('es-AR')} 🪙${cuantos ? '<br>Ya habilitaste ' + cuantos : ''}</span>`;
+    lista.appendChild(fila); }
   if(tiendaDiamantes()){
     const tit = document.createElement('div');
     tit.style.cssText = "font-family:'Baloo 2',sans-serif;font-size:13px;margin:14px 0 8px;";
