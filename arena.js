@@ -1,4 +1,4 @@
-/* ====================== ARENA DE BATALLA (Kanto, Johto, Hoenn y Sinnoh) · tiempo real ======================
+/* ====================== ARENA DE BATALLA (Kanto, Johto, Hoenn, Sinnoh, Teselia y Kalos) · tiempo real ======================
    Cada uno maneja a su Pokémon por la arena (joystick o WASD) y ataca con botones:
      · Corto  = embestida con garra (pega fuerte pero hay que estar encima)
      · Medio  = proyectil con forma según el tipo (se esquiva moviéndose)
@@ -1262,7 +1262,8 @@ const MOVS_ESPECIALES = {
 /* Ataques sumados a mano al repertorio de un Pokémon, en un botón distinto al del catálogo (10/11 Zeta: Fuego Fatuo como ataque largo
    de Gengar). Sólo entran en el sorteo cuando se CAMBIA un ataque (Entrenar) o cuando el rival saca los suyos al azar: los ejemplares
    que ya existen conservan lo que tenían. prob = chance de que salga en ese sorteo. */
-const APR_EXTRA = {94: {largo: [{n:'Fuego Fatuo', fx:'rayo', prob:.25, soloVario:true}]}};   // 12/11 Zeta: sólo le puede tocar a un Gengar shiny (y sigue siendo difícil: 1 de cada 4 cambios)
+const APR_EXTRA = {94: {largo: [{n:'Fuego Fatuo', fx:'rayo', prob:.25, soloVario:true}]},
+  658: {largo: [{n:'Shuriken Gigante', fx:'rayo', prob:.10, soloVario:true}]}};   // 13/11 Zeta: el Shuriken Gigante es SÓLO de un Greninja shiny y muy difícil (1 de cada 10 cambios)   // 12/11 Zeta: sólo le puede tocar a un Gengar shiny (y sigue siendo difícil: 1 de cada 4 cambios)
 function movExtra(id, alc, semilla, vario){
   const l = APR_EXTRA[id] && APR_EXTRA[id][alc];
   if(!l || !(typeof semilla === 'number' || String(semilla).includes('#'))) return null;
@@ -3939,7 +3940,7 @@ const SEG_ELEGIR = 15;
 function puedeDueloRapido(){
   const n = kantoMios().concat(especialesMios()).length;
   if(n < EQUIPO_MIN){
-    if(typeof avisoBatalla === 'function') avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto, Johto, Hoenn o Sinnoh para pelear. Abrí un sobre primero.`);
+    if(typeof avisoBatalla === 'function') avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto, Johto, Hoenn, Sinnoh, Teselia o Kalos para pelear. Abrí un sobre primero.`);
     return false;
   }
   return true;
@@ -3951,7 +3952,7 @@ function abrirArenaBase(rapido, inc){
   const mios = kantoMios().concat(especialesMios());   // las especiales (Mewtwo Acorazado) pelean aparte
   if(mios.length < EQUIPO_MIN){
     if(typeof avisoBatalla === 'function')
-      avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto, Johto, Hoenn o Sinnoh para pelear en la arena. Abrí un sobre primero.`);
+      avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto, Johto, Hoenn, Sinnoh, Teselia o Kalos para pelear en la arena. Abrí un sobre primero.`);
     return;
   }
   limpiar();
@@ -4015,7 +4016,7 @@ function abrirArenaBase(rapido, inc){
   };
   const pintar = () => {
     root.innerHTML = `<div class="ar-pick">
-      <h2>${inc ? `⚔️ Incursión contra ${(DATA.find(x => x.id === inc.legendario) || {}).name || 'el legendario'}` : rapido ? `⚔️ Duelo contra ${rapido.rival.replace(/[<>&"]/g, '')}` : 'Arena Pokémon · Kanto, Johto, Hoenn y Sinnoh'}</h2>
+      <h2>${inc ? `⚔️ Incursión contra ${(DATA.find(x => x.id === inc.legendario) || {}).name || 'el legendario'}` : rapido ? `⚔️ Duelo contra ${rapido.rival.replace(/[<>&"]/g, '')}` : 'Arena Pokémon · Kanto, Johto, Hoenn, Sinnoh, Teselia y Kalos'}</h2>
       <p>${rapido ? `Elegí tu equipo (${EQUIPO_MIN} a ${EQUIPO_MAX}) antes de que se acabe el tiempo: si se acaba, pelea el que tenés marcado.` : `Elegí tu equipo: de ${EQUIPO_MIN} a ${EQUIPO_MAX}. Sale primero el que marcaste con el 1. Pelea tu ejemplar más fuerte (💪).`}</p>
       <div class="ar-busca"><input id="arBuscar" type="search" inputmode="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="🔎 Buscar" aria-label="Buscar Pokémon"></div>
       <div class="ar-favaviso" id="arFavInfo" hidden></div>

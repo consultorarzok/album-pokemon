@@ -1542,13 +1542,13 @@ function avisoBatalla(txt){
   document.getElementById('battleOverlay').classList.add('show');
 }
 
-/* Para entrar a la arena hacen falta PELEA_MIN Pokémon de Kanto, Johto, Hoenn o Sinnoh (ver arena.js). */
+/* Para entrar a la arena hacen falta PELEA_MIN Pokémon de Kanto, Johto, Hoenn, Sinnoh, Teselia o Kalos (ver arena.js). */
 const PELEA_MIN = 3;
-const REGIONES_ARENA = ['kanto', 'johto', 'hoenn', 'sinnoh'];
+const REGIONES_ARENA = ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos'];   // 13/11 Zeta: se suman Teselia y Kalos (Greninja es la última)
 /* 07/11 Zeta: cuentas que pueden pelear con un Pokémon de otra región (Greninja, para probarlo). Igual que ARENA_EXTRA del servidor. */
 const ARENA_EXTRA = {'zeta centeno': [658]};
 const arenaPermitida = p => REGIONES_ARENA.includes(p.region) || (Object.values(ARENA_EXTRA).some(l => l.includes(p.id)) && (() => { try{ return (ARENA_EXTRA[claveNombre(jugador)] || []).includes(p.id); }catch(e){ return false; } })());   /* try: `jugador` se declara más abajo y puede estar sin inicializar al arrancar */
-function kantoMios(){ return DATA.filter(p => arenaPermitida(p) && state[p.id].got); }   // nombre histórico: ahora son Kanto + Johto + Hoenn + Sinnoh
+function kantoMios(){ return DATA.filter(p => arenaPermitida(p) && state[p.id].got); }   // nombre histórico: ahora son Kanto + Johto + Hoenn + Sinnoh + Teselia + Kalos
 
 function updateBarras(){
   const dups = repetidasTotales();
