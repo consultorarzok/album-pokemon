@@ -7004,8 +7004,8 @@ function renderTienda(){
   }
 }
 
-/* 13/11 Zeta: cambiar pokébolas (copia de CANJES_BOLAS del servidor, juego.js): 8 rojas → 1 azul · 4 azules → 1 ultra · 3 ultras → 1 maestra */
-const CANJES_BOLAS = [{de: 'roja', a: 'azul', cuesta: 8}, {de: 'azul', a: 'ultra', cuesta: 4}, {de: 'ultra', a: 'maestra', cuesta: 3}];
+/* 13/11 Zeta: cambiar pokébolas (copia de CANJES_BOLAS del servidor, juego.js): 10 rojas → 1 azul · 6 azules → 1 ultra · 5 ultras → 1 maestra (300 rojas = 1 maestra: tienen que ser DIFÍCILES) */
+const CANJES_BOLAS = [{de: 'roja', a: 'azul', cuesta: 10}, {de: 'azul', a: 'ultra', cuesta: 6}, {de: 'ultra', a: 'maestra', cuesta: 5}];
 function canjearBolas(de, veces){
   if(MODO_SERVIDOR) return canjearBolasServidor(de, veces);
   const c = CANJES_BOLAS.find(x => x.de === de); if(!c) return;
