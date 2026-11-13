@@ -471,7 +471,7 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261119"></script>
-<script src="app.js?v=20261161"></script>
+<script src="app.js?v=20261162"></script>
 <script src="servidor.js?v=20261161"></script>
 <script src="pixfx.js?v=3"></script>
 <script src="arena.js?v=20261152"></script>
@@ -481,6 +481,46 @@
 if('serviceWorker' in navigator && location.protocol === 'https:' && /(^|\.)entrenadoresrz\.com$/.test(location.hostname)){
   addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
 }
+/* 13/11 Zeta: a veces al recargar salía la versión VIEJA (el guardado del celular, o un servidor que todavía no se había enterado de la nueva).
+   Ahora el juego mira /version.json (siempre a la red, sin guardado): al abrir, si hay una versión más nueva que la que está corriendo, borra el guardado y recarga solo
+   (una vez por versión, para no entrar en bucle); durante el juego avisa con un cartelito "Hay una versión nueva · Actualizar" (no corta una pelea). */
+(function(){
+  if(location.protocol !== 'https:' || !/(^|\.)entrenadoresrz\.com$/.test(location.hostname)) return;
+  const s = document.querySelector('script[src^="app.js"]');
+  const actual = s && (s.getAttribute('src').match(/[?&]v=(\d+)/) || [])[1];
+  if(!actual) return;
+  async function nueva(){
+    try{
+      const r = await fetch('/version.json?t=' + Date.now(), {cache: 'no-store'});
+      if(!r.ok) return null;
+      const j = await r.json();
+      return j && /^\d+$/.test(String(j.v)) && Number(j.v) > Number(actual) ? String(j.v) : null;
+    }catch(e){ return null; }
+  }
+  async function limpiarYRecargar(v){
+    try{ sessionStorage.setItem('rz-recarga', v); }catch(e){}
+    try{ for(const k of await caches.keys()) await caches.delete(k); }catch(e){}
+    try{ const regs = await navigator.serviceWorker.getRegistrations(); for(const g of regs) await g.update(); }catch(e){}
+    location.reload();
+  }
+  function cartel(v){
+    if(document.getElementById('rzNueva')) return;
+    const b = document.createElement('button'); b.id = 'rzNueva'; b.type = 'button';
+    b.textContent = '🔄 Hay una versión nueva · Actualizar';
+    b.style.cssText = 'position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:99999;padding:10px 16px;border-radius:999px;border:2px solid #F4C744;background:#1B2140;color:#fff;font:700 13px system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;';
+    b.onclick = () => limpiarYRecargar(v);
+    document.body.appendChild(b);
+  }
+  async function revisar(alAbrir){
+    const v = await nueva(); if(!v) return;
+    let yaProbo = null; try{ yaProbo = sessionStorage.getItem('rz-recarga'); }catch(e){}
+    if(alAbrir && yaProbo !== v) return limpiarYRecargar(v);
+    cartel(v);
+  }
+  addEventListener('load', () => revisar(true));
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') revisar(false); });
+  setInterval(() => revisar(false), 10 * 60 * 1000);
+})();
 </script>
 </body>
 </html>
