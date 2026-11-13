@@ -468,5 +468,11 @@
 <script src="pixfx.js?v=3"></script>
 <script src="arena.js?v=20261142"></script>
 <script src="portada.js?v=20261105"></script>
+<script>
+/* Guardado del juego en el celular (sw.js): sólo en el sitio real, nunca en pruebas locales */
+if('serviceWorker' in navigator && location.protocol === 'https:' && /(^|\.)entrenadoresrz\.com$/.test(location.hostname)){
+  addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
 </body>
 </html>

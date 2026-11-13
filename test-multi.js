@@ -93,7 +93,10 @@ async function abrirDuelo(x){
     await x.p.evaluate(() => { const S = window.__arena.estado(); S.yo.mons.forEach(m => { if(m !== S.yo.act){ m.vivo = false; m.hp = 0; } }); S.yo.act.hp = 1; });
     for(let i = 0; i < 8; i++){
       const listo = await x.p.evaluate(() => { const S = window.__arena.estado(); if(!S || S.fase === 'fin' || S.espectador) return true;
-        const E = window.__arena.ent(); E.yo.invul = 0; E.yo.rodando = false; window.__arena.golpe('largo'); return !S.yo.act.vivo; });
+        const E = window.__arena.ent(); E.yo.invul = 0; E.yo.rodando = false;
+        /* 13/11: se prueba con cada rival, porque desde los dos tipos un golpe puede no afectar (Pikachu eléctrico contra Onix, que ahora es Roca/Tierra) */
+        for(const l of S.lados){ if(l !== 'yo' && S.bando[l] !== S.bando.yo && S.yo.act.vivo){ E.yo.invul = 0; window.__arena.golpeDe(l, 'yo', 'largo'); } }
+        return !S.yo.act.vivo; });
       if(listo) break; await x.p.waitForTimeout(300);
     }
     await x.p.waitForTimeout(1500);
