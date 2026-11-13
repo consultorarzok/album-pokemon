@@ -1265,9 +1265,9 @@ const MOVS_ESPECIALES = {
   10152: {corto:['Pico Carmesí','fire','picotazo'], medio:['Llama Sombría','dark','bola','llama'], largo:['Fuego Eclipse','fire','propia']},
   10153: {corto:['Garra Plasma','electric','garra'], medio:['Bola Plasma','electric','bola'], largo:['Puño Plasma','electric','zona']},
   10154: {corto:['Garra Azul','azul','garra'], medio:['Llama Azul','azul','bola','llama'], largo:['Aliento Azul','azul','rayo']},
-  /* Pikachu de Ash (anime): Ataque Rápido, Cola Férrea, Rayo, Bola Voltio y, de ulti, Trueno y Placaje Eléctrico */
-  10156: {corto:['Ataque Rápido','normal','golpe'], corto2:['Cola Férrea','steel','golpe'], medio:['Rayo','electric','rayito'], medio2:['Bola Voltio','electric','bola','voltio'],
-          largo:['Trueno','electric','trueno'], largo2:['Placaje Eléctrico','electric','embestida']},
+  /* Pikachu de Ash (anime): básicos Ataque Rápido y Cola Férrea; ultis Impactrueno (con su saltito) y Bola Voltio; los 2 medios salen al azar entre los ataques ELÉCTRICOS que puede tener Pikachu (según la serie del ejemplar) */
+  10156: {corto:['Ataque Rápido','normal','golpe'], corto2:['Cola Férrea','steel','golpe'],
+          largo:['Impactrueno','electric','impactrueno'], largo2:['Bola Voltio','electric','bolaVoltio','voltio']},
   10155: {corto:['Puño Hoopa','dark','golpe'], medio:['Portal Anillo','psychic','onda','anillo'], largo:['Dimensión Total','psychic','rayo']}
 };
 /* Ataques sumados a mano al repertorio de un Pokémon, en un botón distinto al del catálogo (10/11 Zeta: Fuego Fatuo como ataque largo
@@ -1290,6 +1290,11 @@ function movsDe(p, semilla, libre, vario){
   if(p.especial && MOVS_ESPECIALES[p.id] && !libre){
     const out = {};
     Object.keys(MOVS_ESPECIALES[p.id]).forEach(alc => { const [n, tipo, fx, forma] = MOVS_ESPECIALES[p.id][alc]; out[alc] = {n, tipo, fx, forma:forma || FORMA_FX[fx] || 'bola', pot:n === 'Puño Plasma' ? 1.7 : POT_ESPECIAL[base(alc)]}; });
+    if(p.id === 10156){   // Pikachu de Ash: 2 medios al azar entre los eléctricos de su repertorio (Impactrueno y Bola Voltio ya son sus ultis)
+      const pool = ['Onda Voltio', 'Rayo Carga', 'Electrotela', 'Alto Voltaje'], h = semillaNum('ash:' + semilla);
+      const a = pool[h % pool.length], resto = pool.filter(x => x !== a), b = resto[(h >>> 8) % resto.length];
+      [a, b].forEach((n, k) => { const d = MOVS_CAT.find(x => x[0] === n); if(d) out[k ? 'medio2' : 'medio'] = {n:d[0], tipo:d[1], fx:d[2], forma:d[4] || FORMA_FX[d[2]] || 'bola', pot:POT_ESPECIAL.medio}; });
+    }
     return out;
   }
   const id = p.base || p.id, pools = id === 235 ? TODOS : APRENDE[id];
@@ -2606,13 +2611,13 @@ function proyectil(e, o){
   AR.proys.push({lado:e.lado, obj:O.lado, x:sx, y:sy, vx:d.x * o.vel * U, vy:d.y * o.vel * U, v:o.vel * U, tipo:o.tipo, forma:o.forma, el,
     vida:o.vida || 1.5, vida0:o.vida || 1.5, rad:tam * .5 * (o.radK || 1), rot:0, giro:o.giro || 0, arco:o.arco || 0,
     crecer:o.crecer || 0, wobble:o.wobble || 0, homing:o.homing || 0, boom:o.boom ? {vuelta:false} : null, suelo:!!o.suelo,
-    orient:!!o.orient, grupo:o.grupo, t:0, tr:0, esq:false, fade:!!o.fade, estela:o.estela !== false});
+    orient:!!o.orient, grupo:o.grupo, alc:o.alc, t:0, tr:0, esq:false, fade:!!o.fade, estela:o.estela !== false});
   /* efectos pixel (pixelfx): bola de fuego / bola eléctrica / lanza de hielo siguen al proyectil; el dibujo de siempre queda invisible (sirve de golpe) */
   if(window.PIXFX && PIXFX.activo() && !AR.multi){ const pp = AR.proys[AR.proys.length - 1]; pp.px = PIXFX.proyectil(o.tipo, o.forma); if(pp.px) el.style.opacity = '0'; }
 }
 
 function disparoMedio(e){
-  const mov = movDe(e.mon, 'medio'), grupo = {pego:false}, base = {tipo:mov.tipo, grupo, forma:FORMA_MOV[mov.n] || mov.forma};
+  const mov = (e.accion && e.accion.mov) || movDe(e.mon, 'medio'), grupo = {pego:false}, base = {tipo:mov.tipo, grupo, forma:FORMA_MOV[mov.n] || mov.forma, alc:e.accion ? e.accion.tipo : 'medio'};
   const rafaga = (n, cada, o) => {
     for(let i = 0; i < n; i++){
       const f = () => { if(AR && e.mon && e.mon.vivo) proyectil(e, Object.assign({}, base, typeof o === 'function' ? o(i) : o)); };
@@ -2650,7 +2655,7 @@ function disparoMedio(e){
 function prepararLargo(e){
   const A = e.accion, mov = A.mov, O = otro(e), col = mov.n === 'Fuego Fatuo' ? '#6FD3FF' : TYPE_COLORS[mov.tipo];
   e.wrap.classList.add('ar-carga'); e.rot.style.setProperty('--tc', col);
-  if(mov.fx === 'rayo' || mov.fx === 'embestida'){
+  if(mov.fx === 'rayo' || mov.fx === 'embestida' || mov.fx === 'bolaVoltio'){
     A.tele = [mk('ar-mira', {background:col})];
     /* Fuego Fatuo (12/11 Zeta, como en el anime): mientras carga, las llamas azules aparecen de a una y giran en círculo alrededor de Gengar */
     if(mov.n === 'Fuego Fatuo'){
@@ -3103,6 +3108,12 @@ function estallidoZona(z, mov){
 
 function dispararLargo(e){
   const A = e.accion, mov = A.mov, O = otro(e), tipo = mov.tipo, col = TYPE_COLORS[tipo], U = u(), st = partDe(tipo);
+  if(mov.fx === 'bolaVoltio'){   // Bola Voltio: una bola eléctrica enorme que sale derecho hacia el rival
+    const d = A.dirLock || unit(cen(e), cen(O));
+    proyectil(e, {tipo:'electric', forma:'voltio', tam:12, vel:125, giro:0, vida:1.8, grupo:{pego:false}, alc:A.tipo, estela:true});
+    destello(cen(e).x + d.x * e.w * .3, cen(e).y + d.y * e.h * .2, .9); sacudir(.8); sfx('rayo');
+    return;
+  }
   if(mov.fx === 'embestida'){
     A.dash = {dir:A.dirLock || unit(cen(e), cen(O)), t:0, pego:false};
     polvo(pie(e).x, pie(e).y, 6, 1.4); sfx('garra');
@@ -3121,7 +3132,7 @@ function dispararLargo(e){
     const lat = Math.abs(vx * d.y - vy * d.x);
     if(ff) return;   // el daño del Fuego Fatuo lo hacen las llamas al llegar (avanzarProyectiles)
     if(proj > 0 && lat <= radio(O) + 2.4 * U){
-      if(golpear(e, O, 'largo', oc.x, oc.y)){
+      if(golpear(e, O, A.tipo, oc.x, oc.y)){
         marca(pie(O).x, pie(O).y, 6 * U, col);
         if(mov.n === 'Fuego Fatuo') setTimeout(() => FX && fatuoEstalla({x:pie(O).x, y:pie(O).y, r:7 * U}), 430);   // las llamas llegan y estallan sobre el rival
       }
@@ -3132,7 +3143,7 @@ function dispararLargo(e){
   if(mov.fx === 'lluvia'){
     if(mov.n === 'Roca Afilada'){   // clava piedras muy afiladas: salen del suelo (como en el anime)
       partirPiso(z, 'roca'); sfx('lluvia');
-      AR.zonas.push({e:e.lado, zona:z, t:0, imp:.55, mov, lluvia:true});
+      AR.zonas.push({alc:A.tipo, e:e.lado, zona:z, t:0, imp:.55, mov, lluvia:true});
       return;
     }
     const n = REDUCE ? 6 : (AR.multi ? 10 : 16);   // el radio es el doble: más piedras para cubrirlo
@@ -3148,7 +3159,20 @@ function dispararLargo(e){
       a.finished.then(() => { o.remove(); estallido(tx, ty, tipo, 4, .65); if(tipo === 'rock') polvo(tx, ty, 2); }, () => o.remove());
     }
     sfx('lluvia');
-    AR.zonas.push({e:e.lado, zona:z, t:0, imp:.32 + n * .038, mov, lluvia:true});
+    AR.zonas.push({alc:A.tipo, e:e.lado, zona:z, t:0, imp:.32 + n * .038, mov, lluvia:true});
+    return;
+  }
+  if(mov.fx === 'impactrueno'){   // Impactrueno (Pikachu de Ash): el rayo sale para arriba desde él y cae rápido sobre la zona
+    const c = cen(e);
+    relampagoEntre(c.x, c.y - e.h * e.s * .25, c.x + azar(-3, 3) * U, Math.max(-6, c.y - 60 * U), 1.6 * U);
+    destello(c.x, c.y - e.h * e.s * .3, .7); sfx('rayo');
+    despues(.12, () => {
+      if(!AR) return;
+      relampagoEntre(z.x + azar(-6, 6) * U, -6, z.x, z.y, 2 * U);
+      setTimeout(() => FX && relampagoEntre(z.x + azar(-2, 2) * U, -6, z.x, z.y, 1.1 * U, '#ffffff'), 70);
+      flashPantalla('#fffbe0');
+    });
+    AR.zonas.push({alc:A.tipo, e:e.lado, zona:z, t:0, imp:.16, mov});
     return;
   }
   if(mov.fx === 'trueno'){
@@ -3156,7 +3180,7 @@ function dispararLargo(e){
     setTimeout(() => FX && relampago(z.x + azar(-3, 3) * U, z.y - 2 * U), 120);
     flashPantalla('#fffbe0');
     sfx('rayo');
-    AR.zonas.push({e:e.lado, zona:z, t:0, imp:.06, mov});
+    AR.zonas.push({alc:A.tipo, e:e.lado, zona:z, t:0, imp:.06, mov});
     return;
   }
   if(mov.fx === 'ninja'){   // Greninja se esfuma en humo, el shuriken de agua gigante cae sobre el rival y él reaparece
@@ -3174,13 +3198,13 @@ function dispararLargo(e){
     const q = () => sh.remove(); an.finished.then(q, q);
     setTimeout(() => { if(!FX) return; aro(z.x, z.y, '#6390F0', z.r * 1.2); estallido(z.x, cy, 'water', 16, 1.4); destello(z.x, cy, 1.1); sfx('golpe'); }, 400);
     setTimeout(() => { e.cuerpo.style.visibility = ''; e.sombra.style.visibility = ''; if(!FX) return; polvo(p0.x, p0.y, 8, 1.4); }, 700);
-    AR.zonas.push({e:e.lado, zona:z, t:0, imp:.4, mov});
+    AR.zonas.push({alc:A.tipo, e:e.lado, zona:z, t:0, imp:.4, mov});
     return;
   }
   if(z.propia){ const p = pie(e); z.x = p.x; z.y = p.y; }
   sfx('lluvia');
-  if(mov.n === 'Fuego Fatuo'){ fatuoSalida(e, z); AR.zonas.push({e:e.lado, zona:z, t:0, imp:.42, mov, estalla:true}); return; }
-  AR.zonas.push({e:e.lado, zona:z, t:0, imp:.05, mov, estalla:true});
+  if(mov.n === 'Fuego Fatuo'){ fatuoSalida(e, z); AR.zonas.push({alc:A.tipo, e:e.lado, zona:z, t:0, imp:.42, mov, estalla:true}); return; }
+  AR.zonas.push({alc:A.tipo, e:e.lado, zona:z, t:0, imp:.05, mov, estalla:true});
 }
 
 /* para las pruebas (no se usa en el juego): dispara un efecto de largo alcance sobre el rival sin esperar la carga */
@@ -3200,7 +3224,7 @@ window.__arenaMovs.probarLargo = (nombre, fx, tipo, forma) => {
 /* Avanza el ataque en curso y define la pose del cuerpo (anticipación, golpe, recuperación). */
 function avanzarAccion(e, dt){
   const A = e.accion, O = otro(e), U = u(), vel = e.mon.st.vel;
-  A.t += dt * (base(A.tipo) === 'largo' && !A.hecho && AR.esc < 1 ? 1 + (CARGA_EN_LENTA - 1) * (1 - AR.esc) / (1 - CAMARA_LENTA) : 1) * (!A.hecho && A.mov && (A.mov.n === 'Puño Plasma' || A.mov.fx === 'trueno') ? 2.2 : 1);   // los largos eléctricos de rayo del cielo cargan más rápido (Zeta 07/11)
+  A.t += dt * (base(A.tipo) === 'largo' && !A.hecho && AR.esc < 1 ? 1 + (CARGA_EN_LENTA - 1) * (1 - AR.esc) / (1 - CAMARA_LENTA) : 1) * (!A.hecho && A.mov && (A.mov.n === 'Puño Plasma' || A.mov.fx === 'trueno' || A.mov.fx === 'impactrueno') ? 2.2 : 1);   // los largos eléctricos de rayo del cielo cargan más rápido (Zeta 07/11)
   if(A.tipo === 'esquivar'){
     const f = 1 - (A.t / ESQ.dur) * .55;
     empujar(e, A.dir.x * 86 * U * f * dt, A.dir.y * 86 * U * f * dt);
@@ -3231,7 +3255,7 @@ function avanzarAccion(e, dt){
       if(!A.hecho && A.t > (fx === 'cuerpo' ? .2 : .1) && dist(cen(e), cen(O)) <= radio(e) + radio(O) + 5 * U){
         A.hecho = true;
         const c = cen(O);
-        if(golpear(e, O, 'corto')) fxCorto(A.mov, e, O, c.x, c.y, Math.sign(c.x - cen(e).x) || 1);
+        if(golpear(e, O, A.tipo)) fxCorto(A.mov, e, O, c.x, c.y, Math.sign(c.x - cen(e).x) || 1);
       }
     } else {
       const k = (A.t - .28) / .18;
@@ -3247,6 +3271,10 @@ function avanzarAccion(e, dt){
       if(A.t < .14) e.pose = {sx:1.16, sy:.8, rot:-8};
       else if(A.t < .28) e.pose = {sx:.9, sy:1.15, dy:-e.h * .08, rot:10};
       else e.pose = null;
+    } else if(fx === 'impactrueno'){                        // el saltito de Pikachu: se agacha, salta, el rayo sale arriba y cae
+      if(A.t < .1) e.pose = {sx:1.14, sy:.84};
+      else if(A.t < .34){ const f = Math.sin(Math.PI * (A.t - .1) / .24); e.pose = {sx:.92, sy:1.12, dy:-e.h * .45 * f, rot:-5 * f}; }
+      else e.pose = null;
     } else if(fx === 'suelo'){                              // levanta la pata y pisa fuerte
       if(A.t < .14) e.pose = {sy:1.08, sx:.95, dy:-e.h * .18 * (A.t / .14), rot:-6};
       else if(A.t < .26) e.pose = {sx:1.2, sy:.82};
@@ -3256,8 +3284,8 @@ function avanzarAccion(e, dt){
       else if(A.t < .26) e.pose = {sx:.9, sy:1.12, rot:6, dx:-e.w * .06};
       else e.pose = null;
     }
-    if(!A.hecho && A.t >= .14){ A.hecho = true; disparoMedio(e); }
-    if(A.t >= .4){ e.accion = null; e.pose = null; }
+    if(!A.hecho && A.t >= (fx === 'impactrueno' ? .2 : .14)){ A.hecho = true; disparoMedio(e); }
+    if(A.t >= (fx === 'impactrueno' ? .5 : .4)){ e.accion = null; e.pose = null; }
     return;
   }
   if(base(A.tipo) === 'largo'){
@@ -3266,7 +3294,7 @@ function avanzarAccion(e, dt){
       e.pose = {sx:1 + Math.sin(A.t * 50) * .04 * prog, sy:1 - .08 * prog, dy:-e.h * .08 * prog, dx:azar(-1, 1) * e.w * .03 * prog};
       /* la mira sigue al rival hasta poco antes de disparar */
       const c = cen(e), t = cen(O), tele = A.tele && A.tele[0];
-      if(fx === 'rayo' || fx === 'embestida'){
+      if(fx === 'rayo' || fx === 'embestida' || fx === 'bolaVoltio'){
         if(A.t < .42) A.dirLock = unit(c, t);
         const d = A.dirLock || unit(c, t), ang = Math.atan2(d.y, d.x) * 180 / Math.PI;
         if(tele){
@@ -3307,11 +3335,14 @@ function avanzarAccion(e, dt){
       if(dist(cen(e), cen(O)) <= radio(e) + radio(O) + 4 * U){
         D.pego = true;
         const c = cen(O), dirx = Math.sign(c.x - cen(e).x) || 1;
-        if(golpear(e, O, 'largo')){
+        if(golpear(e, O, A.tipo)){
           for(let i = 0; i < 4; i++) setTimeout(() => { if(!FX) return; impacto(c.x + azar(-3, 3) * U, c.y + azar(-3, 3) * U, '#ff8a5c', 1 + i * .25); if(i) sfx('golpe'); }, i * 70);
           estallido(c.x, c.y, 'fighting', 18, 1.4);
         }
       }
+    } else if(fx === 'impactrueno' && A.t < .62 + .3){   // el saltito de Pikachu mientras sale el rayo
+      const f = Math.sin(Math.PI * (A.t - .62) / .3);
+      e.pose = {sx:.94, sy:1.1, dy:-e.h * .5 * f, rot:-6 * f};
     } else {
       const k = Math.min(1, (A.t - .62) / .3);
       e.pose = {sx:.86 + .14 * k, sy:1.14 - .14 * k, dx:-e.w * .1 * (1 - k)};
@@ -3328,7 +3359,7 @@ function avanzarZonas(dt){
     const att = E[z.e];
     if(z.estalla) estallidoZona(z.zona, z.mov);
     else { marca(z.zona.x, z.zona.y, z.zona.r * .9, TYPE_COLORS[z.mov.tipo]); sacudir(1.3); }
-    if(z.mov.fx === 'trueno') estallido(z.zona.x, z.zona.y, 'electric', 20, 1.4);
+    if(z.mov.fx === 'trueno' || z.mov.fx === 'impactrueno') estallido(z.zona.x, z.zona.y, 'electric', 20, 1.4);
     if(att.mon){
       for(const O of enemigosDe(att)){
         if(!O.mon || !O.mon.vivo) continue;
@@ -3336,7 +3367,7 @@ function avanzarZonas(dt){
         const dist = Math.hypot(dx, dy);
         if(dist <= z.zona.r){
           const cae = ['propia', 'zona', 'lluvia'].includes(z.mov.fx);
-          golpear(att, O, 'largo', undefined, undefined, cae ? ZONA_CENTRO - (ZONA_CENTRO - ZONA_BORDE) * (dist / z.zona.r) : 0);   // centro 1,3x · punta 0,4x
+          golpear(att, O, z.alc || 'largo', undefined, undefined, cae ? ZONA_CENTRO - (ZONA_CENTRO - ZONA_BORDE) * (dist / z.zona.r) : 0);   // centro 1,3x · punta 0,4x
         }
       }
     }
