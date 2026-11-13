@@ -2142,10 +2142,23 @@ function encerrar(e){
 }
 function empujar(e, dx, dy){ e.x += dx / G.rx; e.y += dy / G.ry; encerrar(e); }
 
+/* Alto real del dibujo (px del GIF, sin transparencia) y altura oficial (dm) de los Pokémon de Teselia y Kalos. Sacado de PokeAPI + los GIF. */
+const TAM_NUEVOS = {};
+`494 54 4;495 37 6;496 56 8;497 69 33;498 39 5;499 56 10;500 72 16;501 36 5;502 55 8;504 40 5;505 68 11;506 42 4;507 49 9;508 69 12;509 48 4;510 62 11;511 41 6;512 68 11;513 43 6;514 58 10;515 43 6;516 57 10;517 31 6;518 62 11;519 36 3;520 56 6;521 74 12;522 61 8;523 72 16;524 36 4;525 50 9;526 75 17;527 36 4;528 53 9;529 48 3;530 64 7;531 52 11;532 48 6;533 71 12;534 62 14;535 28 5;536 47 8;537 63 15;538 52 13;539 58 14;540 35 3;541 42 5;542 74 12;543 34 4;544 43 12;545 84 25;546 28 3;547 53 7;548 43 5;549 67 11;550 38 10;551 26 7;552 60 10;553 70 15;554 35 6;555 63 13;556 68 10;557 34 3;558 63 14;559 39 6;560 60 11;561 83 14;562 39 5;563 74 17;564 37 7;565 59 12;566 40 5;567 75 14;568 38 6;569 68 19;570 45 7;571 63 16;572 50 4;573 56 5;574 38 4;575 52 7;576 72 15;577 29 3;578 46 6;579 54 10;580 40 5;581 63 13;582 36 4;583 58 11;584 62 13;585 49 6;586 76 19;587 42 4;588 41 5;589 67 10;590 32 2;591 54 6;592 57 12;593 66 22;594 76 12;595 32 1;596 53 8;597 36 6;598 66 10;599 40 3;600 50 6;601 58 6;602 16 2;603 63 12;604 63 21;605 45 5;606 62 10;607 37 3;608 48 6;609 66 10;610 44 6;611 58 10;612 82 18;613 35 5;614 72 26;615 68 11;616 34 4;617 56 8;618 41 7;619 43 9;620 66 14;621 71 16;622 54 10;623 77 28;624 44 5;625 71 16;626 56 16;627 48 5;628 74 15;629 59 5;630 69 12;631 54 14;632 31 3;633 48 8;634 56 14;635 79 18;636 46 11;637 68 16;638 76 21;639 58 19;640 69 20;641 76 15;642 76 15;643 82 32;644 90 29;645 76 15;646 74 30;647 57 14;648 52 6;649 68 15;650 62 4;651 66 7;652 106 16;653 59 4;654 86 10;655 110 15;656 51 3;657 56 6;658 74 15;659 90 4;660 99 10;661 42 3;662 62 7;663 103 12;664 55 3;665 43 3;666 91 12;667 60 6;668 97 15;669 68 1;670 85 2;671 96 11;672 62 9;673 83 17;674 62 6;675 100 21;676 83 12;677 58 3;678 72 6;679 72 8;680 71 8;681 90 17;682 50 2;683 80 8;684 48 4;685 69 8;686 50 4;687 98 15;688 70 5;689 105 13;690 72 5;691 129 18;692 50 5;693 80 13;694 52 5;695 77 10;696 66 8;697 106 25;698 88 13;699 122 27;700 85 10;701 70 8;702 48 2;703 50 3;704 49 3;705 75 8;706 101 20;707 81 2;708 55 4;709 108 15;710 50 4;711 82 9;712 60 10;713 56 20;714 69 5;715 97 15;716 126 30;717 106 58;718 105 50;719 82 7;720 59 5;721 91 17`.split(';').forEach(l => { const [i, alto, dm] = l.split(' ').map(Number); TAM_NUEVOS[i] = {alto, dm}; });
+/* Los nuevos se ven SIEMPRE de frente (espejado según hacia dónde miran): su dibujo de espalda es otro estilo y otro tamaño. */
+const soloFrente = e => !!(e.mon && e.mon.p.id >= 494 && e.mon.p.id < 10000);
 function medidas(e, img){
   const sf = ESCALA_POKE[escalaLado(e)] * (AR && AR.zoom || 1) * (img.dataset.fb ? .25 : 1) * ((e.mon && e.mon.p.escala) || 1) * (e.mon && esHD(e.mon.p.id) && e.mon.p.id < 10000 ? .65 : 1);   // los animados de Showdown (desde el 650) son ~1,5× más grandes que los de Black/White   // el legendario de la incursión tiene el mismo tamaño que todos (Zeta 31/10): sólo es más poderoso   // escala: sprites de Showdown más grandes que los de siempre
   let k = G.K * sf;
-  if(!img.dataset.fb && !(e.mon && esHD(e.mon.p.id))){ const dpr = window.devicePixelRatio || 1, n = Math.round(k * dpr) / dpr; if(n > 0 && Math.abs(n / k - 1) <= .15) k = n; }   // 12/11: pixel art sin píxeles desparejos (sólo si el tamaño casi no cambia)
+  /* 13/11 Zeta: los Pokémon NUEVOS (Teselia y Kalos) se veían de tamaños dispares: se escalan por su ALTURA REAL (PokeAPI) con la misma
+     relación que ya tienen los demás (alto del dibujo ≈ 51,2 × altura en m ^ 0,31, medida sobre los 490 anteriores), usando el alto real del dibujo
+     (sin el lienzo transparente del GIF). Siempre se ve el mismo dibujo (ver soloFrente), así que no cambia de tamaño ni de diseño al moverse ni en las ultis. */
+  const tn = e.mon && !e.mon.jefe && !img.dataset.fb && TAM_NUEVOS[e.mon.p.id];
+  if(tn && !(e.mon.vario && SHINY_PROPIO[e.mon.p.id])){
+    const sfN = ESCALA_POKE[escalaLado(e)] * (AR && AR.zoom || 1) * ((e.mon.p.escala) || 1);
+    k = G.K * sfN * (51.2 * Math.pow(tn.dm / 10, .31)) / tn.alto;
+  }
+  if(!tn && !img.dataset.fb && !(e.mon && esHD(e.mon.p.id))){ const dpr = window.devicePixelRatio || 1, n = Math.round(k * dpr) / dpr; if(n > 0 && Math.abs(n / k - 1) <= .15) k = n; }   // 12/11: pixel art sin píxeles desparejos (sólo si el tamaño casi no cambia)
   return {w:img.naturalWidth * k, h:img.naturalHeight * k};
 }
 function tamanoSprite(e){
@@ -2192,7 +2205,7 @@ function orientarYa(e){
   const O = otro(e);
   if(!O || !O.mon) return;
   const d = unit(pie(e), pie(O));
-  e.vista = e.vistaQ = d.y > 0 ? 'frente' : 'espalda';
+  e.vista = e.vistaQ = (d.y > 0 || soloFrente(e)) ? 'frente' : 'espalda';
   e.cara = Math.sign(d.x) || e.cara;
   e.flipAp = e.cara === (e.vista === 'frente' ? -1 : 1) ? 1 : -1;
   e.flip.style.transform = `scaleX(${e.flipAp})`;
@@ -2247,7 +2260,7 @@ function dibujar(e, dt){
   }
   if(d){
     if(Math.abs(d.x) > .22) e.cara = Math.sign(d.x);
-    if(d.y > .38) e.vistaQ = 'frente'; else if(d.y < -.38) e.vistaQ = 'espalda';
+    if(d.y > .38 || soloFrente(e)) e.vistaQ = 'frente'; else if(d.y < -.38) e.vistaQ = 'espalda';
   }
   /* los de frente miran a la izquierda y los de espalda a la derecha */
   const flipQ = e.cara === (e.vistaQ === 'frente' ? -1 : 1) ? 1 : -1;
@@ -2698,19 +2711,71 @@ function rayoTipo(e, mov, c, d){
     for(let i = 0; i < 12; i++){ const f = Math.random(); chispa(c.x + d.x * hasta * f, c.y + d.y * hasta * f, 'electric', 1, azar(-3, 3) * U, azar(-3, 3) * U, 300, {delay:i * 20}); }
     return;
   }
-  if(t === 'ice'){                                          // Rayo Hielo: haz fino y cristales que se forman en el camino
-    haz(c, ang, hasta, 2.4 * U, 'linear-gradient(to bottom, transparent, #96D9D6 25%, #ffffff 50%, #96D9D6 75%, transparent)', `0 0 ${U * 1.5}px #c8f4ff`, 520);
-    for(let i = 0; i < (REDUCE ? 6 : 16); i++){
-      const f = (i + 1) / 17;
-      particula(c.x + d.x * hasta * f, c.y + d.y * hasta * f, elige(['#ffffff', '#D8F6FF', '#96D9D6']), Math.max(4, U * 2.2), azar(-1, 1) * U, azar(-1, 1) * U, 620,
-        {forma:'cristal', s0:.2, s1:1.3, rot0:azar(0, 90), delay:i * 18, suave:true});
+  /* 13/11 Zeta: los rayos con color y forma de su tipo (antes eran un haz simple) */
+  const aLo = (f, k) => ({x:c.x + d.x * hasta * f + lado.x * k, y:c.y + d.y * hasta * f + lado.y * k});   // punto del camino (f = 0..1) corrido de costado k
+  if(t === 'ice'){                                          // Rayo Hielo: haz helado, púas de hielo que brotan del piso y copos
+    haz(c, ang, hasta, 3.4 * U, 'linear-gradient(to bottom, transparent, #7CC4E0aa 20%, #D8F6FF 38%, #ffffff 50%, #D8F6FF 62%, #7CC4E0aa 80%, transparent)', `0 0 ${U * 2.5}px #c8f4ff`, 560);
+    for(let i = 0; i < (REDUCE ? 4 : 9); i++){
+      const f = (i + 1) / 10, p = dentroCampo(c.x + d.x * hasta * f + lado.x * azar(-3, 3) * U, c.y + d.y * hasta * f + lado.y * azar(-3, 3) * U);
+      const alto = U * azar(5, 10) * (.6 + f * .6);
+      picoRoca(p.x, p.y + alto * .15, alto, alto * azar(.3, .42), i * 38, {claro:['#ffffff', '#D8F6FF', '#bfe9f5'], oscuro:['#7CC4E0', '#5aaed0', '#96D9D6']});
     }
+    for(let i = 0; i < (REDUCE ? 8 : 26); i++){
+      const f = Math.random(), p = aLo(f, azar(-2.5, 2.5) * U);
+      particula(p.x, p.y, elige(['#ffffff', '#D8F6FF', '#96D9D6']), Math.max(3, U * azar(1, 2.2)), azar(-2, 2) * U, azar(1, 6) * U, 700, {forma:'cristal', s0:.3, s1:1.2, rot0:azar(0, 90), rot:azar(-90, 90), delay:i * 16, suave:true});
+    }
+    const fin = pie(O); marca(fin.x, fin.y, 7 * U, '#96D9D6'); setTimeout(() => FX && aro(fin.x, fin.y, '#D8F6FF', 8 * U), 260);
     return;
   }
-  if(t === 'grass'){                                        // Rayo Solar: un haz enorme de luz
+  if(t === 'grass'){                                        // Rayo Solar: haz enorme de luz con hojitas chicas que lo acompañan
     haz(c, ang, L, 7.5 * U, 'linear-gradient(to bottom, transparent, #B5E07A88 15%, #fff7c2 35%, #ffffff 50%, #fff7c2 65%, #B5E07A88 85%, transparent)', `0 0 ${U * 4}px #fff3a0`, 560);
     flashPantalla('#fffbe0');
+    for(let i = 0; i < (REDUCE ? 10 : 34); i++){
+      const f = Math.random(), p = aLo(f, azar(-4.5, 4.5) * U);
+      particula(p.x, p.y, elige(['#7AC74C', '#A8E063', '#4C9A2A', '#D6F28A']), Math.max(3, U * azar(.9, 1.5)), azar(-3, 3) * U + d.x * 6 * U, azar(-4, 2) * U + d.y * 6 * U, 760,
+        {forma:'hoja', s0:.5, s1:1, rot0:azar(0, 180), rot:azar(-200, 200), delay:i * 14, suave:true});
+    }
     for(let i = 0; i < 10; i++){ const f = Math.random(); chispa(c.x + d.x * hasta * f, c.y + d.y * hasta * f, 'grass', 1, azar(-3, 3) * U, azar(-3, 3) * U, 500, {delay:i * 25}); }
+    return;
+  }
+  if(t === 'poison'){                                       // haz violeta con burbujas tóxicas y gotas
+    haz(c, ang, hasta, 4 * U, 'linear-gradient(to bottom, transparent, #A33EA1aa 25%, #E7A6F0 50%, #A33EA1aa 75%, transparent)', `0 0 ${U * 2}px #C46FD0`, 480);
+    for(let i = 0; i < (REDUCE ? 6 : 22); i++){ const p = aLo(Math.random(), azar(-3, 3) * U); particula(p.x, p.y, '#D68AD4', Math.max(4, U * azar(1.4, 2.8)), azar(-1, 1) * U, -azar(3, 9) * U, 700, {forma:'burbuja', suave:true, delay:i * 18}); }
+    for(let i = 0; i < (REDUCE ? 2 : 8); i++){ const p = aLo(Math.random(), azar(-2, 2) * U); particula(p.x, p.y, '#7D2E7B', Math.max(3, U * 1.3), 0, azar(4, 9) * U, 600, {forma:'gota', delay:i * 40}); }
+    return;
+  }
+  if(t === 'psychic'){                                      // aros de energía que viajan, con haz fino rosa
+    haz(c, ang, hasta, 2 * U, 'linear-gradient(to bottom, transparent, #F95587aa 30%, #ffe0ff 50%, #F95587aa 70%, transparent)', `0 0 ${U * 2}px #F95587`, 460);
+    for(let i = 0; i < (REDUCE ? 3 : 7); i++){ const p = aLo((i + 1) / 8, 0); setTimeout(() => FX && aro(p.x, p.y, i % 2 ? '#C77DFF' : '#F95587', (2.4 + i * .5) * U), i * 45); }
+    for(let i = 0; i < (REDUCE ? 4 : 12); i++){ const p = aLo(Math.random(), azar(-2, 2) * U); chispa(p.x, p.y, 'psychic', 1, azar(-2, 2) * U, azar(-3, 1) * U, 520, {delay:i * 24}); }
+    return;
+  }
+  if(t === 'ghost'){                                        // haz oscuro con humo violeta y llamitas
+    haz(c, ang, hasta, 3.6 * U, 'linear-gradient(to bottom, transparent, #2a1a4aaa 25%, #8f6fd0 50%, #2a1a4aaa 75%, transparent)', `0 0 ${U * 2.5}px #705898`, 520);
+    for(let i = 0; i < (REDUCE ? 6 : 20); i++){ const p = aLo(Math.random(), azar(-3, 3) * U); chispa(p.x, p.y, 'ghost', 1.6, azar(-1.5, 1.5) * U, -azar(2, 8) * U, 800, {delay:i * 18}); }
+    return;
+  }
+  if(t === 'dragon'){                                       // haz azul-violeta con anillos y chispas de energía
+    haz(c, ang, hasta, 5 * U, 'linear-gradient(to bottom, transparent, #4a22c8aa 20%, #6F35FC 38%, #c8f0ff 50%, #6F35FC 62%, #4a22c8aa 80%, transparent)', `0 0 ${U * 3}px #8a6cff`, 520);
+    for(let i = 0; i < (REDUCE ? 2 : 5); i++){ const p = aLo((i + 1) / 6, 0); setTimeout(() => FX && aro(p.x, p.y, '#8a6cff', (2.8 + i * .4) * U), i * 50); }
+    for(let i = 0; i < (REDUCE ? 6 : 18); i++){ const p = aLo(Math.random(), azar(-3, 3) * U); particula(p.x, p.y, elige(['#c8f0ff', '#8a6cff', '#ffffff']), Math.max(3, U * azar(1, 2)), azar(-3, 3) * U, azar(-3, 3) * U, 500, {forma:'estrella', s0:.4, s1:1.2, delay:i * 20}); }
+    return;
+  }
+  if(t === 'rock'){                                         // piedras que vuelan por el camino con polvo
+    haz(c, ang, hasta, 2 * U, 'linear-gradient(to bottom, transparent, #B8A038aa 40%, #e8dcae 50%, #B8A038aa 60%, transparent)', 'none', 360);
+    for(let i = 0; i < (REDUCE ? 5 : 16); i++){ const f = (i + 1) / 17, p = aLo(f, azar(-2.5, 2.5) * U); particula(p.x, p.y, elige(['#A39572', '#8a7a55', '#B8A038', '#6e6246']), Math.max(5, U * azar(1.8, 3.4)), d.x * 5 * U + azar(-2, 2) * U, d.y * 5 * U + azar(-2, 2) * U, 520, {forma:'roca', s0:.7, s1:1, rot:azar(-240, 240), delay:i * 22}); }
+    for(let i = 0; i < (REDUCE ? 2 : 6); i++){ const p = aLo(Math.random(), 0); polvo(p.x, p.y, 2, 1); }
+    return;
+  }
+  if(t === 'ground'){                                       // chorro de arena y polvo
+    haz(c, ang, hasta, 5 * U, 'linear-gradient(to bottom, transparent, #C9B98A66 25%, #E2D3A4aa 50%, #C9B98A66 75%, transparent)', 'none', 520);
+    for(let i = 0; i < (REDUCE ? 6 : 24); i++){ const p = aLo(Math.random(), azar(-3, 3) * U); particula(p.x, p.y, elige(['#E2D3A4', '#C9B98A', '#A98F5A']), Math.max(3, U * azar(1, 2.2)), d.x * 6 * U + azar(-2, 2) * U, azar(-3, 1) * U, 560, {forma:'roca', s0:.5, s1:1, delay:i * 15}); }
+    for(let i = 0; i < (REDUCE ? 2 : 5); i++){ const p = aLo(Math.random(), 0); polvo(p.x, p.y, 3, 1.2); }
+    return;
+  }
+  if(t === 'steel'){                                        // haz plateado con destellos metálicos
+    haz(c, ang, hasta, 3.6 * U, 'linear-gradient(to bottom, transparent, #8a8fa6aa 25%, #d8dcec 42%, #ffffff 50%, #d8dcec 58%, #8a8fa6aa 75%, transparent)', `0 0 ${U * 2}px #B7B7CE`, 440);
+    for(let i = 0; i < (REDUCE ? 5 : 16); i++){ const p = aLo(Math.random(), azar(-3, 3) * U); particula(p.x, p.y, elige(['#ffffff', '#d8dcec', '#B7B7CE']), Math.max(3, U * azar(1, 2.2)), azar(-3, 3) * U, azar(-3, 3) * U, 420, {forma:'estrella', s0:.3, s1:1.3, delay:i * 18}); }
     return;
   }
   if(t === 'bug'){                                          // Zumbido: ondas de sonido en fila
@@ -2903,14 +2968,15 @@ function grietaIrregular(x, y, largo, grosor, ang, delay, dur){
     {duration:dur || 2200, delay:delay || 0, easing:'steps(7,end)', fill:'both'});
   const q = () => d.remove(); a.finished.then(q, q);
 }
-function picoRoca(x, y, alto, ancho, delay){
+function picoRoca(x, y, alto, ancho, delay, pal){
   if(!FX) return;
   const U = u();
   const hoyo = mk('ar-hoyo', {left:x + 'px', top:y + 'px', width:ancho * 2.2 + 'px', height:ancho * 2.2 * G.pz + 'px'}, PISO);
+  if(pal) hoyo.style.background = 'radial-gradient(closest-side, #bfe9f5aa 0 40%, #7cc4e033 70%, transparent 100%)';
   const ah = hoyo.animate([{opacity:0, transform:'translate(-50%,-50%) scale(.3)'}, {opacity:1, transform:'translate(-50%,-50%) scale(1)', offset:.2}, {opacity:1, transform:'translate(-50%,-50%) scale(1)', offset:.8}, {opacity:0, transform:'translate(-50%,-50%) scale(1)'}],
     {duration:1900, delay, fill:'both'});
   const qh = () => hoyo.remove(); ah.finished.then(qh, qh);
-  const claro = elige(['#c2b48c', '#b3a47c', '#d0c39c']), oscuro = elige(['#6b5f45', '#5a5039', '#76694c']);
+  const claro = pal ? elige(pal.claro) : elige(['#c2b48c', '#b3a47c', '#d0c39c']), oscuro = pal ? elige(pal.oscuro) : elige(['#6b5f45', '#5a5039', '#76694c']);
   const giro = azar(-14, 14);
   const p = mk('ar-pico', {left:x + 'px', top:y + 'px', width:ancho + 'px', height:alto + 'px',
     background:`linear-gradient(100deg, ${claro} 0 48%, ${oscuro} 52% 100%)`});
@@ -2919,7 +2985,7 @@ function picoRoca(x, y, alto, ancho, delay){
     {transform:`${t} scaleY(1)`, opacity:1, offset:.72}, {transform:`${t} scaleY(0)`, opacity:1}],
     {duration:1500, delay, easing:'steps(6,end)', fill:'both'});
   const q = () => p.remove(); a.finished.then(q, q);
-  setTimeout(() => { if(FX){ polvo(x, y, 2, .8); estallido(x, y - 1 * U, 'rock', 3, .8); } }, delay + 40);
+  setTimeout(() => { if(FX){ if(pal){ estallido(x, y - 1 * U, 'ice', 3, .8); } else { polvo(x, y, 2, .8); estallido(x, y - 1 * U, 'rock', 3, .8); } } }, delay + 40);
 }
 function partirPiso(z, modo){
   const U = u(), light = REDUCE || (AR && AR.multi);
@@ -3101,6 +3167,7 @@ function dispararLargo(e){
 }
 
 /* para las pruebas (no se usa en el juego): dispara un efecto de largo alcance sobre el rival sin esperar la carga */
+window.__arenaMovs.medirEquipo = () => ['yo', 'riv'].map(l => E[l] && E[l].mon ? {id:E[l].mon.p.id, n:E[l].mon.p.name, w:Math.round(E[l].w), h:Math.round(E[l].h), vista:E[l].vista} : null);   // sólo para las pruebas
 window.__arenaMovs.probarMedio = () => disparoMedio(E.yo);
 window.__arenaMovs.probarLargo = (nombre, fx, tipo, forma) => {
   const e = E.yo, O = otro(e), c = pie(O), z = {x:c.x, y:c.y, r:(fx === 'propia' ? 15 : 9) * u() * RADIO_ZONA, propia:false};
@@ -3108,6 +3175,7 @@ window.__arenaMovs.probarLargo = (nombre, fx, tipo, forma) => {
   e.accion = {tipo:'largo', mov, zona:z, t:0, hecho:true};
   dispararLargo(e);
   setTimeout(() => { e.accion = null; }, 50);
+  for(const k of ['yo', 'riv']) if(E[k] && E[k].mon){ E[k].mon.max = Math.max(E[k].mon.max, 99999); E[k].mon.hp = E[k].mon.max; }
   const cura = setInterval(() => { for(const k of ['yo', 'riv']) if(E[k] && E[k].mon){ E[k].mon.hp = E[k].mon.max; E[k].mon.vivo = true; } }, 120);   // sólo para las pruebas: nadie se debilita mientras se miran los efectos
   setTimeout(() => clearInterval(cura), 4000);
 };
