@@ -6518,14 +6518,20 @@ let companero = null, companeroHabs = {};   // companeroHabs = {id: true}: las e
 try{ const c = Number(localStorage.getItem('album-companero')); if(c) companero = c; companeroHabs = JSON.parse(localStorage.getItem('album-companero-habs') || '{}') || {}; }catch(e){}
 /* Los que NO conviene poner de compañero (revisados uno por uno en 13/11 viendo cómo se ven en el mapa): sin animación (Mesprit), gigantes (más de 4,5 m),
    peces y bichos marinos (se ven flotando sobre el pasto), anguilas / muy largos y chatos, Unown y aves con las alas desplegadas. Misma lista en el servidor (COMPANERO_NO). */
-const COMPANERO_NO = new Set([72,73,90,95,116,117,118,119,129,130,142,144,145,146,169,170,171,193,201,208,211,223,226,230,249,250,318,319,320,321,336,339,340,349,350,366,367,368,369,370,384,456,457,458,469,481,483,550,592,593,594,602,603,604,618]);
+const COMPANERO_NO = new Set([6,11,14,17,18,23,24,50,51,59,60,63,64,65,72,73,74,79,86,87,90,91,95,102,116,117,118,119,120,129,130,131,134,138,140,143,147,149,170,171,191,201,204,205,206,208,211,223,226,230,237,244,247,249,250,266,268,270,287,289,307,317,318,319,320,321,336,339,340,345,346,349,350,364,365,366,367,368,369,370,372,382,384,385,412,413,442,446,450,455,456,457,458,481,483,489,490,492,497,535,541,544,550,564,592,593,594,597,598,602,603,604,618]);
 const COMPANERO_PRECIOS = {'Común': 5000, 'Poco Común': 8000, 'Rara': 15000, 'Épico': 30000, 'Legendario': 60000};   // por rareza (el precio que vale es el del servidor)
 const puedeCompanero = id => id >= 1 && id <= 649 && !COMPANERO_NO.has(id);
 const companeroPrecioDe = id => COMPANERO_PRECIOS[(DATA.find(p => p.id === id) || {}).rarity] || 15000;
 let advRastro = [], advRastroS = 0, advFollow = {x: 0, y: 0, dir: 'abajo', mueve: false, listo: false};
 const COMPA_DIST = 12;   // px de mundo que va detrás tuyo (los grandes van un poco más lejos: ver companeroDist)
 const companeroDist = () => { const m = ((ALTURA_DM[(companero || 1) - 1] || 12) / 10), h = Math.max(6.5, Math.min(17.6, 17 * Math.pow(m / 1.7, .62) * .8)); return 11 + h * .8; };
-function rastroReiniciar(){ advRastro = []; advRastroS = 0; advFollow.listo = false; }
+function rastroReiniciar(){
+  /* 13/11 Zeta: el compañero va SIEMPRE atrás, nunca al costado: al arrancar (o después de entrar a un mapa) se pone detrás tuyo según hacia dónde mirás */
+  advRastro = []; advRastroS = 0; advFollow.listo = false;
+  const v = {abajo: [0, 1], arriba: [0, -1], izq: [-1, 0], der: [1, 0]}[advDir] || [0, 1], d = companeroDist();
+  advRastro.push({x: advPx - v[0] * d, y: advPy - v[1] * d, s: -d});
+  advRastro.push({x: advPx, y: advPy, s: 0});
+}
 function rastroAvanzar(){
   const ult = advRastro[advRastro.length - 1];
   if(!ult){ advRastro.push({x: advPx, y: advPy, s: 0}); advRastroS = 0; return; }
