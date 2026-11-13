@@ -1039,7 +1039,10 @@ function abrirDetalle(id){
       ${viene.length ? `<div>Viene de: ${viene.map(nombreDe).join(', ')}</div>` : ''}
       ${va.length ? va.map(d => `<div>→ <b>${d.name}</b> · cuesta ${costoEvolucion(d.id)} repetidas${dup >= costoEvolucion(d.id) ? ' <span class="det-ok">¡Ya podés!</span>' : ' (te faltan ' + (costoEvolucion(d.id) - dup) + ')'}</div>`).join('') : '<div>No evoluciona.</div>'}
     </div>
-    ${va.length ? '<button class="open-btn sec" id="detalleEvolBtn" style="margin-top:10px;">Ir a Evolucionar</button>' : ''}`;
+    ${va.length ? '<button class="open-btn sec" id="detalleEvolBtn" style="margin-top:10px;">Ir a Evolucionar</button>' : ''}
+    ${puedeCompanero(id) ? `<button class="open-btn sec" id="detalleCompBtn" style="margin-top:10px;">${companero === id ? '🐾 Dejar de llevarlo de compañero' : '🐾 Llevar de compañero en la Aventura'}</button>` : ''}`;
+  const cb = document.getElementById('detalleCompBtn');
+  if(cb) cb.onclick = () => { companeroElegir(companero === id ? null : id); cb.textContent = companero === id ? '🐾 Dejar de llevarlo de compañero' : '🐾 Llevar de compañero en la Aventura'; };
   const eb = document.getElementById('detalleEvolBtn');
   if(eb) eb.onclick = () => { cerrarDetalle(); document.getElementById('pokedexCloseBtn').click(); abrirEvolucion(); };
   const ov = document.getElementById('detalleOverlay');
@@ -1708,7 +1711,7 @@ const ADV_TILE = {
   'C': {walk:true,  label:'Entrada de cueva',  pinta:'entradaCueva', entra:'cueva'},
   '$': {walk:true,  label:'Entrada de mina',   pinta:'entradaMina',  entra:'mina'},    // 13/11 (idea de Aníbal): más cuevas para buscar Pokémon de roca, tierra y acero
   '0': {walk:true,  label:'Veta de minerales', pinta:'veta',         encuentro:'mina'},
-  'P': {walk:true,  label:'Centro Pokémon',    pinta:'centro',  accion:'centro'},
+  'P': {walk:true,  label:'Centro Pokémon',    pinta:'centro'},   // 13/11 Zeta: ahora sólo decorativo (la tienda pasó al botón 🛒 de la Aventura)
   'p': {walk:false, label:'Centro Pokémon',    pinta:'techoIzq'},
   'q': {walk:false, label:'Centro Pokémon',    pinta:'techoDer'},
   'r': {walk:false, label:'Centro Pokémon',    pinta:'paredDer'},
@@ -5737,26 +5740,27 @@ function sincronizarSprites(lista, escala){
   [...caja.children].forEach((im, i) => {
     const o = lista[i];
     if(!o){ im.style.display = 'none'; return; }
-    const clave = String(o.p.id);
+    const clave = String(o.p.id) + (o.espalda ? 'b' : 'f');
     if(im.dataset.id !== clave){
       im.dataset.id = clave; im.dataset.fallo = ''; im.dataset.arte = o.p.img || '';
       im.style.imageRendering = 'pixelated';
-      im.src = o.p.id <= 649 ? GIF_ANIM + o.p.id + '.gif' : (o.p.img || '');
+      im.src = o.p.id <= 649 ? GIF_ANIM + (o.espalda ? 'back/' : '') + o.p.id + '.gif' : (o.p.img || '');
       if(o.p.id > 649) im.style.imageRendering = 'auto';
     }
     const nw = im.naturalWidth || 96, nh = im.naturalHeight || 96;
     /* tamaño real: un entrenador mide 17 px de mundo (1,7 m); los demás salen de su altura (con curva suave: Pikachu
        queda chico y los gigantes no se comen el mapa). Se mide el CUERPO del sprite, no el cuadro con márgenes. */
     const m = ((ALTURA_DM[o.p.id - 1] || 12) / 10);
-    const hMundo = Math.max(6.5, Math.min(34 * (o.mult || 1), 17 * Math.pow(m / 1.7, .62) * (o.mult || 1)));
+    const hMundo = Math.max(6.5, Math.min((o.tope || 34) * (o.mult || 1), 17 * Math.pow(m / 1.7, .62) * (o.mult || 1)));
     const bb = im._bb || {l: 0, r: nw, t: 0, b: nh};
     const z = hMundo * escala / Math.max(1, bb.b - bb.t);
-    const flota = o.flota ? Math.sin(t * 2.4) * 1.6 * escala : 0;
+    const flota = (o.flota ? Math.sin(t * 2.4) * 1.6 * escala : 0) + (o.salto ? Math.abs(Math.sin(t * 9)) * 1.7 * escala : 0);   // salto: el compañero da saltitos al caminar
     im.style.display = 'block';
     im.style.width = Math.round(nw * z) + 'px'; im.style.height = Math.round(nh * z) + 'px';
     im.style.left = Math.round((o.px + 8) * escala + (nw / 2 - (bb.l + bb.r) / 2) * z) + 'px';
     im.style.top = Math.round((o.py + 14.5) * escala + (nh - bb.b) * z - flota) + 'px';
     im.style.opacity = o.parpadea && Math.floor(t * 4) % 2 === 0 ? '.45' : '1';
+    im.style.transform = o.flip ? 'scaleX(-1)' : '';
   });
 }
 
@@ -6324,6 +6328,8 @@ function advRender(){
   });
   if(legendarioVisible && legendarioVisible.mapa === advMapa && Date.now() < legendarioVisible.hasta)
     sprites.push({p: legendarioVisible.p, px: legendarioVisible.x * ADV_PX - camX, py: legendarioVisible.y * ADV_PX - camY, mult: 1.3, flota: true});
+  companeroActualizar();
+  { const cs = companeroSprite(camX, camY); if(cs) sprites.push(cs); }
   sincronizarSprites(sprites, escala);
 
   if(advMapa === 'overworld') dibujarTren(ctx, camX, camY, vw, vh);
@@ -6460,6 +6466,7 @@ function advPonerEn(x, y){
   if(!t || !t.walk){ const libre = advLugarLibre(x, y); x = libre.x; y = libre.y; }
   advX = x; advY = y;
   advPx = x * ADV_PX; advPy = y * ADV_PX;
+  rastroReiniciar();
   if(advMapa === 'overworld') advRegion = regionDe(x, y);
 }
 
@@ -6503,6 +6510,52 @@ function montadoSurfea(){ return !!(montura && tiendaDiamantes() && MONTURAS[mon
 /* Qué tipo de encuentro da un casillero: el agua sólo da Pokémon si vas surfeando (el servidor lo vuelve a chequear) */
 function encuentroDe(t){ return t && (t.encuentro || (t.pinta === 'agua' && montadoSurfea() ? 'agua' : null)); }
 
+/* ====================== COMPAÑERO (13/11 Zeta) ======================
+   Un Pokémon de tu álbum te sigue por la Aventura, caminando detrás tuyo por el mismo camino (el rastro de tus pasos), con saltitos al andar
+   y de espaldas / espejado según hacia dónde vas. Se elige desde la ficha del Pokémon. Sólo los que tienen animación limpia (Gen 1-5) y no son gigantes. */
+let companero = null;
+try{ const c = Number(localStorage.getItem('album-companero')); if(c) companero = c; }catch(e){}
+const puedeCompanero = id => id >= 1 && id <= 649 && (ALTURA_DM[id - 1] || 12) <= 45;
+let advRastro = [], advRastroS = 0, advFollow = {x: 0, y: 0, dir: 'abajo', mueve: false, listo: false};
+const COMPA_DIST = 12;   // px de mundo que va detrás tuyo
+function rastroReiniciar(){ advRastro = []; advRastroS = 0; advFollow.listo = false; }
+function rastroAvanzar(){
+  const ult = advRastro[advRastro.length - 1];
+  if(!ult){ advRastro.push({x: advPx, y: advPy, s: 0}); advRastroS = 0; return; }
+  const d = Math.hypot(advPx - ult.x, advPy - ult.y);
+  if(d < 1) return;
+  advRastroS += d; advRastro.push({x: advPx, y: advPy, s: advRastroS});
+  if(advRastro.length > 400) advRastro.splice(0, 200);
+}
+function companeroActualizar(){
+  if(!companero || !state[companero] || !state[companero].got || montura || advTrenAbordo){ advFollow.listo = false; return; }
+  if(!advRastro.length) advRastro.push({x: advPx, y: advPy, s: advRastroS});
+  const objetivo = advRastroS - COMPA_DIST;
+  let a = advRastro[0], b = a;
+  for(let i = advRastro.length - 1; i >= 0; i--){ if(advRastro[i].s <= objetivo){ a = advRastro[i]; b = advRastro[Math.min(advRastro.length - 1, i + 1)]; break; } }
+  let x, y;
+  if(objetivo <= advRastro[0].s){ x = advPx; y = advPy + (advRastro.length < 2 ? COMPA_DIST * .6 : 0); if(advRastro.length >= 2){ x = advRastro[0].x; y = advRastro[0].y; } }
+  else { const f = b.s > a.s ? (objetivo - a.s) / (b.s - a.s) : 0; x = a.x + (b.x - a.x) * f; y = a.y + (b.y - a.y) * f; }
+  const dx = x - advFollow.x, dy = y - advFollow.y;
+  if(!advFollow.listo){ advFollow.x = x; advFollow.y = y; advFollow.listo = true; advFollow.mueve = false; }
+  else {
+    const mov = Math.hypot(dx, dy);
+    advFollow.mueve = mov > .05;
+    if(mov > .05) advFollow.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'izq' : 'der') : (dy < 0 ? 'arriba' : 'abajo');
+    advFollow.x = x; advFollow.y = y;
+  }
+}
+function companeroSprite(camX, camY){
+  if(!advFollow.listo || !companero) return null;
+  const p = DATA.find(d => d.id === companero); if(!p) return null;
+  return {p, px: advFollow.x - camX, py: advFollow.y - camY, espalda: advFollow.dir === 'arriba', flip: advFollow.dir === 'der', salto: advFollow.mueve, mult: .8, tope: 22};
+}
+function companeroElegir(id){
+  companero = id || null;
+  try{ if(id) localStorage.setItem('album-companero', String(id)); else localStorage.removeItem('album-companero'); }catch(e){}
+  rastroReiniciar();
+}
+
 function advPaso1(dt){
   trenActualizar();
   if(advTrenAbordo) return;                                            // viajando en el tren: no se camina
@@ -6527,6 +6580,7 @@ function advPaso1(dt){
 
   const anduvo = Math.hypot(advPx - antesX, advPy - antesY);
   if(anduvo > 0){
+    rastroAvanzar();
     advCamino += anduvo;
     advPaso = Math.floor(advCamino / 7) % 4;   // los 4 cuadros de caminata de la hoja de Red
   }
@@ -6647,7 +6701,6 @@ function tirarAltar(santuario, x, y, px, py){
 
 function advPisar(t, x, y){
   if(t.entra){ advIrA(t.entra); return; }
-  if(t.accion === 'centro'){ abrirTienda(); return; }
   if(t.item){
     const clave = advMapa + ':' + x + ',' + y;
     if(advTomados.has(clave)) return;
@@ -6875,7 +6928,7 @@ function capturarVista(p, isNew){
   }, 900);
 }
 
-/* ---------- Centro Pokémon (sólo vende pokébolas) ---------- */
+/* ---------- Tienda (13/11: botón 🛒 de la Aventura; el Centro Pokémon del mapa quedó sólo de adorno) ---------- */
 function abrirTienda(){
   document.getElementById('shopFeedback').textContent = '';
   renderTienda();
@@ -6890,12 +6943,17 @@ function renderTienda(){
   const textoCooldown = (evTienda && evTienda.cooldownCompraMaestraMin)
     ? `cada ${evTienda.cooldownCompraMaestraMin} min durante el evento`
     : 'por día';
-  Object.keys(BOLAS).forEach(tipo => {
+  const comprables = Object.keys(BOLAS).filter(t => t === 'roja' || (t === 'maestra' && evTienda && evTienda.cooldownCompraMaestraMin));
+  const titC = document.createElement('div');
+  titC.style.cssText = "font-family:'Baloo 2',sans-serif;font-size:13px;margin:2px 0 8px;";
+  titC.innerHTML = '🪙 Comprar · tenés <b>' + coins + '</b> monedas';
+  lista.appendChild(titC);
+  comprables.forEach(tipo => {
     const b = BOLAS[tipo];
     const fila = document.createElement('div');
     fila.className = 'shop-row';
     fila.innerHTML = `<img class="bola-ico" src="${b.img}" alt="">
-      <span class="txt"><b>${b.nombre}${b.cantidad > 1 ? ` x${b.cantidad}` : ''}</b>${b.desc}<br>Tenés ${bolas[tipo]}${b.porDia ? ' · ' + (compradasHoy(tipo) >= b.porDia ? '<b>ya compraste la de ' + textoCooldown + '</b>' : 'te queda la de ' + textoCooldown) : ''}</span>`;
+      <span class="txt"><b>${b.nombre}${b.cantidad > 1 ? ` x${b.cantidad}` : ''}</b>${b.desc}<br>Tenés ${bolas[tipo]}${b.porDia ? ' · ' + (compradasHoy(tipo) >= b.porDia ? '<b>ya compraste la de ' + textoCooldown + '</b>' : 'se vende 1 ' + textoCooldown) : ''}</span>`;
     const btn = document.createElement('button');
     btn.className = 'open-btn';
     btn.style.padding = '9px 14px';
@@ -6905,6 +6963,24 @@ function renderTienda(){
     btn.disabled = !puedeComprar(tipo);
     btn.onclick = () => comprarBola(tipo);
     fila.appendChild(btn);
+    lista.appendChild(fila);
+  });
+  /* 13/11 Zeta: las azules, ultra y maestra ya no se compran: se CAMBIAN por las de abajo (CANJES_BOLAS, igual que el servidor) */
+  const titX = document.createElement('div');
+  titX.style.cssText = "font-family:'Baloo 2',sans-serif;font-size:13px;margin:14px 0 8px;";
+  titX.innerHTML = '🔁 Cambiar pokébolas · las mejores se consiguen cambiando las de abajo';
+  lista.appendChild(titX);
+  CANJES_BOLAS.forEach(c => {
+    const de = BOLAS[c.de], a = BOLAS[c.a], max = Math.floor((bolas[c.de] || 0) / c.cuesta);
+    const fila = document.createElement('div');
+    fila.className = 'shop-row';
+    fila.innerHTML = `<img class="bola-ico" src="${a.img}" alt="">
+      <span class="txt"><b>${c.cuesta} ${de.nombre} → 1 ${a.nombre}</b>Tenés ${bolas[c.de]} ${de.nombre} y ${bolas[c.a]} ${a.nombre}</span>`;
+    const caja = document.createElement('span'); caja.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
+    const b1 = document.createElement('button'); b1.className = 'open-btn'; b1.style.padding = '7px 12px'; b1.textContent = 'Cambiar 1'; b1.disabled = max < 1; b1.onclick = () => canjearBolas(c.de, 1);
+    caja.appendChild(b1);
+    if(max > 1){ const bt = document.createElement('button'); bt.className = 'open-btn sec'; bt.style.padding = '5px 12px'; bt.textContent = 'Cambiar ' + max; bt.onclick = () => canjearBolas(c.de, max); caja.appendChild(bt); }
+    fila.appendChild(caja);
     lista.appendChild(fila);
   });
   if(tiendaDiamantes()){
@@ -6928,6 +7004,17 @@ function renderTienda(){
   }
 }
 
+/* 13/11 Zeta: cambiar pokébolas (copia de CANJES_BOLAS del servidor, juego.js): 8 rojas → 1 azul · 4 azules → 1 ultra · 3 ultras → 1 maestra */
+const CANJES_BOLAS = [{de: 'roja', a: 'azul', cuesta: 8}, {de: 'azul', a: 'ultra', cuesta: 4}, {de: 'ultra', a: 'maestra', cuesta: 3}];
+function canjearBolas(de, veces){
+  if(MODO_SERVIDOR) return canjearBolasServidor(de, veces);
+  const c = CANJES_BOLAS.find(x => x.de === de); if(!c) return;
+  const n = Math.max(1, Math.min(100, veces | 0)), gasto = c.cuesta * n;
+  if((bolas[de] || 0) < gasto) return;
+  bolas[de] -= gasto; bolas[c.a] = (bolas[c.a] || 0) + n;
+  saveProgress(); renderTienda();
+  document.getElementById('shopFeedback').innerHTML = `Cambiaste ${gasto} <b>${BOLAS[de].nombre}</b> por ${n} <b>${BOLAS[c.a].nombre}</b>`;
+}
 function comprarBola(tipo){
   if(MODO_SERVIDOR) return comprarBolaServidor(tipo);
   const b = BOLAS[tipo];
@@ -7124,6 +7211,7 @@ document.getElementById('evolucionCloseBtn').onclick = () => document.getElement
 document.getElementById('evolucionAtrasBtn').onclick = () => document.getElementById('evolucionCloseBtn').click();
 document.getElementById('intercambioBtn').onclick = abrirIntercambio;
 /* atajos de la Aventura: la Pokédex y los códigos se abren encima del mapa (los paneles tienen más z-index que la Aventura) */
+document.getElementById('advTiendaBtn').onclick = () => { teclasApretadas.clear(); advEje = {x: 0, y: 0}; abrirTienda(); };
 document.getElementById('advPokedexBtn').onclick = () => { teclasApretadas.clear(); advEje = {x: 0, y: 0}; document.getElementById('pokedexOverlay').classList.add('show'); };
 document.getElementById('advCodigosBtn').onclick = () => { teclasApretadas.clear(); advEje = {x: 0, y: 0}; abrirIntercambio(); };
 document.getElementById('advIncInfoBtn').onclick = abrirPanelIncursiones;

@@ -478,6 +478,15 @@ function comprarBolaServidor(tipo){
   }).catch(() => {}).then(soltar('comprar'));
 }
 
+function canjearBolasServidor(de, veces){
+  if(!puedeJugar('canje')) return;
+  accionServidor('canjearBolas', {de, veces}).then(res => {
+    if(!res.ok) return avisoServidor(res.motivo);
+    renderTienda();
+    document.getElementById('shopFeedback').innerHTML = `Cambiaste ${res.gasto != null ? res.gasto : ''} <b>${BOLAS[de].nombre}</b> por ${veces} <b>${BOLAS[(CANJES_BOLAS.find(x => x.de === de) || {}).a].nombre}</b>`;
+  }).catch(() => {}).then(soltar('canje'));
+}
+
 /* ---------------- Monturas (tienda de diamantes, modo prueba) ---------------- */
 function monturaComprarServidor(clave){
   if(!puedeJugar('montura')) return;
