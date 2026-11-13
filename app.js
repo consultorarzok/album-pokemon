@@ -5689,7 +5689,7 @@ function avistamientoActivo(){
    pedazo del mapa y la cámara sigue al jugador). */
 function advEscala(ancho, alto){
   const chico = Math.min(ancho, alto);
-  let base = chico < 420 ? 1.85 : chico < 700 ? 2.2 : 2.7;   // 12/11 Zeta: la cámara un poco más lejos (antes 2,3 / 2,7 / 3,2)   // Zeta 27/10: con mejor gráfico se ve más terreno (antes 3 / 3,4 / 4)
+  let base = chico < 420 ? 1.55 : chico < 700 ? 1.85 : 2.3;   // 13/11 Zeta: la cámara un poco más lejos todavía (antes 1,85 / 2,2 / 2,7): se ven menos los defectos de los compañeros y más terreno   // 12/11 Zeta: la cámara un poco más lejos (antes 2,3 / 2,7 / 3,2)   // Zeta 27/10: con mejor gráfico se ve más terreno (antes 3 / 3,4 / 4)
   /* El avistamiento ya no pasa siempre pegado al altar (RADIO_AVISTAMIENTO):
      la cámara se aleja lo que haga falta para que jugador y altar-plataforma
      entren los dos en pantalla, con aire, en vez de un alejamiento fijo que
@@ -6516,9 +6516,9 @@ function encuentroDe(t){ return t && (t.encuentro || (t.pinta === 'agua' && mont
    y de espaldas / espejado según hacia dónde vas. Se elige desde la ficha del Pokémon. Sólo los que tienen animación limpia (Gen 1-5) y no son gigantes. */
 let companero = null, companeroHabs = {};   // companeroHabs = {id: true}: las especies habilitadas (cada una se paga una vez, según su rareza)
 try{ const c = Number(localStorage.getItem('album-companero')); if(c) companero = c; companeroHabs = JSON.parse(localStorage.getItem('album-companero-habs') || '{}') || {}; }catch(e){}
-/* Compañeros: lista CORTA (203) de los más conocidos y los que mejor se ven en el mapa (revisados a ojo el 13/11): caminan en 2 o 4 patas, o vuelan con las alas desplegadas.
+/* Compañeros: lista CORTA (198) de los más conocidos y los que mejor se ven en el mapa (revisados a ojo el 13/11): caminan en 2 o 4 patas, o vuelan con las alas desplegadas.
    Nada de sentados / echados / posados / sin patas, ni peces, ni gigantes, ni los que ya son monturas. Misma lista en el servidor (COMPANERO_OK). */
-const COMPANERO_OK = new Set([1,2,3,4,5,7,8,9,12,15,22,25,26,31,34,35,36,37,38,39,40,41,42,52,53,54,55,56,57,58,66,67,68,77,78,92,93,94,106,107,112,113,115,123,124,125,126,127,128,133,135,136,137,142,144,145,146,150,151,152,153,154,155,156,157,158,159,160,169,172,175,176,179,180,181,183,184,185,186,196,197,212,214,215,216,217,227,228,229,243,245,246,248,251,252,253,254,255,256,257,258,259,260,280,281,282,302,304,305,306,309,310,329,330,333,334,335,354,359,371,373,374,375,376,380,381,383,387,388,389,390,391,392,393,394,395,396,397,398,403,404,405,407,443,444,445,447,448,461,464,466,467,468,469,470,471,472,473,475,485,487,488,491,493,494,495,496,498,499,500,501,502,503,508,510,523,530,534,549,567,570,571,586,587,609,610,611,612,623,625,628,633,634,635,637,641,642,643,644,645,646,647,649]);
+const COMPANERO_OK = new Set([1,2,3,4,5,7,8,9,12,15,22,25,26,31,34,35,36,37,39,40,41,42,52,53,55,56,57,58,66,67,68,77,78,92,93,94,106,107,112,113,115,123,124,125,126,127,128,133,135,136,137,142,144,145,146,150,151,152,153,154,155,156,157,158,159,160,169,172,175,176,179,180,181,183,184,185,186,196,197,212,214,215,217,227,228,229,243,245,246,248,251,252,253,254,255,256,257,258,259,260,280,281,282,302,304,305,306,309,310,329,330,333,334,335,354,359,371,373,374,375,376,380,381,383,387,388,389,390,391,392,393,394,395,396,397,398,403,404,405,407,443,444,445,447,448,461,464,466,467,468,469,470,471,472,473,475,485,487,488,491,493,494,495,498,499,500,501,502,503,510,523,530,534,549,567,570,571,586,587,609,610,611,612,623,625,628,633,634,635,637,641,642,643,644,645,646,647,649]);
 const COMPANERO_PRECIOS = {'Común': 5000, 'Poco Común': 8000, 'Rara': 15000, 'Épico': 30000, 'Legendario': 60000};   // por rareza (el precio que vale es el del servidor)
 const puedeCompanero = id => COMPANERO_OK.has(id);
 const companeroPrecioDe = id => COMPANERO_PRECIOS[(DATA.find(p => p.id === id) || {}).rarity] || 15000;
