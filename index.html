@@ -184,6 +184,15 @@
   </div>
 </div>
 
+<div class="overlay" id="compOverlay" role="dialog" aria-modal="true" aria-labelledby="compTit" style="z-index:46;">
+  <div class="reveal-panel" style="max-width:430px;margin:0 auto;">
+    <h2 id="compTit">🐾 Compañero de aventura</h2>
+    <div style="font-size:11px;color:var(--ink-dim);margin-bottom:10px;">Elegí quién te sigue por el mapa. Cada Pokémon se habilita una vez (el precio sale de su rareza). Tenés <b id="compCoins">0</b> monedas.</div>
+    <div class="comp-tabs"><button type="button" id="compTabMios" class="on">Los que tengo</button><button type="button" id="compTabTodos">Todos</button></div>
+    <div id="compList" class="comp-grid"></div>
+    <button class="close-btn" id="compCloseBtn" style="margin-top:12px;">Volver a la tienda</button>
+  </div>
+</div>
 <div class="overlay" id="shopOverlay" role="dialog" aria-modal="true" style="z-index:45;">
   <div class="reveal-panel" style="max-width:430px;margin:0 auto;">
     <h2>🛒 Tienda</h2>

@@ -1070,3 +1070,18 @@
 .shop-chips{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 4px;}
 .shop-chip{display:inline-block;padding:2px 7px;border-radius:999px;background:#fff;border:1.5px solid #cfd6ee;font-size:10.5px;line-height:1.3;}
 .shop-chip b{display:inline;margin-left:2px;}
+
+/* 13/11: panel de compañeros (lista de los Pokémon que se pueden llevar, con su estado) */
+.comp-tabs{display:flex;gap:6px;margin:0 0 10px;}
+.comp-tabs button{flex:1;padding:8px 6px;border-radius:999px;border:2px solid #cfd6ee;background:#fff;color:#1B2140;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:12px;cursor:pointer;}
+.comp-tabs button.on{background:#1B2140;color:#fff;border-color:#1B2140;}
+.comp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-height:56dvh;overflow-y:auto;padding:2px;text-align:center;}
+.comp-rareza{grid-column:1 / -1;text-align:left;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:13px;margin-top:6px;border-bottom:2px solid #dfe4f5;padding-bottom:2px;}
+.comp-rareza small{font-weight:600;opacity:.7;font-size:10.5px;}
+.comp-card{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:12px;background:#fff;border:2px solid #dfe4f5;min-width:0;}
+.comp-card.lleva{border-color:#3DDC6E;background:#effcf2;}
+.comp-card.sin{opacity:.55;}
+.comp-card img{width:64px;height:64px;image-rendering:pixelated;object-fit:contain;}
+.comp-card b{font-size:11px;line-height:1.1;overflow-wrap:anywhere;}
+.comp-btn{padding:5px 6px !important;font-size:11px !important;width:100%;margin-top:2px;}
+.comp-vacio{grid-column:1 / -1;font-size:12px;opacity:.75;padding:14px 4px;}

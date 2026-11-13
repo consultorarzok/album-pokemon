@@ -6574,7 +6574,40 @@ function companeroSprite(camX, camY){
           flota: vuela, frec: mov ? 7 : 2.4, bob: mov ? 1.9 : 1.1, giro, sy, mult: 1, tope: 34, vuela};   // mismo tamaño que el Pokémon salvaje del mapa (curva suave de su altura real respecto a los 17 px / 1,7 m del entrenador)
 }
 const companeroTextoBoton = id => !companeroHabs[id] ? `🐾 Habilitar de compañero · ${companeroPrecioDe(id).toLocaleString('es-AR')} 🪙` : (companero === id ? '🐾 Dejar de llevarlo de compañero' : '🐾 Llevar de compañero en la Aventura');
+const RAREZA_ORDEN = {'Común': 0, 'Poco Común': 1, 'Rara': 2, 'Épico': 3, 'Legendario': 4};
+let compSoloMios = true;
+function abrirCompaneros(){ compSoloMios = true; renderCompaneros(); document.getElementById('compOverlay').classList.add('show'); }
+/* 13/11 Zeta: lista de los Pokémon que pueden ser compañeros, con su estado: no lo tenés / habilitar (precio por rareza) / llevar / llevando */
+function renderCompaneros(){
+  const lista = document.getElementById('compList'); if(!lista) return;
+  document.getElementById('compCoins').textContent = coins.toLocaleString('es-AR');
+  const todos = DATA.filter(p => COMPANERO_OK.has(p.id)).sort((a, b) => (RAREZA_ORDEN[a.rarity] - RAREZA_ORDEN[b.rarity]) || (a.id - b.id));
+  const mios = todos.filter(p => state[p.id] && state[p.id].got);
+  document.getElementById('compTabMios').textContent = 'Los que tengo (' + mios.length + ')';
+  document.getElementById('compTabTodos').textContent = 'Todos (' + todos.length + ')';
+  document.getElementById('compTabMios').classList.toggle('on', compSoloMios); document.getElementById('compTabTodos').classList.toggle('on', !compSoloMios);
+  const ver = compSoloMios ? mios : todos;
+  lista.innerHTML = '';
+  if(!ver.length){ lista.innerHTML = '<p class="comp-vacio">Todavía no tenés ninguno de la lista. Abrí sobres o atrapá Pokémon salvajes y vuelve.</p>'; return; }
+  let ultima = null;
+  ver.forEach(p => {
+    if(p.rarity !== ultima){ ultima = p.rarity; const t = document.createElement('div'); t.className = 'comp-rareza'; t.innerHTML = `${p.rarity} <small>· habilitar cuesta ${COMPANERO_PRECIOS[p.rarity].toLocaleString('es-AR')} 🪙</small>`; lista.appendChild(t); }
+    const tiene = !!(state[p.id] && state[p.id].got), hab = !!companeroHabs[p.id], lleva = companero === p.id, precio = COMPANERO_PRECIOS[p.rarity] || 15000;
+    const c = document.createElement('div'); c.className = 'comp-card' + (lleva ? ' lleva' : '') + (tiene ? '' : ' sin');
+    c.innerHTML = `<img loading="lazy" alt="" src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/${p.id}.png"><b>${p.name}</b>`;
+    const bt = document.createElement('button'); bt.className = 'open-btn comp-btn';
+    if(!tiene){ bt.textContent = 'No lo tenés'; bt.disabled = true; }
+    else if(!hab){ bt.textContent = precio.toLocaleString('es-AR') + ' 🪙'; bt.disabled = coins < precio; bt.onclick = () => companeroHabilitar(p.id); }
+    else if(lleva){ bt.textContent = '✔ Lo llevás · dejar'; bt.classList.add('sec'); bt.onclick = () => companeroElegir(null); }
+    else { bt.textContent = 'Llevar'; bt.classList.add('sec'); bt.onclick = () => companeroElegir(p.id); }
+    c.appendChild(bt); lista.appendChild(c);
+  });
+}
+document.getElementById('compTabMios').onclick = () => { compSoloMios = true; renderCompaneros(); };
+document.getElementById('compTabTodos').onclick = () => { compSoloMios = false; renderCompaneros(); };
+document.getElementById('compCloseBtn').onclick = () => document.getElementById('compOverlay').classList.remove('show');
 function companeroRefrescarUI(){
+  if(document.getElementById('compOverlay').classList.contains('show')) renderCompaneros();
   const cb = document.getElementById('detalleCompBtn'); if(cb) cb.textContent = companeroTextoBoton(Number(cb.dataset.id));
   if(document.getElementById('shopOverlay').classList.contains('show')) renderTienda();
 }
@@ -7033,6 +7066,8 @@ function renderTienda(){
     const chips = [['Común', 'Común'], ['Poco común', 'Poco Común'], ['Rara', 'Rara'], ['Épico', 'Épico'], ['Legendario', 'Legendario']].map(([t, k]) => `<span class="shop-chip">${t} <b>${COMPANERO_PRECIOS[k].toLocaleString('es-AR')}</b></span>`).join('');
     fila.innerHTML = `<span class="bola-ico" style="font-size:30px;display:flex;align-items:center;justify-content:center;">🐾</span>
       <span class="txt"><b>Compañero de aventura</b>Un Pokémon tuyo te sigue por el mapa. Se habilita <b style="display:inline">una vez por Pokémon</b> desde su ficha (📖 Pokédex) y el precio sale de su rareza (en 🪙):<span class="shop-chips">${chips}</span>${cuantos ? 'Ya habilitaste ' + cuantos : ''}</span>`;
+    const bv = document.createElement('button'); bv.className = 'open-btn'; bv.style.cssText = 'padding:9px 14px;margin-top:8px;width:100%;'; bv.textContent = '🐾 Ver los Pokémon que podés elegir';
+    bv.onclick = () => abrirCompaneros(); fila.querySelector('.txt').appendChild(bv);
     lista.appendChild(fila); }
   if(tiendaDiamantes()){
     const tit = document.createElement('div');
@@ -8841,7 +8876,7 @@ function climaVisible(){
   /* 03/11: el clima (y la noche) SOLO se ven en el mapa de la Aventura mientras recorrés; no en encuentros, peleas ni incursiones */
   if(!document.querySelector('#advOverlay.show')) return false;
   if(document.querySelector('#encOverlay.show, #arenaOverlay.show, #battleOverlay.show')) return false;
-  return !document.querySelector('#pokedexOverlay.show, #intercambioOverlay.show, #shopOverlay.show, #detalleOverlay.show, #specialOverlay.show, #codigoCardOverlay.show, #quizOverlay.show, #novedadesOverlay.show, #evolucionOverlay.show, #repetidasOverlay.show, #nameOverlay.show, #pinOverlay.show');
+  return !document.querySelector('#pokedexOverlay.show, #intercambioOverlay.show, #shopOverlay.show, #compOverlay.show, #detalleOverlay.show, #specialOverlay.show, #codigoCardOverlay.show, #quizOverlay.show, #novedadesOverlay.show, #evolucionOverlay.show, #repetidasOverlay.show, #nameOverlay.show, #pinOverlay.show');
 }
 function climaReiniciar(w, h){
   const n = CLIMA.condicion === 'lluvia' ? Math.round(w * h / 2200) : CLIMA.condicion === 'viento' ? Math.round(w * h / 9000) : CLIMA.condicion === 'niebla' ? 7 : CLIMA.condicion === 'calor' ? 26 : 0;
@@ -8944,7 +8979,7 @@ document.addEventListener('keydown', e => {
     return;
   }
   if(e.key !== 'Escape' || advAbierto) return;
-  const cierres = ['novedadesCierraBtn','detalleCloseBtn','evolucionCloseBtn','intercambioCloseBtn','shopCloseBtn','pokedexCloseBtn','closeBtn','quizCloseBtn','battleCloseBtn','repetidasCloseBtn'];
+  const cierres = ['novedadesCierraBtn','compCloseBtn','detalleCloseBtn','evolucionCloseBtn','intercambioCloseBtn','shopCloseBtn','pokedexCloseBtn','closeBtn','quizCloseBtn','battleCloseBtn','repetidasCloseBtn'];
   for(const id of cierres){
     const b = document.getElementById(id);
     const ov = b && b.closest('.overlay');
