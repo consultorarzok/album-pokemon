@@ -1397,23 +1397,16 @@ let RAF = 0, RO = null;
 /* 13/11 (Zeta: peleas e incursión "tildadas"): modo liviano que se prende solo. LIV = 0 normal, 1 liviano (sin desenfoques ni reflejo),
    2 muy liviano (además sin brillos, sin estelas y con menos partículas). Se mide el tiempo de cada cuadro; si el celular no llega,
    sube un nivel y lo recuerda para la próxima pelea (localStorage 'arena-liviano'). */
-let LIV = 0, LIV_MEDIA = 16, LIV_LENTOS = 0;
-try{ LIV = Math.min(2, Number(localStorage.getItem('arena-liviano')) || 0); }catch(e){}
+let LIV = 0;
+/* 13/11 (más tarde): Zeta vio las peleas con menos efectos y NO le gustó. El modo liviano automático queda APAGADO: los efectos se ven siempre completos
+   (LIV queda en 0; sólo las partidas de varios siguen con el liviano de siempre, el del 03/11). Se borra lo que el celular hubiera recordado. */
+try{ localStorage.removeItem('arena-liviano'); }catch(e){}
 function aplicarLiviano(){
   if(!ST) return;
   ST.classList.toggle('ar-liviano', !!(AR && AR.multi) || LIV >= 1);
   ST.classList.toggle('ar-liviano2', LIV >= 2);
 }
-function medirFluidez(ms){
-  if(LIV >= 2 || !AR || AR.fase !== 'lucha' || AR.pausa || document.hidden) return;
-  if(ms > 250){ return; }                                  // un corte largo (cambio de pestaña, carga) no cuenta
-  LIV_MEDIA += (ms - LIV_MEDIA) * .06;
-  if(LIV_MEDIA > 26){                                      // menos de ~38 cuadros por segundo sostenido
-    if(++LIV_LENTOS > 45){ LIV_LENTOS = 0; LIV_MEDIA = 16; LIV = Math.max(LIV, AR.multi ? 1 : 0) + 1; if(LIV > 2) LIV = 2;
-      try{ localStorage.setItem('arena-liviano', String(LIV)); }catch(e){}
-      aplicarLiviano(); }
-  } else LIV_LENTOS = 0;
-}
+function medirFluidez(ms){ /* apagado: ver nota de LIV */ }
 
 const $ = id => document.getElementById(id);
 const azar = (a, b) => a + Math.random() * (b - a);
