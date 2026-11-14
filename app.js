@@ -1283,9 +1283,11 @@ function canjearRepetidas(){
    ser su evolución (mismo número de fuerza y shiny) y se gastan otras copias hasta completar el costo,
    que depende de la rareza de lo que se consigue. Siempre queda 1 del original en el álbum. */
 const costoEvolucion = destId => COSTO_EVOLUCION[DATA.find(p => p.id === destId).rarity];
+const POR_ID_EVO = {};   // id → Pokémon (antes se buscaba recorriendo DATA en cada llamada)
 function destinosEvolucion(id){
   const ev = eventoVistaActiva();
-  return (EVOLUCIONES[id] || []).map(d => DATA.find(p => p.id === d))
+  if(!POR_ID_EVO[1]) DATA.forEach(p => POR_ID_EVO[p.id] = p);
+  return (EVOLUCIONES[id] || []).map(d => POR_ID_EVO[d])
     .filter(d => d && !(ev && !IDS_KANTO_JOHTO.has(d.id)));
 }
 /* Pokémon que se podrían evolucionar ya mismo (alcanzan las repetidas para al menos una rama) */
@@ -1314,8 +1316,7 @@ function evolucionar(id, destId, serie){
   const ej = Object.assign({}, ejemplares(id).find(e => e.c === serie) || {});
   const pull = evolucionarLocal(id, destId, serie);
   if(!pull) return;
-  renderEvolucion();
-  escenaEvolucion(id, pull, ej);
+  escenaEvolucion(id, pull, ej);   // la lista de Evolucionar se rehace al cerrar la escena (antes se rehacía antes y la escena tardaba en arrancar)
 }
 
 /* ====================== ESCENA DE EVOLUCIÓN (14/11) ======================
@@ -1328,7 +1329,7 @@ const evoEspera = (ms, fn) => evoTimers.push(setTimeout(fn, ms));
 function evoLimpiar(){ evoTimers.forEach(clearTimeout); evoTimers = []; }
 function evoImg(p, shiny){ return shiny ? imgVario(p) : p.img; }
 function evoCargar(img, src){
-  return new Promise(res => { const t = setTimeout(res, 2500); img.onload = img.onerror = () => { clearTimeout(t); res(); }; img.src = src; if(img.complete && img.naturalWidth) { clearTimeout(t); res(); } });
+  return new Promise(res => { const t = setTimeout(res, 1200); img.onload = img.onerror = () => { clearTimeout(t); res(); }; img.src = src; if(img.complete && img.naturalWidth) { clearTimeout(t); res(); } });
 }
 function evoAnillo(){ const a = document.getElementById('evoAnillos'), i = document.createElement('i'); a.appendChild(i); setTimeout(() => i.remove(), 1200); }
 function evoChispas(n, confeti, colores){
@@ -1397,6 +1398,7 @@ function evoRevelar(desde, hacia, ej, nueva, color, shiny, salteado){
 function cerrarEscenaEvolucion(){
   const esc = document.getElementById('evoEscena');
   evoLimpiar(); esc.classList.remove('show'); esc.setAttribute('aria-hidden', 'true');
+  if(document.getElementById('evolucionOverlay').classList.contains('show')) renderEvolucion();
 }
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('evoSaltar').addEventListener('click', () => { const e = document.getElementById('evoEscena'); if(e._final) e._final(); });
@@ -1436,8 +1438,10 @@ function renderEvolucion(){
   document.getElementById('evoCostos').textContent = ['Poco Común', 'Rara', 'Épico', 'Legendario']
     .map(r => (r === 'Poco Común' ? 'Común/Poco Común' : r) + ' ' + COSTO_EVOLUCION[r]).join(' · ');
   cont.innerHTML = '';
+  /* 14/11: evolucionablesYa() se calcula UNA vez (antes se recalculaba dos veces en cada comparación del orden: 25 s congelado con un álbum grande) */
+  const ya = new Set(evolucionablesYa().map(p => p.id));
   const lista = DATA.filter(p => state[p.id].dup > 0 && destinosEvolucion(p.id).length && pasaFiltroLista(document.getElementById('evolucionFiltro'), p))
-    .sort((a, b) => Number(evolucionablesYa().includes(b)) - Number(evolucionablesYa().includes(a)) || a.id - b.id);
+    .sort((a, b) => Number(ya.has(b.id)) - Number(ya.has(a.id)) || a.id - b.id);
   if(!lista.length){
     const hay = DATA.some(p => state[p.id].dup > 0 && destinosEvolucion(p.id).length);
     cont.innerHTML = '<div style="font-size:11px;color:var(--ink-dim);">' + (hay ? 'Ningún Pokémon coincide con ese filtro.' : 'Todavía no tenés repetidas de Pokémon que evolucionen. Cuando te salgan, vení acá.') + '</div>';
@@ -1448,7 +1452,7 @@ function renderEvolucion(){
     let elegido = copias[0].c;
     const fila = document.createElement('div');
     fila.className = 'shop-row ej-fila';
-    fila.innerHTML = `<img src="${p.img}" alt="" style="width:34px;height:34px;object-fit:contain;flex:0 0 auto;">
+    fila.innerHTML = `<img src="${p.img}" alt="" loading="lazy" decoding="async" style="width:34px;height:34px;object-fit:contain;flex:0 0 auto;">
       <span class="txt"><b>${p.name}</b>Tenés ${copias.length} (${state[p.id].dup} repetida${state[p.id].dup === 1 ? '' : 's'}): elegí cuál evoluciona</span>
       <div class="ej-lista" role="radiogroup" aria-label="Copias de ${p.name}">${copias.map((e, i) =>
         `<button type="button" class="ej-chip ${claseFuerza(e.f)}" title="${nivelFuerza(e.f)}" data-c="${e.c}" role="radio">
@@ -1467,7 +1471,7 @@ function renderEvolucion(){
       b.type = 'button';
       b.className = 'open-btn evo-btn';
       b.disabled = falta > 0;
-      b.innerHTML = `<img src="${d.img}" alt="" style="width:26px;height:26px;object-fit:contain;vertical-align:middle;margin-right:6px;">` +
+      b.innerHTML = `<img src="${d.img}" alt="" loading="lazy" decoding="async" style="width:26px;height:26px;object-fit:contain;vertical-align:middle;margin-right:6px;">` +
         `→ ${d.name} <small>${falta > 0 ? 'te faltan ' + falta : costo + ' repetidas'}${state[d.id].got ? ' · ya lo tenés' : ' · nuevo'}</small>`;
       b.onclick = () => evolucionar(p.id, d.id, elegido);
       dBox.appendChild(b);

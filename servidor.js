@@ -366,9 +366,8 @@ function evolucionarServidor(id, destId, serie){
   accionServidor('evolucionar', {id, a: destId, c: serie}).then(res => {
     if(!res.ok) return avisoServidor(res.motivo);
     const pulls = res.resultado.pulls.map(aPull);
-    enviarPuntaje();
-    renderEvolucion();
-    escenaEvolucion(id, pulls[0], ej);   // 14/11: escena de evolución con música (antes: carta "Evolucionó a …")
+    escenaEvolucion(id, pulls[0], ej);   // la lista se rehace al cerrar la escena
+    setTimeout(enviarPuntaje, 6000);   // 14/11: escena de evolución con música (antes: carta "Evolucionó a …")
   }).catch(() => {}).then(soltar('evolucionar'));
 }
 
