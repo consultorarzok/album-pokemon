@@ -2760,6 +2760,45 @@ const EVENTOS = [
   }
 ];
 
+/* =================== DÍAS TEMÁTICOS (noviembre 2026) ===================
+   Eventos chicos de un día (00:00 a 23:59, hora de Jujuy). NO son un modo evento: no tocan rankings, regiones ni legendarios.
+   - tipos / especies: esos Pokémon salen x5 en la Aventura (también en zonas que no son suyas) y los que se atrapan esos días
+     vienen con la fuerza más baja (casi siempre hasta 59; de 80 para arriba es difícil y el 100 casi imposible).
+   - monedasX: Fiebre de monedas, todo lo que se GANA vale el doble. Lo decide el servidor (juego.js diaTematico). */
+const DIAS_TEMATICOS = [
+  {slug: 'dia-2026-11-14', emoji: '💰', nombre: 'Fiebre de monedas', inicio: '2026-11-14T00:00:00-03:00', fin: '2026-11-15T00:00:00-03:00', monedasX: 2, subtitulo: 'Todo lo que ganás hoy vale el DOBLE: peleas, preguntas, monedas del piso y regalos de NPC.'},
+  {slug: 'dia-2026-11-15', emoji: '🪨', nombre: 'Día de Roca', inicio: '2026-11-15T00:00:00-03:00', fin: '2026-11-16T00:00:00-03:00', tipos: ['rock'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+  {slug: 'dia-2026-11-16', emoji: '🔥', nombre: 'Día de Fuego', inicio: '2026-11-16T00:00:00-03:00', fin: '2026-11-17T00:00:00-03:00', tipos: ['fire'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+  {slug: 'dia-2026-11-17', emoji: '⚡', nombre: 'Día Eléctrico', inicio: '2026-11-17T00:00:00-03:00', fin: '2026-11-18T00:00:00-03:00', tipos: ['electric'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+  {slug: 'dia-2026-11-18', emoji: '💧', nombre: 'Día de Agua', inicio: '2026-11-18T00:00:00-03:00', fin: '2026-11-19T00:00:00-03:00', tipos: ['water'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+  {slug: 'dia-2026-11-19', emoji: '👻', nombre: 'Día de Fantasmas', inicio: '2026-11-19T00:00:00-03:00', fin: '2026-11-20T00:00:00-03:00', tipos: ['ghost'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+  {slug: 'dia-2026-11-20', emoji: '🧚', nombre: 'Día de Hadas', inicio: '2026-11-20T00:00:00-03:00', fin: '2026-11-21T00:00:00-03:00', tipos: ['fairy'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+  {slug: 'dia-2026-11-21', emoji: '🐉', nombre: 'Día de Dragones', inicio: '2026-11-21T00:00:00-03:00', fin: '2026-11-22T00:00:00-03:00', tipos: ['dragon'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+  {slug: 'dia-2026-11-22', emoji: '🐛', nombre: 'Día de Bichos y Voladores', inicio: '2026-11-22T00:00:00-03:00', fin: '2026-11-23T00:00:00-03:00', tipos: ['bug', 'flying'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+  {slug: 'dia-2026-11-23', emoji: '🔮', nombre: 'Día Psíquico', inicio: '2026-11-23T00:00:00-03:00', fin: '2026-11-24T00:00:00-03:00', tipos: ['psychic'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+  {slug: 'dia-2026-11-24', emoji: '❄️', nombre: 'Día de Hielo', inicio: '2026-11-24T00:00:00-03:00', fin: '2026-11-25T00:00:00-03:00', tipos: ['ice'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+  {slug: 'dia-2026-11-25', emoji: '🥊', nombre: 'Día de Lucha', inicio: '2026-11-25T00:00:00-03:00', fin: '2026-11-26T00:00:00-03:00', tipos: ['fighting'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+  {slug: 'dia-2026-11-26', emoji: '🌿', nombre: 'Día de Planta y Normal', inicio: '2026-11-26T00:00:00-03:00', fin: '2026-11-27T00:00:00-03:00', tipos: ['grass', 'normal'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+  {slug: 'dia-2026-11-27', emoji: '💰', nombre: 'Fiebre de monedas (Black Friday)', inicio: '2026-11-27T00:00:00-03:00', fin: '2026-11-28T00:00:00-03:00', monedasX: 2, subtitulo: 'Todo lo que ganás hoy vale el DOBLE: peleas, preguntas, monedas del piso y regalos de NPC.'},
+  {slug: 'dia-2026-11-28', emoji: '☠️', nombre: 'Día del Pantano (Veneno y Tierra)', inicio: '2026-11-28T00:00:00-03:00', fin: '2026-11-29T00:00:00-03:00', tipos: ['poison', 'ground'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+  {slug: 'dia-2026-11-29', emoji: '🐲', nombre: 'Día de Dragonite', inicio: '2026-11-29T00:00:00-03:00', fin: '2026-11-30T00:00:00-03:00', especies: [147, 148, 149], factor: 8, pesoMin: 40, subtitulo: 'Dratini, Dragonair y Dragonite salen mucho más seguido en toda la Aventura'},
+  {slug: 'dia-2026-11-30', emoji: '🌑', nombre: 'Día Oscuro (Siniestro y Acero)', inicio: '2026-11-30T00:00:00-03:00', fin: '2026-12-01T00:00:00-03:00', tipos: ['dark', 'steel'], factor: 5, subtitulo: 'Salen mucho más seguido en toda la Aventura. Los fuertes siguen siendo difíciles.'},
+];
+function diaTematicoActivo(){
+  const ahora = Date.now();
+  return DIAS_TEMATICOS.find(d => ahora >= new Date(d.inicio).getTime() && ahora < new Date(d.fin).getTime()) || null;
+}
+function sincronizarDiaTematico(){
+  const b = document.getElementById('diaTematico');
+  if(!b) return;
+  const d = diaTematicoActivo();
+  if(!d){ b.hidden = true; return; }
+  document.getElementById('diaTematicoNombre').textContent = d.emoji + ' ' + d.nombre + ' · HOY';
+  document.getElementById('diaTematicoSub').textContent = d.subtitulo || '';
+  b.hidden = false;
+}
+setInterval(sincronizarDiaTematico, 60000);
+
 function eventoActivo(){
   const ahora = Date.now();
   return EVENTOS.find(e => {
@@ -9061,6 +9100,7 @@ cargarTop();
 cargarTopHalloween();
 enviarMaestro();   // por si la última pelea no llegó a mandarse
 sincronizarEvento();
+sincronizarDiaTematico();
 setInterval(sincronizarEvento, 60000);
 
 if(nombreDelLink && nombreDelLink !== jugador){
