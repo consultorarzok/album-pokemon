@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261178">
+<link rel="stylesheet" href="styles.css?v=20261179">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -525,10 +525,10 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261168"></script>
-<script src="app.js?v=20261178"></script>
-<script src="servidor.js?v=20261178"></script>
+<script src="app.js?v=20261179"></script>
+<script src="servidor.js?v=20261179"></script>
 <script src="pixfx.js?v=3"></script>
-<script src="arena.js?v=20261178"></script>
+<script src="arena.js?v=20261179"></script>
 <script src="portada.js?v=20261105"></script>
 <script>
 /* Guardado del juego en el celular (sw.js): sólo en el sitio real, nunca en pruebas locales */
@@ -543,12 +543,15 @@ if('serviceWorker' in navigator && location.protocol === 'https:' && /(^|\.)entr
   const s = document.querySelector('script[src^="app.js"]');
   const actual = s && (s.getAttribute('src').match(/[?&]v=(\d+)/) || [])[1];
   if(!actual) return;
+  /* 14/11 Zeta: "obligá a todos a que actualicen". version.json puede traer también "min": si lo que corre es MÁS VIEJO que min, la actualización es OBLIGATORIA:
+     se recarga sola (sin esperar un toque), salvo en plena pelea (espera a que termine). Sin "min", todo sigue como antes (cartelito). */
   async function nueva(){
     try{
       const r = await fetch('/version.json?t=' + Date.now(), {cache: 'no-store'});
       if(!r.ok) return null;
       const j = await r.json();
-      return j && /^\d+$/.test(String(j.v)) && Number(j.v) > Number(actual) ? String(j.v) : null;
+      if(!j || !/^\d+$/.test(String(j.v)) || !(Number(j.v) > Number(actual))) return null;
+      return {v: String(j.v), forzar: /^\d+$/.test(String(j.min || '')) && Number(j.min) > Number(actual)};
     }catch(e){ return null; }
   }
   async function limpiarYRecargar(v){
@@ -565,15 +568,31 @@ if('serviceWorker' in navigator && location.protocol === 'https:' && /(^|\.)entr
     b.onclick = () => limpiarYRecargar(v);
     document.body.appendChild(b);
   }
+  const enPelea = () => { const a = document.getElementById('arenaOverlay'); return !!(a && a.classList.contains('show')); };
+  function pantallaActualizando(){
+    if(document.getElementById('rzForzada')) return;
+    const d = document.createElement('div'); d.id = 'rzForzada';
+    d.style.cssText = 'position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;background:rgba(10,14,32,.94);color:#fff;font:700 18px system-ui,sans-serif;text-align:center;padding:24px';
+    d.textContent = '🔄 Hay una versión nueva del juego. Actualizando…';
+    document.body.appendChild(d);
+  }
   async function revisar(alAbrir){
-    const v = await nueva(); if(!v) return;
-    let yaProbo = null; try{ yaProbo = sessionStorage.getItem('rz-recarga'); }catch(e){}
+    const r = await nueva(); if(!r) return;
+    const v = r.v;
+    let yaProbo = null, intentos = 0;
+    try{ yaProbo = sessionStorage.getItem('rz-recarga'); intentos = Number(sessionStorage.getItem('rz-forzadas-' + v) || 0); }catch(e){}
+    if(r.forzar && intentos < 3){   // OBLIGATORIA (hasta 3 intentos por versión, por si el celular sigue con lo guardado: después queda el cartelito)
+      if(enPelea()){ cartel(v); setTimeout(() => revisar(false), 8000); return; }   // en plena pelea no se corta: se actualiza al terminar
+      try{ sessionStorage.setItem('rz-forzadas-' + v, String(intentos + 1)); }catch(e){}
+      pantallaActualizando();
+      return setTimeout(() => limpiarYRecargar(v), 1200);
+    }
     if(alAbrir && yaProbo !== v) return limpiarYRecargar(v);
     cartel(v);
   }
   addEventListener('load', () => revisar(true));
   document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') revisar(false); });
-  setInterval(() => revisar(false), 10 * 60 * 1000);
+  setInterval(() => revisar(false), 3 * 60 * 1000);   // cada 3 min (antes 10): una versión obligatoria llega rápido
 })();
 </script>
 </body>
