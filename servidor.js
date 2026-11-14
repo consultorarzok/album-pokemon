@@ -53,7 +53,7 @@ const aPull = x => ({p: POR_ID_C[x.id], isNew: x.isNew});
 const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar']);
 
 const MENSAJES = {
-  lejos_del_lider: 'Para desafiar al gimnasio tenés que estar al lado del líder.', todavia_no: 'Todavía no completaste esa misión.',
+  lejos_del_lider: 'Para desafiar al gimnasio tenés que estar al lado del líder.', falta_medalla_previa: 'Primero tenés que ganarle al líder anterior: los gimnasios van en orden.', todavia_no: 'Todavía no completaste esa misión.',
   sin_habilitar: 'Primero habilitá a ese Pokémon como compañero', ya_habilitado: 'Ese Pokémon ya está habilitado de compañero', no_puede_ser_companero: 'Ese Pokémon no puede ser compañero (no queda bien en el mapa)', se_consigue_canjeando: 'Esa pokébola se consigue cambiando las de abajo', sin_bolas: 'No te alcanzan las pokébolas para ese cambio', canje_invalido: 'Ese cambio no existe',
   sin_monedas: 'No te alcanzan las monedas.',
   fuerza_maxima: 'Esa figurita ya tiene la fuerza máxima.',
@@ -571,25 +571,25 @@ function hablarConNpc(){
 /* ================= MODO HISTORIA (14/11): "La Liga de Jujuy" =================
    Lo decide el servidor (juego.js: historiaVer, misionCobrar, hablarProfesor, arenaEmpezar con reto). Acá sólo se muestra. */
 const MEDALLAS = [
-  {id: 'g1', nombre: 'Medalla Lapacho', emoji: '🌸', lider: 'Rey sin Corona del Lapacho', lugar: 'Parque San Martín (Valles)', tipo: 'Planta'},
-  {id: 'g2', nombre: 'Medalla Selva', emoji: '🪲', lider: 'Guardián de la Selva', lugar: 'Calilegua (Yungas)', tipo: 'Bicho'},
-  {id: 'g3', nombre: 'Medalla Siete Colores', emoji: '⛰️', lider: 'Señor de los Siete Colores', lugar: 'Purmamarca (Quebrada)', tipo: 'Roca y Tierra'},
-  {id: 'g4', nombre: 'Medalla Hornocal', emoji: '🥊', lider: 'Titán del Hornocal', lugar: 'Hornocal (Alta Quebrada)', tipo: 'Lucha'},
-  {id: 'g5', nombre: 'Medalla Rayo', emoji: '⚡', lider: 'Señor del Rayo', lugar: 'Cauchari (Puna)', tipo: 'Eléctrico'},
-  {id: 'g6', nombre: 'Medalla Llama de Hielo', emoji: '❄️', lider: 'Rey de la Helada', lugar: 'La Quiaca (Puna norte)', tipo: 'Hielo'},
-  {id: 'g7', nombre: 'Medalla Pucará', emoji: '👁️', lider: 'Vidente del Pucará', lugar: 'Tilcara (Quebrada)', tipo: 'Psíquico y Hada'},
-  {id: 'g8', nombre: 'Medalla Carnaval', emoji: '👻', lider: 'Heraldo de las Sombras', lugar: 'Humahuaca', tipo: 'Siniestro y Fantasma'},
-  {id: 'g9', nombre: 'Medalla Altos Hornos', emoji: '⚙️', lider: 'Forjador de Acero', lugar: 'Palpalá (Valles)', tipo: 'Acero'},
-  {id: 'g10', nombre: 'Medalla Flamenco', emoji: '🦩', lider: 'Dama de la Laguna', lugar: 'Laguna de los Pozuelos (Puna)', tipo: 'Agua y Volador'},
-  {id: 'g11', nombre: 'Medalla Salar', emoji: '🧂', lider: 'Alquimista del Salar', lugar: 'Salinas Grandes', tipo: 'Veneno y Tierra'},
-  {id: 'g12', nombre: 'Medalla Paleta del Pintor', emoji: '🎨', lider: 'Pintora de la Paleta', lugar: 'Maimará (Quebrada)', tipo: 'Normal'},
-  {id: 'g13', nombre: 'Medalla Volcán', emoji: '🌋', lider: 'Señor del Fuego', lugar: 'Volcán (Yungas)', tipo: 'Fuego y Dragón'},
-  {id: 'g14', nombre: 'Medalla Trueno', emoji: '🌩️', lider: 'Dama del Trueno', lugar: 'Iruya (Alta Quebrada)', tipo: 'Eléctrico y Lucha'},
-  {id: 'g15', nombre: 'Medalla Tormenta', emoji: '⛈️', lider: 'Amo de la Tormenta', lugar: 'Dique La Ciénaga (Valles)', tipo: 'Agua y Eléctrico'},
-  {id: 'g16', nombre: 'Medalla Zenta', emoji: '🔮', lider: 'Oráculo del Zenta', lugar: 'Cuesta de Zenta', tipo: 'Psíquico'},
-  {id: 'g17', nombre: 'Medalla Sombras', emoji: '🌙', lider: 'Señor de las Sombras', lugar: 'Yala (Valle de las Sombras)', tipo: 'Fantasma y Siniestro'},
-  {id: 'g18', nombre: 'Medalla Cielo y Mar', emoji: '🌊', lider: 'Señora del Cielo y el Mar', lugar: 'Dique Los Alisos', tipo: 'Agua, Dragón y Volador'},
-  {id: 'g19', nombre: 'Medalla Sol de Jujuy', emoji: '☀️', lider: 'Campeón del Sol', lugar: 'Ingenio Ledesma (Yungas)', tipo: 'Fuego, Tierra y Acero'}
+  {id: 'g1', nombre: 'Medalla Lapacho', emoji: '🌸', lider: 'Rey sin Corona del Lapacho', lugar: 'Parque San Martín (Valles)', tipo: 'Planta', x: 93, y: 148},
+  {id: 'g2', nombre: 'Medalla Selva', emoji: '🪲', lider: 'Guardián de la Selva', lugar: 'Calilegua (Yungas)', tipo: 'Bicho', x: 139, y: 135},
+  {id: 'g3', nombre: 'Medalla Siete Colores', emoji: '⛰️', lider: 'Señor de los Siete Colores', lugar: 'Purmamarca (Quebrada)', tipo: 'Roca y Tierra', x: 26, y: 177},
+  {id: 'g4', nombre: 'Medalla Hornocal', emoji: '🥊', lider: 'Titán del Hornocal', lugar: 'Hornocal (Alta Quebrada)', tipo: 'Lucha', x: 133, y: 109},
+  {id: 'g5', nombre: 'Medalla Rayo', emoji: '⚡', lider: 'Señor del Rayo', lugar: 'Cauchari (Puna)', tipo: 'Eléctrico', x: 38, y: 31},
+  {id: 'g6', nombre: 'Medalla Llama de Hielo', emoji: '❄️', lider: 'Rey de la Helada', lugar: 'La Quiaca (Puna norte)', tipo: 'Hielo', x: 90, y: 12},
+  {id: 'g7', nombre: 'Medalla Pucará', emoji: '👁️', lider: 'Vidente del Pucará', lugar: 'Tilcara (Quebrada)', tipo: 'Psíquico y Hada', x: 12, y: 127},
+  {id: 'g8', nombre: 'Medalla Carnaval', emoji: '👻', lider: 'Heraldo de las Sombras', lugar: 'Humahuaca', tipo: 'Siniestro y Fantasma', x: 120, y: 22},
+  {id: 'g9', nombre: 'Medalla Altos Hornos', emoji: '⚙️', lider: 'Forjador de Acero', lugar: 'Palpalá (Valles)', tipo: 'Acero', x: 98, y: 149},
+  {id: 'g10', nombre: 'Medalla Flamenco', emoji: '🦩', lider: 'Dama de la Laguna', lugar: 'Laguna de los Pozuelos (Puna)', tipo: 'Agua y Volador', x: 14, y: 47},
+  {id: 'g11', nombre: 'Medalla Salar', emoji: '🧂', lider: 'Alquimista del Salar', lugar: 'Salinas Grandes', tipo: 'Veneno y Tierra', x: 27, y: 211},
+  {id: 'g12', nombre: 'Medalla Paleta del Pintor', emoji: '🎨', lider: 'Pintora de la Paleta', lugar: 'Maimará (Quebrada)', tipo: 'Normal', x: 13, y: 167},
+  {id: 'g13', nombre: 'Medalla Volcán', emoji: '🌋', lider: 'Señor del Fuego', lugar: 'Volcán (Yungas)', tipo: 'Fuego y Dragón', x: 140, y: 162},
+  {id: 'g14', nombre: 'Medalla Trueno', emoji: '🌩️', lider: 'Dama del Trueno', lugar: 'Iruya (Alta Quebrada)', tipo: 'Eléctrico y Lucha', x: 148, y: 55},
+  {id: 'g15', nombre: 'Medalla Tormenta', emoji: '⛈️', lider: 'Amo de la Tormenta', lugar: 'Dique La Ciénaga (Valles)', tipo: 'Agua y Eléctrico', x: 76, y: 166},
+  {id: 'g16', nombre: 'Medalla Zenta', emoji: '🔮', lider: 'Oráculo del Zenta', lugar: 'Cuesta de Zenta', tipo: 'Psíquico', x: 5, y: 177},
+  {id: 'g17', nombre: 'Medalla Sombras', emoji: '🌙', lider: 'Señor de las Sombras', lugar: 'Yala (Valle de las Sombras)', tipo: 'Fantasma y Siniestro', x: 132, y: 193},
+  {id: 'g18', nombre: 'Medalla Cielo y Mar', emoji: '🌊', lider: 'Señora del Cielo y el Mar', lugar: 'Dique Los Alisos', tipo: 'Agua, Dragón y Volador', x: 96, y: 213},
+  {id: 'g19', nombre: 'Medalla Sol de Jujuy', emoji: '☀️', lider: 'Campeón del Sol', lugar: 'Ingenio Ledesma (Yungas)', tipo: 'Fuego, Tierra y Acero', x: 127, y: 127}
 ];
 /* Lo que dice el Guardián de la Liga en cada paso del capítulo 1 (pide / felicita) */
 const CAP1 = [
@@ -600,6 +600,7 @@ const CAP1 = [
   {pide: 'Estás listo para tu primer gimnasio. El <b>Rey sin Corona del Lapacho</b> te espera en el <b>Parque San Martín</b>, acá cerquita al sur. Usa Pokémon de tipo Planta: ¡llevá Fuego o Volador!', meta: 'Ganale a el Rey sin Corona del Lapacho (Parque San Martín)'}
 ];
 const CAP1_FIN = '¡La <b>Medalla Lapacho</b>! Sabía que podías. Ahora los <b>18 gimnasios</b> que faltan están abiertos, en el orden que quieras: cuanto más lejos, más difíciles. Mirá tus medallas en 📜 Misiones. ¡Y no te olvides de las misiones de cada día!';
+const GUARDIAN = {x: 79, y: 125};   // Plaza Belgrano
 const HIST = {estado: null};
 const premioTexto = pr => {
   if(!pr) return '';
@@ -627,21 +628,50 @@ function hablarProfesor(n){
     if(!res.ok){ if(res.motivo === 'lejos_del_npc') return advMensaje('Acercate un poco más 🚶'); return avisoServidor(res.motivo); }
     const r = res.resultado, quien = n.nombre;
     if(r.fin && !r.premio) return charla(quien, CAP1_FIN);
-    if(r.falta){ const p = CAP1[r.paso]; return charla(quien, p.pide + (p.n ? `<br><br>Vas <b>${r.cnt} de ${p.n}</b>.` : '')); }
+    if(r.falta){ const p = CAP1[r.paso], obj = proximoObjetivo({paso: r.paso, cnt: r.cnt, medallas: (HIST.estado && HIST.estado.medallas) || []}); return charla(quien, p.pide + (p.n ? `<br><br>Vas <b>${r.cnt} de ${p.n}</b>.` : ''), obj ? [{t: '🧭 Guiame', fn: () => guiarA(obj)}, {t: 'Seguir', sec: true}] : null); }
     updateCoins(); enviarPuntaje();
     const sig = r.fin ? CAP1_FIN : CAP1[r.paso].pide;
     const antes = r.paso === 1 ? CAP1[0].pide + '<br><br>' : '¡Muy bien hecho! ';
-    charla(quien, antes + `<span style="color:#3ddc6e">${premioTexto(r.premio)}</span><br><br>` + (r.paso === 1 ? CAP1[1].pide : sig));
+    const obj = proximoObjetivo(Object.assign({}, HIST.estado || {medallas: []}, {paso: r.paso, cnt: 0}));
+    charla(quien, antes + `<span style="color:#3ddc6e">${premioTexto(r.premio)}</span><br><br>` + (r.paso === 1 ? CAP1[1].pide : sig),
+      obj ? [{t: '🧭 Guiame', fn: () => guiarA(obj)}, {t: 'Seguir', sec: true}] : null);
     HIST.estado = null; misPunto();
   }).catch(() => {}).then(soltar('profesor'));
 }
+/* Flechita que guía (como las incursiones): apunta al personaje y se quita sola al llegar */
+const objDe = m => ({x: m.x, y: m.y, texto: `<b>${m.lider}</b> (${m.lugar}) para la <b>${m.nombre}</b>`});
+function guiarA(obj){ advGuia = null; advGuiaObj = {x: obj.x, y: obj.y}; advMensaje('🧭 Seguí la flecha dorada'); }
+/* Qué viene ahora en la historia (capítulo 1 y después los gimnasios EN ORDEN); null si no hay un lugar al que ir todavía */
+function proximoObjetivo(e){
+  if(!e) return null;
+  const p = CAP1[e.paso], g1 = MEDALLAS[0];
+  if(p){
+    const hecho = e.paso === 0 || (e.paso === 3 ? e.medallas.includes('g1') : (e.cnt || 0) >= p.n);
+    if(hecho) return {x: GUARDIAN.x, y: GUARDIAN.y, texto: e.paso === 0 ? 'hablar con el <b>Guardián de la Liga</b> (Plaza Belgrano)' : 'volver con el <b>Guardián de la Liga</b> (Plaza Belgrano)'};
+    return e.paso === 3 ? objDe(g1) : null;
+  }
+  const sig = MEDALLAS.find(m => !e.medallas.includes(m.id));
+  return sig ? objDe(sig) : null;
+}
+function ofrecerGuiaProximo(){
+  cargarHistoria().then(e => {
+    const o = proximoObjetivo(e);
+    if(!o) return;
+    charla('📜 La Liga de Jujuy', `Tu próximo objetivo: ${o.texto}.<br><br>¿Querés que una <b>flecha</b> te guíe hasta ahí?`, [{t: '🧭 Sí, guiame', fn: () => guiarA(o)}, {t: 'No, gracias', sec: true}]);
+  });
+}
 function desafioGimnasio(reto){
-  const g = MEDALLAS.find(m => m.id === reto);
+  const idx = MEDALLAS.findIndex(m => m.id === reto), g = MEDALLAS[idx], prev = MEDALLAS[idx - 1];
   return n => {
-    const ya = HIST.estado && HIST.estado.medallas.includes(reto);
-    charla(n.nombre, (ya ? `¡Revancha! Ya tenés la <b>${g.nombre}</b>, pero siempre se puede entrenar. ` : `¡Bienvenido al gimnasio! Si me ganás te llevás la <b>${g.nombre}</b> ${g.emoji}. `) +
-      `Mis Pokémon son de tipo <b>${g.tipo}</b>. ¿Aceptás el desafío?`,
-      [{t: '⚔️ ¡Acepto!', fn: () => { window.__retoArena = Object.assign({reto, nombre: n.nombre}, posAdv()); cerrarAventura(); abrirArena(); }}, {t: 'Ahora no', sec: true}]);
+    cargarHistoria().then(e => {   // siempre con lo último del servidor (por si ganaste uno hace un momento)
+      const ya = !!(e && e.medallas.includes(reto));
+      if(prev && e && !ya && !e.medallas.includes(prev.id))   // los gimnasios van EN ORDEN (el servidor también lo exige)
+        return charla(n.nombre, `Todavía no estás listo para enfrentarme. Primero tenés que ganarle a ${objDe(prev).texto}.`,
+          [{t: '🧭 Guiame hasta él', fn: () => guiarA(objDe(prev))}, {t: 'Entendido', sec: true}]);
+      charla(n.nombre, (ya ? `¡Revancha! Ya tenés la <b>${g.nombre}</b>, pero siempre se puede entrenar. ` : `¡Bienvenido al gimnasio! Si me ganás te llevás la <b>${g.nombre}</b> ${g.emoji}. `) +
+        `Mis Pokémon son de tipo <b>${g.tipo}</b>. ¿Aceptás el desafío?`,
+        [{t: '⚔️ ¡Acepto!', fn: () => { window.__retoArena = Object.assign({reto, nombre: n.nombre}, posAdv()); cerrarAventura(); abrirArena(); }}, {t: 'Ahora no', sec: true}]);
+    });
   };
 }
 const HIST_NPC = {profesor: hablarProfesor, rosa: desafioGimnasio('g1')};
@@ -661,6 +691,12 @@ function pintarMisiones(){
     (e.paso === 0 ? 'Buscá al <b>Guardián de la Liga</b> en la <b>Plaza Belgrano</b> (Valles, San Salvador) y hablale.' :
       p.meta + (p.n ? ` · vas <b>${Math.min(e.cnt, p.n)} de ${p.n}</b>` : '') + (e.paso < 3 || e.medallas.includes('g1') ? '. Después volvé con el Guardián de la Liga en la Plaza Belgrano.' : '.'))
     : '<b>Capítulo 1 completo</b> 🎉<br>Ya podés ir por los gimnasios de todo Jujuy: tus medallas están acá abajo.') + '</div>';
+  const ob = proximoObjetivo(e);
+  if(ob){
+    const act = !!(advGuiaObj && advGuiaObj.x === ob.x && advGuiaObj.y === ob.y);
+    document.getElementById('advMisHistoria').insertAdjacentHTML('beforeend', `<div class="adv-mis-paso" style="margin-top:8px">📍 <b>Próximo objetivo:</b> ${ob.texto}.<br><button type="button" class="adv-liga-btn" id="advMisGuia" style="margin:8px 0 0">${act ? '❌ Quitar flecha' : '🧭 Guiarme con una flecha'}</button></div>`);
+    document.getElementById('advMisGuia').onclick = () => { if(act) advGuiaObj = null; else { guiarA(ob); document.getElementById('advMisPanel').hidden = true; } pintarMisiones(); };
+  }
   document.getElementById('advMisMedallas').innerHTML = `<div style="width:100%;text-align:center;font-size:12px;margin-bottom:2px">🏅 Medallas: <b>${e.medallas.length} de ${MEDALLAS.length}</b></div>` + MEDALLAS.map(m => `<span class="adv-mis-medalla${e.medallas.includes(m.id) ? ' on' : ''}" title="${m.nombre} · ${m.lider} · ${m.lugar}"><img src="images/medallas/${m.id}.png" alt="${m.nombre}${e.medallas.includes(m.id) ? '' : ' (todavía no)'}"></span>`).join('');
   const L = document.getElementById('advMisLista'); L.innerHTML = '';
   e.dia.ms.forEach((m, i) => {
@@ -696,8 +732,39 @@ function abrirMisiones(){
   if(!servidorListo){ advMensaje('Las misiones necesitan conexión 📶'); return; }
   teclasApretadas.clear(); advEje = {x: 0, y: 0};
   document.getElementById('advMisPanel').hidden = false;
-  cargarHistoria();
+  cargarHistoria(); cargarLiga();
 }
+/* ---- Liga de Jujuy: los 10 primeros con las 19 medallas (los anota el servidor; acá sólo se muestran) ---- */
+const LIGA = {datos: null, timer: null};
+const horaLiga = ts => { try{ return new Date(ts).toLocaleString('es-AR', {timeZone: 'America/Argentina/Jujuy', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false}).replace(',', ' ·'); }catch(e){ return ''; } };
+function pintarLiga(){
+  const d = LIGA.datos, ol = document.getElementById('advLigaLista');
+  if(!ol) return;
+  const cupos = (d && d.cupos) || 10, lista = (d && d.clasificados) || [];
+  const yo = (typeof jugador === 'string' ? jugador : '').toLowerCase();
+  document.getElementById('advLigaCont').textContent = d ? `(${lista.length}/${cupos})` : '';
+  document.getElementById('advLigaSub').textContent = !d ? 'Cargando…' : lista.length >= cupos ? '¡Ya están los 10 clasificados! Pronto se anuncia el campeonato.' : `Los primeros ${cupos} en reunir las 19 medallas. Faltan ${cupos - lista.length}.`;
+  ol.innerHTML = '';
+  for(let i = 1; i <= cupos; i++){
+    const c = lista.find(x => x.puesto === i), li = document.createElement('li');
+    if(c){ li.className = yo && c.nombre.toLowerCase() === yo ? 'yo' : ''; li.innerHTML = '<span class="pto">' + i + '</span><span class="nom"></span><span class="hora"></span>'; li.querySelector('.nom').textContent = c.nombre; li.querySelector('.hora').textContent = horaLiga(c.ts); }
+    else { li.className = 'libre'; li.innerHTML = '<span class="pto">' + i + '</span><span class="nom">— lugar libre —</span><span class="hora"></span>'; }
+    ol.appendChild(li);
+  }
+}
+function cargarLiga(){
+  if(!servidorListo || typeof SERVIDOR_URL === 'undefined') return Promise.resolve(null);
+  return fetch(SERVIDOR_URL + '/liga', {cache: 'no-store'}).then(r => r.json()).then(d => { if(d && d.ok){ LIGA.datos = d; pintarLiga(); } return d; }).catch(() => null);
+}
+function abrirLiga(){
+  document.getElementById('advLigaPanel').hidden = false;
+  pintarLiga(); cargarLiga();
+  clearInterval(LIGA.timer); LIGA.timer = setInterval(() => { if(document.getElementById('advLigaPanel').hidden) clearInterval(LIGA.timer); else cargarLiga(); }, 20000);   // los nombres van apareciendo a medida que terminan
+}
+(() => {
+  const b = document.getElementById('advLigaBtn'); if(b) b.onclick = abrirLiga;
+  const c = document.getElementById('advLigaCerrar'); if(c) c.onclick = () => { document.getElementById('advLigaPanel').hidden = true; };
+})();
 (() => {
   const b = document.getElementById('advMisBtn'); if(b) b.onclick = abrirMisiones;
   const c = document.getElementById('advMisCerrar'); if(c) c.onclick = () => { document.getElementById('advMisPanel').hidden = true; };

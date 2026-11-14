@@ -2120,7 +2120,7 @@ Object.assign(window.__arenaMovs, {movsEjemplar, opcionesDeAtaque});
 function crearMon(p, rival, ejFijo){
   const ej = ejFijo || (rival ? null : mejorEjemplar(p.id));
   const fz = ejFijo ? ejFijo.f : rival ? fuerzaRival() : ((ej || {}).f || 50);
-  const k = .8 + fz / 250,   /* 05/11 Zeta: vida y daño van de ×0,80 (fuerza 1) a ×1,20 (fuerza 100); antes .9 + fz/500 (×0,90 a ×1,10) */
+  const k = (.8 + fz / 250) * ((ejFijo && ejFijo.dif) || 1),   /* 14/11 modo historia: los Pokémon de los líderes traen un multiplicador de dificultad (×1,10 a ×1,45) en vida y daño */   /* 05/11 Zeta: vida y daño van de ×0,80 (fuerza 1) a ×1,20 (fuerza 100); antes .9 + fz/500 (×0,90 a ×1,10) */
      bst = bstDe(p), max = Math.round((60 + bst * .22) * k);
   /* los ataques salen del número de serie del ejemplar (siempre los mismos para esa figurita);
      el rival, como no tiene ejemplar guardado, saca unos al azar en cada pelea */
@@ -3898,7 +3898,7 @@ async function luchar(mios, duelo){
   const estilo = elige(Object.keys(ESTILOS));
   AR = {
     yo:  {mons:duelo && !multi ? duelo.yo.equipo.map(x => crearMon(pDe(x.id), false, x)) : mios ? mios.map(p => crearMon(p)) : [], idx:0, act:null, nombre:window.__yoNombre || 'Vos'},
-    riv: {mons:gim ? gim.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:'GIM' + i, s:!!x.s})) : duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
+    riv: {mons:gim ? gim.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:'GIM' + i, s:!!x.s, dif:x.dif})) : duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
     zoom:ZOOM_1V1, lados:['yo', 'riv'], bando:{yo:'A', riv:'B'}, espejo:{riv:true}, porSlot:{}, miSlot:null, multi:false, modo:'1v1', spawn:{yo:[.55, .35], riv:[-.55, -.2]},
     online:!!duelo, red:{ult:0, obj:{}},
     estilo:ESTILOS[estilo], proys:[], zonas:[], pend:[], hold:new Set(), keys:new Set(), joy:{x:0, y:0},
@@ -3978,8 +3978,9 @@ function terminarServidor(gane){
       (u.legendarias.length ? ' (' + u.legendarias.map(x => (DATA.find(d => d.id === x.id) || {}).name).join(', ') + ')' : '')}));
     cargarTopMaestro();
     const med = r.medalla && !r.medalla.repetida ? `<img src="images/medallas/${r.medalla.id}.png" alt="" style="width:72px;height:72px;display:block;margin:6px auto;animation:medRebote .7s cubic-bezier(.2,1.6,.4,1)">🏅 ¡Ganaste la <b>${r.medalla.nombre}</b>! ${typeof premioTexto === 'function' ? premioTexto(r.medalla.premio) : ''}` : '';
-    pintarFin(gane, pr, subidas, [r.tope ? 'Ya peleaste un montón hoy: las peleas de acá a mañana no dan premio.' : '', med].filter(Boolean).join('<br>'));
-    if(med) updateCoins();
+    const liga = r.liga ? (r.liga.puesto ? `<br>🏆 <b>¡Reuniste las 19 medallas!</b> Clasificaste a la Liga de Jujuy: <b>puesto ${r.liga.puesto} de ${r.liga.cupos}</b>. Pronto se anuncia el campeonato.` : `<br>🏅 <b>¡Reuniste las 19 medallas!</b> Los ${r.liga.cupos} lugares de la Liga ya se llenaron, pero sos de los que lo lograron.`) : '';
+    pintarFin(gane, pr, subidas, [r.tope ? 'Ya peleaste un montón hoy: las peleas de acá a mañana no dan premio.' : '', med + liga].filter(Boolean).join('<br>'));
+    if(med){ updateCoins(); window.__ofrecerGuia = true; }
   }).catch(() => pintarFin(gane, vacio, [], 'Sin conexión: esta pelea no se anotó.'));
 }
 
@@ -4661,7 +4662,7 @@ function cerrarArena(){
   $('arRoot').innerHTML = '';
   if(typeof updateBarras === 'function') updateBarras();
   window.__retoArena = null;
-  if(window.__retoVolver){ window.__retoVolver = false; if(typeof abrirAventura === 'function') abrirAventura(); }   // después del gimnasio, de vuelta a la Aventura
+  if(window.__retoVolver){ window.__retoVolver = false; if(typeof abrirAventura === 'function') abrirAventura(); if(window.__ofrecerGuia){ window.__ofrecerGuia = false; setTimeout(() => { if(typeof ofrecerGuiaProximo === 'function') ofrecerGuiaProximo(); }, 1200); } }   // después del gimnasio, de vuelta a la Aventura
 }
 
 /* ---------------- teclado ---------------- */

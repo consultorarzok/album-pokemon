@@ -1160,3 +1160,14 @@
 .adv-charla-botones button{flex:1;min-height:44px;border-radius:12px;border:0;font-weight:800;cursor:pointer;background:#2d6cdf;color:#fff;}
 .adv-charla-botones button.sec{background:rgba(255,255,255,.14);}
 @keyframes medRebote{0%{transform:scale(.3) rotate(-20deg)}100%{transform:scale(1) rotate(0)}}
+
+/* Liga de Jujuy: clasificados (los 10 primeros con las 19 medallas) */
+.adv-liga-btn{display:block;width:100%;margin:12px 0 6px;padding:11px 12px;border-radius:12px;border:1.5px solid rgba(255,211,90,.55);background:rgba(255,211,90,.1);color:#ffd35a;font:inherit;font-weight:700;cursor:pointer;}
+.adv-liga-lista{list-style:none;margin:8px 0 10px;padding:0;display:flex;flex-direction:column;gap:6px;}
+.adv-liga-lista li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.06);min-height:44px;}
+.adv-liga-lista li .pto{flex:0 0 28px;font-weight:800;text-align:center;color:#ffd35a;}
+.adv-liga-lista li .nom{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.adv-liga-lista li .hora{flex:0 0 auto;font-size:12px;opacity:.8;text-align:right;}
+.adv-liga-lista li.libre{opacity:.45;border:1px dashed rgba(255,255,255,.25);background:transparent;}
+.adv-liga-lista li.libre .nom{font-weight:500;font-style:italic;}
+.adv-liga-lista li.yo{outline:2px solid #3ddc6e;}

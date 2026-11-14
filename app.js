@@ -2635,6 +2635,7 @@ const diaHoraJujuy = t => { const d = new Date(t), hoy = new Date(Date.now() - 3
 /* "hoy 23:00", "mañana 09:00" o "vie 14:00": el cartel de la puerta cerrada siempre dice QUÉ DÍA abre (hora de Jujuy) */
 /* ---------- Botón ⚔️ "Incursión": cartel que dice dónde hay una abierta, a qué distancia queda y para qué lado, y una flecha que te guía ---------- */
 let advGuia = null;   // región de la guarida a la que te guía la flecha (o null)
+let advGuiaObj = null;   // 14/11 modo historia: casillero {x, y} de un líder o del Guardián al que te guía la flecha (o null). Una sola flecha a la vez
 const REGION_LOCAL = {kanto: 'Valles', johto: 'Yungas', hoenn: 'Quebrada', sinnoh: 'Alta Quebrada', unova: 'Puna', kalos: 'Puna norte', alola: 'Valle de los Pericos'};
 function rumboA(gx, gy){
   const dx = gx - advX, dy = gy - advY, dist = Math.round(Math.hypot(dx, dy));
@@ -2659,6 +2660,7 @@ function panelIncursiones(){
   }).join('');
   lista.querySelectorAll('button[data-reg]').forEach(b => b.onclick = () => {
     advGuia = advGuia === b.dataset.reg ? null : b.dataset.reg;
+    if(advGuia) advGuiaObj = null;   // una sola flecha a la vez
     if(advGuia) cerrarPanelIncursiones(); else panelIncursiones();
   });
 }
@@ -2670,17 +2672,17 @@ function actualizarPuntoIncursion(){
 }
 /* La flecha dorada: sale de tu personaje y apunta a la guarida elegida, con la distancia. Se quita sola al llegar. Se dibuja en la capa de arriba. */
 function dibujarGuiaIncursion(g){
-  if(!advGuia || advMapa !== 'overworld') return;
-  const gu = GUARIDAS.find(x => x.region === advGuia); if(!gu) return;
-  const tx = gu.puerta[0] * ADV_PX + 8, ty = gu.puerta[1] * ADV_PX + 8, px = advPx + 8, py = advPy + 8, dist = Math.hypot(tx - px, ty - py) / ADV_PX;
-  if(dist < 3){ advGuia = null; return; }
+  if((!advGuia && !advGuiaObj) || advMapa !== 'overworld') return;
+  const gu = advGuiaObj ? null : GUARIDAS.find(x => x.region === advGuia); if(!advGuiaObj && !gu) return;
+  const tx = (advGuiaObj ? advGuiaObj.x : gu.puerta[0]) * ADV_PX + 8, ty = (advGuiaObj ? advGuiaObj.y : gu.puerta[1]) * ADV_PX + 8, px = advPx + 8, py = advPy + 8, dist = Math.hypot(tx - px, ty - py) / ADV_PX;
+  if(dist < 3){ advGuia = null; advGuiaObj = null; return; }
   const ang = Math.atan2(ty - py, tx - px), R0 = 34, cx = px - camGuia.x + Math.cos(ang) * R0, cy = py - camGuia.y + Math.sin(ang) * R0, lat = (Math.sin(Date.now() / 220) + 1) / 2;
   g.save(); g.translate(cx, cy); g.rotate(ang);
   g.fillStyle = '#1a1a1a'; g.beginPath(); g.moveTo(15 + lat * 3, 0); g.lineTo(-7, -11); g.lineTo(-2, 0); g.lineTo(-7, 11); g.closePath(); g.fill();
   g.fillStyle = '#FFD25E'; g.beginPath(); g.moveTo(12 + lat * 3, 0); g.lineTo(-5, -8); g.lineTo(-1, 0); g.lineTo(-5, 8); g.closePath(); g.fill();
   g.restore();
   g.font = 'bold 9px sans-serif'; g.textAlign = 'center';
-  const txt = '⚔️ ' + Math.round(dist), w = g.measureText(txt).width + 8;
+  const txt = (advGuiaObj ? '🏅 ' : '⚔️ ') + Math.round(dist), w = g.measureText(txt).width + 8;
   g.fillStyle = 'rgba(10,16,40,.85)'; g.fillRect(cx - w / 2, cy + 12, w, 12); g.fillStyle = '#fff'; g.fillText(txt, cx, cy + 21.5);
 }
 const camGuia = {x: 0, y: 0};
@@ -6615,8 +6617,9 @@ function dibujarMini(){
       const o = MUNDO.otros[id];
       if(o.m !== 'overworld') continue;
       const ox = (o.x / ADV_PX) * MINI_PX, oy = (o.y / ADV_PX) * MINI_PX;
-      ctx.fillStyle = '#0B1020'; ctx.beginPath(); ctx.arc(ox, oy, 8.5, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#19E0FF'; ctx.beginPath(); ctx.arc(ox, oy, 6.2, 0, Math.PI * 2); ctx.fill();
+      const npc = !!o.npc;   // 14/11: los NPC y los líderes de gimnasio se ven ROJOS (los jugadores, celestes)
+      ctx.fillStyle = '#0B1020'; ctx.beginPath(); ctx.arc(ox, oy, npc ? 9.5 : 8.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = npc ? '#FF2D3A' : '#19E0FF'; ctx.beginPath(); ctx.arc(ox, oy, npc ? 7 : 6.2, 0, Math.PI * 2); ctx.fill();
     }
   }
   const latido = (Math.sin(Date.now() / 260) + 1) / 2;

@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261169">
+<link rel="stylesheet" href="styles.css?v=20261172">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -166,7 +166,16 @@
       <div class="adv-mis-medallas" id="advMisMedallas"></div>
       <h4>Misiones de hoy</h4>
       <div id="advMisLista"></div>
+      <button type="button" class="adv-liga-btn" id="advLigaBtn">🏆 Clasificados a la Liga <b id="advLigaCont"></b></button>
       <button type="button" class="adv-inc-cerrar" id="advMisCerrar">Cerrar</button>
+    </div>
+  </div>
+  <div class="adv-incpanel" id="advLigaPanel" hidden role="dialog" aria-modal="true" aria-label="Clasificados a la Liga">
+    <div class="adv-incpanel-caja adv-mis-caja">
+      <h3>🏆 Clasificados a la Liga</h3>
+      <p class="adv-inc-sub" id="advLigaSub"></p>
+      <ol class="adv-liga-lista" id="advLigaLista"></ol>
+      <button type="button" class="adv-inc-cerrar" id="advLigaCerrar">Cerrar</button>
     </div>
   </div>
   <div class="adv-incpanel" id="advCharla" hidden role="dialog" aria-modal="true" aria-labelledby="advCharlaQuien">
@@ -515,10 +524,10 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261168"></script>
-<script src="app.js?v=20261169"></script>
-<script src="servidor.js?v=20261169"></script>
+<script src="app.js?v=20261172"></script>
+<script src="servidor.js?v=20261172"></script>
 <script src="pixfx.js?v=3"></script>
-<script src="arena.js?v=20261169"></script>
+<script src="arena.js?v=20261172"></script>
 <script src="portada.js?v=20261105"></script>
 <script>
 /* Guardado del juego en el celular (sw.js): sólo en el sitio real, nunca en pruebas locales */

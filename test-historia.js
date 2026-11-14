@@ -53,7 +53,7 @@ const suf = Math.random().toString(36).slice(2, 6);
   await p.evaluate(() => { advPonerEn(93, 150); });
   check('aparece "💬 Hablar con Rey sin Corona del Lapacho"', await p.waitForFunction(() => /Rey sin Corona del Lapacho/.test(document.getElementById('advNpcBtn').textContent) && !document.getElementById('advNpcBtn').hidden, null, {timeout: 8000}).then(() => true, () => false));
   await p.click('#advNpcBtn');
-  check('Rosa ofrece el desafío por la Medalla Lapacho', /Medalla Lapacho/.test(await p.textContent('#advCharlaTxt')));
+  check('Rosa ofrece el desafío por la Medalla Lapacho', await p.waitForFunction(() => /Medalla Lapacho/.test(document.getElementById('advCharlaTxt').textContent), null, {timeout: 6000}).then(() => true, () => false));
   if(SHOTS) await p.screenshot({path: SHOTS + '/historia-rosa.png'});
   await p.click('#advCharlaBotones button');   // ¡Acepto!
   check('se abre la Arena para elegir equipo', await p.waitForFunction(() => document.getElementById('arenaOverlay').classList.contains('show'), null, {timeout: 6000}).then(() => true, () => false));
@@ -62,14 +62,26 @@ const suf = Math.random().toString(36).slice(2, 6);
   check('la pelea es contra el Rey sin Corona del Lapacho con su equipo de 4 (Oddish, Bellsprout, Tangela, Celebi)', await p.waitForFunction(() => window.__arena && window.__arena.estado() && window.__arena.estado().rivalNombre === 'Rey sin Corona del Lapacho' && window.__arena.estado().riv.mons.map(m => m.p.id).join() === '43,69,114,251', null, {timeout: 10000}).then(() => true, () => false));
   await p.waitForTimeout(1500);
   if(SHOTS) await p.screenshot({path: SHOTS + '/historia-pelea.png'});
-  // etapa 2: un líder de ÉLITE (g19 Campeón del Sol, Ingenio Ledesma 127,128): exclusivo Ho-Oh Apex Oscuro + shiny
-  await p.evaluate(() => { window.__arena && window.__arena.estado && 0; });
-  const g19 = await p.evaluate(async () => {
-    const r = await accionServidor('arenaEmpezar', {equipo: [1, 4, 7], reto: 'g19', mapa: 'overworld', x: 20 * 16, y: 20 * 16});
-    return r;
-  });
-  check('g19: lejos del líder no deja empezar (valida cercanía)', g19 && g19.ok === false);
-  console.log('  nota: pruebas de cada líder 2-19 en servidor (test/historia.test.js)');
+  // etapa 2 (orden): el gimnasio 2 (Calilegua, 139,135) NO deja pelear sin la medalla del 1.º y ofrece una flecha hasta el anterior
+  await p.evaluate(() => { document.getElementById('arenaOverlay').classList.remove('show'); window.__retoVolver = false; try{ abrirAventura(); }catch(e){} });
+  await p.waitForTimeout(1500);
+  await p.evaluate(() => document.querySelectorAll('#advCharla').forEach(e => { e.hidden = true; }));
+  await p.evaluate(() => { advPonerEn(139, 136); });
+  check('aparece el botón del Guardián de la Selva (gimnasio 2)', await p.waitForFunction(() => /Guardián de la Selva/.test(document.getElementById('advNpcBtn').textContent) && !document.getElementById('advNpcBtn').hidden, null, {timeout: 8000}).then(() => true, () => false));
+  await p.click('#advNpcBtn'); await p.waitForTimeout(800);
+  check('sin la medalla del 1.º: "Todavía no estás listo" (no ofrece pelear)', /Todavía no estás listo/.test(await p.textContent('#advCharlaTxt')) && !/Acepto/.test(await p.textContent('#advCharlaBotones')));
+  await p.evaluate(() => { [...document.querySelectorAll('#advCharlaBotones button')].find(b => /Guiame/.test(b.textContent)).click(); });
+  check('"Guiame hasta él" prende la flecha hacia el Rey sin Corona del Lapacho (93,148)', await p.evaluate(() => advGuiaObj && advGuiaObj.x === 93 && advGuiaObj.y === 148));
+  // el servidor también lo exige (no se puede saltear tocando el cliente)
+  const g2 = await p.evaluate(async () => accionServidor('arenaEmpezar', {equipo: [1, 4, 7], reto: 'g2', mapa: 'overworld', x: 139 * 16, y: 135 * 16}));
+  check('el servidor rechaza el gimnasio 2 sin la medalla 1 (falta_medalla_previa)', g2 && g2.ok === false && g2.motivo === 'falta_medalla_previa', g2);
+  // panel de misiones: próximo objetivo con botón de flecha
+  await p.evaluate(() => { advGuiaObj = null; });
+  await p.click('#advMisBtn'); await p.waitForTimeout(1200);
+  check('en el paso 2 (atrapar 3) no hay lugar al que guiar: sin botón Guiarme', await p.evaluate(() => !document.getElementById('advMisGuia')));
+  const objs = await p.evaluate(() => [proximoObjetivo({paso: 0, cnt: 0, medallas: []}), proximoObjetivo({paso: 1, cnt: 3, medallas: []}), proximoObjetivo({paso: 3, cnt: 0, medallas: []}), proximoObjetivo({paso: 3, cnt: 0, medallas: ['g1']}), proximoObjetivo({paso: 4, cnt: 0, medallas: ['g1']}), proximoObjetivo({paso: 4, cnt: 0, medallas: ['g1', 'g2', 'g3']}), proximoObjetivo({paso: 4, cnt: 0, medallas: MEDALLAS.map(m => m.id)})].map(o => o && [o.x, o.y]));
+  check('próximo objetivo: Guardián (79,125) al inicio y al cumplir; Rey (93,148) en el paso 3; Guardián al ganar la medalla; luego g2 (139,135), g4 y nada con las 19',
+    JSON.stringify(objs) === JSON.stringify([[79, 125], [79, 125], [93, 148], [79, 125], [139, 135], [133, 109], null]), objs);
   console.log('  errores JS:', errores.join(' | ') || 'ninguno');
   check('sin errores de página', errores.length === 0);
   console.log(`\n${ok} bien, ${fail} mal`);
