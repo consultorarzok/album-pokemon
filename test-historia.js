@@ -86,6 +86,23 @@ const suf = Math.random().toString(36).slice(2, 6);
   await p.evaluate(async () => { await accionServidor('arenaTerminar', {gane: false, kos: 0, vivos: 0, tLucha: 5}).catch(() => {}); });
   const ganado = await p.evaluate(() => { HIST.estado = {paso: 4, cnt: 0, medallas: ['g1'], dia: {ms: [], d: ''}, bonoPremio: {}}; return proximoObjetivo(HIST.estado) && [proximoObjetivo(HIST.estado).x, proximoObjetivo(HIST.estado).y]; });
   check('con la medalla 1, el próximo objetivo es el líder 2 (139,135)', JSON.stringify(ganado) === JSON.stringify([139, 135]), ganado);
+  // etapa 2 (guía): el líder 5 (Cauchari 38,32) sin la medalla 1 te manda al PRIMERO que falta (el 1: Rey sin Corona, 93,148), no al anterior (el 4)
+  await p.evaluate(() => { document.getElementById('advMisPanel').hidden = true; document.getElementById('arenaOverlay').classList.remove('show'); window.__retoVolver = false; advAbierto || abrirAventura(); document.getElementById('advCharla').hidden = true; advGuiaObj = null; });
+  await p.waitForTimeout(1500);
+  await p.evaluate(() => { document.getElementById('advCharlaTxt').textContent = ''; advPonerEn(38, 33); });
+  await p.waitForFunction(() => /Señor del Rayo/.test(document.getElementById('advNpcBtn').textContent) && !document.getElementById('advNpcBtn').hidden, null, {timeout: 8000});
+  await p.click('#advNpcBtn');
+  await p.waitForFunction(() => /Todavía no estás listo/.test(document.getElementById('advCharlaTxt').textContent), null, {timeout: 8000});
+  check('el líder 5 sin la medalla 1 manda al líder 1 (no al 4)', /Rey sin Corona del Lapacho/.test(await p.textContent('#advCharlaTxt')) && !/Titán del Hornocal/.test(await p.textContent('#advCharlaTxt')));
+  await p.evaluate(() => [...document.querySelectorAll('#advCharlaBotones button')].find(b => /Guiame/.test(b.textContent)).click());
+  check('la flecha apunta al líder 1 (93,148)', await p.evaluate(() => advGuiaObj && advGuiaObj.x === 93 && advGuiaObj.y === 148));
+  // botón de arriba "🧭 La Liga"
+  check('hay un botón arriba "🧭 La Liga" visible', await p.evaluate(() => { const b = document.getElementById('advLigaGuiaBtn'); return !!b && !b.hidden && /La Liga/.test(b.textContent); }));
+  check('mientras hay flecha el botón está iluminado', await p.waitForFunction(() => document.getElementById('advLigaGuiaBtn').classList.contains('activo'), null, {timeout: 3000}).then(() => true, () => false));
+  await p.click('#advLigaGuiaBtn'); await p.waitForTimeout(300);
+  check('tocar el botón con flecha prendida la apaga', await p.evaluate(() => advGuiaObj === null));
+  await p.click('#advLigaGuiaBtn'); await p.waitForTimeout(1500);
+  check('sin flecha, el botón explica el paso (en el paso 2 no hay lugar al que guiar)', await p.evaluate(() => /La Liga de Jujuy/.test(document.getElementById('advZona').textContent)));
   console.log('  errores JS:', errores.join(' | ') || 'ninguno');
   check('sin errores de página', errores.length === 0);
   console.log(`\n${ok} bien, ${fail} mal`);

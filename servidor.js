@@ -640,7 +640,24 @@ function hablarProfesor(n){
 }
 /* Flechita que guía (como las incursiones): apunta al personaje y se quita sola al llegar */
 const objDe = m => ({x: m.x, y: m.y, texto: `<b>${m.lider}</b> (${m.lugar}) para la <b>${m.nombre}</b>`});
-function guiarA(obj){ advGuia = null; advGuiaObj = {x: obj.x, y: obj.y}; advMensaje('🧭 Seguí la flecha dorada'); }
+function guiarA(obj){ advGuia = null; advGuiaObj = {x: obj.x, y: obj.y}; advMensaje('🧭 Seguí la flecha dorada hasta ' + (obj.texto || 'tu próximo objetivo')); }
+/* Botón de arriba "🧭 La Liga": prende la flecha hacia tu próximo objetivo (o la apaga si ya está prendida) */
+function guiaLiga(){
+  if(advGuiaObj){ advGuiaObj = null; advMensaje('🧭 Flecha quitada'); return; }
+  if(!servidorListo) return advMensaje('La Liga necesita conexión 📶');
+  cargarHistoria().then(e => {
+    if(!e) return advMensaje('No pude consultar tu avance, probá de nuevo.');
+    const o = proximoObjetivo(e);
+    if(o) return guiarA(o);
+    const p = CAP1[e.paso];
+    advMensaje(p ? `📜 <b>La Liga de Jujuy:</b> ${p.meta || p.pide}. Cuando lo cumplas, la flecha te lleva con el Guardián.` : '🏆 <b>¡Ya les ganaste a todos los líderes de Jujuy!</b>');
+  });
+}
+(() => {
+  const b = document.getElementById('advLigaGuiaBtn'); if(!b) return;
+  b.onclick = guiaLiga;
+  setInterval(() => { b.hidden = !servidorListo; b.classList.toggle('activo', !!advGuiaObj); }, 600);   // se muestra con el servidor y se ilumina mientras hay flecha
+})();
 /* Qué viene ahora en la historia (capítulo 1 y después los gimnasios EN ORDEN); null si no hay un lugar al que ir todavía */
 function proximoObjetivo(e){
   if(!e) return null;
@@ -671,9 +688,11 @@ function desafioGimnasio(reto){
           (sig ? `Tu próximo desafío: ${objDe(sig).texto}.` : '¡Ya les ganaste a todos los líderes de Jujuy! 🏆'),
           sig ? [{t: '🧭 Guiame al siguiente', fn: () => guiarA(objDe(sig))}, {t: 'Entendido', sec: true}] : null);
       }
-      if(prev && e && !ya && !e.medallas.includes(prev.id))   // los gimnasios van EN ORDEN (el servidor también lo exige)
-        return charla(n.nombre, `Todavía no estás listo para enfrentarme. Primero tenés que ganarle a ${objDe(prev).texto}.`,
-          [{t: '🧭 Guiame hasta él', fn: () => guiarA(objDe(prev))}, {t: 'Entendido', sec: true}]);
+      if(prev && e && !ya && !e.medallas.includes(prev.id)){   // los gimnasios van EN ORDEN (el servidor también lo exige)
+        const falta = MEDALLAS.find(m => !e.medallas.includes(m.id)) || prev;   // el PRIMERO que todavía no ganaste (si estás en el 5 y te falta el 2, te manda al 2)
+        return charla(n.nombre, `Todavía no estás listo para enfrentarme. Primero tenés que ganarle a ${objDe(falta).texto}.`,
+          [{t: '🧭 Guiame hasta él', fn: () => guiarA(objDe(falta))}, {t: 'Entendido', sec: true}]);
+      }
       charla(n.nombre, `¡Bienvenido al gimnasio! Si me ganás te llevás la <b>${g.nombre}</b> ${g.emoji}. ` +
         `Mis Pokémon son de tipo <b>${g.tipo}</b>. ¿Aceptás el desafío?`,
         [{t: '⚔️ ¡Acepto!', fn: () => { window.__retoArena = Object.assign({reto, nombre: n.nombre}, posAdv()); cerrarAventura(); abrirArena(); }}, {t: 'Ahora no', sec: true}]);

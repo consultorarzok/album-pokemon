@@ -1171,3 +1171,8 @@
 .adv-liga-lista li.libre{opacity:.45;border:1px dashed rgba(255,255,255,.25);background:transparent;}
 .adv-liga-lista li.libre .nom{font-weight:500;font-style:italic;}
 .adv-liga-lista li.yo{outline:2px solid #3ddc6e;}
+
+/* Botón de arriba "🧭 La Liga": prende y apaga la flecha que guía al próximo objetivo de la historia */
+.adv-hud .adv-ligapill{cursor:pointer;border-color:rgba(255,211,90,.75);color:#ffd35a;min-height:34px;}
+.adv-hud .adv-ligapill.activo{background:#ffd35a;color:#1a1a1a;}
+.adv-hud .adv-ligapill[hidden]{display:none;}

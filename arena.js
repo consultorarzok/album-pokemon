@@ -2121,13 +2121,15 @@ Object.assign(window.__arenaMovs, {movsEjemplar, opcionesDeAtaque});
 function crearMon(p, rival, ejFijo){
   const ej = ejFijo || (rival ? null : mejorEjemplar(p.id));
   const fz = ejFijo ? ejFijo.f : rival ? fuerzaRival() : ((ej || {}).f || 50);
-  const k = (.8 + fz / 250) * ((ejFijo && ejFijo.dif) || 1),   /* 14/11 modo historia: los Pokémon de los líderes traen un multiplicador de dificultad (×1,10 a ×1,45) en vida y daño */   /* 05/11 Zeta: vida y daño van de ×0,80 (fuerza 1) a ×1,20 (fuerza 100); antes .9 + fz/500 (×0,90 a ×1,10) */
-     bst = bstDe(p), max = Math.round((60 + bst * .22) * k);
+  /* 14/11 modo historia (Zeta: "muy fáciles"): los Pokémon de los líderes traen 3 multiplicadores del servidor: dif = poder de ataque, vida = vida (el doble o más) y def = defensa (reduce el daño que reciben) */
+  const kb = .8 + fz / 250, hpx = (ejFijo && ejFijo.vida) || 1, defx = (ejFijo && ejFijo.def) || 1,
+     k = kb * ((ejFijo && ejFijo.dif) || 1),   /* 05/11 Zeta: vida y daño van de ×0,80 (fuerza 1) a ×1,20 (fuerza 100); antes .9 + fz/500 (×0,90 a ×1,10) */
+     bst = bstDe(p), max = Math.round((60 + bst * .22) * kb * hpx);
   /* los ataques salen del número de serie del ejemplar (siempre los mismos para esa figurita);
      el rival, como no tiene ejemplar guardado, saca unos al azar en cada pelea */
   const movs = movsEjemplar(p, ej);
   const enMax = EN_MAX * (ENERGIA_ESPECIAL[p.id] || 1);
-  return {p, bst, max, hp:max, en:enMax, enMax, vivo:true, st:(ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : (p.especial && VEL_ESPECIAL[p.id]) ? Object.assign({}, statsDe(p), {vel:VEL_ESPECIAL[p.id]}) : statsDe(p), fz, k, vario:!!(ej && ej.s), movs};
+  return {p, bst, max, hp:max, en:enMax, enMax, vivo:true, st:(ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : (p.especial && VEL_ESPECIAL[p.id]) ? Object.assign({}, statsDe(p), {vel:VEL_ESPECIAL[p.id]}) : statsDe(p), fz, k, defX:defx, ocultoPS:!!(ejFijo && ejFijo.oculto), vario:!!(ej && ej.s), movs};
 }
 const POSE_0 = {};
 function crearEntidad(lado){
@@ -2355,7 +2357,7 @@ function pintarHud(){
     const fr = m.hp / m.max, hp = h.querySelector('.hp');
     hp.style.width = (fr * 100) + '%';
     hp.style.background = fr > .5 ? '#3DDC6E' : (fr > .2 ? '#F7B731' : '#F0463C');
-    h.querySelector('.ar-num').textContent = `PS ${Math.max(0, Math.round(m.hp))}/${m.max}`;
+    h.querySelector('.ar-num').textContent = m.ocultoPS ? '' : `PS ${Math.max(0, Math.round(m.hp))}/${m.max}`;   // los líderes: sólo la barra, sin números (que no se note cuánta vida tienen)
     h.querySelectorAll('.ar-bola').forEach((b, i) => {
       b.classList.toggle('muerta', !eq.mons[i].vivo);
       b.classList.toggle('activa', i === eq.idx);
@@ -2426,7 +2428,7 @@ function calcularDanio(a, d, alc, tipoMov, pot){
   const mult = efectividadContra(tipoMov, d.p), f = factorTipo(mult);
   const mismoTipo = tiposDe(a.p).includes(tipoMov) ? 1.2 : 1;   // ataque de alguno de SUS dos tipos: pega un 20% más
   const crit = f > 0 && Math.random() < a.st.crit;
-  let dmg = ALC[alc].poder * Math.sqrt(a.bst / d.bst) * f * (a.k || 1) * (pot || 1) * mismoTipo * azar(.9, 1.1) * (crit ? a.st.critMult : 1);
+  let dmg = ALC[alc].poder * Math.sqrt(a.bst / d.bst) * f * (a.k || 1) / (d.defX || 1) * (pot || 1) * mismoTipo * azar(.9, 1.1) * (crit ? a.st.critMult : 1);
   dmg = f === 0 ? 0 : Math.max(1, Math.round(dmg));
   return {dmg, mult, crit};
 }
@@ -3901,7 +3903,7 @@ async function luchar(mios, duelo){
   const estilo = elige(Object.keys(ESTILOS));
   AR = {
     yo:  {mons:duelo && !multi ? duelo.yo.equipo.map(x => crearMon(pDe(x.id), false, x)) : mios ? mios.map(p => crearMon(p)) : [], idx:0, act:null, nombre:window.__yoNombre || 'Vos'},
-    riv: {mons:rivJug ? rivJug.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:x.c || ('RIV' + i), s:!!x.s, m:x.m, v:x.v})) : gim ? gim.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:'GIM' + i, s:!!x.s, dif:x.dif})) : duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
+    riv: {mons:rivJug ? rivJug.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:x.c || ('RIV' + i), s:!!x.s, m:x.m, v:x.v})) : gim ? gim.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:'GIM' + i, s:!!x.s, dif:x.dif, vida:x.vida, def:x.def, oculto:true})) : duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
     zoom:ZOOM_1V1, lados:['yo', 'riv'], bando:{yo:'A', riv:'B'}, espejo:{riv:true}, porSlot:{}, miSlot:null, multi:false, modo:'1v1', spawn:{yo:[.55, .35], riv:[-.55, -.2]},
     online:!!duelo, red:{ult:0, obj:{}},
     estilo:ESTILOS[estilo], proys:[], zonas:[], pend:[], hold:new Set(), keys:new Set(), joy:{x:0, y:0},
