@@ -2323,7 +2323,7 @@ function dibujar(e, dt){
   }
   if(e.stun > 0){ const g = Math.min(1, e.stun / .2); rot -= e.cara * 20 * g; dx += azar(-1, 1) * e.h * .05 - e.cara * e.w * .08 * g; hop += e.h * .07 * g; sx *= 1 - .14 * g; sy *= 1 + .1 * g; }   // el que recibe el golpe se encoge
   e.wrap.style.transform = `translate(${p.x}px,${p.y}px) scale(${e.s})`;
-  e.wrap.style.zIndex = Math.round(p.y) + 10;
+  { const z = Math.round(p.y) + 10; if(e._z !== z){ e._z = z; e.wrap.style.zIndex = z; } }   // 14/11: sólo si cambió (cada escritura obligaba a reordenar las capas)
   e.cuerpo.style.transform = `translate(${dx}px,${dy - hop}px) rotate(${rot}deg) scale(${sx},${sy})`;
   /* reflejo en el cemento: la misma figura dada vuelta, que se aleja cuando salta */
   if(!AR.multi){
@@ -2410,7 +2410,7 @@ function pintarCooldowns(){
   const set = (id, cd, tot, coste) => {
     const b = $(id); if(!b) return;
     const c = b._cd || (b._cd = b.querySelector('.cd')), v = cd > 0 ? Math.ceil(Math.min(1, cd / tot) * 50) * 2 : 0;   // 13/11: de a 2 % y sólo si cambió (antes se escribía en cada cuadro y la pantalla recalculaba todo)
-    if(c._v !== v){ c._v = v; c.style.height = v + '%'; }
+    if(c._v !== v){ c._v = v; c.style.transform = 'scaleY(' + v / 100 + ')'; }
     b.classList.toggle('sinEn', m.en < coste);
     b.classList.toggle('listo', cd <= 0 && m.en >= coste);
   };

@@ -5675,8 +5675,36 @@ function advFondo(mapaId){
      de la derecha -que todavía no se dibujó- la taparía con su propio fondo. */
   altares.forEach(([x, y]) => dibujarPlataformaAltar(ctx, x * ADV_PX, y * ADV_PX));
   advMapa = antes;
-  advFondos[clave] = cv;
-  return cv;
+  /* 14/11: el fondo entero (hasta 2592x4800 = 50 MB) pasa el tamaño máximo de imagen que aceptan las placas de video de muchos
+     celulares (4096 px): el navegador lo dejaba en memoria común y en cada cuadro lo subía otra vez -> tirones. Se corta en
+     baldosas de 512 px y en cada cuadro se copian sólo las 2-6 que se ven. Se ve exactamente igual. */
+  const T = ADV_BALDOSA, baldosas = [];
+  for(let by = 0; by < cv.height; by += T){
+    const fila = [];
+    for(let bx = 0; bx < cv.width; bx += T){
+      const b = document.createElement('canvas');
+      b.width = Math.min(T, cv.width - bx); b.height = Math.min(T, cv.height - by);
+      b.getContext('2d').drawImage(cv, bx, by, b.width, b.height, 0, 0, b.width, b.height);
+      fila.push(b);
+    }
+    baldosas.push(fila);
+  }
+  const fondo = {width: cv.width, height: cv.height, baldosas};
+  cv.width = cv.height = 0;   // se libera la imagen grande
+  for(const k in advFondos) if(k.split(':')[0] === clave.split(':')[0] && k !== clave) delete advFondos[k];   // cueva/mina de otra región o evento viejo: no se acumulan
+  advFondos[clave] = fondo;
+  return fondo;
+}
+const ADV_BALDOSA = 512;
+/* Copia al lienzo sólo las baldosas del fondo que entran en la cámara. */
+function advPintarFondo(ctx, fondo, camX, camY, vw, vh){
+  const T = ADV_BALDOSA, B = fondo.baldosas;
+  const by0 = Math.max(0, Math.floor(camY / T)), by1 = Math.min(B.length - 1, Math.floor((camY + vh) / T));
+  for(let by = by0; by <= by1; by++){
+    const fila = B[by];
+    const bx0 = Math.max(0, Math.floor(camX / T)), bx1 = Math.min(fila.length - 1, Math.floor((camX + vw) / T));
+    for(let bx = bx0; bx <= bx1; bx++) ctx.drawImage(fila[bx], bx * T - camX, by * T - camY);
+  }
 }
 
 /* El avistamiento activo (si lo hay) para el mapa que se está por dibujar. */
@@ -6136,6 +6164,21 @@ function nocheRender(mapa, camX, camY, vw, vh, kk, cw, chh){
   camGuia.x = camX; camGuia.y = camY; dibujarGuiaIncursion(g);   // la flecha de las incursiones va arriba del manto
 }
 
+/* 14/11: las copas y fachadas están pre-dibujadas a 4 px por píxel de mundo y se achicaban con calidad "alta" en CADA cuadro
+   (decenas por cuadro): era lo más caro de toda la Aventura. Ahora se achican UNA vez al tamaño exacto de la pantalla
+   (misma calidad alta) y cada cuadro sólo se copian 1:1. Se ven igual. */
+function altaPintar(g, s, dx, dy, kk){
+  if(s._kk !== kk){
+    const w = Math.max(1, Math.round(s.w * kk)), h = Math.max(1, Math.round(s.h * kk));
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+    x.drawImage(s.c, 0, 0, w, h);
+    s._e = c; s._kk = kk;
+  }
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.drawImage(s._e, Math.round(dx * kk), Math.round(dy * kk));
+  g.setTransform(kk, 0, 0, kk, 0, 0);
+}
 function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
   const cv = document.getElementById('advAlto');
   if(!cv) return;
@@ -6159,7 +6202,7 @@ function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
     const a = altaAlfa[key] === undefined ? alvo : altaAlfa[key] + (alvo - altaAlfa[key]) * .3;
     vistos[key] = a;
     g.globalAlpha = a;
-    g.drawImage(f.c, dx, dy, f.w, f.h);
+    altaPintar(g, f, dx, dy, kk);
   }
   for(let y = y0; y <= y1; y++){
     const fila = mapa.rows[y];
@@ -6179,7 +6222,7 @@ function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
       const a = altaAlfa[key] === undefined ? alvo : altaAlfa[key] + (alvo - altaAlfa[key]) * .3;
       vistos[key] = a;
       g.globalAlpha = a;
-      g.drawImage(copa.c, dx, dy, copa.w, copa.h);
+      altaPintar(g, copa, dx, dy, kk);
     }
   }
   for(const A of ALGARROBOS){                          // Algarrobo Histórico: UNA copa enorme sobre toda la reja
@@ -6191,7 +6234,7 @@ function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
     const key = 'h' + A[0] + ',' + A[1];
     const a = altaAlfa[key] === undefined ? alvo : altaAlfa[key] + (alvo - altaAlfa[key]) * .3;
     vistos[key] = a; g.globalAlpha = a;
-    g.drawImage(copa.c, dx, dy, copa.w, copa.h);
+    altaPintar(g, copa, dx, dy, kk);
   }
   g.globalAlpha = 1;
   for(const k in altaAlfa) delete altaAlfa[k];
@@ -6289,7 +6332,7 @@ function advRender(){
   ctx.imageSmoothingEnabled = false;
   ctx.fillStyle = '#0B1020';
   ctx.fillRect(0, 0, vw + 1, vh + 1);
-  ctx.drawImage(advFondo(advMapa), -camX, -camY);
+  advPintarFondo(ctx, advFondo(advMapa), camX, camY, vw, vh);
   advRealce(ctx, mapa, camX, camY, vw, vh);   // sombras, brillos del agua y luz sobre el piso
 
   // pokébolas tiradas en el piso (las que todavía no levantó)

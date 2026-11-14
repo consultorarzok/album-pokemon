@@ -658,7 +658,7 @@
   .ar-btns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;flex:1 1 auto;min-width:0;max-width:300px;}
   .ar-act{position:relative;overflow:hidden;min-width:0;height:60px;border-radius:12px;border:3px solid #3a4680;background:#161d44;color:#f2f4ff;font-family:'Baloo 2',sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 4px;touch-action:none;-webkit-tap-highlight-color:transparent;}
   .ar-act b{font-size:11px;line-height:1.1;text-align:center;position:relative;overflow-wrap:break-word;hyphens:none;} .ar-act small{font-size:10px;color:#aab3d9;position:relative;}
-  .ar-act .cd{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(255,255,255,.28);pointer-events:none;}
+  .ar-act .cd{position:absolute;left:0;right:0;bottom:0;height:100%;transform:scaleY(0);transform-origin:50% 100%;background:rgba(255,255,255,.28);pointer-events:none;}   /* 14/11: se llena con transform (antes height: obligaba a recalcular la pantalla en cada cuadro) */
   .ar-act.sinEn{opacity:.5;} .ar-act:active{background:#252f70;}
   .ar-act.eqp{grid-column:1;grid-row:2;} .ar-act.esq{grid-column:2 / span 2;grid-row:2;border-color:#8be9ff;}
   /* 13/11: el Pikachu de Ash tiene 6 ataques: una fila más de botones (más chicos) y Equipo / Esquivar bajan a la tercera */
@@ -766,7 +766,7 @@
   .ar-act:active{transform:translateY(3px) scale(.97);box-shadow:0 1px 0 rgba(0,0,0,.45);background:linear-gradient(#2a3578,#1a2152);}
   .ar-act.listo{filter:brightness(1.12);} .ar-act.listo:not(.esq):not(.eqp){animation:arListo .35s ease-out;}
   @keyframes arListo{0%{filter:brightness(1.9)}100%{filter:brightness(1.12)}}
-  .ar-act .cd{background:rgba(255,255,255,.22);transition:height .08s linear;}
+  .ar-act .cd{background:rgba(255,255,255,.22);transition:transform .08s linear;}
   .ar-act.sinEn{opacity:.45;filter:saturate(.5);}
   .ar-equipo,.ar-confirm,.ar-fin{animation:arFundido .22s ease-out;backdrop-filter:blur(3px);}
   @keyframes arFundido{from{opacity:0}to{opacity:1}}
@@ -892,6 +892,7 @@
   .portada-entrar:active{transform:scale(.97);}
   .portada-entrar:focus-visible{outline:3px solid #FFCB05;outline-offset:4px;}
   @keyframes portada-latido{50%{transform:scale(1.05);}}
+  .portada.is-out .portada-entrar{animation:none;}   /* 14/11: con la portada cerrada el botón no sigue latiendo de fondo */
   body.portada-open{overflow:hidden;}
   @media (prefers-reduced-motion:reduce){ .portada-entrar{animation:none;} .portada{transition:none;} }
 
