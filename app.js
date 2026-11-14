@@ -1311,13 +1311,98 @@ function evolucionarLocal(id, destId, serie){
 }
 function evolucionar(id, destId, serie){
   if(MODO_SERVIDOR) return evolucionarServidor(id, destId, serie);
+  const ej = Object.assign({}, ejemplares(id).find(e => e.c === serie) || {});
   const pull = evolucionarLocal(id, destId, serie);
   if(!pull) return;
-  const titulo = 'Evolucionó a ' + pull.p.name;
   renderEvolucion();
-  if(isSpecial(pull.p)) playSpecialSequence([pull], 0, () => showReveal([pull], titulo));
-  else showReveal([pull], titulo);
+  escenaEvolucion(id, pull, ej);
 }
+
+/* ====================== ESCENA DE EVOLUCIÓN (14/11) ======================
+   Pantalla completa del color del tipo: el Pokémon se vuelve silueta blanca, alterna con su forma nueva cada vez más rápido,
+   estallido de luz a los 5 s (justo con el golpe de la música audio/evolucion.mp3) y aparece la forma nueva con rayos y confeti.
+   Conserva fuerza y shiny (lo decide el servidor); se puede saltar. */
+const esc_ = t => String(t).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[c]);
+let evoTimers = [];
+const evoEspera = (ms, fn) => evoTimers.push(setTimeout(fn, ms));
+function evoLimpiar(){ evoTimers.forEach(clearTimeout); evoTimers = []; }
+function evoImg(p, shiny){ return shiny ? imgVario(p) : p.img; }
+function evoCargar(img, src){
+  return new Promise(res => { const t = setTimeout(res, 2500); img.onload = img.onerror = () => { clearTimeout(t); res(); }; img.src = src; if(img.complete && img.naturalWidth) { clearTimeout(t); res(); } });
+}
+function evoAnillo(){ const a = document.getElementById('evoAnillos'), i = document.createElement('i'); a.appendChild(i); setTimeout(() => i.remove(), 1200); }
+function evoChispas(n, confeti, colores){
+  const c = document.getElementById('evoChispas');
+  for(let k = 0; k < n; k++){
+    const i = document.createElement('i');
+    if(confeti){ i.className = 'confeti'; i.style.background = colores[k % colores.length]; }
+    i.style.left = (Math.random() * 100) + '%';
+    i.style.animationDelay = (Math.random() * (confeti ? .6 : 1.8)) + 's';
+    c.appendChild(i); setTimeout(() => i.remove(), 4200);
+  }
+}
+const evoVibrar = patron => { try{ if(navigator.vibrate) navigator.vibrate(patron); }catch(e){} };
+async function escenaEvolucion(desdeId, pull, ej){
+  const esc = document.getElementById('evoEscena');
+  const desde = DATA.find(p => p.id === desdeId), hacia = pull.p, shiny = !!(ej && ej.s);
+  const color = TYPE_COLORS[hacia.type] || '#7AC74C';
+  evoLimpiar();
+  esc.className = 'evo-escena' + (shiny ? ' shiny' : '') + (hacia.rarity === 'Épico' || hacia.rarity === 'Legendario' || shiny ? ' dorada' : '');
+  esc.style.setProperty('--evo-c', color);
+  document.getElementById('evoAnillos').innerHTML = ''; document.getElementById('evoChispas').innerHTML = '';
+  document.getElementById('evoFicha').hidden = true;
+  const tx = document.getElementById('evoTexto');
+  tx.innerHTML = '¿Eh…? ¡Tu ' + esc_(desde.name) + ' está evolucionando!';
+  const dImg = document.getElementById('evoDesde'), hImg = document.getElementById('evoHacia');
+  dImg.alt = desde.name; hImg.alt = hacia.name;
+  esc.classList.add('show'); esc.setAttribute('aria-hidden', 'false');
+  if(window.Musica && Musica.precargar) Musica.precargar('evolucion');
+  await Promise.all([evoCargar(dImg, evoImg(desde, shiny)), evoCargar(hImg, evoImg(hacia, shiny))]);
+  if(!esc.classList.contains('show')) return;
+  if(window.Musica) Musica.sonar('evolucion');   // el golpe de la música cae a los 5,0 s
+  evoChispas(22, false);
+  const reducido = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  evoEspera(1000, () => { esc.classList.add('blanco'); evoAnillo(); });
+  /* alterna forma vieja / nueva cada vez más rápido (de 560 ms a 70 ms) */
+  let t = 1250, d = 560, n = 0;
+  while(t < 4850 && !reducido){ const k = n++; evoEspera(t, () => { esc.classList.toggle('cambia', k % 2 === 0); if(k % 3 === 0) evoAnillo(); }); t += d; d = Math.max(70, d * .8); }
+  [1500, 2600, 3500, 4100, 4500, 4800].forEach(ms => evoEspera(ms, () => evoVibrar(25)));
+  evoEspera(4300, () => { evoAnillo(); evoChispas(18, false); });
+  evoEspera(5000, () => evoRevelar(desde, hacia, ej, pull.isNew, color, shiny));
+  esc._final = () => evoRevelar(desde, hacia, ej, pull.isNew, color, shiny, true);
+}
+function evoRevelar(desde, hacia, ej, nueva, color, shiny, salteado){
+  const esc = document.getElementById('evoEscena');
+  if(esc.classList.contains('revelado')) return;
+  evoLimpiar();
+  esc.classList.remove('blanco'); esc.classList.add('cambia', 'revelado');
+  if(!salteado){ const f = document.getElementById('evoFlash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); evoVibrar([90, 40, 160]); }
+  evoChispas(46, true, [color, '#ffffff', '#FFD35A', color]);
+  document.getElementById('evoTexto').innerHTML = '¡Felicitaciones! Tu ' + esc_(desde.name) + ' evolucionó a ' + esc_(hacia.name) +
+    (nueva ? '<small>⭐ ¡Nueva en tu Pokédex!</small>' : '');
+  evoEspera(salteado ? 50 : 1100, () => {
+    document.getElementById('evoFichaNombre').textContent = (shiny ? '✨ ' : '') + hacia.name + (shiny ? ' shiny' : '');
+    const datos = [TYPE_LABEL[hacia.type] || hacia.type, hacia.rarity];
+    if(ej && ej.f) datos.unshift('Fuerza ' + ej.f + ' · se mantuvo');
+    document.getElementById('evoFichaDatos').textContent = datos.join(' · ');
+    document.getElementById('evoFicha').hidden = false;
+    esc._compartir = () => {
+      const msg = '¡Mi ' + desde.name + ' evolucionó a ' + hacia.name + (shiny ? ' ✨shiny✨' : '') + (ej && ej.f ? ' con fuerza ' + ej.f : '') +
+        ' en Entrenadores RZ! 🎉\n¿Vos ya evolucionaste los tuyos? https://entrenadoresrz.com/';
+      window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+    };
+    document.getElementById('evoSeguir').focus({preventScroll: true});
+  });
+}
+function cerrarEscenaEvolucion(){
+  const esc = document.getElementById('evoEscena');
+  evoLimpiar(); esc.classList.remove('show'); esc.setAttribute('aria-hidden', 'true');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('evoSaltar').addEventListener('click', () => { const e = document.getElementById('evoEscena'); if(e._final) e._final(); });
+  document.getElementById('evoSeguir').addEventListener('click', cerrarEscenaEvolucion);
+  document.getElementById('evoCompartir').addEventListener('click', () => { const e = document.getElementById('evoEscena'); if(e._compartir) e._compartir(); });
+});
 
 /* ====================== FILTRO DE LISTAS (Evolucionar e Intercambio) ======================
    Buscar por nombre, tipo y región (= generación). iniciarFiltroLista arma la barra dentro de `caja` (una vez) y la
@@ -1391,6 +1476,7 @@ function renderEvolucion(){
   });
 }
 function abrirEvolucion(){
+  if(window.Musica && Musica.precargar) Musica.precargar('evolucion');   // así la música de la escena ya está bajada cuando evoluciona
   document.getElementById('evolucionOverlay').querySelector('.reveal-panel').scrollTop = 0;
   iniciarFiltroLista(document.getElementById('evolucionFiltro'), renderEvolucion);
   renderEvolucion();

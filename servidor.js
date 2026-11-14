@@ -362,14 +362,13 @@ function canjearRepetidasServidor(){
 
 function evolucionarServidor(id, destId, serie){
   if(!puedeJugar('evolucionar')) return;
+  const ej = Object.assign({}, ((state[id] && state[id].ej) || []).find(e => e.c === serie) || {});   // fuerza y shiny se conservan al evolucionar
   accionServidor('evolucionar', {id, a: destId, c: serie}).then(res => {
     if(!res.ok) return avisoServidor(res.motivo);
     const pulls = res.resultado.pulls.map(aPull);
     enviarPuntaje();
     renderEvolucion();
-    const titulo = 'Evolucionó a ' + pulls[0].p.name;
-    if(isSpecial(pulls[0].p)) playSpecialSequence(pulls, 0, () => showReveal(pulls, titulo));
-    else showReveal(pulls, titulo);
+    escenaEvolucion(id, pulls[0], ej);   // 14/11: escena de evolución con música (antes: carta "Evolucionó a …")
   }).catch(() => {}).then(soltar('evolucionar'));
 }
 

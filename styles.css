@@ -1088,3 +1088,53 @@
 .comp-card b{font-size:11px;line-height:1.1;overflow-wrap:anywhere;}
 .comp-btn{padding:5px 6px !important;font-size:11px !important;width:100%;margin-top:2px;}
 .comp-vacio{grid-column:1 / -1;font-size:12px;opacity:.75;padding:14px 4px;}
+
+/* ===== Escena de evolución (14/11) ===== */
+.evo-escena{position:fixed;inset:0;z-index:95;display:none;overflow:hidden;color:#fff;background:#0b0d1a;
+  background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--evo-c,#7AC74C) 55%,#0b0d1a) 0%,#0b0d1a 62%,#04050b 100%);
+  font-family:'Baloo 2',sans-serif;touch-action:manipulation;}
+.evo-escena.show{display:block;animation:evoEntra .5s ease-out;}
+@keyframes evoEntra{from{opacity:0}to{opacity:1}}
+.evo-rayos{position:absolute;left:50%;top:42%;width:220vmax;height:220vmax;transform:translate(-50%,-50%);opacity:0;transition:opacity .6s;
+  background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--evo-c) 45%,transparent) 0deg 9deg,transparent 9deg 22deg);
+  -webkit-mask:radial-gradient(circle,#000 0%,transparent 55%);mask:radial-gradient(circle,#000 0%,transparent 55%);}
+.evo-escena.revelado .evo-rayos{opacity:.9;animation:evoGira 14s linear infinite;}
+.evo-escena.dorada .evo-rayos{background:repeating-conic-gradient(from 0deg,rgba(255,215,90,.55) 0deg 9deg,transparent 9deg 22deg);}
+@keyframes evoGira{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.evo-escenario{position:absolute;left:50%;top:42%;width:min(68vw,330px);aspect-ratio:1;transform:translate(-50%,-50%);}
+.evo-poke{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:opacity .08s;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45));}
+#evoHacia{opacity:0;}
+.evo-escena.cambia #evoDesde{opacity:0;}
+.evo-escena.cambia #evoHacia{opacity:1;}
+.evo-escena.blanco .evo-poke{filter:brightness(0) invert(1) drop-shadow(0 0 14px #fff) drop-shadow(0 0 34px var(--evo-c));}
+.evo-escena.blanco .evo-escenario{animation:evoLate .5s ease-in-out infinite alternate;}
+@keyframes evoLate{from{transform:translate(-50%,-50%) scale(.97)}to{transform:translate(-50%,-50%) scale(1.04)}}
+.evo-escena.revelado .evo-escenario{animation:evoRebote .7s cubic-bezier(.2,1.6,.4,1);}
+@keyframes evoRebote{0%{transform:translate(-50%,-50%) scale(.6)}100%{transform:translate(-50%,-50%) scale(1)}}
+.evo-anillos i{position:absolute;left:50%;top:42%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;
+  border:3px solid var(--evo-c);box-shadow:0 0 18px var(--evo-c);animation:evoAnillo 1.1s ease-out forwards;}
+@keyframes evoAnillo{from{transform:scale(.3);opacity:.95}to{transform:scale(14);opacity:0}}
+.evo-chispas i{position:absolute;bottom:-12px;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 8px var(--evo-c);animation:evoSube 2.6s linear forwards;}
+@keyframes evoSube{to{transform:translateY(-105vh);opacity:0}}
+.evo-chispas i.confeti{top:-14px;bottom:auto;width:8px;height:12px;border-radius:2px;box-shadow:none;animation:evoCae 3.2s cubic-bezier(.3,.6,.6,1) forwards;}
+@keyframes evoCae{to{transform:translateY(110vh) rotate(720deg)}}
+.evo-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}
+.evo-flash.on{animation:evoFlash .9s ease-out forwards;}
+@keyframes evoFlash{0%{opacity:1}100%{opacity:0}}
+.evo-texto{position:absolute;left:16px;right:16px;top:calc(42% + min(34vw,170px) + 18px);text-align:center;font-weight:700;font-size:clamp(18px,5vw,26px);
+  line-height:1.2;text-shadow:0 2px 10px rgba(0,0,0,.7);}
+.evo-texto small{display:block;font-size:.62em;font-weight:600;opacity:.9;margin-top:4px;}
+.evo-ficha{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(92vw,380px);
+  background:rgba(10,12,28,.82);border:1px solid color-mix(in srgb,var(--evo-c) 70%,#fff);border-radius:16px;padding:14px 16px;text-align:center;
+  backdrop-filter:blur(6px);animation:evoFicha .45s ease-out;}
+@keyframes evoFicha{from{transform:translate(-50%,30px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+.evo-ficha-nombre{font-size:20px;font-weight:800;}
+.evo-ficha-datos{font-size:13px;opacity:.92;margin:4px 0 12px;font-family:'Space Mono',monospace;}
+.evo-ficha-botones{display:flex;gap:10px;}
+.evo-b{flex:1;min-height:46px;border:0;border-radius:12px;font:700 15px 'Baloo 2',sans-serif;background:var(--evo-c);color:#10121f;cursor:pointer;}
+.evo-b-sec{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.35);}
+.evo-saltar{position:absolute;right:12px;top:calc(12px + env(safe-area-inset-top));min-height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.4);
+  background:rgba(0,0,0,.35);color:#fff;font:600 13px 'Baloo 2',sans-serif;cursor:pointer;}
+.evo-escena.revelado .evo-saltar{display:none;}
+.evo-escena.shiny .evo-chispas i{background:#FFE27A;}
+@media (prefers-reduced-motion: reduce){ .evo-escena.blanco .evo-escenario,.evo-escena.revelado .evo-rayos{animation:none;} }

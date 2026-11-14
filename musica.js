@@ -10,6 +10,14 @@
    Qué suena lo decide elegir(): mira qué pantalla está abierta, cada 0,8 s. */
 (function(){
 'use strict';
+/* 14/11: temas GRABADOS hechos por Zeta con IA (Gemini). Cada pantalla suena con su archivo de audio/ (recortado para repetirse sin salto,
+   ver /root/pokemon/audio). Si el archivo no carga (sin señal, navegador viejo) sigue sonando el chiptune de siempre.
+   'evolucion' no se repite: es la escena de evolución (subida + estallido a los 5 s + festejo). */
+const ARCHIVOS = {inicio: 'audio/inicio.mp3', aventura: 'audio/aventura.mp3', magia: 'audio/magia.mp3', batalla: 'audio/batalla.mp3',
+  equipo: 'audio/equipo.mp3', incursion: 'audio/incursion.mp3', evolucion: 'audio/evolucion.mp3'};
+/* volumen de cada grabación respecto del chiptune (las grabaciones ya vienen fuertes; las peleas más bajo para oír los golpes) */
+const NIVEL_ARCHIVO = {inicio: .55, aventura: .5, magia: .55, batalla: .42, equipo: .42, incursion: .45, evolucion: .8};
+const UNA_VEZ = {evolucion: true};
 const KEY = 'album-musica';
 /* Volumen de fondo: bajo a propósito, que acompañe y no moleste. Cada tema además tiene su `nivel` (las peleas, más bajo, para que se oigan los golpes). */
 const VOLUMEN = .32;
@@ -121,6 +129,8 @@ function paso(ctx, dest, p, n, t){
 
 /* ---- reproductor en vivo ---- */
 let ctx = null, maestro = null, actual = null, bus = null, plan = null, nPaso = 0, tProx = 0, pistaActual = '';
+const audios = {}, fallidos = {};
+let sonando = null;   // el <audio> que está sonando ahora
 let activa = true;
 try{ activa = localStorage.getItem(KEY) !== '0'; }catch(e){}
 let desbloqueado = false;   // el navegador sólo deja sonar después de un toque
@@ -163,21 +173,64 @@ function sonar(nombre){
     viejo.gain.cancelScheduledValues(ahora); viejo.gain.setValueAtTime(viejo.gain.value, ahora); viejo.gain.linearRampToValueAtTime(0, ahora + .6);
     setTimeout(() => { try{ viejo.disconnect(); }catch(e){} }, 900);
   }
+  if(sonando){ const a = sonando; setTimeout(() => { if(sonando !== a){ try{ a.pause(); }catch(e){} } }, 700); sonando = null; }
+  clearInterval(plan); plan = null;
   bus = ctx.createGain();
-  bus.gain.setValueAtTime(0, ahora); bus.gain.linearRampToValueAtTime(PISTAS[nombre].nivel || 1, ahora + .6);
+  bus.gain.setValueAtTime(0, ahora);
   bus.connect(maestro);
+  const el = ARCHIVOS[nombre] && archivo(nombre);
+  if(el){
+    /* grabación: el <audio> entra al mismo volumen general (y al botón de silencio) por Web Audio */
+    const miBus = bus;
+    try{ el.fuente.disconnect(); }catch(e){}
+    el.fuente.connect(miBus);
+    bus.gain.linearRampToValueAtTime(NIVEL_ARCHIVO[nombre] || .5, ahora + (UNA_VEZ[nombre] ? .05 : .6));
+    sonando = el.audio;
+    actual = nombre;
+    el.listo.then(() => {
+      if(sonando !== el.audio || bus !== miBus) return;
+      if(UNA_VEZ[nombre] || el.audio.ended) try{ el.audio.currentTime = 0; }catch(e){}
+      return el.audio.play();
+    }).catch(() => { if(pistaActual === nombre && bus === miBus) sintetizar(nombre, ctx.currentTime); });
+    return;
+  }
+  sintetizar(nombre, ahora);
+}
+/* chiptune de siempre (también es el respaldo si una grabación falla) */
+function sintetizar(nombre, ahora){
+  if(!PISTAS[nombre]){ actual = nombre; return; }
+  bus.gain.cancelScheduledValues(ahora); bus.gain.setValueAtTime(0, ahora); bus.gain.linearRampToValueAtTime(PISTAS[nombre].nivel || 1, ahora + .6);
   actual = nombre; nPaso = 0; tProx = ahora + .08;
   clearInterval(plan); plan = setInterval(programar, 30); programar();
 }
+/* un <audio> por tema, creado la primera vez que se lo necesita (así cada archivo se baja sólo si se abre esa pantalla) */
+function archivo(nombre){
+  if(fallidos[nombre] || !ctx || !ctx.createMediaElementSource) return null;
+  if(!audios[nombre]){
+    try{
+      const a = new Audio(); a.preload = 'auto'; a.loop = !UNA_VEZ[nombre];
+      /* se baja ENTERO y se toca desde la memoria (blob): el sitio no responde "por partes" (Range) y el iPhone lo necesita para un <audio> */
+      const listo = fetch(ARCHIVOS[nombre]).then(r => { if(!r.ok) throw new Error('audio ' + r.status); return r.blob(); })
+        .then(b => { a.src = URL.createObjectURL(b); })
+        .catch(e => { fallidos[nombre] = true; if(pistaActual === nombre && actual === nombre){ pistaActual = ''; sonar(nombre); } throw e; });
+      listo.catch(() => {});
+      audios[nombre] = {audio: a, fuente: ctx.createMediaElementSource(a), listo};
+    }catch(e){ fallidos[nombre] = true; return null; }
+  }
+  return audios[nombre];
+}
+/* deja bajada la descarga de un tema antes de que haga falta (la escena de evolución arranca justo con su música) */
+function precargar(nombre){ if(desbloqueado && permitido() && asegurarCtx()) archivo(nombre); }
 
 /* qué tema corresponde a la pantalla que está abierta */
 function elegir(){
   const abierto = id => { const el = document.getElementById(id); return !!el && el.classList.contains('show'); };
   if(abierto('arenaOverlay')){
     const S = window.__arena && window.__arena.estado && window.__arena.estado();
-    if(S && S.fase !== 'fin') return S.multi ? 'equipo' : 'batalla';
+    if(S && S.fase !== 'fin') return S.modo === 'raid' ? 'incursion' : S.multi ? 'equipo' : 'batalla';
     return 'inicio';
   }
+  if(abierto('evoEscena')) return 'evolucion';
   if(abierto('advOverlay')) return 'aventura';
   if(['pokedexOverlay', 'detalleOverlay', 'evolucionOverlay', 'repetidasOverlay', 'intercambioOverlay'].some(abierto)) return 'magia';
   return 'inicio';
@@ -216,7 +269,8 @@ function desbloquear(){
 ['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, desbloquear, true));
 document.addEventListener('visibilitychange', () => {
   if(!ctx) return;
-  if(document.hidden) ctx.suspend(); else if(activa) ctx.resume();
+  if(document.hidden){ ctx.suspend(); if(sonando) try{ sonando.pause(); }catch(e){} }
+  else if(activa){ ctx.resume(); if(sonando && !(UNA_VEZ[actual] && sonando.ended)) sonando.play().catch(() => {}); }
 });
 setInterval(revisar, 800);
 document.addEventListener('DOMContentLoaded', () => {
@@ -234,5 +288,5 @@ async function renderizar(nombre, vueltas){
   return {datos:Array.from(buf.getChannelData(0)), segundos:total * sec, tasa:44100};
 }
 
-window.Musica = {pistas:Object.keys(PISTAS), poner, alternar:() => poner(!activa), estaActiva:() => activa, sonar, elegir, renderizar, tema:() => pistaActual};
+window.Musica = {pistas:Object.keys(PISTAS), archivos:ARCHIVOS, precargar, archivoSonando:() => (sonando && !sonando.paused ? sonando.src.split('/').pop() : null), poner, alternar:() => poner(!activa), estaActiva:() => activa, sonar, elegir, renderizar, tema:() => pistaActual};
 })();

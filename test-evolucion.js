@@ -52,14 +52,19 @@ const SHOTS = process.env.SHOTS || '';
     check('Bulbasaur queda con 1 y 0 repetidas', r.b.got && r.b.dup === 0 && r.b.n === 1);
     check('Ivysaur (ya lo tenía) suma 1 repetida con fuerza 90 y shiny', r.i.dup === 1 && r.i.ej.some(e => e.f === 90 && e.s));
     check('el costo se pagó con los más débiles: queda el mejor de los no elegidos (70)', await p.evaluate(() => ejemplares(1)[0].c === 'DDDD'));
-    check('muestra la carta de la evolución', /Evolucionó a Ivysaur/.test(await p.textContent('#revealTitle')));
+    check('abre la escena de evolución', await p.evaluate(() => document.getElementById('evoEscena').classList.contains('show')));
+    await p.click('#evoSaltar');   // 14/11: escena de evolución (se puede saltar)
+    await p.waitForTimeout(200);
+    check('muestra "evolucionó a Ivysaur" con la fuerza que se mantuvo y shiny', /evolucionó a Ivysaur/.test(await p.textContent('#evoTexto')) && /Fuerza 90/.test(await p.textContent('#evoFichaDatos')) && /shiny/.test(await p.textContent('#evoFichaNombre')));
     if(SHOTS) await p.screenshot({path: SHOTS + '/evolucion-' + w + '-carta.png'});
-    await p.evaluate(() => document.getElementById('closeBtn').click());
+    await p.click('#evoSeguir');
     await p.waitForTimeout(300);
+    check('Seguir cierra la escena', await p.evaluate(() => !document.getElementById('evoEscena').classList.contains('show')));
 
     // Charmander: 3 rep -> Charmeleon (Poco Común: 5) y recién 0 -> no se puede seguir
     await p.evaluate(() => evolucionar(4, 5, ejemplares(4)[0].c));
     await p.waitForTimeout(600);
+    await p.evaluate(() => cerrarEscenaEvolucion());
     check('Charmander -> Charmeleon: nuevo, Charmander queda con 1', await p.evaluate(() => state[5].got && state[5].dup === 0 && state[4].dup === 0 && ejemplares(4).length === 1));
     // servidor-local no deja saltear etapa ni evolucionar sin repetidas
     const mal = await p.evaluate(() => [evolucionarLocal(4, 6, ejemplares(4)[0].c), evolucionarLocal(10, 11, ejemplares(10)[0].c), evolucionarLocal(1, 3, ejemplares(1)[0].c)]);

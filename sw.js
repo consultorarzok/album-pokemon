@@ -19,6 +19,7 @@ self.addEventListener('fetch', e => {
   const req = e.request, u = new URL(req.url);
   if(req.method !== 'GET' || u.origin !== self.location.origin || req.headers.has('range')) return;
   if(u.pathname === '/sw.js' || u.pathname === '/version.json') return;   // siempre a la red
+  if(u.pathname.startsWith('/audio/')) return;   // música (14/11): la maneja el navegador (se pide por partes), no el guardado
   if(req.mode === 'navigate' || u.pathname === '/' || u.pathname.endsWith('.html')){
     e.respondWith((async () => {
       const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 8000);

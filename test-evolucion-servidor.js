@@ -34,8 +34,8 @@ const suf = Math.random().toString(36).slice(2, 6);
   await pg.evaluate(c => { const f = [...document.querySelectorAll('#evolucionList .ej-fila')].find(x => x.querySelector('b').textContent === 'Eevee'); f.querySelector('.ej-chip[data-c="' + c + '"]').click(); }, fuerte.c);
   await pg.evaluate(() => { const f = [...document.querySelectorAll('#evolucionList .ej-fila')].find(x => x.querySelector('b').textContent === 'Eevee'); [...f.querySelectorAll('.evo-btn')].find(b => /Espeon/.test(b.textContent)).click(); });
   await pg.waitForTimeout(1500);
-  for(let i = 0; i < 6; i++){ if(await pg.isVisible('#specialContinueBtn')){ await pg.click('#specialContinueBtn'); await pg.waitForTimeout(300); } }
-  check('muestra "Evolucionó a Espeon"', await pg.waitForFunction(() => /Evolucionó a Espeon/.test(document.getElementById('revealTitle').textContent), null, {timeout: 8000}).then(() => true, () => false));
+  check('escena: "evolucionó a Espeon"', await pg.waitForFunction(() => document.getElementById('evoEscena').classList.contains('show') && (document.getElementById('evoSaltar').click(), /evolucionó a Espeon/.test(document.getElementById('evoTexto').textContent)), null, {timeout: 8000}).then(() => true, () => false));
+  await pg.evaluate(() => cerrarEscenaEvolucion());
   const r = await pg.evaluate(() => ({e: state[133].dup, n: ejemplares(133).length, es: ejemplares(196).map(x => x.f)}));
   check('Eevee gastó 10 y queda con 1', r.e === 0 && r.n === 1, r);
   check('Espeon nació con la fuerza del ejemplar elegido', r.es.length === 1 && r.es[0] === fuerte.f, {r, f: fuerte.f});

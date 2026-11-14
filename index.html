@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261164">
+<link rel="stylesheet" href="styles.css?v=20261166">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -250,6 +250,27 @@
   </div>
 </div>
 
+<div class="evo-escena" id="evoEscena" role="dialog" aria-modal="true" aria-labelledby="evoTexto" aria-hidden="true">
+  <div class="evo-rayos" aria-hidden="true"></div>
+  <div class="evo-anillos" id="evoAnillos" aria-hidden="true"></div>
+  <div class="evo-chispas" id="evoChispas" aria-hidden="true"></div>
+  <div class="evo-escenario">
+    <img class="evo-poke" id="evoDesde" alt="">
+    <img class="evo-poke" id="evoHacia" alt="">
+  </div>
+  <div class="evo-texto" id="evoTexto" aria-live="polite"></div>
+  <div class="evo-ficha" id="evoFicha" hidden>
+    <div class="evo-ficha-nombre" id="evoFichaNombre"></div>
+    <div class="evo-ficha-datos" id="evoFichaDatos"></div>
+    <div class="evo-ficha-botones">
+      <button type="button" class="evo-b evo-b-sec" id="evoCompartir">📲 Compartir</button>
+      <button type="button" class="evo-b" id="evoSeguir">Seguir</button>
+    </div>
+  </div>
+  <div class="evo-flash" id="evoFlash" aria-hidden="true"></div>
+  <button type="button" class="evo-saltar" id="evoSaltar">Saltar ⏭</button>
+</div>
+
 <div class="overlay" id="evolucionOverlay" role="dialog" aria-modal="true" style="z-index:45;">
   <div class="reveal-panel" style="max-width:430px;margin:0 auto;">
     <div class="panel-top">
@@ -475,11 +496,11 @@
 </div>
 
 <script src="evoluciones.js?v=20261129"></script>
-<script src="musica.js?v=20261119"></script>
-<script src="app.js?v=20261164"></script>
-<script src="servidor.js?v=20261161"></script>
+<script src="musica.js?v=20261166"></script>
+<script src="app.js?v=20261166"></script>
+<script src="servidor.js?v=20261166"></script>
 <script src="pixfx.js?v=3"></script>
-<script src="arena.js?v=20261164"></script>
+<script src="arena.js?v=20261166"></script>
 <script src="portada.js?v=20261105"></script>
 <script>
 /* Guardado del juego en el celular (sw.js): sólo en el sitio real, nunca en pruebas locales */
