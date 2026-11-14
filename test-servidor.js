@@ -74,7 +74,7 @@ async function cerrarCarteles(pg){
     await A.pg.waitForTimeout(300);
   }
   check('aparecen las 6 cartas', await esperar(A.pg, () => document.querySelectorAll('#revealCards .reveal-card').length === 6));
-  check('descontó 150', await A.pg.evaluate(() => coins) === 850);
+  check('descontó 300 (precio del sobre desde el 2/11)', await A.pg.evaluate(() => coins) === 700);
   await cerrarCarteles(A.pg);
   const figDespues = await A.pg.evaluate(() => figuritasObtenidas());
 
@@ -82,12 +82,12 @@ async function cerrarCarteles(pg){
   await A.pg.evaluate(() => { coins = 99999; state[149].got = true; updateCoins(); });
   await A.pg.click('#openBtn');
   await esperar(A.pg, () => document.querySelectorAll('#revealCards .reveal-card').length === 6 && document.getElementById('overlay').classList.contains('show'));
-  check('el servidor descontó de lo REAL (850 → 700)', await A.pg.evaluate(() => coins) === 700, await A.pg.evaluate(() => coins));
+  check('el servidor descontó de lo REAL (700 → 400)', await A.pg.evaluate(() => coins) === 400, await A.pg.evaluate(() => coins));
   check('la figurita inventada desapareció', await A.pg.evaluate(() => !state[149].got || false) || await A.pg.evaluate(() => state[149].got && state[149].ej.length > 0));
   await cerrarCarteles(A.pg);
   await A.pg.reload();
   await A.pg.click('#portadaEntrar', {force: true}).catch(() => {});
-  check('al recargar sigue en 700 (lo guarda el servidor)', await esperar(A.pg, () => servidorListo && coins === 700));
+  check('al recargar sigue en 400 (lo guarda el servidor)', await esperar(A.pg, () => servidorListo && coins === 400));
   await cerrarCarteles(A.pg);
 
   console.log('4) Responder y ganar');

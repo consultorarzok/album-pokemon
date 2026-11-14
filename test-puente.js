@@ -82,7 +82,7 @@ function servirLocal(route, base){
   await ctx2.route(/^https:\/\/api-prueba\.test\//, proxy);
   await ctx2.route(/^https:\/\/consultorarzok\.github\.io\/album-pokemon\//, r => servirLocal(r, '/album-pokemon/'));
   await ctx2.route(/^https:\/\/(www\.)?entrenadoresrz\.com\//, r => servirLocal(r, '/'));
-  await ctx2.addInitScript(srv => localStorage.setItem('album-servidor', srv), SERVIDOR);
+  await ctx2.addInitScript(srv => { localStorage.setItem('album-servidor', srv); localStorage.setItem('album-avatar', 'red'); }, SERVIDOR);
   const q = await ctx2.newPage();
   await q.goto('https://consultorarzok.github.io/album-pokemon/');
   check('lo manda al sitio nuevo', await q.waitForURL(/entrenadoresrz\.com/, {timeout: 15000}).then(() => true, () => false));
