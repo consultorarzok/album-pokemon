@@ -571,24 +571,35 @@ function hablarConNpc(){
 /* ================= MODO HISTORIA (14/11): "La Liga de Jujuy" =================
    Lo decide el servidor (juego.js: historiaVer, misionCobrar, hablarProfesor, arenaEmpezar con reto). Acá sólo se muestra. */
 const MEDALLAS = [
-  {id: 'g1', nombre: 'Medalla Lapacho', emoji: '🌸', lider: 'Rosa', lugar: 'Parque San Martín (Valles)'},
-  {id: 'g2', nombre: 'Medalla Calilegua', emoji: '🪲', lider: 'Tobías', lugar: 'Yungas'},
-  {id: 'g3', nombre: 'Medalla Siete Colores', emoji: '⛰️', lider: 'Pacha', lugar: 'Quebrada'},
-  {id: 'g4', nombre: 'Medalla Hornocal', emoji: '🥊', lider: 'Inti', lugar: 'Alta Quebrada'},
-  {id: 'g5', nombre: 'Medalla Cauchari', emoji: '⚡', lider: 'Sol', lugar: 'Puna'},
-  {id: 'g6', nombre: 'Medalla Yavi', emoji: '❄️', lider: 'Killa', lugar: 'Puna norte'},
-  {id: 'g7', nombre: 'Medalla Termas', emoji: '♨️', lider: 'Tadeo', lugar: 'Alola'},
-  {id: 'g8', nombre: 'Medalla Cóndor', emoji: '🦅', lider: 'Kuntur', lugar: 'Cuesta de Zenta'}
+  {id: 'g1', nombre: 'Medalla Lapacho', emoji: '🌸', lider: 'Rey sin Corona del Lapacho', lugar: 'Parque San Martín (Valles)', tipo: 'Planta'},
+  {id: 'g2', nombre: 'Medalla Selva', emoji: '🪲', lider: 'Guardián de la Selva', lugar: 'Calilegua (Yungas)', tipo: 'Bicho'},
+  {id: 'g3', nombre: 'Medalla Siete Colores', emoji: '⛰️', lider: 'Señor de los Siete Colores', lugar: 'Purmamarca (Quebrada)', tipo: 'Roca y Tierra'},
+  {id: 'g4', nombre: 'Medalla Hornocal', emoji: '🥊', lider: 'Titán del Hornocal', lugar: 'Hornocal (Alta Quebrada)', tipo: 'Lucha'},
+  {id: 'g5', nombre: 'Medalla Rayo', emoji: '⚡', lider: 'Señor del Rayo', lugar: 'Cauchari (Puna)', tipo: 'Eléctrico'},
+  {id: 'g6', nombre: 'Medalla Llama de Hielo', emoji: '❄️', lider: 'Rey de la Helada', lugar: 'La Quiaca (Puna norte)', tipo: 'Hielo'},
+  {id: 'g7', nombre: 'Medalla Pucará', emoji: '👁️', lider: 'Vidente del Pucará', lugar: 'Tilcara (Quebrada)', tipo: 'Psíquico y Hada'},
+  {id: 'g8', nombre: 'Medalla Carnaval', emoji: '👻', lider: 'Heraldo de las Sombras', lugar: 'Humahuaca', tipo: 'Siniestro y Fantasma'},
+  {id: 'g9', nombre: 'Medalla Altos Hornos', emoji: '⚙️', lider: 'Forjador de Acero', lugar: 'Palpalá (Valles)', tipo: 'Acero'},
+  {id: 'g10', nombre: 'Medalla Flamenco', emoji: '🦩', lider: 'Dama de la Laguna', lugar: 'Laguna de los Pozuelos (Puna)', tipo: 'Agua y Volador'},
+  {id: 'g11', nombre: 'Medalla Salar', emoji: '🧂', lider: 'Alquimista del Salar', lugar: 'Salinas Grandes', tipo: 'Veneno y Tierra'},
+  {id: 'g12', nombre: 'Medalla Paleta del Pintor', emoji: '🎨', lider: 'Pintora de la Paleta', lugar: 'Maimará (Quebrada)', tipo: 'Normal'},
+  {id: 'g13', nombre: 'Medalla Volcán', emoji: '🌋', lider: 'Señor del Fuego', lugar: 'Volcán (Yungas)', tipo: 'Fuego y Dragón'},
+  {id: 'g14', nombre: 'Medalla Trueno', emoji: '🌩️', lider: 'Dama del Trueno', lugar: 'Iruya (Alta Quebrada)', tipo: 'Eléctrico y Lucha'},
+  {id: 'g15', nombre: 'Medalla Tormenta', emoji: '⛈️', lider: 'Amo de la Tormenta', lugar: 'Dique La Ciénaga (Valles)', tipo: 'Agua y Eléctrico'},
+  {id: 'g16', nombre: 'Medalla Zenta', emoji: '🔮', lider: 'Oráculo del Zenta', lugar: 'Cuesta de Zenta', tipo: 'Psíquico'},
+  {id: 'g17', nombre: 'Medalla Sombras', emoji: '🌙', lider: 'Señor de las Sombras', lugar: 'Yala (Valle de las Sombras)', tipo: 'Fantasma y Siniestro'},
+  {id: 'g18', nombre: 'Medalla Cielo y Mar', emoji: '🌊', lider: 'Señora del Cielo y el Mar', lugar: 'Dique Los Alisos', tipo: 'Agua, Dragón y Volador'},
+  {id: 'g19', nombre: 'Medalla Sol de Jujuy', emoji: '☀️', lider: 'Campeón del Sol', lugar: 'Ingenio Ledesma (Yungas)', tipo: 'Fuego, Tierra y Acero'}
 ];
-/* Lo que dice el Profesor en cada paso del capítulo 1 (pide / felicita) */
+/* Lo que dice el Guardián de la Liga en cada paso del capítulo 1 (pide / felicita) */
 const CAP1 = [
-  {pide: '¡Hola! Soy el <b>Profesor Algarrobo</b>. Jujuy está lleno de Pokémon y de entrenadores con ganas de llegar a la <b>Liga</b> del Estadio del Lobo. Para eso hacen falta las <b>8 medallas</b> de los gimnasios. ¡Tomá, para empezar!',
+  {pide: '¡Hola! Soy el <b>Guardián de la Liga</b>. Jujuy está lleno de Pokémon y de entrenadores con ganas de llegar a la <b>Liga</b> del Estadio del Lobo. Para eso hacen falta las <b>19 medallas</b> de los gimnasios de todo Jujuy. ¡Tomá, para empezar!',
    meta: ''},
   {pide: 'Primero lo primero: <b>atrapá 3 Pokémon</b> en el pasto y volvé a contarme.', meta: 'Atrapá 3 Pokémon', n: 3},
   {pide: 'Bien ahí. Ahora probá tu equipo: <b>ganale a un entrenador en la Arena</b> (botón ⚔️ Arena del inicio, o una batalla en la Aventura).', meta: 'Ganá 1 pelea en la Arena', n: 1},
-  {pide: 'Estás listo para tu primer gimnasio. La <b>Líder Rosa</b> te espera en el <b>Parque San Martín</b>, acá cerquita al sur. Usa Pokémon de tipo Planta: ¡llevá Fuego o Volador!', meta: 'Ganale a la Líder Rosa (Parque San Martín)'}
+  {pide: 'Estás listo para tu primer gimnasio. El <b>Rey sin Corona del Lapacho</b> te espera en el <b>Parque San Martín</b>, acá cerquita al sur. Usa Pokémon de tipo Planta: ¡llevá Fuego o Volador!', meta: 'Ganale a el Rey sin Corona del Lapacho (Parque San Martín)'}
 ];
-const CAP1_FIN = '¡La <b>Medalla Lapacho</b>! Sabía que podías. El camino sigue por las <b>Yungas</b>… pero ese gimnasio todavía está cerrado. Mientras tanto, hacé tus misiones de cada día. ¡Ya te aviso!';
+const CAP1_FIN = '¡La <b>Medalla Lapacho</b>! Sabía que podías. Ahora los <b>18 gimnasios</b> que faltan están abiertos, en el orden que quieras: cuanto más lejos, más difíciles. Mirá tus medallas en 📜 Misiones. ¡Y no te olvides de las misiones de cada día!';
 const HIST = {estado: null};
 const premioTexto = pr => {
   if(!pr) return '';
@@ -629,11 +640,12 @@ function desafioGimnasio(reto){
   return n => {
     const ya = HIST.estado && HIST.estado.medallas.includes(reto);
     charla(n.nombre, (ya ? `¡Revancha! Ya tenés la <b>${g.nombre}</b>, pero siempre se puede entrenar. ` : `¡Bienvenido al gimnasio! Si me ganás te llevás la <b>${g.nombre}</b> ${g.emoji}. `) +
-      'Mis Pokémon son de tipo <b>Planta</b>. ¿Aceptás el desafío?',
+      `Mis Pokémon son de tipo <b>${g.tipo}</b>. ¿Aceptás el desafío?`,
       [{t: '⚔️ ¡Acepto!', fn: () => { window.__retoArena = Object.assign({reto, nombre: n.nombre}, posAdv()); cerrarAventura(); abrirArena(); }}, {t: 'Ahora no', sec: true}]);
   };
 }
 const HIST_NPC = {profesor: hablarProfesor, rosa: desafioGimnasio('g1')};
+for(let i = 2; i <= MEDALLAS.length; i++) HIST_NPC['g' + i] = desafioGimnasio('g' + i);   // etapa 2: los líderes 2 a 19 (npc g2…g19)
 
 function misPunto(){
   const e = HIST.estado, pt = document.getElementById('advMisPunto');
@@ -646,10 +658,10 @@ function pintarMisiones(){
   if(!e) return;
   const p = CAP1[e.paso];
   document.getElementById('advMisHistoria').innerHTML = '<div class="adv-mis-paso">' + (p ? `<b>Capítulo 1 · Paso ${e.paso + 1} de ${CAP1.length}</b><br>` +
-    (e.paso === 0 ? 'Buscá al <b>Profesor Algarrobo</b> en la <b>Plaza Belgrano</b> (Valles, San Salvador) y hablale.' :
-      p.meta + (p.n ? ` · vas <b>${Math.min(e.cnt, p.n)} de ${p.n}</b>` : '') + (e.paso < 3 || e.medallas.includes('g1') ? '. Después volvé con el Profesor en la Plaza Belgrano.' : '.'))
-    : '<b>Capítulo 1 completo</b> 🎉<br>El próximo gimnasio (Yungas) se abre pronto.') + '</div>';
-  document.getElementById('advMisMedallas').innerHTML = MEDALLAS.map(m => `<span class="adv-mis-medalla${e.medallas.includes(m.id) ? ' on' : ''}" title="${m.nombre} · ${m.lider} · ${m.lugar}"><img src="images/medallas/${m.id}.png" alt="${m.nombre}${e.medallas.includes(m.id) ? '' : ' (todavía no)'}"></span>`).join('');
+    (e.paso === 0 ? 'Buscá al <b>Guardián de la Liga</b> en la <b>Plaza Belgrano</b> (Valles, San Salvador) y hablale.' :
+      p.meta + (p.n ? ` · vas <b>${Math.min(e.cnt, p.n)} de ${p.n}</b>` : '') + (e.paso < 3 || e.medallas.includes('g1') ? '. Después volvé con el Guardián de la Liga en la Plaza Belgrano.' : '.'))
+    : '<b>Capítulo 1 completo</b> 🎉<br>Ya podés ir por los gimnasios de todo Jujuy: tus medallas están acá abajo.') + '</div>';
+  document.getElementById('advMisMedallas').innerHTML = `<div style="width:100%;text-align:center;font-size:12px;margin-bottom:2px">🏅 Medallas: <b>${e.medallas.length} de ${MEDALLAS.length}</b></div>` + MEDALLAS.map(m => `<span class="adv-mis-medalla${e.medallas.includes(m.id) ? ' on' : ''}" title="${m.nombre} · ${m.lider} · ${m.lugar}"><img src="images/medallas/${m.id}.png" alt="${m.nombre}${e.medallas.includes(m.id) ? '' : ' (todavía no)'}"></span>`).join('');
   const L = document.getElementById('advMisLista'); L.innerHTML = '';
   e.dia.ms.forEach((m, i) => {
     const f = document.createElement('div'); f.className = 'adv-mis-fila';

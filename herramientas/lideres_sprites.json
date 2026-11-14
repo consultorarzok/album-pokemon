@@ -1,0 +1,164 @@
+{
+ "lider2": {
+  "src": "images/lider2_bicho_walk.png",
+  "fw": 48,
+  "fh": 72,
+  "w": 14,
+  "h": 21,
+  "suave": true,
+  "npc": true
+ },
+ "lider3": {
+  "src": "images/lider3_roca_walk.png",
+  "fw": 48,
+  "fh": 72,
+  "w": 14,
+  "h": 21,
+  "suave": true,
+  "npc": true
+ },
+ "lider4": {
+  "src": "images/lider4_lucha_walk.png",
+  "fw": 48,
+  "fh": 72,
+  "w": 14,
+  "h": 21,
+  "suave": true,
+  "npc": true
+ },
+ "lider5": {
+  "src": "images/lider5_electrico_walk.png",
+  "fw": 48,
+  "fh": 72,
+  "w": 14,
+  "h": 21,
+  "suave": true,
+  "npc": true
+ },
+ "lider6": {
+  "src": "images/lider6_hielo_walk.png",
+  "fw": 48,
+  "fh": 72,
+  "w": 14,
+  "h": 21,
+  "suave": true,
+  "npc": true
+ },
+ "lider7": {
+  "src": "images/lider7_psiquico_walk.png",
+  "fw": 16,
+  "fh": 21,
+  "w": 16,
+  "h": 21,
+  "suave": false,
+  "npc": true
+ },
+ "lider8": {
+  "src": "images/lider8_siniestro_walk.png",
+  "fw": 48,
+  "fh": 72,
+  "w": 14,
+  "h": 21,
+  "suave": true,
+  "npc": true
+ },
+ "lider9": {
+  "src": "images/lider9_acero_walk.png",
+  "fw": 48,
+  "fh": 72,
+  "w": 14,
+  "h": 21,
+  "suave": true,
+  "npc": true
+ },
+ "lider10": {
+  "src": "images/lider10_agua_walk.png",
+  "fw": 16,
+  "fh": 21,
+  "w": 16,
+  "h": 21,
+  "suave": false,
+  "npc": true
+ },
+ "lider11": {
+  "src": "images/lider11_veneno_walk.png",
+  "fw": 48,
+  "fh": 72,
+  "w": 14,
+  "h": 21,
+  "suave": true,
+  "npc": true
+ },
+ "lider12": {
+  "src": "images/lider12_normal_walk.png",
+  "fw": 16,
+  "fh": 21,
+  "w": 16,
+  "h": 21,
+  "suave": false,
+  "npc": true
+ },
+ "lider13": {
+  "src": "images/lider13_fuego_walk.png",
+  "fw": 48,
+  "fh": 72,
+  "w": 14,
+  "h": 21,
+  "suave": true,
+  "npc": true
+ },
+ "lider14": {
+  "src": "images/lider14_rayo_walk.png",
+  "fw": 16,
+  "fh": 21,
+  "w": 16,
+  "h": 21,
+  "suave": false,
+  "npc": true
+ },
+ "lider15": {
+  "src": "images/lider15_tormenta_walk.png",
+  "fw": 48,
+  "fh": 72,
+  "w": 14,
+  "h": 21,
+  "suave": true,
+  "npc": true
+ },
+ "lider16": {
+  "src": "images/lider16_zenta_walk.png",
+  "fw": 16,
+  "fh": 21,
+  "w": 16,
+  "h": 21,
+  "suave": false,
+  "npc": true
+ },
+ "lider17": {
+  "src": "images/lider17_sombras_walk.png",
+  "fw": 48,
+  "fh": 72,
+  "w": 14,
+  "h": 21,
+  "suave": true,
+  "npc": true
+ },
+ "lider18": {
+  "src": "images/lider18_cielo_walk.png",
+  "fw": 16,
+  "fh": 21,
+  "w": 16,
+  "h": 21,
+  "suave": false,
+  "npc": true
+ },
+ "lider19": {
+  "src": "images/lider19_sol_walk.png",
+  "fw": 48,
+  "fh": 72,
+  "w": 14,
+  "h": 21,
+  "suave": true,
+  "npc": true
+ }
+}

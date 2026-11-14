@@ -3898,7 +3898,7 @@ async function luchar(mios, duelo){
   const estilo = elige(Object.keys(ESTILOS));
   AR = {
     yo:  {mons:duelo && !multi ? duelo.yo.equipo.map(x => crearMon(pDe(x.id), false, x)) : mios ? mios.map(p => crearMon(p)) : [], idx:0, act:null, nombre:window.__yoNombre || 'Vos'},
-    riv: {mons:gim ? gim.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:'GIM' + i})) : duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
+    riv: {mons:gim ? gim.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:'GIM' + i, s:!!x.s})) : duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
     zoom:ZOOM_1V1, lados:['yo', 'riv'], bando:{yo:'A', riv:'B'}, espejo:{riv:true}, porSlot:{}, miSlot:null, multi:false, modo:'1v1', spawn:{yo:[.55, .35], riv:[-.55, -.2]},
     online:!!duelo, red:{ult:0, obj:{}},
     estilo:ESTILOS[estilo], proys:[], zonas:[], pend:[], hold:new Set(), keys:new Set(), joy:{x:0, y:0},

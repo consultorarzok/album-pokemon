@@ -1,5 +1,5 @@
 /* Modo historia (14/11) en MODO SERVIDOR (servidor local :8787, npm run dev en pokemon-servidor): personajes quietos,
-   charla con el Profesor Algarrobo, panel de Misiones con medallas y desafío a la Líder Rosa (pelea de gimnasio con su equipo).
+   charla con el Guardián de la Liga, panel de Misiones con medallas y desafío al Rey sin Corona del Lapacho (pelea de gimnasio con su equipo).
    Con SHOTS=carpeta guarda capturas. */
 let chromium;
 try{ ({ chromium } = require('playwright')); }
@@ -33,12 +33,12 @@ const suf = Math.random().toString(36).slice(2, 6);
   await p.evaluate(() => document.querySelectorAll('.overlay.show').forEach(e => e.classList.remove('show')));
   await p.evaluate(() => abrirAventura());
   await p.waitForTimeout(2500);
-  // ir al lado del Profesor (Plaza Belgrano 79,126): un casillero más abajo
+  // ir al lado del Guardián de la Liga (Plaza Belgrano 79,126): un casillero más abajo
   await p.evaluate(() => { advPonerEn(79, 127); });
-  check('aparece "💬 Hablar con Profesor Algarrobo"', await p.waitForFunction(() => { const b = document.getElementById('advNpcBtn'); return !b.hidden && /Profesor Algarrobo/.test(b.textContent) && /💬/.test(b.textContent); }, null, {timeout: 8000}).then(() => true, () => false));
+  check('aparece "💬 Hablar con Guardián de la Liga"', await p.waitForFunction(() => { const b = document.getElementById('advNpcBtn'); return !b.hidden && /Guardián de la Liga/.test(b.textContent) && /💬/.test(b.textContent); }, null, {timeout: 8000}).then(() => true, () => false));
   if(SHOTS) await p.screenshot({path: SHOTS + '/historia-profesor.png'});
   await p.click('#advNpcBtn');
-  check('el Profesor saluda y da 10 Poké Ball', await p.waitForFunction(() => !document.getElementById('advCharla').hidden && /Algarrobo/.test(document.getElementById('advCharlaTxt').innerHTML) && /\+10 Poké Ball/.test(document.getElementById('advCharlaTxt').textContent), null, {timeout: 8000}).then(() => true, () => false));
+  check('el Guardián de la Liga saluda y da 10 Poké Ball', await p.waitForFunction(() => !document.getElementById('advCharla').hidden && /Guardián de la Liga/.test(document.getElementById('advCharlaTxt').innerHTML) && /\+10 Poké Ball/.test(document.getElementById('advCharlaTxt').textContent), null, {timeout: 8000}).then(() => true, () => false));
   check('y pide atrapar 3 Pokémon', /atrapá 3 Pokémon/i.test(await p.textContent('#advCharlaTxt')));
   if(SHOTS) await p.screenshot({path: SHOTS + '/historia-charla.png'});
   await p.click('#advCharlaBotones button');
@@ -46,12 +46,12 @@ const suf = Math.random().toString(36).slice(2, 6);
   await p.click('#advMisBtn');
   check('panel de misiones: 3 misiones + bono', await p.waitForFunction(() => document.querySelectorAll('#advMisLista .adv-mis-fila').length === 4, null, {timeout: 8000}).then(() => true, () => false));
   check('muestra el paso 2 del capítulo', /Paso 2 de 4/.test(await p.textContent('#advMisHistoria')));
-  check('las 8 medallas, ninguna ganada', await p.evaluate(() => document.querySelectorAll('#advMisMedallas img').length === 8 && !document.querySelector('#advMisMedallas .on')));
+  check('las 19 medallas, ninguna ganada', await p.evaluate(() => document.querySelectorAll('#advMisMedallas img').length === 19 && !document.querySelector('#advMisMedallas .on')));
   if(SHOTS) await p.screenshot({path: SHOTS + '/historia-misiones.png'});
   await p.click('#advMisCerrar');
   // Rosa: Parque San Martín (93,149)
   await p.evaluate(() => { advPonerEn(93, 150); });
-  check('aparece "💬 Hablar con Líder Rosa"', await p.waitForFunction(() => /Líder Rosa/.test(document.getElementById('advNpcBtn').textContent) && !document.getElementById('advNpcBtn').hidden, null, {timeout: 8000}).then(() => true, () => false));
+  check('aparece "💬 Hablar con Rey sin Corona del Lapacho"', await p.waitForFunction(() => /Rey sin Corona del Lapacho/.test(document.getElementById('advNpcBtn').textContent) && !document.getElementById('advNpcBtn').hidden, null, {timeout: 8000}).then(() => true, () => false));
   await p.click('#advNpcBtn');
   check('Rosa ofrece el desafío por la Medalla Lapacho', /Medalla Lapacho/.test(await p.textContent('#advCharlaTxt')));
   if(SHOTS) await p.screenshot({path: SHOTS + '/historia-rosa.png'});
@@ -59,9 +59,17 @@ const suf = Math.random().toString(36).slice(2, 6);
   check('se abre la Arena para elegir equipo', await p.waitForFunction(() => document.getElementById('arenaOverlay').classList.contains('show'), null, {timeout: 6000}).then(() => true, () => false));
   await p.waitForTimeout(800);
   await p.evaluate(() => document.getElementById('arPickGo').click());
-  check('la pelea es contra la Líder Rosa con su equipo de 3 (Oddish, Bellsprout, Tangela)', await p.waitForFunction(() => window.__arena && window.__arena.estado() && window.__arena.estado().rivalNombre === 'Líder Rosa' && window.__arena.estado().riv.mons.map(m => m.p.id).join() === '43,69,114', null, {timeout: 10000}).then(() => true, () => false));
+  check('la pelea es contra el Rey sin Corona del Lapacho con su equipo de 4 (Oddish, Bellsprout, Tangela, Celebi)', await p.waitForFunction(() => window.__arena && window.__arena.estado() && window.__arena.estado().rivalNombre === 'Rey sin Corona del Lapacho' && window.__arena.estado().riv.mons.map(m => m.p.id).join() === '43,69,114,251', null, {timeout: 10000}).then(() => true, () => false));
   await p.waitForTimeout(1500);
   if(SHOTS) await p.screenshot({path: SHOTS + '/historia-pelea.png'});
+  // etapa 2: un líder de ÉLITE (g19 Campeón del Sol, Ingenio Ledesma 127,128): exclusivo Ho-Oh Apex Oscuro + shiny
+  await p.evaluate(() => { window.__arena && window.__arena.estado && 0; });
+  const g19 = await p.evaluate(async () => {
+    const r = await accionServidor('arenaEmpezar', {equipo: [1, 4, 7], reto: 'g19', mapa: 'overworld', x: 20 * 16, y: 20 * 16});
+    return r;
+  });
+  check('g19: lejos del líder no deja empezar (valida cercanía)', g19 && g19.ok === false);
+  console.log('  nota: pruebas de cada líder 2-19 en servidor (test/historia.test.js)');
   console.log('  errores JS:', errores.join(' | ') || 'ninguno');
   check('sin errores de página', errores.length === 0);
   console.log(`\n${ok} bien, ${fail} mal`);

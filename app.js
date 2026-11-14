@@ -5004,7 +5004,26 @@ const AVATARES = {
   chuli:  {src: 'images/chuli_walk.png',  fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true},
   /* Modo historia (14/11): el Profesor y los líderes de gimnasio. Figuras provisorias hasta que Zeta mande las suyas */
   profesor: {src: 'images/profesor_walk.png', fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true},
-  rosa:     {src: 'images/rosa_walk.png',     fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true}
+  rosa:     {src: 'images/rosa_walk.png',     fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true},
+  /* Los otros 18 líderes de gimnasio (etapa 2). Provisorios: recoloreos de Rosa (hombres) y de May (mujeres) hasta tener las figuras de Gemini. Se hacen con herramientas/lideres_recolor.py */
+  lider2: {src: 'images/lider2_bicho_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true, npc: true},
+  lider3: {src: 'images/lider3_roca_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true, npc: true},
+  lider4: {src: 'images/lider4_lucha_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true, npc: true},
+  lider5: {src: 'images/lider5_electrico_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true, npc: true},
+  lider6: {src: 'images/lider6_hielo_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true, npc: true},
+  lider7: {src: 'images/lider7_psiquico_walk.png', fw: 16, fh: 21, w: 16, h: 21, suave: false, npc: true},
+  lider8: {src: 'images/lider8_siniestro_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true, npc: true},
+  lider9: {src: 'images/lider9_acero_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true, npc: true},
+  lider10: {src: 'images/lider10_agua_walk.png', fw: 16, fh: 21, w: 16, h: 21, suave: false, npc: true},
+  lider11: {src: 'images/lider11_veneno_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true, npc: true},
+  lider12: {src: 'images/lider12_normal_walk.png', fw: 16, fh: 21, w: 16, h: 21, suave: false, npc: true},
+  lider13: {src: 'images/lider13_fuego_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true, npc: true},
+  lider14: {src: 'images/lider14_rayo_walk.png', fw: 16, fh: 21, w: 16, h: 21, suave: false, npc: true},
+  lider15: {src: 'images/lider15_tormenta_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true, npc: true},
+  lider16: {src: 'images/lider16_zenta_walk.png', fw: 16, fh: 21, w: 16, h: 21, suave: false, npc: true},
+  lider17: {src: 'images/lider17_sombras_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true, npc: true},
+  lider18: {src: 'images/lider18_cielo_walk.png', fw: 16, fh: 21, w: 16, h: 21, suave: false, npc: true},
+  lider19: {src: 'images/lider19_sol_walk.png', fw: 48, fh: 72, w: 14, h: 21, suave: true, npc: true}
 };
 let avatarActual = 'red';
 const esElegible = a => !!(AVATARES[a] && !AVATARES[a].npc);   // los NPC (Sadir, Millón, Chuli, admins) no se pueden elegir
@@ -5084,7 +5103,7 @@ function spriteJugadorCacheado(dir, paso, av = avatarActual){
 
 /* Personajes en alta resolución: se dibuja el cuadro de la hoja original (Red 48x72) sin achicarlo a 14x21.
    May es de 16x21: se agranda con píxeles nítidos (nearest) y recién después se ajusta a la pantalla. */
-const HD_AVATAR = {red: {dw: 11.3, dh: 17, up: 1}, may: {dw: 12.4, dh: 16.4, up: 8}, sadir: {dw: 11.7, dh: 17.5, up: 1}, zeta: {dw: 11.7, dh: 17.5, up: 1}, millon: {dw: 11.7, dh: 17.5, up: 1}, chuli: {dw: 11.7, dh: 17.5, up: 1}, mago: {dw: 11.7, dh: 17.5, up: 1}, joker: {dw: 11.7, dh: 17.5, up: 1}, profesor: {dw: 11.7, dh: 17.5, up: 1}, rosa: {dw: 11.7, dh: 17.5, up: 1}};   // ~1 casillero de alto (antes 1,5): el terreno pesa más
+const HD_AVATAR = {red: {dw: 11.3, dh: 17, up: 1}, may: {dw: 12.4, dh: 16.4, up: 8}, sadir: {dw: 11.7, dh: 17.5, up: 1}, zeta: {dw: 11.7, dh: 17.5, up: 1}, millon: {dw: 11.7, dh: 17.5, up: 1}, chuli: {dw: 11.7, dh: 17.5, up: 1}, mago: {dw: 11.7, dh: 17.5, up: 1}, joker: {dw: 11.7, dh: 17.5, up: 1}, profesor: {dw: 11.7, dh: 17.5, up: 1}, rosa: {dw: 11.7, dh: 17.5, up: 1}, lider2: {dw: 11.7, dh: 17.5, up: 1}, lider3: {dw: 11.7, dh: 17.5, up: 1}, lider4: {dw: 11.7, dh: 17.5, up: 1}, lider5: {dw: 11.7, dh: 17.5, up: 1}, lider6: {dw: 11.7, dh: 17.5, up: 1}, lider7: {dw: 12.4, dh: 16.4, up: 8}, lider8: {dw: 11.7, dh: 17.5, up: 1}, lider9: {dw: 11.7, dh: 17.5, up: 1}, lider10: {dw: 12.4, dh: 16.4, up: 8}, lider11: {dw: 11.7, dh: 17.5, up: 1}, lider12: {dw: 12.4, dh: 16.4, up: 8}, lider13: {dw: 11.7, dh: 17.5, up: 1}, lider14: {dw: 12.4, dh: 16.4, up: 8}, lider15: {dw: 11.7, dh: 17.5, up: 1}, lider16: {dw: 12.4, dh: 16.4, up: 8}, lider17: {dw: 11.7, dh: 17.5, up: 1}, lider18: {dw: 12.4, dh: 16.4, up: 8}, lider19: {dw: 11.7, dh: 17.5, up: 1}};   // ~1 casillero de alto (antes 1,5): el terreno pesa más
 const HD_CACHE = {};
 function spriteHD(av, dir, paso){
   if(!HD_AVATAR[av]) av = 'red';
