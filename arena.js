@@ -3880,19 +3880,25 @@ function armarIncursion(d, pDe){
 async function luchar(mios, duelo){
   audio();   // el navegador sólo deja arrancar el sonido después de un toque del usuario
   /* con servidor: anota que empieza la pelea y con qué equipo (al terminar controla el tiempo y los premios) */
+  /* Modo historia (14/11): desafío de gimnasio. El equipo del líder lo manda el servidor, que además valida que estés al lado del líder */
+  const reto = !duelo && window.__retoArena ? window.__retoArena : null;
+  window.__retoArena = null;
+  let gim = null;
   if(MODO_SERVIDOR && !duelo){
-    const res = await accionServidor('arenaEmpezar', {equipo: mios.map(p => p.id)}).catch(() => null);
-    if(!res || !res.ok){ avisoServidor(res ? res.motivo : 'sin_conexion'); return; }
+    const res = await accionServidor('arenaEmpezar', reto ? {equipo: mios.map(p => p.id), reto: reto.reto, mapa: reto.mapa, x: reto.x, y: reto.y} : {equipo: mios.map(p => p.id)}).catch(() => null);
+    if(!res || !res.ok){ avisoServidor(res ? (res.motivo === 'lejos_del_npc' ? 'lejos_del_lider' : res.motivo) : 'sin_conexion'); return; }
+    if(reto && res.resultado && res.resultado.equipo) gim = {nombre: res.resultado.lider, equipo: res.resultado.equipo};
   }
   const pDe = id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id];
   const multi = !!(duelo && duelo.multi);
-  const rival = duelo && !multi ? duelo.rival.equipo.map(x => pDe(x.id)) : (multi ? [] : armarRival(mios));
-  const ent = duelo && !multi ? {nombre:duelo.rival.nombre, fig:null} : multi ? {nombre:'', fig:null} : elegirRival();
+  const rival = gim ? gim.equipo.map(x => pDe(x.id)) : duelo && !multi ? duelo.rival.equipo.map(x => pDe(x.id)) : (multi ? [] : armarRival(mios));
+  const ent = gim ? {nombre:gim.nombre, fig:null} : duelo && !multi ? {nombre:duelo.rival.nombre, fig:null} : multi ? {nombre:'', fig:null} : elegirRival();
+  if(gim) window.__retoVolver = true;   // al cerrar la Arena se vuelve a la Aventura
   rivalFig = ent.fig;
   const estilo = elige(Object.keys(ESTILOS));
   AR = {
     yo:  {mons:duelo && !multi ? duelo.yo.equipo.map(x => crearMon(pDe(x.id), false, x)) : mios ? mios.map(p => crearMon(p)) : [], idx:0, act:null, nombre:window.__yoNombre || 'Vos'},
-    riv: {mons:duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
+    riv: {mons:gim ? gim.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:'GIM' + i})) : duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
     zoom:ZOOM_1V1, lados:['yo', 'riv'], bando:{yo:'A', riv:'B'}, espejo:{riv:true}, porSlot:{}, miSlot:null, multi:false, modo:'1v1', spawn:{yo:[.55, .35], riv:[-.55, -.2]},
     online:!!duelo, red:{ult:0, obj:{}},
     estilo:ESTILOS[estilo], proys:[], zonas:[], pend:[], hold:new Set(), keys:new Set(), joy:{x:0, y:0},
@@ -3971,7 +3977,9 @@ function terminarServidor(gane){
     const subidas = r.subidas.map(u => ({nombre:u.nombre, premio:textoPremioRango(RANGOS_MAESTRO[u.nivel].premio || {}) +
       (u.legendarias.length ? ' (' + u.legendarias.map(x => (DATA.find(d => d.id === x.id) || {}).name).join(', ') + ')' : '')}));
     cargarTopMaestro();
-    pintarFin(gane, pr, subidas, r.tope ? 'Ya peleaste un montón hoy: las peleas de acá a mañana no dan premio.' : '');
+    const med = r.medalla && !r.medalla.repetida ? `<img src="images/medallas/${r.medalla.id}.png" alt="" style="width:72px;height:72px;display:block;margin:6px auto;animation:medRebote .7s cubic-bezier(.2,1.6,.4,1)">🏅 ¡Ganaste la <b>${r.medalla.nombre}</b>! ${typeof premioTexto === 'function' ? premioTexto(r.medalla.premio) : ''}` : '';
+    pintarFin(gane, pr, subidas, [r.tope ? 'Ya peleaste un montón hoy: las peleas de acá a mañana no dan premio.' : '', med].filter(Boolean).join('<br>'));
+    if(med) updateCoins();
   }).catch(() => pintarFin(gane, vacio, [], 'Sin conexión: esta pelea no se anotó.'));
 }
 
@@ -4652,6 +4660,8 @@ function cerrarArena(){
   $('arenaOverlay').classList.remove('show');
   $('arRoot').innerHTML = '';
   if(typeof updateBarras === 'function') updateBarras();
+  window.__retoArena = null;
+  if(window.__retoVolver){ window.__retoVolver = false; if(typeof abrirAventura === 'function') abrirAventura(); }   // después del gimnasio, de vuelta a la Aventura
 }
 
 /* ---------------- teclado ---------------- */

@@ -53,6 +53,7 @@ const aPull = x => ({p: POR_ID_C[x.id], isNew: x.isNew});
 const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar']);
 
 const MENSAJES = {
+  lejos_del_lider: 'Para desafiar al gimnasio tenés que estar al lado del líder.', todavia_no: 'Todavía no completaste esa misión.',
   sin_habilitar: 'Primero habilitá a ese Pokémon como compañero', ya_habilitado: 'Ese Pokémon ya está habilitado de compañero', no_puede_ser_companero: 'Ese Pokémon no puede ser compañero (no queda bien en el mapa)', se_consigue_canjeando: 'Esa pokébola se consigue cambiando las de abajo', sin_bolas: 'No te alcanzan las pokébolas para ese cambio', canje_invalido: 'Ese cambio no existe',
   sin_monedas: 'No te alcanzan las monedas.',
   fuerza_maxima: 'Esa figurita ya tiene la fuerza máxima.',
@@ -540,7 +541,7 @@ function npcBoton(cerca){
   npcActual = cerca;
   const ver = !!cerca && servidorListo;
   if(b.hidden === ver) b.hidden = !ver;
-  if(ver && b.dataset.npc !== cerca.id){ b.dataset.npc = cerca.id; b.textContent = '🎁 Hablar con ' + cerca.nombre; }
+  if(ver && b.dataset.npc !== cerca.id){ b.dataset.npc = cerca.id; b.textContent = (HIST_NPC[cerca.id] ? '💬 Hablar con ' : '🎁 Hablar con ') + cerca.nombre; }
 }
 function npcFaltante(npc){
   const falta = (npcRegalos[npc] || 0) + NPC_CADA_MS - Date.now();
@@ -550,6 +551,7 @@ function npcFaltante(npc){
 }
 function hablarConNpc(){
   const n = npcActual;
+  if(n && HIST_NPC[n.id]) return HIST_NPC[n.id](n);   // modo historia: Profesor y líderes
   if(!n || !puedeJugar('npc')) return;
   const espera = npcFaltante(n.id);
   if(espera){ soltar('npc')(); return advMensaje(`🏛️ <b>${n.nombre}</b>: ¡Ya te di tus pokébolas de hoy! Volvé en ${espera}.`); }
@@ -565,6 +567,131 @@ function hablarConNpc(){
   }).catch(() => {}).then(soltar('npc'));
 }
 (() => { const b = document.getElementById('advNpcBtn'); if(b) b.onclick = hablarConNpc; })();
+
+/* ================= MODO HISTORIA (14/11): "La Liga de Jujuy" =================
+   Lo decide el servidor (juego.js: historiaVer, misionCobrar, hablarProfesor, arenaEmpezar con reto). Acá sólo se muestra. */
+const MEDALLAS = [
+  {id: 'g1', nombre: 'Medalla Lapacho', emoji: '🌸', lider: 'Rosa', lugar: 'Parque San Martín (Valles)'},
+  {id: 'g2', nombre: 'Medalla Calilegua', emoji: '🪲', lider: 'Tobías', lugar: 'Yungas'},
+  {id: 'g3', nombre: 'Medalla Siete Colores', emoji: '⛰️', lider: 'Pacha', lugar: 'Quebrada'},
+  {id: 'g4', nombre: 'Medalla Hornocal', emoji: '🥊', lider: 'Inti', lugar: 'Alta Quebrada'},
+  {id: 'g5', nombre: 'Medalla Cauchari', emoji: '⚡', lider: 'Sol', lugar: 'Puna'},
+  {id: 'g6', nombre: 'Medalla Yavi', emoji: '❄️', lider: 'Killa', lugar: 'Puna norte'},
+  {id: 'g7', nombre: 'Medalla Termas', emoji: '♨️', lider: 'Tadeo', lugar: 'Alola'},
+  {id: 'g8', nombre: 'Medalla Cóndor', emoji: '🦅', lider: 'Kuntur', lugar: 'Cuesta de Zenta'}
+];
+/* Lo que dice el Profesor en cada paso del capítulo 1 (pide / felicita) */
+const CAP1 = [
+  {pide: '¡Hola! Soy el <b>Profesor Algarrobo</b>. Jujuy está lleno de Pokémon y de entrenadores con ganas de llegar a la <b>Liga</b> del Estadio del Lobo. Para eso hacen falta las <b>8 medallas</b> de los gimnasios. ¡Tomá, para empezar!',
+   meta: ''},
+  {pide: 'Primero lo primero: <b>atrapá 3 Pokémon</b> en el pasto y volvé a contarme.', meta: 'Atrapá 3 Pokémon', n: 3},
+  {pide: 'Bien ahí. Ahora probá tu equipo: <b>ganale a un entrenador en la Arena</b> (botón ⚔️ Arena del inicio, o una batalla en la Aventura).', meta: 'Ganá 1 pelea en la Arena', n: 1},
+  {pide: 'Estás listo para tu primer gimnasio. La <b>Líder Rosa</b> te espera en el <b>Parque San Martín</b>, acá cerquita al sur. Usa Pokémon de tipo Planta: ¡llevá Fuego o Volador!', meta: 'Ganale a la Líder Rosa (Parque San Martín)'}
+];
+const CAP1_FIN = '¡La <b>Medalla Lapacho</b>! Sabía que podías. El camino sigue por las <b>Yungas</b>… pero ese gimnasio todavía está cerrado. Mientras tanto, hacé tus misiones de cada día. ¡Ya te aviso!';
+const HIST = {estado: null};
+const premioTexto = pr => {
+  if(!pr) return '';
+  const nom = {roja: 'Poké Ball', azul: 'Súper Ball', ultra: 'Ultra Ball', maestra: 'Master Ball'};
+  return [pr.monedas ? `+${pr.monedas} 🪙` : '', ...Object.keys(pr.bolas || {}).map(t => `+${pr.bolas[t]} ${nom[t] || t}`), pr.diamantes ? `+${pr.diamantes} 💎` : ''].filter(Boolean).join(' · ');
+};
+function charla(quien, txt, botones){
+  const c = document.getElementById('advCharla');
+  document.getElementById('advCharlaQuien').textContent = quien;
+  document.getElementById('advCharlaTxt').innerHTML = txt;
+  const bx = document.getElementById('advCharlaBotones'); bx.innerHTML = '';
+  (botones && botones.length ? botones : [{t: 'Seguir'}]).forEach(b => {
+    const el = document.createElement('button'); el.type = 'button'; el.textContent = b.t; if(b.sec) el.className = 'sec';
+    el.onclick = () => { c.hidden = true; if(b.fn) b.fn(); };
+    bx.appendChild(el);
+  });
+  teclasApretadas.clear(); advEje = {x: 0, y: 0};
+  c.hidden = false;
+  bx.firstChild.focus({preventScroll: true});
+}
+function posAdv(){ return {mapa: advMapa, x: Math.round(advPx), y: Math.round(advPy)}; }
+function hablarProfesor(n){
+  if(!puedeJugar('profesor')) return;
+  accionServidor('hablarProfesor', posAdv()).then(res => {
+    if(!res.ok){ if(res.motivo === 'lejos_del_npc') return advMensaje('Acercate un poco más 🚶'); return avisoServidor(res.motivo); }
+    const r = res.resultado, quien = n.nombre;
+    if(r.fin && !r.premio) return charla(quien, CAP1_FIN);
+    if(r.falta){ const p = CAP1[r.paso]; return charla(quien, p.pide + (p.n ? `<br><br>Vas <b>${r.cnt} de ${p.n}</b>.` : '')); }
+    updateCoins(); enviarPuntaje();
+    const sig = r.fin ? CAP1_FIN : CAP1[r.paso].pide;
+    const antes = r.paso === 1 ? CAP1[0].pide + '<br><br>' : '¡Muy bien hecho! ';
+    charla(quien, antes + `<span style="color:#3ddc6e">${premioTexto(r.premio)}</span><br><br>` + (r.paso === 1 ? CAP1[1].pide : sig));
+    HIST.estado = null; misPunto();
+  }).catch(() => {}).then(soltar('profesor'));
+}
+function desafioGimnasio(reto){
+  const g = MEDALLAS.find(m => m.id === reto);
+  return n => {
+    const ya = HIST.estado && HIST.estado.medallas.includes(reto);
+    charla(n.nombre, (ya ? `¡Revancha! Ya tenés la <b>${g.nombre}</b>, pero siempre se puede entrenar. ` : `¡Bienvenido al gimnasio! Si me ganás te llevás la <b>${g.nombre}</b> ${g.emoji}. `) +
+      'Mis Pokémon son de tipo <b>Planta</b>. ¿Aceptás el desafío?',
+      [{t: '⚔️ ¡Acepto!', fn: () => { window.__retoArena = Object.assign({reto, nombre: n.nombre}, posAdv()); cerrarAventura(); abrirArena(); }}, {t: 'Ahora no', sec: true}]);
+  };
+}
+const HIST_NPC = {profesor: hablarProfesor, rosa: desafioGimnasio('g1')};
+
+function misPunto(){
+  const e = HIST.estado, pt = document.getElementById('advMisPunto');
+  if(!pt || !e) return;
+  const cobrable = e.dia.ms.some(m => !m.ok && m.n >= m.meta) || (!e.dia.bono && e.dia.ms.every(m => m.ok));
+  pt.hidden = !cobrable;
+}
+function pintarMisiones(){
+  const e = HIST.estado;
+  if(!e) return;
+  const p = CAP1[e.paso];
+  document.getElementById('advMisHistoria').innerHTML = '<div class="adv-mis-paso">' + (p ? `<b>Capítulo 1 · Paso ${e.paso + 1} de ${CAP1.length}</b><br>` +
+    (e.paso === 0 ? 'Buscá al <b>Profesor Algarrobo</b> en la <b>Plaza Belgrano</b> (Valles, San Salvador) y hablale.' :
+      p.meta + (p.n ? ` · vas <b>${Math.min(e.cnt, p.n)} de ${p.n}</b>` : '') + (e.paso < 3 || e.medallas.includes('g1') ? '. Después volvé con el Profesor en la Plaza Belgrano.' : '.'))
+    : '<b>Capítulo 1 completo</b> 🎉<br>El próximo gimnasio (Yungas) se abre pronto.') + '</div>';
+  document.getElementById('advMisMedallas').innerHTML = MEDALLAS.map(m => `<span class="adv-mis-medalla${e.medallas.includes(m.id) ? ' on' : ''}" title="${m.nombre} · ${m.lider} · ${m.lugar}"><img src="images/medallas/${m.id}.png" alt="${m.nombre}${e.medallas.includes(m.id) ? '' : ' (todavía no)'}"></span>`).join('');
+  const L = document.getElementById('advMisLista'); L.innerHTML = '';
+  e.dia.ms.forEach((m, i) => {
+    const f = document.createElement('div'); f.className = 'adv-mis-fila';
+    const t = m.t.replace('{tipo}', (typeof TYPE_LABEL !== 'undefined' && TYPE_LABEL[m.tipo]) || m.tipo || '');
+    f.innerHTML = `<div class="txt">${m.ok ? '✅ ' : ''}${t}<small>${Math.min(m.n, m.meta)} de ${m.meta} · ${premioTexto(m.premio)}</small><div class="adv-mis-barra"><i style="width:${Math.min(100, m.n / m.meta * 100)}%"></i></div></div>`;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'adv-mis-cobrar';
+    b.textContent = m.ok ? 'Listo' : 'Cobrar'; b.disabled = m.ok || m.n < m.meta;
+    b.onclick = () => cobrarMision(i);
+    f.appendChild(b); L.appendChild(f);
+  });
+  const todas = e.dia.ms.every(m => m.ok);
+  const fb = document.createElement('div'); fb.className = 'adv-mis-fila';
+  fb.innerHTML = `<div class="txt">🎁 Bono por completar las 3<small>${premioTexto(e.bonoPremio)}</small></div>`;
+  const bb = document.createElement('button'); bb.type = 'button'; bb.className = 'adv-mis-cobrar';
+  bb.textContent = e.dia.bono ? 'Listo' : 'Cobrar'; bb.disabled = e.dia.bono || !todas; bb.onclick = () => cobrarMision('bono');
+  fb.appendChild(bb); L.appendChild(fb);
+  misPunto();
+}
+function cargarHistoria(){
+  if(!servidorListo) return Promise.resolve(null);
+  return accionServidor('historiaVer', {}).then(res => { if(res.ok){ HIST.estado = res.resultado; pintarMisiones(); } return HIST.estado; }).catch(() => null);
+}
+function cobrarMision(i){
+  if(!puedeJugar('mision')) return;
+  accionServidor('misionCobrar', {i}).then(res => {
+    if(!res.ok) return avisoServidor(res.motivo);
+    HIST.estado.dia = res.resultado.dia; pintarMisiones(); updateCoins(); enviarPuntaje();
+    advMensaje('🎉 ¡Misión cumplida! ' + premioTexto(res.resultado.premio));
+  }).catch(() => {}).then(soltar('mision'));
+}
+function abrirMisiones(){
+  if(!servidorListo){ advMensaje('Las misiones necesitan conexión 📶'); return; }
+  teclasApretadas.clear(); advEje = {x: 0, y: 0};
+  document.getElementById('advMisPanel').hidden = false;
+  cargarHistoria();
+}
+(() => {
+  const b = document.getElementById('advMisBtn'); if(b) b.onclick = abrirMisiones;
+  const c = document.getElementById('advMisCerrar'); if(c) c.onclick = () => { document.getElementById('advMisPanel').hidden = true; };
+  setInterval(() => { if(servidorListo && typeof advAbierto !== 'undefined' && advAbierto) cargarHistoria(); }, 90000);   // el puntito de "hay algo para cobrar"
+})();
+
 
 /* ---------------- Aventura ---------------- */
 function levantarServidor(mapa, x, y){

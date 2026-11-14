@@ -5001,7 +5001,10 @@ const AVATARES = {
   joker: {src: 'images/joker_walk.png', fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true},
   /* NPC de la Aventura que regalan pokébolas (como el Gobernador): no se pueden elegir */
   millon: {src: 'images/millon_walk.png', fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true},
-  chuli:  {src: 'images/chuli_walk.png',  fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true}
+  chuli:  {src: 'images/chuli_walk.png',  fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true},
+  /* Modo historia (14/11): el Profesor y los líderes de gimnasio. Figuras provisorias hasta que Zeta mande las suyas */
+  profesor: {src: 'images/profesor_walk.png', fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true},
+  rosa:     {src: 'images/rosa_walk.png',     fw: 128, fh: 192, w: 14, h: 21, suave: true, npc: true}
 };
 let avatarActual = 'red';
 const esElegible = a => !!(AVATARES[a] && !AVATARES[a].npc);   // los NPC (Sadir, Millón, Chuli, admins) no se pueden elegir
@@ -5081,7 +5084,7 @@ function spriteJugadorCacheado(dir, paso, av = avatarActual){
 
 /* Personajes en alta resolución: se dibuja el cuadro de la hoja original (Red 48x72) sin achicarlo a 14x21.
    May es de 16x21: se agranda con píxeles nítidos (nearest) y recién después se ajusta a la pantalla. */
-const HD_AVATAR = {red: {dw: 11.3, dh: 17, up: 1}, may: {dw: 12.4, dh: 16.4, up: 8}, sadir: {dw: 11.7, dh: 17.5, up: 1}, zeta: {dw: 11.7, dh: 17.5, up: 1}, millon: {dw: 11.7, dh: 17.5, up: 1}, chuli: {dw: 11.7, dh: 17.5, up: 1}, mago: {dw: 11.7, dh: 17.5, up: 1}, joker: {dw: 11.7, dh: 17.5, up: 1}};   // ~1 casillero de alto (antes 1,5): el terreno pesa más
+const HD_AVATAR = {red: {dw: 11.3, dh: 17, up: 1}, may: {dw: 12.4, dh: 16.4, up: 8}, sadir: {dw: 11.7, dh: 17.5, up: 1}, zeta: {dw: 11.7, dh: 17.5, up: 1}, millon: {dw: 11.7, dh: 17.5, up: 1}, chuli: {dw: 11.7, dh: 17.5, up: 1}, mago: {dw: 11.7, dh: 17.5, up: 1}, joker: {dw: 11.7, dh: 17.5, up: 1}, profesor: {dw: 11.7, dh: 17.5, up: 1}, rosa: {dw: 11.7, dh: 17.5, up: 1}};   // ~1 casillero de alto (antes 1,5): el terreno pesa más
 const HD_CACHE = {};
 function spriteHD(av, dir, paso){
   if(!HD_AVATAR[av]) av = 'red';

@@ -34,7 +34,8 @@ const check = (n, c, x) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fa
     await p.click('#repetidasBtn'); await p.waitForTimeout(1200);
     check('en Repetidas suena "magia"', (await tema()) === 'magia');
     await p.click('#repetidasCloseBtn'); await p.waitForTimeout(1000);
-    await p.evaluate(() => abrirAventura()); await p.waitForTimeout(1500);
+    await p.evaluate(() => abrirAventura());
+    await p.waitForFunction(() => window.Musica && Musica.tema() === 'aventura', null, {timeout: 4000}).catch(() => {});   // el cambio de tema se revisa cada 0,8 s
     check('en la Aventura suena "aventura"', (await tema()) === 'aventura', await tema());
     check('la Aventura tiene su propio botón de música y el flotante se esconde', await p.isVisible('#advMusicaBtn') && !(await p.isVisible('#musicaBtn')));
     await p.evaluate(() => cerrarAventura()); await p.waitForTimeout(1200);
