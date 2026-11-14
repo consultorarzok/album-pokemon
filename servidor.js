@@ -53,7 +53,7 @@ const aPull = x => ({p: POR_ID_C[x.id], isNew: x.isNew});
 const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar']);
 
 const MENSAJES = {
-  lejos_del_lider: 'Para desafiar al gimnasio tenés que estar al lado del líder.', falta_medalla_previa: 'Primero tenés que ganarle al líder anterior: los gimnasios van en orden.', ya_ganado: 'A ese líder ya le ganaste: seguí con el siguiente.', todavia_no: 'Todavía no completaste esa misión.',
+  lejos_del_lider: 'Para desafiar al gimnasio tenés que estar al lado del líder.', falta_medalla_previa: 'Primero tenés que ganarle al líder anterior: los gimnasios van en orden.', ya_ganado: 'A ese líder ya le ganaste: seguí con el siguiente.', faltan_requisitos: 'Todavía no cumplís lo que pide ese líder para pelear.', todavia_no: 'Todavía no completaste esa misión.',
   sin_habilitar: 'Primero habilitá a ese Pokémon como compañero', ya_habilitado: 'Ese Pokémon ya está habilitado de compañero', no_puede_ser_companero: 'Ese Pokémon no puede ser compañero (no queda bien en el mapa)', se_consigue_canjeando: 'Esa pokébola se consigue cambiando las de abajo', sin_bolas: 'No te alcanzan las pokébolas para ese cambio', canje_invalido: 'Ese cambio no existe',
   sin_monedas: 'No te alcanzan las monedas.',
   fuerza_maxima: 'Esa figurita ya tiene la fuerza máxima.',
@@ -600,6 +600,8 @@ const CAP1 = [
   {pide: 'Estás listo para tu primer gimnasio. El <b>Rey sin Corona del Lapacho</b> te espera en el <b>Parque San Martín</b>, acá cerquita al sur. Usa Pokémon de tipo Planta: ¡llevá Fuego o Volador!', meta: 'Ganale a el Rey sin Corona del Lapacho (Parque San Martín)'}
 ];
 const CAP1_FIN = '¡La <b>Medalla Lapacho</b>! Sabía que podías. Ahora los <b>18 gimnasios</b> que faltan están abiertos, en el orden que quieras: cuanto más lejos, más difíciles. Mirá tus medallas en 📜 Misiones. ¡Y no te olvides de las misiones de cada día!';
+/* Requisitos para desafiar a un líder (los pide el servidor): ✅/⬜ con lo que llevás */
+const listaReq = req => (req || []).map(r => `${r.ok ? '✅' : '⬜'} ${r.t} <small>(${r.v}/${r.meta})</small>`).join('<br>');
 const GUARDIAN = {x: 79, y: 125};   // Plaza Belgrano
 const HIST = {estado: null};
 const premioTexto = pr => {
@@ -680,7 +682,7 @@ function ofrecerGuiaProximo(){
 function desafioGimnasio(reto){
   const idx = MEDALLAS.findIndex(m => m.id === reto), g = MEDALLAS[idx], prev = MEDALLAS[idx - 1];
   return n => {
-    cargarHistoria().then(e => {   // siempre con lo último del servidor (por si ganaste uno hace un momento)
+    cargarHistoria(reto).then(e => {   // siempre con lo último del servidor (por si ganaste uno hace un momento)
       const ya = !!(e && e.medallas.includes(reto));
       if(ya){   // Zeta 14/11: a un líder que ya te ganó no se lo vuelve a pelear: se sigue con el siguiente
         const sig = MEDALLAS.find(m => !e.medallas.includes(m.id));
@@ -693,6 +695,9 @@ function desafioGimnasio(reto){
         return charla(n.nombre, `Todavía no estás listo para enfrentarme. Primero tenés que ganarle a ${objDe(falta).texto}.`,
           [{t: '🧭 Guiame hasta él', fn: () => guiarA(objDe(falta))}, {t: 'Entendido', sec: true}]);
       }
+      /* 14/11 Zeta: cada líder pide cosas ANTES de pelear (tener Pokémon, hacer acciones como las misiones); el servidor también lo exige */
+      if(e && e.reqGym && e.reqGym.id === reto && e.reqGym.req.some(r => !r.ok))
+        return charla(n.nombre, `Antes de enfrentarme tenés que cumplir esto:<br><br>${listaReq(e.reqGym.req)}<br><br>Volvé cuando lo tengas.`, [{t: 'Entendido'}]);
       charla(n.nombre, `¡Bienvenido al gimnasio! Si me ganás te llevás la <b>${g.nombre}</b> ${g.emoji}. ` +
         `Mis Pokémon son de tipo <b>${g.tipo}</b>. ¿Aceptás el desafío?`,
         [{t: '⚔️ ¡Acepto!', fn: () => { window.__retoArena = Object.assign({reto, nombre: n.nombre}, posAdv()); cerrarAventura(); abrirArena(); }}, {t: 'Ahora no', sec: true}]);
@@ -719,7 +724,8 @@ function pintarMisiones(){
   const ob = proximoObjetivo(e);
   if(ob){
     const act = !!(advGuiaObj && advGuiaObj.x === ob.x && advGuiaObj.y === ob.y);
-    document.getElementById('advMisHistoria').insertAdjacentHTML('beforeend', `<div class="adv-mis-paso" style="margin-top:8px">📍 <b>Próximo objetivo:</b> ${ob.texto}.<br><button type="button" class="adv-liga-btn" id="advMisGuia" style="margin:8px 0 0">${act ? '❌ Quitar flecha' : '🧭 Guiarme con una flecha'}</button></div>`);
+    const reqTxt = e.paso >= CAP1.length && e.req && e.req.length ? `<br><small>Para desafiarlo necesitás:</small><br>${listaReq(e.req)}<br>` : '';
+    document.getElementById('advMisHistoria').insertAdjacentHTML('beforeend', `<div class="adv-mis-paso" style="margin-top:8px">📍 <b>Próximo objetivo:</b> ${ob.texto}.${reqTxt}<br><button type="button" class="adv-liga-btn" id="advMisGuia" style="margin:8px 0 0">${act ? '❌ Quitar flecha' : '🧭 Guiarme con una flecha'}</button></div>`);
     document.getElementById('advMisGuia').onclick = () => { if(act) advGuiaObj = null; else { guiarA(ob); document.getElementById('advMisPanel').hidden = true; } pintarMisiones(); };
   }
   document.getElementById('advMisMedallas').innerHTML = `<div style="width:100%;text-align:center;font-size:12px;margin-bottom:2px">🏅 Medallas: <b>${e.medallas.length} de ${MEDALLAS.length}</b></div>` + MEDALLAS.map(m => `<span class="adv-mis-medalla${e.medallas.includes(m.id) ? ' on' : ''}" title="${m.nombre} · ${m.lider} · ${m.lugar}"><img src="images/medallas/${m.id}.png" alt="${m.nombre}${e.medallas.includes(m.id) ? '' : ' (todavía no)'}"></span>`).join('');
@@ -741,9 +747,9 @@ function pintarMisiones(){
   fb.appendChild(bb); L.appendChild(fb);
   misPunto();
 }
-function cargarHistoria(){
+function cargarHistoria(gym){
   if(!servidorListo) return Promise.resolve(null);
-  return accionServidor('historiaVer', {}).then(res => { if(res.ok){ HIST.estado = res.resultado; pintarMisiones(); } return HIST.estado; }).catch(() => null);
+  return accionServidor('historiaVer', gym ? {gym} : {}).then(res => { if(res.ok){ HIST.estado = res.resultado; pintarMisiones(); } return HIST.estado; }).catch(() => null);
 }
 function cobrarMision(i){
   if(!puedeJugar('mision')) return;

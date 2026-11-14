@@ -59,7 +59,7 @@ const suf = Math.random().toString(36).slice(2, 6);
   check('se abre la Arena para elegir equipo', await p.waitForFunction(() => document.getElementById('arenaOverlay').classList.contains('show'), null, {timeout: 6000}).then(() => true, () => false));
   await p.waitForTimeout(800);
   await p.evaluate(() => document.getElementById('arPickGo').click());
-  check('la pelea es contra el Rey sin Corona del Lapacho con su equipo de 4 (Oddish, Bellsprout, Tangela, Celebi)', await p.waitForFunction(() => window.__arena && window.__arena.estado() && window.__arena.estado().rivalNombre === 'Rey sin Corona del Lapacho' && window.__arena.estado().riv.mons.map(m => m.p.id).join() === '43,69,114,251', null, {timeout: 10000}).then(() => true, () => false));
+  check('la pelea es contra el Rey sin Corona del Lapacho con su equipo de 6 (Oddish, Bellsprout, Tangela, Venusaur, Roserade, Celebi)', await p.waitForFunction(() => window.__arena && window.__arena.estado() && window.__arena.estado().rivalNombre === 'Rey sin Corona del Lapacho' && window.__arena.estado().riv.mons.map(m => m.p.id).join() === '43,69,114,3,407,251', null, {timeout: 10000}).then(() => true, () => false));
   await p.waitForTimeout(1500);
   if(SHOTS) await p.screenshot({path: SHOTS + '/historia-pelea.png'});
   // etapa 2 (orden): el gimnasio 2 (Calilegua, 139,135) NO deja pelear sin la medalla del 1.º y ofrece una flecha hasta el anterior
@@ -103,6 +103,17 @@ const suf = Math.random().toString(36).slice(2, 6);
   check('tocar el botón con flecha prendida la apaga', await p.evaluate(() => advGuiaObj === null));
   await p.click('#advLigaGuiaBtn'); await p.waitForTimeout(1500);
   check('sin flecha, el botón explica el paso (en el paso 2 no hay lugar al que guiar)', await p.evaluate(() => /La Liga de Jujuy/.test(document.getElementById('advZona').textContent)));
+  // etapa 2 (requisitos): con la medalla 1 y sin cumplir lo del líder 2, el líder lista lo que pide (✅/⬜) y no ofrece pelear
+  const req = await p.evaluate(async () => (await accionServidor('historiaVer', {gym: 'g2'})).resultado.reqGym);
+  check('el servidor devuelve los requisitos del líder 2 (4 Bicho, atrapar 7, levantar 5, 40 figuritas)', req && req.id === 'g2' && req.req.length === 4 && /Bicho/.test(req.req[0].t) && /Atrap/.test(req.req[1].t), req);
+  await p.evaluate(() => { document.getElementById('advMisPanel').hidden = true; document.getElementById('advCharla').hidden = true; document.getElementById('advCharlaTxt').textContent = ''; window.__cargarOrig = cargarHistoria; cargarHistoria = () => Promise.resolve({paso: 4, cnt: 0, medallas: ['g1'], dia: {ms: [], d: ''}, bonoPremio: {}, sig: 'g2', req: [], reqGym: {id: 'g2', req: [{t: 'Tené 3 Pokémon de tipo Bicho', meta: 3, v: 1, ok: false}, {t: 'Atrapá 5 Pokémon en la Aventura', meta: 5, v: 5, ok: true}]}}); advPonerEn(139, 136); });
+  await p.waitForFunction(() => /Guardián de la Selva/.test(document.getElementById('advNpcBtn').textContent) && !document.getElementById('advNpcBtn').hidden, null, {timeout: 8000});
+  await p.click('#advNpcBtn');
+  await p.waitForFunction(() => /cumplir esto/.test(document.getElementById('advCharlaTxt').textContent), null, {timeout: 8000});
+  const txtReq = await p.textContent('#advCharlaTxt');
+  check('el líder 2 lista los requisitos con ⬜/✅ y el avance (1/3 y 5/5)', /⬜ Tené 3 Pokémon de tipo Bicho/.test(txtReq) && /\(1\/3\)/.test(txtReq) && /✅ Atrapá 5/.test(txtReq), txtReq);
+  check('y no ofrece pelear', !/Acepto/.test(await p.textContent('#advCharlaBotones')));
+  await p.evaluate(() => { cargarHistoria = window.__cargarOrig; document.getElementById('advCharla').hidden = true; });
   console.log('  errores JS:', errores.join(' | ') || 'ninguno');
   check('sin errores de página', errores.length === 0);
   console.log(`\n${ok} bien, ${fail} mal`);
