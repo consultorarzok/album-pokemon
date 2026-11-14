@@ -53,7 +53,7 @@ const aPull = x => ({p: POR_ID_C[x.id], isNew: x.isNew});
 const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar']);
 
 const MENSAJES = {
-  lejos_del_lider: 'Para desafiar al gimnasio tenés que estar al lado del líder.', falta_medalla_previa: 'Primero tenés que ganarle al líder anterior: los gimnasios van en orden.', todavia_no: 'Todavía no completaste esa misión.',
+  lejos_del_lider: 'Para desafiar al gimnasio tenés que estar al lado del líder.', falta_medalla_previa: 'Primero tenés que ganarle al líder anterior: los gimnasios van en orden.', ya_ganado: 'A ese líder ya le ganaste: seguí con el siguiente.', todavia_no: 'Todavía no completaste esa misión.',
   sin_habilitar: 'Primero habilitá a ese Pokémon como compañero', ya_habilitado: 'Ese Pokémon ya está habilitado de compañero', no_puede_ser_companero: 'Ese Pokémon no puede ser compañero (no queda bien en el mapa)', se_consigue_canjeando: 'Esa pokébola se consigue cambiando las de abajo', sin_bolas: 'No te alcanzan las pokébolas para ese cambio', canje_invalido: 'Ese cambio no existe',
   sin_monedas: 'No te alcanzan las monedas.',
   fuerza_maxima: 'Esa figurita ya tiene la fuerza máxima.',
@@ -665,10 +665,16 @@ function desafioGimnasio(reto){
   return n => {
     cargarHistoria().then(e => {   // siempre con lo último del servidor (por si ganaste uno hace un momento)
       const ya = !!(e && e.medallas.includes(reto));
+      if(ya){   // Zeta 14/11: a un líder que ya te ganó no se lo vuelve a pelear: se sigue con el siguiente
+        const sig = MEDALLAS.find(m => !e.medallas.includes(m.id));
+        return charla(n.nombre, `Ya me ganaste y tenés la <b>${g.nombre}</b> ${g.emoji}. Conmigo ya no hay más pelea.<br><br>` +
+          (sig ? `Tu próximo desafío: ${objDe(sig).texto}.` : '¡Ya les ganaste a todos los líderes de Jujuy! 🏆'),
+          sig ? [{t: '🧭 Guiame al siguiente', fn: () => guiarA(objDe(sig))}, {t: 'Entendido', sec: true}] : null);
+      }
       if(prev && e && !ya && !e.medallas.includes(prev.id))   // los gimnasios van EN ORDEN (el servidor también lo exige)
         return charla(n.nombre, `Todavía no estás listo para enfrentarme. Primero tenés que ganarle a ${objDe(prev).texto}.`,
           [{t: '🧭 Guiame hasta él', fn: () => guiarA(objDe(prev))}, {t: 'Entendido', sec: true}]);
-      charla(n.nombre, (ya ? `¡Revancha! Ya tenés la <b>${g.nombre}</b>, pero siempre se puede entrenar. ` : `¡Bienvenido al gimnasio! Si me ganás te llevás la <b>${g.nombre}</b> ${g.emoji}. `) +
+      charla(n.nombre, `¡Bienvenido al gimnasio! Si me ganás te llevás la <b>${g.nombre}</b> ${g.emoji}. ` +
         `Mis Pokémon son de tipo <b>${g.tipo}</b>. ¿Aceptás el desafío?`,
         [{t: '⚔️ ¡Acepto!', fn: () => { window.__retoArena = Object.assign({reto, nombre: n.nombre}, posAdv()); cerrarAventura(); abrirArena(); }}, {t: 'Ahora no', sec: true}]);
     });

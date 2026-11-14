@@ -1755,6 +1755,7 @@ function imgEscena(ei){
 }
 
 function pintarFondo(){
+  if(!(G.rx > 0 && G.ry > 0 && G.W > 0 && G.H > 0)) return;   // 14/11: con la Arena cerrándose / sin medidas el campo da radios negativos y el dibujo tiraba un error
   const K = G.K, cw = Math.max(40, Math.ceil(G.W / K)), ch = Math.max(40, Math.ceil(G.H / K));
   BG.width = cw; BG.height = ch;
   const g = BG.getContext('2d', {willReadFrequently:true});

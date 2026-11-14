@@ -12,7 +12,7 @@ const suf = Math.random().toString(36).slice(2, 6);
   const br = await chromium.launch();
   const ctx = await br.newContext({viewport: {width: 390, height: 844}, isMobile: true, hasTouch: true, deviceScaleFactor: 2});
   const p = await ctx.newPage();
-  const errores = []; p.on('pageerror', e => errores.push(e.message));
+  const errores = []; p.on('pageerror', e => errores.push(e.message + ' @@ ' + String(e.stack).split('\n').slice(1, 3).join(' <- ')));
   await ctx.route(/n8n\.consultorarz\.com/, r => r.abort());
   const ids = await (async () => { const q = await ctx.newPage(); await q.goto('file:///root/pokemon/index.html'); const r = await q.evaluate(() => REGALOS.map(r => r.id)); await q.close(); return r; })();
   await p.addInitScript(([srv, suf, regalos]) => {
@@ -82,6 +82,10 @@ const suf = Math.random().toString(36).slice(2, 6);
   const objs = await p.evaluate(() => [proximoObjetivo({paso: 0, cnt: 0, medallas: []}), proximoObjetivo({paso: 1, cnt: 3, medallas: []}), proximoObjetivo({paso: 3, cnt: 0, medallas: []}), proximoObjetivo({paso: 3, cnt: 0, medallas: ['g1']}), proximoObjetivo({paso: 4, cnt: 0, medallas: ['g1']}), proximoObjetivo({paso: 4, cnt: 0, medallas: ['g1', 'g2', 'g3']}), proximoObjetivo({paso: 4, cnt: 0, medallas: MEDALLAS.map(m => m.id)})].map(o => o && [o.x, o.y]));
   check('próximo objetivo: Guardián (79,125) al inicio y al cumplir; Rey (93,148) en el paso 3; Guardián al ganar la medalla; luego g2 (139,135), g4 y nada con las 19',
     JSON.stringify(objs) === JSON.stringify([[79, 125], [79, 125], [93, 148], [79, 125], [139, 135], [133, 109], null]), objs);
+  // un líder ya ganado NO se repite: el servidor lo rechaza (ya_ganado) y el líder manda al siguiente
+  await p.evaluate(async () => { await accionServidor('arenaTerminar', {gane: false, kos: 0, vivos: 0, tLucha: 5}).catch(() => {}); });
+  const ganado = await p.evaluate(() => { HIST.estado = {paso: 4, cnt: 0, medallas: ['g1'], dia: {ms: [], d: ''}, bonoPremio: {}}; return proximoObjetivo(HIST.estado) && [proximoObjetivo(HIST.estado).x, proximoObjetivo(HIST.estado).y]; });
+  check('con la medalla 1, el próximo objetivo es el líder 2 (139,135)', JSON.stringify(ganado) === JSON.stringify([139, 135]), ganado);
   console.log('  errores JS:', errores.join(' | ') || 'ninguno');
   check('sin errores de página', errores.length === 0);
   console.log(`\n${ok} bien, ${fail} mal`);
