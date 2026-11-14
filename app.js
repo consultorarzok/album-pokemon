@@ -6618,8 +6618,8 @@ function dibujarMini(){
       if(o.m !== 'overworld') continue;
       const ox = (o.x / ADV_PX) * MINI_PX, oy = (o.y / ADV_PX) * MINI_PX;
       const npc = !!o.npc;   // 14/11: los NPC y los líderes de gimnasio se ven ROJOS (los jugadores, celestes)
-      ctx.fillStyle = '#0B1020'; ctx.beginPath(); ctx.arc(ox, oy, npc ? 9.5 : 8.5, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = npc ? '#FF2D3A' : '#19E0FF'; ctx.beginPath(); ctx.arc(ox, oy, npc ? 7 : 6.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#0B1020'; ctx.beginPath(); ctx.arc(ox, oy, npc ? 4.2 : 8.5, 0, Math.PI * 2); ctx.fill();   // 14/11 Zeta: los rojos más chicos (2.ª vuelta)
+      ctx.fillStyle = npc ? '#FF2D3A' : '#19E0FF'; ctx.beginPath(); ctx.arc(ox, oy, npc ? 2.9 : 6.2, 0, Math.PI * 2); ctx.fill();
     }
   }
   const latido = (Math.sin(Date.now() / 260) + 1) / 2;
