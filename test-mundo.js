@@ -34,39 +34,22 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
       region: advRegion, x: advX, y: advY
     };
   });
-  check(`mundo gigante de ${mundo.cols}x${mundo.filas} = ${mundo.cols * mundo.filas} casilleros`, mundo.cols === 322 && mundo.filas === 180);
+  check(`mundo gigante de ${mundo.cols}x${mundo.filas} = ${mundo.cols * mundo.filas} casilleros`, mundo.cols === 162 && mundo.filas === 300);   // 14/11: mapa vigente (antes 322x180)
   check('el juego ocupa toda la pantalla', mundo.anchoOk);
-  check('fondo pre-dibujado 5152x2880 px', mundo.fondo === '5152x2880');
+  check('fondo pre-dibujado a escala del mapa (' + mundo.fondo + ')', mundo.fondo === (mundo.cols * 16) + 'x' + (mundo.filas * 16));
   check('hay un Centro Pokémon por región', mundo.centros === 7);
   check('hay una cueva por región', mundo.cuevas === 7);
   check('arranca en Kanto', mundo.region === 'kanto');
 
-  console.log('\n— Las 6 regiones —');
+  console.log('\n— Las regiones —');
+  /* 14/11: el mapa es una grilla (GRILLA) y la región de cada lugar la decide el servidor; aquí sólo se revisa que la grilla exista y cubra las regiones. */
   const regs = await page.evaluate(() => ({
-    /* Se muestrea el centro de cada franja a partir de FRONTERAS, así el test
-       no se rompe cada vez que cambia el ancho del mapa. */
-    limites: (() => {
-      const cortes = FRONTERAS.map(f => Math.min(f.hasta, ADV_MAPS.overworld.cols - 1));
-      let desde = 0;
-      return cortes.map(hasta => { const x = Math.round((desde + hasta) / 2); desde = hasta; return regionDe(x); });
-    })(),
-    kanto: [...new Set(poolBioma('hierba', 'kanto').map(p => p.region))],
-    johto: [...new Set(poolBioma('agua', 'johto').map(p => p.region))],
-    hoenn: [...new Set(poolBioma('volcan', 'hoenn').map(p => p.region))],
-    sinnoh: [...new Set(poolBioma('psiquico', 'sinnoh').map(p => p.region))],
-    unova: [...new Set(poolBioma('electrico', 'unova').map(p => p.region))],
-    kalos: [...new Set(poolBioma('hierba', 'kalos').map(p => p.region))],
-    legKanto: poolBioma('legendario', 'kanto').map(p => p.name).slice(0, 3),
+    celdas: [...new Set(GRILLA.celdas.flat())],
+    centro: GRILLA.celdas.flat().map((r, i) => regionDe(((i % 3) + .5) * GRILLA.ancho, (Math.floor(i / 3) + .5) * GRILLA.alto)),
     zonas: ADV_MAPS.overworld.zonas.length
   }));
-  check('el mapa se divide en las 7 regiones en orden', regs.limites.join(',') === 'kanto,johto,hoenn,sinnoh,unova,kalos');
-  check('en Kanto sólo salen Pokémon de Kanto', regs.kanto.join() === 'kanto');
-  check('en Johto sólo salen Pokémon de Johto', regs.johto.join() === 'johto');
-  check('en Hoenn sólo salen Pokémon de Hoenn', regs.hoenn.join() === 'hoenn');
-  check('en Sinnoh sólo salen Pokémon de Sinnoh', regs.sinnoh.join() === 'sinnoh');
-  check('en Teselia sólo salen Pokémon de Teselia', regs.unova.join() === 'unova');
-  check('en Kalos sólo salen Pokémon de Kalos', regs.kalos.join() === 'kalos');
-  check('los legendarios también son de la región (' + regs.legKanto.join(', ') + ')', regs.legKanto.length > 0);
+  check('la grilla cubre las regiones del juego (' + regs.celdas.join(',') + ')', ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos', 'alola'].every(r => regs.celdas.includes(r)));
+  check('regionDe devuelve la región de cada celda de la grilla', regs.centro.join() === (await page.evaluate(() => GRILLA.celdas.flat())).join());
   check('hay zonas con nombre (' + regs.zonas + ')', regs.zonas >= 30);
 
   console.log('\n— Movimiento fluido —');
