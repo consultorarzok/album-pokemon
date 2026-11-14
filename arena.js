@@ -3883,22 +3883,24 @@ async function luchar(mios, duelo){
   /* Modo historia (14/11): desafío de gimnasio. El equipo del líder lo manda el servidor, que además valida que estés al lado del líder */
   const reto = !duelo && window.__retoArena ? window.__retoArena : null;
   window.__retoArena = null;
-  let gim = null;
+  let gim = null, rivJug = null;
   if(MODO_SERVIDOR && !duelo){
-    const res = await accionServidor('arenaEmpezar', reto ? {equipo: mios.map(p => p.id), reto: reto.reto, mapa: reto.mapa, x: reto.x, y: reto.y} : {equipo: mios.map(p => p.id)}).catch(() => null);
+    const pidoRival = !reto && !Array.isArray(window.__rivalIds) && !window.__rivalNombre;   // 14/11: el rival es un jugador real con su equipo de favoritos ★ (lo arma el servidor)
+    const res = await accionServidor('arenaEmpezar', reto ? {equipo: mios.map(p => p.id), reto: reto.reto, mapa: reto.mapa, x: reto.x, y: reto.y} : pidoRival ? {equipo: mios.map(p => p.id), desafio: true} : {equipo: mios.map(p => p.id)}).catch(() => null);
     if(!res || !res.ok){ avisoServidor(res ? (res.motivo === 'lejos_del_npc' ? 'lejos_del_lider' : res.motivo) : 'sin_conexion'); return; }
     if(reto && res.resultado && res.resultado.equipo) gim = {nombre: res.resultado.lider, equipo: res.resultado.equipo};
+    else if(pidoRival && res.resultado && res.resultado.jugador && res.resultado.equipo) rivJug = {nombre: res.resultado.lider, equipo: res.resultado.equipo};
   }
   const pDe = id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id];
   const multi = !!(duelo && duelo.multi);
-  const rival = gim ? gim.equipo.map(x => pDe(x.id)) : duelo && !multi ? duelo.rival.equipo.map(x => pDe(x.id)) : (multi ? [] : armarRival(mios));
-  const ent = gim ? {nombre:gim.nombre, fig:null} : duelo && !multi ? {nombre:duelo.rival.nombre, fig:null} : multi ? {nombre:'', fig:null} : elegirRival();
+  const rival = gim ? gim.equipo.map(x => pDe(x.id)) : rivJug ? rivJug.equipo.map(x => pDe(x.id)) : duelo && !multi ? duelo.rival.equipo.map(x => pDe(x.id)) : (multi ? [] : armarRival(mios));
+  const ent = gim ? {nombre:gim.nombre, fig:null} : rivJug ? {nombre:rivJug.nombre, fig:null} : duelo && !multi ? {nombre:duelo.rival.nombre, fig:null} : multi ? {nombre:'', fig:null} : elegirRival();
   if(gim) window.__retoVolver = true;   // al cerrar la Arena se vuelve a la Aventura
   rivalFig = ent.fig;
   const estilo = elige(Object.keys(ESTILOS));
   AR = {
     yo:  {mons:duelo && !multi ? duelo.yo.equipo.map(x => crearMon(pDe(x.id), false, x)) : mios ? mios.map(p => crearMon(p)) : [], idx:0, act:null, nombre:window.__yoNombre || 'Vos'},
-    riv: {mons:gim ? gim.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:'GIM' + i, s:!!x.s, dif:x.dif})) : duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
+    riv: {mons:rivJug ? rivJug.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:x.c || ('RIV' + i), s:!!x.s, m:x.m, v:x.v})) : gim ? gim.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:'GIM' + i, s:!!x.s, dif:x.dif})) : duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
     zoom:ZOOM_1V1, lados:['yo', 'riv'], bando:{yo:'A', riv:'B'}, espejo:{riv:true}, porSlot:{}, miSlot:null, multi:false, modo:'1v1', spawn:{yo:[.55, .35], riv:[-.55, -.2]},
     online:!!duelo, red:{ult:0, obj:{}},
     estilo:ESTILOS[estilo], proys:[], zonas:[], pend:[], hold:new Set(), keys:new Set(), joy:{x:0, y:0},
@@ -4060,6 +4062,15 @@ function cargarFav(){
   catch(e){ return []; }
 }
 function guardarFav(a){ try{ localStorage.setItem(FAV_KEY, JSON.stringify(a.slice(0, EQUIPO_MAX))); }catch(e){} }
+/* 14/11 Zeta: los favoritos ★ también se guardan en el SERVIDOR: así otros jugadores te enfrentan en la Arena con ESE equipo (no uno al azar). Sólo con lo que tenés. */
+let favSincTimer = 0, favSincUltimo = '';
+function sincFavServidor(ids, ya){
+  if(!MODO_SERVIDOR || typeof accionServidor !== 'function') return;
+  const clave = JSON.stringify(ids);
+  if(ya && clave === favSincUltimo) return;   // al abrir la Arena sólo si cambió
+  clearTimeout(favSincTimer);
+  favSincTimer = setTimeout(() => { favSincUltimo = clave; accionServidor('favoritosArena', {ids}).catch(() => { favSincUltimo = ''; }); }, ya ? 300 : 1200);
+}
 const sinTildes = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 function abrirArena(){ return abrirArenaBase(null); }
@@ -4090,6 +4101,7 @@ function abrirArenaBase(rapido, inc){
   const mios_ids = new Set(orden.map(p => p.id));
   let fav = cargarFav();
   let sel = fav.filter(id => mios_ids.has(id));            // el equipo arranca con tus favoritos
+  sincFavServidor(fav.filter(id => mios_ids.has(id)), true);   // los que ya tenían favoritos de antes se anotan en el servidor la primera vez
   if(!sel.length) sel = orden.slice(0, EQUIPO_MAX).map(p => p.id);
   let q = '', aviso = '';
   const root = $('arRoot');
@@ -4120,7 +4132,7 @@ function abrirArenaBase(rapido, inc){
     if(i >= 0){ fav.splice(i, 1); aviso = ''; }
     else if(fav.length >= EQUIPO_MAX){ aviso = `Ya tenés ${EQUIPO_MAX} favoritos: sacá uno con la ★ para poner otro.`; }
     else { fav.push(id); aviso = ''; }
-    guardarFav(fav); pintarLista();
+    guardarFav(fav); sincFavServidor(fav.filter(id => mios_ids.has(id))); pintarLista();
   };
   const pintarLista = () => {
     const grid = $('arGrid'), top = grid.scrollTop;
