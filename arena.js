@@ -3544,12 +3544,15 @@ function botDecidir(e){
   }
   if(!b.guion.length) b.guion = nuevoGuion(est);
   let acc = b.guion.shift();
-  if(Math.random() < .3) acc = sortearPeso(est.w);
-  if(ATAQUES.includes(acc) && acc === b.hist[0] && acc === b.hist[1] && !e.mon.jefe) acc = sortearPeso(est.w, acc);
-  if(e.mon.jefe && ATAQUES.includes(acc) && Math.random() < .6) acc = 'largo';   // 03/11: el legendario usa sus especiales (ataque largo) casi siempre
+  if(e.mon.jefe){ acc = CICLO_JEFE[(b.cicloI || 0) % CICLO_JEFE.length]; }   // el legendario no sortea: sigue el ciclo medio, largo, medio, largo, golpe
+  else {
+    if(Math.random() < .3) acc = sortearPeso(est.w);
+    if(ATAQUES.includes(acc) && acc === b.hist[0] && acc === b.hist[1]) acc = sortearPeso(est.w, acc);
+  }
   if(acc === 'corto' && d > alcance * 1.6) acc = 'acercar';
-  if(acc === 'medio' && d < alcance * .7) acc = Math.random() < .5 ? 'corto' : 'retroceder';
+  if(acc === 'medio' && d < alcance * .7) acc = (e.mon.jefe || Math.random() < .5) ? 'retroceder' : 'corto';   // el legendario no cambia su ciclo: se aleja y ataca de medio alcance
   if(ATAQUES.includes(acc) && e.mon.en < ALC[acc].coste) acc = 'orbitar';
+  if(e.mon.jefe && ATAQUES.includes(acc)) b.cicloI = (b.cicloI || 0) + 1;   // el ciclo sólo avanza cuando de verdad ataca (si se acerca o espera energía, repite el mismo paso)
   b.hist.unshift(acc); b.hist.length = Math.min(3, b.hist.length);
   b.modo = acc; b.dirOrb = Math.random() < .5 ? 1 : -1;
   b.t = {acercar:azar(.7, 1.3), orbitar:azar(1, 1.8), retroceder:azar(.6, 1), esquivar:.3, corto:.6, medio:.7, largo:1.3}[acc] * azar(.85, 1.2) * (e.mon.jefe ? .4 : 1);
@@ -3857,7 +3860,9 @@ function armarMulti(d, pDe){
 /* Incursión (Zeta 31/10): los 5 entrenadores son compañeros (bando A) contra el legendario (lado 'riv', bando B).
    El legendario tiene fuerza 90-100 y mucha más vida (jefe.vida); su "cerebro" (el bot de siempre) corre en el celular anfitrión,
    que también decide el daño que recibe y se lo cuenta al servidor (quién le pegó cuánto) para repartir las Incursión Balls. */
-const JEFE_ATAQUE = 1.8;   // el legendario de la incursión pega un 80 % más fuerte (03/11 Zeta: "tiene que ser más poderoso"; antes 1,4, y antes de eso 1,6)
+const JEFE_ATAQUE = 2.5;   // el legendario de la incursión pega ×2,5 (15/11 Zeta: "que sea 2,5"; antes 1,8, 03/11 antes 1,4, y antes de eso 1,6)
+/* 15/11 Zeta: el legendario VARÍA siempre de ataque y repite este orden: medio alcance, largo alcance, medio alcance, largo alcance y golpe (corto). */
+const CICLO_JEFE = ['medio', 'largo', 'medio', 'largo', 'corto'];
 function armarIncursion(d, pDe){
   const yo = d.jugadores.find(j => j.slot === d.miSlot), otros = d.jugadores.filter(j => j.slot !== d.miSlot);
   const eq = j => j.equipo.map(x => crearMon(pDe(x.id), false, x));

@@ -40,6 +40,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   const m = {t: 'empezar', multi: true, modo: 'raid', miSlot: 0, hostJefe: 0, jefe: {slot: 5, id: 150, f: 97, vida: 12},
     jugadores: [0, 1, 2, 3, 4].map(s => ({slot: s, nombre: s ? 'Amigo ' + s : 'TestIncursion', bando: 'A', equipo: eq}))};
   await page.evaluate(m => { document.getElementById('arenaOverlay').classList.add('show'); window.__incursionPrueba(m); }, m);
+  await page.evaluate(() => { const A = __arena.estado(); window.__orig = []; A.lados.filter(l => A.bando[l] === 'A').forEach(l => A[l].mons.forEach(mm => { window.__orig.push([mm, mm.max]); mm.max = 1e7; mm.hp = 1e7; })); });   // los 5 aguantan (para mirar al legendario un rato largo); se restaura después
   await page.waitForTimeout(3600);
   const st = await page.evaluate(() => { const A = __arena.estado(), E = __arena.ent(); return {modo: A.modo, host: A.raid.host, lados: A.lados.join(), jefe: E.riv.mon.p.name, max: E.riv.mon.max, f: E.riv.mon.fz, jefeAlto: E.riv.h * E.riv.s, yoAlto: E.yo.h * E.yo.s, aliados: A.lados.filter(l => A.bando[l] === 'A').length, x0: E.riv.x, y0: E.riv.y}; });
   check('arranca la incursión: 5 compañeros (bando A) contra ' + st.jefe, st.modo === 'raid' && st.aliados === 5 && st.jefe === 'Mewtwo');
@@ -50,6 +51,15 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   check('en el anfitrión el legendario se mueve solo (su cerebro corre acá)', mov > .02);
   const dano = await page.evaluate(() => { const E = __arena.ent(); E.riv.invul = 0; E.riv.rodando = false; const antes = E.riv.mon.hp; __arena.golpeDe('yo', 'riv', 'largo'); return antes - E.riv.mon.hp; });
   check('el anfitrión calcula el daño que recibe el legendario (' + dano + ')', dano > 0);
+  // 15/11: el legendario VARÍA siempre de ataque y repite: medio, largo, medio, largo, corto (golpe)
+  const ciclo = await page.evaluate(() => new Promise(r => { const E = __arena.ent(), seq = []; let ult = E.riv.bot.cicloI || 0;
+    const t = setInterval(() => { E.riv.mon.hp = E.riv.mon.max; E.riv.mon.en = E.riv.mon.enMax; const c = E.riv.bot.cicloI || 0; if(c !== ult){ seq.push(E.riv.bot.hist[0]); ult = c; } if(seq.length >= 12){ clearInterval(t); r(seq); } }, 40);
+    setTimeout(() => { clearInterval(t); r(seq); }, 40000); }));
+  await page.evaluate(() => { (window.__orig || []).forEach(([mm, mx]) => { mm.max = mx; mm.hp = mx; }); });
+  const PAT = ['medio', 'largo', 'medio', 'largo', 'corto'];
+  const desde = PAT.findIndex((p, i) => ciclo.length && p === ciclo[0]);
+  check('el legendario sigue el ciclo medio, largo, medio, largo, golpe (vistos: ' + ciclo.join(' ') + ')', ciclo.length >= 8 && ciclo.every((x, i) => x === PAT[(PAT.indexOf(ciclo[0]) + i) % 5]) && new Set(ciclo).size === 3, ciclo);
+  check('nunca repite el mismo ataque dos veces seguidas', ciclo.length >= 8 && ciclo.every((x, i) => i === 0 || x !== ciclo[i - 1]), ciclo);
   const fuerte = await page.evaluate(() => { const E = __arena.ent(); E.yo.invul = 0; E.yo.rodando = false; const antes = E.yo.mon.hp; let dmg = 0; for(const a of ['corto', 'medio', 'largo']){ E.yo.mon.vivo = true; E.yo.invul = 0; E.yo.rodando = false; E.yo.mon.hp = E.yo.mon.max; __arena.golpeDe('riv', 'yo', a); dmg = Math.max(dmg, E.yo.mon.max - E.yo.mon.hp); } return {dmg, max: E.yo.mon.max, movs: E.riv.mon.movs ? JSON.stringify(E.riv.mon.movs).slice(0, 200) : ''}; });
   check('el legendario pega fuerte (' + fuerte.dmg + ' de ' + fuerte.max + ')', fuerte.dmg > fuerte.max * .15);
   await page.screenshot({path: '/tmp/claude-0/-root/b70858be-5edb-4e9c-bb87-88f6028271ef/scratchpad/incursion_pelea.png'});
