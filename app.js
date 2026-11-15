@@ -6858,6 +6858,17 @@ function advPaso1(dt){
   trenActualizar();
   if(advTrenAbordo) return;                                            // viajando en el tren: no se camina
   if(advOcupado()){ advPaso = 0; return; }
+  /* 15/11 red de seguridad (aviso de un jugador: el personaje "entra al agua"): si por cualquier motivo los pies quedaron en un casillero que no se puede pisar
+     (agua sin montura que nade, árbol…), se lo pasa al casillero caminable más cercano en vez de dejarlo metido o trabado */
+  if(advChoca(advPx, advPy)){
+    const sx = Math.floor((advPx + 8) / ADV_PX), sy = Math.floor((advPy + 12) / ADV_PX), visto = new Set([sx + ',' + sy]), cola = [[sx, sy]];
+    for(let i = 0; i < cola.length && i < 900; i++){
+      const [x, y] = cola[i], t = advTileEn(x, y);
+      if(t && t.walk && !t.entra && !t.cartel){ advPx = x * ADV_PX; advPy = y * ADV_PX; advX = x; advY = y; rastroReiniciar(); advMensaje('🌊 Saliste del agua: para nadar necesitás una montura que surfee.'); break; }
+      for(const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const k = (x + dx) + ',' + (y + dy); if(!visto.has(k)){ visto.add(k); cola.push([x + dx, y + dy]); } }
+    }
+    return;
+  }
   let vx = advEje.x, vy = advEje.y;
   const largo = Math.hypot(vx, vy);
   if(largo < .15){ advPaso = 0; advCamino = 0; return; }

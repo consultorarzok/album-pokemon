@@ -3227,10 +3227,12 @@ window.__arenaMovs.probarLargo = (nombre, fx, tipo, forma) => {
   setTimeout(() => clearInterval(cura), 4000);
 };
 
+/* 15/11 Zeta: todas las ultis tardan lo mismo en cargar (también el Trueno de cualquier Pokémon); las únicas que pegan rápido son las del Pikachu de Ash y Zeraora */
+const rayoRapido = (mov, e) => mov.n === 'Puño Plasma' || mov.fx === 'impactrueno' || (mov.fx === 'trueno' && !!e.mon && (e.mon.p.id === 10156 || e.mon.p.id === 10153));
 /* Avanza el ataque en curso y define la pose del cuerpo (anticipación, golpe, recuperación). */
 function avanzarAccion(e, dt){
   const A = e.accion, O = otro(e), U = u(), vel = e.mon.st.vel;
-  A.t += dt * (base(A.tipo) === 'largo' && !A.hecho && AR.esc < 1 ? 1 + (CARGA_EN_LENTA - 1) * (1 - AR.esc) / (1 - CAMARA_LENTA) : 1) * (!A.hecho && A.mov && (A.mov.n === 'Puño Plasma' || A.mov.fx === 'trueno' || A.mov.fx === 'impactrueno') ? 2.2 : 1);   // los largos eléctricos de rayo del cielo cargan más rápido (Zeta 07/11)
+  A.t += dt * (base(A.tipo) === 'largo' && !A.hecho && AR.esc < 1 ? 1 + (CARGA_EN_LENTA - 1) * (1 - AR.esc) / (1 - CAMARA_LENTA) : 1) * (!A.hecho && A.mov && rayoRapido(A.mov, e) ? 2.2 : 1);   // los largos eléctricos de rayo del cielo cargan más rápido (Zeta 07/11)
   if(A.tipo === 'esquivar'){
     const f = 1 - (A.t / ESQ.dur) * .55;
     empujar(e, A.dir.x * 86 * U * f * dt, A.dir.y * 86 * U * f * dt);

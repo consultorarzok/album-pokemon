@@ -1178,13 +1178,18 @@
 .adv-hud .adv-ligapill[hidden]{display:none;}
 
 /* 15/11 Zeta: las pokébolas de la Aventura no se veían arriba (las tapaba el minimapa): van abajo a la izquierda, arriba del joystick */
-.adv-bolas-abajo{position:absolute;z-index:3;left:10px;bottom:calc(172px + env(safe-area-inset-bottom));display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start;max-width:58vw;}
+.adv-bolas-abajo{position:absolute;z-index:3;left:10px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;gap:6px;flex-wrap:wrap;align-content:flex-end;justify-content:flex-start;max-width:calc(100vw - 196px);pointer-events:none;}   /* 15/11 Zeta: abajo a la izquierda, en la misma fila que 💬 ⚔️ y la montura (que ocupan los 176 px de la derecha) */
 .adv-bolas-abajo .pill{display:flex;align-items:center;gap:5px;background:rgba(16,20,38,.78);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:4px 10px;color:#fff;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;}
 .adv-bolas-abajo .pill img{width:17px;height:17px;image-rendering:pixelated;}
-@media (max-width:520px){ .adv-bolas-abajo{bottom:calc(150px + env(safe-area-inset-bottom));} .adv-bolas-abajo .pill{padding:3px 7px;font-size:12px;gap:3px;} .adv-bolas-abajo .pill img{width:14px;height:14px;} }
+@media (max-width:520px){ .adv-bolas-abajo{gap:4px;} .adv-bolas-abajo .pill{padding:3px 7px;font-size:12px;gap:3px;} .adv-bolas-abajo .pill img{width:14px;height:14px;} }
 /* Arena (celular parado): el cartel de lo que pasa va justo debajo de los carteles de arriba, no encima de la cancha */
 @media (orientation:portrait){ .ar-log{top:calc(var(--ar-hud-h, 100px) + 6px) !important;bottom:auto !important;max-width:86%;} }
 
 /* 15/11: en iPhone (Safari) el juego se agrandaba solo al moverse/tocar rápido y no se podía sacar: sin zoom por doble toque ni pellizco */
 html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;}
 .adv-overlay,.adv-overlay *,.ar-root,.ar-root *{touch-action:none;-webkit-touch-callout:none;}
+
+/* 15/11 (arreglo): el bloqueo de zoom de arriba tapaba el scroll táctil de las listas (grilla de elegir equipo, cajas de equipo/fin, panel de incursión, mis-caja, duelo). Se vuelve a permitir deslizar en vertical SOLO ahí: sigue sin zoom por pellizco ni doble toque. */
+.ar-grid,.ar-grid *,.ar-eq-caja,.ar-eq-caja *,.ar-conf-caja,.ar-conf-caja *,.ar-fin-caja,.ar-fin-caja *,.ar-duelo,.ar-duelo *,
+.adv-incpanel-caja,.adv-incpanel-caja *,.adv-mis-caja,.adv-mis-caja *{touch-action:pan-y;}
+.ar-grid .ar-fav, .ar-grid .ar-sel{touch-action:pan-y;}
