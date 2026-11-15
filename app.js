@@ -586,13 +586,14 @@ const SERIE = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
    la tabla del servidor: el que lo recibe lo decodifica acá. */
 const PROB_SHINY = 1 / 500;
 const fuerzaShiny = () => Math.random() < .85 ? 75 + Math.floor(Math.random() * 26) : 50 + Math.floor(Math.random() * 25);
-function nuevoEjemplar(fuerza){
+function nuevoEjemplar(fuerza, id){
   let shiny = false;
-  if(fuerza > 100 && fuerza <= 200){ shiny = true; fuerza -= 100; }
+  const noShiny = Number(id) === 807;   // 15/11 Zeta: el Zeraora shiny es SÓLO el especial (10153); el común no sale shiny
+  if(fuerza > 100 && fuerza <= 200){ shiny = !noShiny; fuerza -= 100; }
   else if(!(fuerza >= 1 && fuerza <= 100)){
     /* promedio de dos sorteos: casi todos andan por el medio, los de 90+ son raros */
     fuerza = Math.max(1, Math.round((Math.random() + Math.random()) / 2 * 100));
-    if(Math.random() < PROB_SHINY){ shiny = true; fuerza = fuerzaShiny(); }
+    if(!noShiny && Math.random() < PROB_SHINY){ shiny = true; fuerza = fuerzaShiny(); }
   }
   let c = '';
   for(let i = 0; i < 4; i++) c += SERIE[Math.floor(Math.random() * SERIE.length)];
@@ -625,9 +626,9 @@ const ESPECIALES = [
   {id:10152, base:250, aura:'oscura', name:'Ho-Oh Apex Oscuro', type:'fire', rarity:'Legendario', region:'kanto', especial:true, bst:780,
    img:'images/especial/hooh-apex-oscuro-arte.png', icono:'images/especial/hooh-apex-oscuro-icono.png',
    frente:'images/especial/hooh-apex-oscuro-frente.gif', espalda:'images/especial/hooh-apex-oscuro-espalda.gif'},
-  {id:10153, base:807, name:'Zeraora', type:'electric', rarity:'Legendario', region:'kanto', especial:true, bst:780,
-   img:'images/especial/zeraora-arte.png', icono:'images/especial/zeraora-icono.png',
-   frente:'images/especial/zeraora-frente.gif', espalda:'images/especial/zeraora-espalda.gif'},
+  {id:10153, base:807, name:'Zeraora Shiny', type:'electric', rarity:'Legendario', region:'kanto', especial:true, bst:780,   // 15/11 Zeta: el especial del álbum completo ES el Zeraora shiny (blanco y verde); el común no puede salir shiny
+   img:'images/especial/zeraora-shiny-arte.png', icono:'images/especial/zeraora-shiny-icono.png',
+   frente:'images/especial/zeraora-shiny-frente.gif', espalda:'images/especial/zeraora-shiny-espalda.gif'},
   {id:10154, base:6, escala:0.75, name:'Mega Charizard X', type:'dragon', rarity:'Legendario', region:'kanto', especial:true, bst:780,
    img:'images/especial/mega-charizard-x-arte.png', icono:'images/especial/mega-charizard-x-icono.png',
    frente:'images/especial/mega-charizard-x-frente.gif', espalda:'images/especial/mega-charizard-x-espalda.gif'},
@@ -673,7 +674,7 @@ function ejemplares(id){
   const s = state[id], n = s.got ? 1 + s.dup : 0;
   if(!Array.isArray(s.ej)) s.ej = [];
   s.ej = s.ej.filter(e => e && e.f >= 1 && e.f <= 100);
-  while(s.ej.length < n) s.ej.push(nuevoEjemplar());
+  while(s.ej.length < n) s.ej.push(nuevoEjemplar(undefined, id));
   if(s.ej.length > n){ s.ej.sort((a, b) => (b.f + (b.s ? 1000 : 0)) - (a.f + (a.s ? 1000 : 0))); s.ej.length = n; }   // las shiny son las últimas en irse
   return s.ej;
 }
