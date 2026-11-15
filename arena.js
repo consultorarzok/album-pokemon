@@ -2118,7 +2118,7 @@ function movsEjemplar(p, ej){
 }
 /* cuántos ataques distintos puede tener en cada botón (si es 1, cambiarlo no sirve) */
 const opcionesDeAtaque = p => p.id === 10156 ? [1, 1, 1] : ATAQUES.map(alc => { const id = p.base || p.id, l = (APRENDE[id] || {})[alc] || []; return new Set(l.map(x => x.i)).size + (((APR_EXTRA[id] || {})[alc] || []).length); });
-Object.assign(window.__arenaMovs, {movsEjemplar, opcionesDeAtaque});
+Object.assign(window.__arenaMovs, {movsEjemplar, opcionesDeAtaque, terminarConReintento});
 function crearMon(p, rival, ejFijo){
   const ej = ejFijo || (rival ? null : mejorEjemplar(p.id));
   const fz = ejFijo ? ejFijo.f : rival ? fuerzaRival() : ((ej || {}).f || 50);
@@ -3977,6 +3977,18 @@ function terminar(gane){
 }
 
 /* Con servidor: se le cuenta cómo terminó la pelea y él calcula y guarda el premio. */
+/* 15/11 (caso JokeR: ganó y salió "no se pudo anotar" aunque el servidor SÍ la anotó): si falla la respuesta se repite el aviso hasta 3 veces; el servidor devuelve el mismo resultado sin pagar de nuevo */
+async function terminarConReintento(args){
+  const espera = [1500, 3000, 5000], definitivos = ['pelea_muy_corta', 'pelea_imposible', 'sin_pelea'];
+  let res = null;
+  for(let i = 0; i <= espera.length; i++){
+    try{ res = await accionServidor('arenaTerminar', args); if(res && (res.ok || definitivos.includes(res.motivo))) return res; }
+    catch(e){ res = null; }
+    if(i < espera.length) await new Promise(r => setTimeout(r, espera[i]));
+  }
+  if(res) return res;
+  throw new Error('sin_conexion');
+}
 function terminarServidor(gane){
   const kos = AR.riv.mons.filter(m => !m.vivo).length, vivos = AR.yo.mons.filter(m => m.vivo).length;
   sfx(gane ? 'gana' : 'pierde');
@@ -3984,7 +3996,7 @@ function terminarServidor(gane){
   decir(gane ? '¡Ganaste la batalla!' : 'Te quedaste sin Pokémon...');
   const nombres = {roja:'Poké Ball', azul:'Súper Ball', ultra:'Ultra Ball', maestra:'Master Ball'};
   const vacio = {monedas:0, lineas:[], bolas:{}, bolasTxt:'', pts:0};
-  accionServidor('arenaTerminar', {gane, kos, vivos, tLucha: AR.tLucha}).then(res => {
+  terminarConReintento({gane, kos, vivos, tLucha: AR.tLucha}).then(res => {
     if(!res.ok){ pintarFin(gane, vacio, [], 'Esta pelea no se pudo anotar.'); return; }
     const r = res.resultado;
     const pr = {monedas:r.monedas, lineas:r.lineas, bolas:r.bolas, pts:r.pts,
