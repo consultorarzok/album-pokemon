@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261190">
+<link rel="stylesheet" href="styles.css?v=20261191">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -526,10 +526,10 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261168"></script>
-<script src="app.js?v=20261190"></script>
+<script src="app.js?v=20261191"></script>
 <script src="servidor.js?v=20261180"></script>
 <script src="pixfx.js?v=3"></script>
-<script src="arena.js?v=20261190"></script>
+<script src="arena.js?v=20261191"></script>
 <script src="portada.js?v=20261105"></script>
 <script>
 /* Guardado del juego en el celular (sw.js): sólo en el sitio real, nunca en pruebas locales */
@@ -577,7 +577,7 @@ if('serviceWorker' in navigator && location.protocol === 'https:' && /(^|\.)entr
     d.textContent = '🔄 Hay una versión nueva del juego. Actualizando…';
     document.body.appendChild(d);
   }
-  async function revisar(alAbrir){
+  async function revisar(alAbrir, alVolver){
     const r = await nueva(); if(!r) return;
     const v = r.v;
     let yaProbo = null, intentos = 0;
@@ -588,11 +588,18 @@ if('serviceWorker' in navigator && location.protocol === 'https:' && /(^|\.)entr
       pantallaActualizando();
       return setTimeout(() => limpiarYRecargar(v), 1200);
     }
+    /* 15/11 Zeta: "cuando entro me sale la versión vieja y tengo que actualizar de nuevo". Al volver al juego desde otra app el navegador muestra la página que ya
+       estaba abierta (la vieja) y sólo salía el cartelito. Ahora, al volver, si hay una versión nueva se actualiza sola (hasta 2 veces por versión; en plena pelea espera). */
+    if(alVolver && !enPelea()){
+      let n = 0; try{ n = Number(sessionStorage.getItem('rz-volver-' + v) || 0); }catch(e){}
+      if(n < 2){ try{ sessionStorage.setItem('rz-volver-' + v, String(n + 1)); }catch(e){} pantallaActualizando(); return setTimeout(() => limpiarYRecargar(v), 800); }
+    }
     if(alAbrir && yaProbo !== v) return limpiarYRecargar(v);
     cartel(v);
   }
   addEventListener('load', () => revisar(true));
-  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') revisar(false); });
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') revisar(false, true); });
+  addEventListener('pageshow', e => { if(e.persisted) revisar(false, true); });   // volver con el botón Atrás / pestaña congelada
   setInterval(() => revisar(false), 3 * 60 * 1000);   // cada 3 min (antes 10): una versión obligatoria llega rápido
 })();
 </script>

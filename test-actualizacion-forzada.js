@@ -27,12 +27,12 @@ async function montar(versionJson, viejaAlInicio){
     chk('A) obligatoria: se recargó sola (2 cargas) y quedó en la versión nueva', est.cargas === 2 && (await p.content()).includes('app.js?v=' + VER), est.cargas);
     await p.waitForTimeout(4000); chk('A) sin bucle: no vuelve a recargar', est.cargas === 2, est.cargas);
     await br.close(); }
-  // B) no obligatoria (sin min): corre vieja y en plena sesión sólo aparece el cartelito (no recarga)
+  // B) no obligatoria (sin min): corre vieja, el jugador vuelve al juego desde otra app y se actualiza SOLA (15/11: antes sólo salía el cartelito y había que actualizar a mano)
   { const {br, p, est} = await montar('{"v":"20261170"}', true);
     await p.goto('https://entrenadoresrz.com/'); await p.waitForTimeout(2500);
     est.version = '{"v":"' + VER + '"}';
     await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))); await p.waitForTimeout(2500);
-    chk('B) sin "min": aparece el cartelito y NO se recarga', est.cargas === 1 && await p.evaluate(() => !!document.getElementById('rzNueva')), est.cargas);
+    chk('B) al volver al juego con una versión nueva se actualiza sola (2 cargas, versión nueva)', est.cargas === 2 && (await p.content()).includes('app.js?v=' + VER), est.cargas);
     await br.close(); }
   // C) obligatoria pero en plena pelea: espera; al terminar la pelea se actualiza
   { const {br, p, est} = await montar('{"v":"20261170"}', true);
