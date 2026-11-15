@@ -579,17 +579,17 @@ const MEDALLAS = [
   {id: 'g6', nombre: 'Medalla Llama de Hielo', emoji: '❄️', lider: 'Rey de la Helada', lugar: 'La Quiaca (Puna norte)', tipo: 'Hielo', x: 90, y: 12},
   {id: 'g7', nombre: 'Medalla Pucará', emoji: '👁️', lider: 'Vidente del Pucará', lugar: 'Tilcara (Quebrada)', tipo: 'Psíquico y Hada', x: 12, y: 127},
   {id: 'g8', nombre: 'Medalla Carnaval', emoji: '👻', lider: 'Heraldo de las Sombras', lugar: 'Humahuaca', tipo: 'Siniestro y Fantasma', x: 120, y: 22},
-  {id: 'g9', nombre: 'Medalla Altos Hornos', emoji: '⚙️', lider: 'Forjador de Acero', lugar: 'Palpalá (Valles)', tipo: 'Acero', x: 98, y: 149},
+  {id: 'g9', nombre: 'Medalla Altos Hornos', emoji: '⚙️', lider: 'Forjador de Acero', lugar: 'San Pedro de Jujuy (Alola)', tipo: 'Acero', x: 81, y: 249},
   {id: 'g10', nombre: 'Medalla Flamenco', emoji: '🦩', lider: 'Dama de la Laguna', lugar: 'Laguna de los Pozuelos (Puna)', tipo: 'Agua y Volador', x: 14, y: 47},
   {id: 'g11', nombre: 'Medalla Salar', emoji: '🧂', lider: 'Alquimista del Salar', lugar: 'Salinas Grandes', tipo: 'Veneno y Tierra', x: 27, y: 211},
   {id: 'g12', nombre: 'Medalla Paleta del Pintor', emoji: '🎨', lider: 'Pintora de la Paleta', lugar: 'Maimará (Quebrada)', tipo: 'Normal', x: 13, y: 167},
-  {id: 'g13', nombre: 'Medalla Volcán', emoji: '🌋', lider: 'Señor del Fuego', lugar: 'Volcán (Yungas)', tipo: 'Fuego y Dragón', x: 140, y: 162},
+  {id: 'g13', nombre: 'Medalla Volcán', emoji: '🌋', lider: 'Señor del Fuego', lugar: 'Cerro Colorado (Puna norte)', tipo: 'Fuego y Dragón', x: 82, y: 90},
   {id: 'g14', nombre: 'Medalla Trueno', emoji: '🌩️', lider: 'Dama del Trueno', lugar: 'Iruya (Alta Quebrada)', tipo: 'Eléctrico y Lucha', x: 148, y: 55},
   {id: 'g15', nombre: 'Medalla Tormenta', emoji: '⛈️', lider: 'Amo de la Tormenta', lugar: 'Dique La Ciénaga (Valles)', tipo: 'Agua y Eléctrico', x: 76, y: 166},
-  {id: 'g16', nombre: 'Medalla Zenta', emoji: '🔮', lider: 'Oráculo del Zenta', lugar: 'Cuesta de Zenta', tipo: 'Psíquico', x: 5, y: 177},
+  {id: 'g16', nombre: 'Medalla Zenta', emoji: '🔮', lider: 'Oráculo del Zenta', lugar: 'Valle de los Pericos (Alola)', tipo: 'Psíquico', x: 79, y: 271},
   {id: 'g17', nombre: 'Medalla Sombras', emoji: '🌙', lider: 'Señor de las Sombras', lugar: 'Yala (Valle de las Sombras)', tipo: 'Fantasma y Siniestro', x: 132, y: 193},
   {id: 'g18', nombre: 'Medalla Cielo y Mar', emoji: '🌊', lider: 'Señora del Cielo y el Mar', lugar: 'Dique Los Alisos', tipo: 'Agua, Dragón y Volador', x: 96, y: 213},
-  {id: 'g19', nombre: 'Medalla Sol de Jujuy', emoji: '☀️', lider: 'Campeón del Sol', lugar: 'Ingenio Ledesma (Yungas)', tipo: 'Fuego, Tierra y Acero', x: 127, y: 127}
+  {id: 'g19', nombre: 'Medalla Sol de Jujuy', emoji: '☀️', lider: 'Campeón del Sol', lugar: 'Ruinas del Pucará de Perico (Alola)', tipo: 'Fuego, Tierra y Acero', x: 101, y: 286}
 ];
 /* Lo que dice el Guardián de la Liga en cada paso del capítulo 1 (pide / felicita) */
 const CAP1 = [
