@@ -1530,6 +1530,7 @@ function medir(){
   /* el piso va debajo de los HUD y arriba de los controles */
   const hud = $('arHuds') || $('arHud-riv'), hudH = hud ? hud.offsetHeight + 8 : 90;
   G.hudH = hudH;
+  { const raiz2 = ST.closest('.ar-root'); if(raiz2) raiz2.style.setProperty('--ar-hud-h', hudH + 'px'); }   // el cartel de la pelea va debajo de los HUD
   const top = Math.max(hudH * .8, disp * .2), bajo = disp - 6;
   /* 12/11: el campo es más hondo (antes ry ≤ rx × 0,8) y, si sobra alto (celular parado), baja hacia los controles: arriba queda el paisaje */
   /* 13/11 Zeta: en el 1 contra 1 y el 2 contra 2 la cancha es un poco más chica (hay menos que dibujar y los Pokémon se encuentran antes);
@@ -2155,7 +2156,9 @@ const velMax = e => VEL_BASE * u() * (e.mon ? e.mon.st.vel : 1);
 
 function encerrar(e){
   const r = Math.hypot(e.x, e.y);
-  if(r > .96){ e.x *= .96 / r; e.y *= .96 / r; }
+  /* 15/11 Zeta: se salían de la cancha. El borde se achica para que el cuerpo entero quede adentro del círculo (arriba más, por la altura del dibujo) */
+  const ry = Math.hypot(e.x, e.y < 0 ? e.y * 1.18 : e.y);
+  if(ry > .84){ const k = .84 / ry; e.x *= k; e.y *= k; }
   /* que la cabeza no se meta debajo de los HUD de arriba */
   const yMin = (G.hudH + e.h * e.s * .8 - G.cy) / G.ry;
   if(e.y < yMin) e.y = Math.min(yMin, .9);

@@ -1193,6 +1193,14 @@ function showReveal(pulls, titulo){
       ${ej ? `<div class="rfuerza ${claseFuerza(ej.f)}" title="${nivelFuerza(ej.f)}">💪 ${ej.f}</div>` : ''}`;
     box.appendChild(card);
   });
+  /* 15/11 Zeta: botón para seguir sin cerrar y volver a entrar: "Abrir otro sobre" (sobres) o "Canjear otra vez" (canje de repetidas) */
+  const seg = document.getElementById('revealSeguirBtn');
+  if(seg){
+    const esSobre = !titulo, esCanje = !!titulo && /^Canjeaste 3 repetidas/.test(titulo);
+    seg.style.display = (esSobre || esCanje) ? '' : 'none';
+    if(esSobre){ seg.textContent = 'Abrir otro sobre'; seg.disabled = coins < PACK_COST; seg.onclick = () => { document.getElementById('overlay').classList.remove('show'); openPack(); }; }
+    else if(esCanje){ seg.textContent = 'Canjear otra vez'; seg.disabled = repetidasTotales() < CANJE_COSTO; seg.onclick = () => { document.getElementById('overlay').classList.remove('show'); canjearRepetidas(); }; }
+  }
   document.getElementById('overlay').classList.add('show');
 }
 

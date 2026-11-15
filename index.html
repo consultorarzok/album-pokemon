@@ -145,8 +145,8 @@
     <button type="button" class="pill adv-ligapill" id="advLigaGuiaBtn" aria-label="La Liga de Jujuy: guiarte hasta tu próximo objetivo" hidden>🧭 La Liga</button>
     <span class="pill">🪙 <b id="advCoins">0</b></span>
     <button type="button" class="pill adv-musica" id="advMusicaBtn" data-musica-btn aria-label="Música" style="cursor:pointer;">🎵</button>
-    <span id="advBolasHud" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"></span>
   </div>
+  <span id="advBolasHud" class="adv-bolas-abajo"></span>
   <canvas class="adv-mini" id="advMini" width="324" height="600"></canvas>
   <div class="adv-zona" id="advZona" aria-live="polite"></div>
   <div class="adv-stick" id="advStick"><div class="knob" id="advKnob"></div></div>
@@ -451,6 +451,7 @@
   <div class="reveal-panel">
     <h2 id="revealTitle">Abriste un sobre</h2>
     <div class="reveal-cards" id="revealCards"></div>
+    <button class="open-btn" id="revealSeguirBtn" style="margin-top:14px;display:none;">Abrir otro sobre</button>
     <button class="close-btn" id="closeBtn">Cerrar</button>
   </div>
 </div>
@@ -525,10 +526,10 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261168"></script>
-<script src="app.js?v=20261181"></script>
+<script src="app.js?v=20261185"></script>
 <script src="servidor.js?v=20261180"></script>
 <script src="pixfx.js?v=3"></script>
-<script src="arena.js?v=20261181"></script>
+<script src="arena.js?v=20261185"></script>
 <script src="portada.js?v=20261105"></script>
 <script>
 /* Guardado del juego en el celular (sw.js): sólo en el sitio real, nunca en pruebas locales */

@@ -1176,3 +1176,11 @@
 .adv-hud .adv-ligapill{cursor:pointer;border-color:rgba(255,211,90,.75);color:#ffd35a;min-height:34px;}
 .adv-hud .adv-ligapill.activo{background:#ffd35a;color:#1a1a1a;}
 .adv-hud .adv-ligapill[hidden]{display:none;}
+
+/* 15/11 Zeta: las pokébolas de la Aventura no se veían arriba (las tapaba el minimapa): van abajo a la izquierda, arriba del joystick */
+.adv-bolas-abajo{position:absolute;z-index:3;left:10px;bottom:calc(172px + env(safe-area-inset-bottom));display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start;max-width:58vw;}
+.adv-bolas-abajo .pill{display:flex;align-items:center;gap:5px;background:rgba(16,20,38,.78);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:4px 10px;color:#fff;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;}
+.adv-bolas-abajo .pill img{width:17px;height:17px;image-rendering:pixelated;}
+@media (max-width:520px){ .adv-bolas-abajo{bottom:calc(150px + env(safe-area-inset-bottom));} .adv-bolas-abajo .pill{padding:3px 7px;font-size:12px;gap:3px;} .adv-bolas-abajo .pill img{width:14px;height:14px;} }
+/* Arena (celular parado): el cartel de lo que pasa va justo debajo de los carteles de arriba, no encima de la cancha */
+@media (orientation:portrait){ .ar-log{top:calc(var(--ar-hud-h, 100px) + 6px) !important;bottom:auto !important;max-width:86%;} }
