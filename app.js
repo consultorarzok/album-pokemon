@@ -9244,3 +9244,10 @@ if(nombreDelLink && nombreDelLink !== jugador){
 }
 window.addEventListener('online', () => { if(topFallo) cargarTop(); });
 }
+
+
+/* 15/11: Safari de iPhone ignora user-scalable=no. Se frena el pellizco (gesture*) y el zoom con dos dedos; el doble toque lo frena touch-action:manipulation del CSS. Los toques y botones siguen igual. */
+(function noZoomIOS(){
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(n => document.addEventListener(n, e => e.preventDefault(), {passive: false}));
+  document.addEventListener('touchmove', e => { if(e.touches && e.touches.length > 1) e.preventDefault(); }, {passive: false});
+})();

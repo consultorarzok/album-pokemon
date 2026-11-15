@@ -1184,3 +1184,7 @@
 @media (max-width:520px){ .adv-bolas-abajo{bottom:calc(150px + env(safe-area-inset-bottom));} .adv-bolas-abajo .pill{padding:3px 7px;font-size:12px;gap:3px;} .adv-bolas-abajo .pill img{width:14px;height:14px;} }
 /* Arena (celular parado): el cartel de lo que pasa va justo debajo de los carteles de arriba, no encima de la cancha */
 @media (orientation:portrait){ .ar-log{top:calc(var(--ar-hud-h, 100px) + 6px) !important;bottom:auto !important;max-width:86%;} }
+
+/* 15/11: en iPhone (Safari) el juego se agrandaba solo al moverse/tocar rápido y no se podía sacar: sin zoom por doble toque ni pellizco */
+html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;}
+.adv-overlay,.adv-overlay *,.ar-root,.ar-root *{touch-action:none;-webkit-touch-callout:none;}
