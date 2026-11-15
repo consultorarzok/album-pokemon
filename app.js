@@ -5032,7 +5032,14 @@ const esElegible = a => !!(AVATARES[a] && !AVATARES[a].npc);   // los NPC (Sadir
 try{ if(esElegible(localStorage.getItem('album-avatar'))) avatarActual = localStorage.getItem('album-avatar'); }catch(e){}
 /* las dos hojas cargadas siempre: en la Aventura en vivo se ven Reds y Mays a la vez */
 const HOJAS = {};
-for(const a in AVATARES){ HOJAS[a] = new Image(); HOJAS[a].src = AVATARES[a].src; }
+/* 15/11 (sitio más liviano para la compartida): las hojas de los NPC/líderes (~3 MB entre todas) ya no se bajan al abrir el juego, sino la primera vez
+   que se dibujan o cuando se abre la Aventura (precargarHojasNpc). Los jugadores elegibles (Red, May) siguen cargando de entrada. */
+for(const a in AVATARES){
+  if(!AVATARES[a].npc){ HOJAS[a] = new Image(); HOJAS[a].src = AVATARES[a].src; continue; }
+  let img = null;
+  Object.defineProperty(HOJAS, a, {enumerable: true, configurable: true, get(){ if(!img){ img = new Image(); img.src = AVATARES[a].src; } return img; }});
+}
+function precargarHojasNpc(){ for(const a in AVATARES) if(AVATARES[a].npc) void HOJAS[a]; }
 function fijarAvatar(a, subir = true){
   avatarActual = a;
   try{ localStorage.setItem('album-avatar', a); }catch(e){}
@@ -7381,6 +7388,7 @@ function advEncerrado(){
   return true;
 }
 function abrirAventuraAhora(){
+  try{ precargarHojasNpc(); }catch(e){}   // 15/11: recién ahora se bajan las hojas de los NPC y líderes
   /* 11/11: se usa advInicioHecho y NO advDibujado: el pedido de pantalla completa dispara un 'resize' en el celular que llama a advRender() antes de acá, marcaba el mapa como dibujado y el personaje quedaba trabado en la esquina (1,1) */
   const _t0 = advTileEn(Math.floor(advPx / ADV_PX), Math.floor(advPy / ADV_PX));
   if(!advInicioHecho || (advMapa === 'overworld' && (!_t0 || !_t0.walk || advEncerrado()))){

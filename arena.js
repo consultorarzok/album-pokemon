@@ -4511,12 +4511,15 @@ function mostrarResultadoIncursion(m){
       {duration: r.escapo ? 900 : 520, fill: 'forwards'});
     await espera(r.escapo ? 900 : 560);
   };
+  const tokInc = TOK;   // 15/11: si cerrás ("Después") mientras vuela la bola, la animación y el festejo no siguen sobre una pantalla que ya no está
   const tirar = () => {
     const t = $('arIncTirar'); if(t) t.disabled = true;
     accionServidor('tirarIncursion', {}).then(async res => {
+      if(tokInc !== TOK) return;
       if(!res.ok) return pinta(res.motivo === 'se_escapo' ? `${p.name} se escapó.` : 'No se pudo tirar: ' + res.motivo, 0, true);
       const r = res.resultado;
       try{ await animar(r); }catch(e){}
+      if(tokInc !== TOK) return;
       if(r.atrapado){ sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con fuerza ${r.f > 100 ? r.f - 100 : r.f}.`, 0, true, 'atrapado'); }
       if(r.escapo) return pinta(`${p.name} se soltó y se escapó…`, 0, true, 'escapo');
       pinta(`¡Casi! ${p.name} se soltó. Probá de nuevo.`, r.quedan, false);
@@ -4557,7 +4560,9 @@ function pintarIncursion(equipo, inc){
     if(m.t === 'empezar'){ RED.alMensaje = mensajeDuelo; luchar(null, m); return; }
     if(m.t === 'error_red') est.textContent = 'Sin conexión con la guarida. Probá de nuevo.';
   };
+  const tokSala = TOK;   // 15/11: si salís de la sala antes de que conteste el servidor, la respuesta tardía no debe abrir la conexión ni arrancar una pelea escondida
   api('/incursion/unirse', {region:inc.region, equipo:equipo.map(x => x.id)}).then(res => {
+    if(tokSala !== TOK) return;
     if(!res.ok){ est.textContent = motivo(res.motivo); return; }
     conectarSala(res.resultado.codigo, alMensaje);
   }).catch(() => { est.textContent = 'Sin conexión, probá de nuevo.'; });
@@ -4646,7 +4651,9 @@ function pintarDuelo(equipo, volver){
   $('arDVolver').onclick = () => { cerrarSala(); volver(); };
   $('arDCrear').onclick = () => {
     ocupado(true); est.textContent = 'Creando la sala…';
+    const tokSala = TOK;
     api('/duelo/sala', {equipo:ids}).then(res => {
+      if(tokSala !== TOK) return;
       if(!res.ok){ est.textContent = motivo(res.motivo); ocupado(false); return; }
       est.textContent = 'Abriendo la sala…';
       conectarSala(res.codigo, alMensaje);
@@ -4656,7 +4663,9 @@ function pintarDuelo(equipo, volver){
     const codigo = $('arDCodigo').value.trim().toUpperCase();
     if(!codigo){ est.textContent = 'Escribí el código que te pasó tu amigo.'; return; }
     ocupado(true); est.textContent = 'Entrando a la sala…';
+    const tokSala = TOK;
     api('/duelo/unirse', {codigo, equipo:ids}).then(res => {
+      if(tokSala !== TOK) return;
       if(!res.ok){ est.textContent = motivo(res.motivo); ocupado(false); return; }
       dueloPendiente = '';
       est.innerHTML = `<b>Sala de ${res.rival}</b><br>Conectando…`;
