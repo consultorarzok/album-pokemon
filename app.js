@@ -2592,7 +2592,9 @@ const INCURSIONES = {
   turnos: [9, 14, 19, 23], porTurno: 4,
   /* Aperturas ESPECIALES (fuera de los turnos): ventana propia con su propia clave (un intento nuevo por entrenador), abren las guaridas de `regiones` ('todas' = las 7).
      03/11 Zeta: compensación por las peleas que no arrancaban (bug de arena.js), 30 minutos desde 23:32 hora de Jujuy. */
-  extras: [/* 15/11 Zeta: EDICIÓN ESPECIAL, las 7 guaridas abiertas 5 horas desde las 23:00 de Jujuy (hasta las 04:00). Un intento nuevo por legendario. */
+  extras: [/* 16/11 Zeta: RONDA SHINY LEGENDARIOS, las 7 guaridas abiertas 5 h; el legendario de cada guarida sale SIEMPRE shiny (ver `shiny.evento`). Va primero. */
+    {desde: 1794799684000, hasta: 1794817684000, clave: 'EXTRA-20261116-SHINYLEG', regiones: 'todas'},
+    /* 15/11 Zeta: EDICIÓN ESPECIAL, las 7 guaridas abiertas 5 horas desde las 23:00 de Jujuy (hasta las 04:00). Un intento nuevo por legendario. */
     {desde: 1794794400000, hasta: 1794812400000, clave: 'EXTRA-20261115-ESPECIAL5H', regiones: 'todas'},
     /* 04/11 Zeta: incursión ESPECIAL en la última región (Alola): el jefe es el GENGAR BLANCO (shiny, fijo), se ve en la guarida. 3 h. Va primero: tiene prioridad sobre la apertura del evento shiny. */
     {desde: 1793763715457, hasta: 1793774515457, clave: 'EXTRA-20261104-GENGAR', regiones: ['alola'], jefe: {id: 94, s: true}},
@@ -2603,7 +2605,7 @@ const INCURSIONES = {
      Durante `evento` (4 h, sólo hoy): `probPool` de que aparezca un shiny famoso de la historia Pokémon (lista `pool`, fuerza 90-100) y `probPropio` de que el legendario sea shiny. */
   shiny: {
     prob: .06,
-    evento: {desde: 1793760865075, hasta: 1793775265075, destacados: [6, 94], probDest: .50, probPool: .20, probPropio: .30},
+    evento: {desde: 1794799684000, hasta: 1794817684000, destacados: [], probDest: 0, probPool: 0, probPropio: 1},   // 16/11: legendario SIEMPRE shiny
     pool: [6, 130, 149, 94, 248, 197, 196, 448, 445, 373, 376, 658, 257, 350, 151, 251, 245, 243, 244, 144, 145, 146, 385, 491, 250, 382, 383, 483, 484, 643, 644]
     /* Charizard negro, Gyarados rojo (Lago de la Furia), Dragonite, Gengar, Tyranitar, Umbreon, Espeon, Lucario, Garchomp, Salamence, Metagross, Greninja, Blaziken, Milotic,
        Mew, Celebi, Suicune/Raikou/Entei, aves de Kanto, Jirachi, Darkrai, Ho-Oh, Kyogre, Groudon, Dialga, Palkia, Reshiram, Zekrom */
