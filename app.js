@@ -7062,12 +7062,17 @@ function advDprLienzo(){
   if(advNivel <= 0) return Math.min(real, 2.5);
   return Math.max(1, real / (advNivel + 1));
 }
+let advArenaEl;
 function advCiclo(ahora){
   if(!advAbierto){ advRaf = null; advAbiertoT = 0; return; }
   const real = (ahora - advUltimo) || 16;
   const dt = Math.min(.05, real / 1000 || 0);
   advUltimo = ahora;
   advRaf = requestAnimationFrame(advCiclo);
+  /* 16/11 (incursiones "tildadas" / lentas al terminar): con la arena encima el mapa de la Aventura seguía dibujándose ~30 veces por segundo a escondidas
+     (y en la pantalla de resultado también). Mientras la arena esté abierta se espera sin dibujar; al cerrarla sigue igual (advUltimo se actualiza arriba: sin saltos). */
+  if(advArenaEl === undefined) advArenaEl = document.getElementById('arenaOverlay');
+  if(advArenaEl && advArenaEl.classList.contains('show')){ advMedia = 16; advAbiertoT = 0; return; }
   const pos = advPx + ',' + advPy;
   if(pos !== advPosPrev){ advPosPrev = pos; advQuietoDesde = ahora; }
   const quieto = ahora - advQuietoDesde > 400;

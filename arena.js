@@ -4466,9 +4466,12 @@ function mostrarResultadoDuelo(m){
 /* ---- fin de la incursión: Incursión Balls y a tirarle al legendario ---- */
 function mostrarResultadoIncursion(m){
   AR.fase = 'fin'; AR.hold.clear(); AR.esperandoResultado = false;
+  /* 16/11: terminada la incursión la arena seguía simulando y dibujando 6 Pokémon (el legendario hasta seguía atacando) detrás del cartel de resultado
+     y de la escena de captura: el celular quedaba lento. Se congela la escena (queda la última imagen) y se corta el bucle. */
+  AR.pausa = true; cancelAnimationFrame(RAF); RAF = 0;
   cerrarSala();
   if(m.progreso && typeof aplicarProgreso === 'function') aplicarProgreso(m.progreso);
-  const boss = DATA.find(x => x.id === m.legendario) || {name:'el legendario', id:m.legendario}, f = $('arFin');
+  const boss =DATA.find(x => x.id === m.legendario) || {name:'el legendario', id:m.legendario}, f = $('arFin');
   /* 03/11: lo que queda por atrapar puede ser el legendario SHINY o un shiny famoso (premioInc, f > 100 = shiny) */
   const pi = m.premioInc || {id: m.legendario, f: m.fuerza}, esShiny = pi.f > 100, base = DATA.find(x => x.id === pi.id) || boss;
   const p = Object.assign({}, base, {name: base.name + (esShiny ? ' ✨ SHINY' : ''), img: esShiny && typeof imgVario === 'function' ? imgVario(base) : base.img});
