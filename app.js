@@ -2592,7 +2592,9 @@ const INCURSIONES = {
   turnos: [9, 14, 19, 23], porTurno: 4,
   /* Aperturas ESPECIALES (fuera de los turnos): ventana propia con su propia clave (un intento nuevo por entrenador), abren las guaridas de `regiones` ('todas' = las 7).
      03/11 Zeta: compensación por las peleas que no arrancaban (bug de arena.js), 30 minutos desde 23:32 hora de Jujuy. */
-  extras: [/* 04/11 Zeta: incursión ESPECIAL en la última región (Alola): el jefe es el GENGAR BLANCO (shiny, fijo), se ve en la guarida. 3 h. Va primero: tiene prioridad sobre la apertura del evento shiny. */
+  extras: [/* 15/11 Zeta: EDICIÓN ESPECIAL, las 7 guaridas abiertas 5 horas desde las 23:00 de Jujuy (hasta las 04:00). Un intento nuevo por legendario. */
+    {desde: 1794794400000, hasta: 1794812400000, clave: 'EXTRA-20261115-ESPECIAL5H', regiones: 'todas'},
+    /* 04/11 Zeta: incursión ESPECIAL en la última región (Alola): el jefe es el GENGAR BLANCO (shiny, fijo), se ve en la guarida. 3 h. Va primero: tiene prioridad sobre la apertura del evento shiny. */
     {desde: 1793763715457, hasta: 1793774515457, clave: 'EXTRA-20261104-GENGAR', regiones: ['alola'], jefe: {id: 94, s: true}},
     {desde: 1793673436351, hasta: 1793675236351, clave: 'EXTRA-20261103', regiones: 'todas'}, {desde: 1793674724004, hasta: 1793676524004, clave: 'EXTRA-20261103B', regiones: 'todas'}, {desde: 1793676524004, hasta: 1793678324004, clave: 'EXTRA-20261103C', regiones: 'todas'},
     /* 03/11 23:55 Zeta: apertura de 4 HORAS de las 7 guaridas con shiny reforzado (ver `shiny.evento`; sólo hoy) */
