@@ -22,13 +22,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261201">
+<link rel="stylesheet" href="styles.css?v=20261202">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
   <div class="portada-body">
     <h1 class="portada-tit" id="portadaTit"><span class="marca-ball" aria-hidden="true"></span>Entrenadores <span class="marca-pk">RZ</span></h1>
     <canvas class="portada-mundo" id="portadaMundo" role="img" aria-label="El mundo girando con pokébolas, monedas y la Pokédex alrededor. Tocalo para entrar."></canvas>
+    <p class="portada-sub">📖 Coleccioná figuritas · ⚔️ Peleá en la Arena · 🗺️ Explorá Jujuy</p>
     <button type="button" class="portada-entrar" id="portadaEntrar">Entrar</button>
   </div>
 </div>
@@ -53,13 +54,30 @@
     <div class="evento-banner-sub" id="diaTematicoSub"></div>
   </div>
 
+  <section class="paso-box" id="proximoPaso" aria-labelledby="pasoTit" hidden>
+    <div class="paso-icono" id="pasoIcono" aria-hidden="true">🧭</div>
+    <div class="paso-txt"><small id="pasoTit">Tu próximo paso</small><b id="pasoTitulo"></b><span id="pasoDetalle"></span></div>
+    <button type="button" class="open-btn" id="pasoBtn">Ir</button>
+  </section>
+  <details class="como-juego" id="comoJuego">
+    <summary>❓ ¿Cómo se juega? <small>(toca para ver)</small></summary>
+    <ol>
+      <li><b>🪙 Ganá monedas</b> con <i>Responder y ganar</i> (preguntas rápidas) y peleando.</li>
+      <li><b>📦 Abrí sobres</b> para sumar figuritas a tu Pokédex.</li>
+      <li><b>⚔️ Peleá en la Arena</b> con tu equipo: ganás monedas, pokébolas y puntos de Maestro (sube tu rango).</li>
+      <li><b>🗺️ Recorré la Aventura</b>: atrapá Pokémon, vencé a los 19 líderes y llegá a la Liga de Jujuy.</li>
+      <li><b>💪 Mejorá a tus Pokémon</b> en su ficha de la Pokédex: entrenar con monedas, fusionar copias repetidas y ganar estrellas.</li>
+      <li><b>🏆 Subí en el ranking</b> y ganá premios cada lunes.</li>
+    </ol>
+  </details>
+
   <div class="zonas">
   <section class="zona zona-album" aria-labelledby="zonaAlbumTit">
-    <h2 class="zona-tit" id="zonaAlbumTit">Completar el álbum</h2>
+    <h2 class="zona-tit" id="zonaAlbumTit">📖 Mi colección</h2>
     <div class="pokedex-launch">
       <img class="pokedex-launch-icon" src="images/pokedex-icon.png" alt="">
       <div class="pokedex-launch-text">
-        <span class="pokedex-launch-label">Mi Pokédex</span>
+        <span class="pokedex-launch-label">Mi Pokédex <small>· tus figuritas, su ficha y cómo mejorarlas</small></span>
         <span class="pokedex-launch-progress" id="pokedexLaunchProgress">0 / 151 figuritas · 0%</span>
         <span class="pokedex-launch-barra" aria-hidden="true"><i id="pokedexLaunchFill"></i></span>
       </div>
@@ -67,26 +85,26 @@
     </div>
     <div class="zona-acc">
       <div class="acc acc-pri">
-        <div class="acc-txt"><b>Sobre</b><span><b id="packSize">6</b> figuritas por <b id="packCost">150</b> monedas</span></div>
+        <div class="acc-txt"><b>📦 Sobre</b><span><b id="packSize">6</b> figuritas nuevas por <b id="packCost">150</b> monedas para completar tu álbum</span></div>
         <button class="open-btn" id="openBtn">Abrir sobre</button>
       </div>
       <div class="acc">
-        <div class="acc-txt"><b>Repetidas</b><span>Tenés <b id="dupCountHome">0</b> · canjeá, evolucioná o intercambiá</span></div>
+        <div class="acc-txt"><b>♻️ Repetidas</b><span>Tenés <b id="dupCountHome">0</b>. Sirven para canjear, evolucionar, intercambiar y <b>mejorar</b> a tus Pokémon</span></div>
         <button class="open-btn sec" id="repetidasBtn">Abrir</button>
       </div>
     </div>
   </section>
 
   <section class="zona zona-mejor" aria-labelledby="zonaMejorTit">
-    <h2 class="zona-tit" id="zonaMejorTit">Ser el mejor</h2>
+    <h2 class="zona-tit" id="zonaMejorTit">⚔️ Jugar y competir</h2>
     <div class="zona-acc">
       <div class="acc acc-pri">
-        <div class="acc-txt"><b>Arena</b><span>Peleá en tiempo real con tu equipo de Kanto, Johto, Hoenn, Sinnoh, Teselia y Kalos</span>
+        <div class="acc-txt"><b>⚔️ Arena</b><span>Peleas en tiempo real con tu equipo: contra entrenadores, duelos con amigos e incursiones contra legendarios. Ganás monedas y puntos de Maestro</span>
           <span class="acc-maestro" id="maestroResumen"></span></div>
         <button class="open-btn" id="battleBtn">Pelear</button>
       </div>
       <div class="acc">
-        <div class="acc-txt"><b>Aventura</b><span>Recorré el mapa, tirá pokébolas y atrapá salvajes</span></div>
+        <div class="acc-txt"><b>🗺️ Aventura</b><span>Recorré Jujuy: atrapá Pokémon salvajes y legendarios, vencé a los líderes (19 medallas), comprá en la tienda</span></div>
         <button class="open-btn sec" id="advBtn">Ir a la aventura</button>
       </div>
     </div>
@@ -94,7 +112,7 @@
 
   <div class="rank-panel">
     <div class="rank-head">
-      <h2>Ranking de entrenadores</h2>
+      <h2>🏆 Ranking de entrenadores</h2>
       <div style="display:flex;align-items:center;gap:10px;">
         <span class="rank-status" id="rankStatus" role="status"></span>
         <div class="rank-tabs" role="tablist" aria-label="Ranking">
@@ -102,11 +120,14 @@
           <div class="rank-tab active" id="tabHoy" role="tab" tabindex="0" aria-selected="true">Semanal</div>
           <div class="rank-tab" id="tabHist" role="tab" tabindex="0" aria-selected="false">Histórico</div>
           <div class="rank-tab" id="tabMaestro" role="tab" tabindex="0" aria-selected="false">⚔️ Maestros</div>
+          <div class="rank-tab" id="tabLiga" role="tab" tabindex="0" aria-selected="false">🏟️ Liga</div>
           <div class="rank-tab" id="tabSalon" role="tab" tabindex="0" aria-selected="false" hidden>🏆 Salón de la Fama</div>
         </div>
         <div class="rank-count" id="rankCount" hidden>Entrenadores <b id="rankCountNum">0</b><span class="rank-online" id="rankOnline" hidden> · <i class="rank-dot"></i><b id="rankOnlineNum">0</b> en línea</span></div>
       </div>
     </div>
+    <p class="rank-ayuda" id="rankAyuda"></p>
+    <div class="rank-yo" id="rankYo" hidden></div>
     <div class="rank-list" id="rankList"></div>
     <div class="rank-done" id="rankDone"></div>
   </div>
@@ -272,6 +293,10 @@
       <div class="acc">
         <div class="acc-txt"><b>Intercambio</b><span>Regalá una repetida con un código o canjeá uno</span></div>
         <button class="open-btn sec" id="intercambioBtn">Intercambiar</button>
+      </div>
+      <div class="acc acc-mejorar">
+        <div class="acc-txt"><b>💪 Mejorar un Pokémon</b><span>Abrí su ficha en la Pokédex → <b>Entrenar</b>: subí la fuerza con monedas o <b>fusionando copias</b> repetidas, y ganá ⭐ estrellas (crítico y velocidad). Shiny solo con shiny.</span></div>
+        <button class="open-btn sec" id="repetidasPokedexBtn">Ir a la Pokédex</button>
       </div>
     </div>
     <button class="close-btn" id="repetidasCloseBtn" style="margin-top:16px;">Cerrar</button>
@@ -527,10 +552,10 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261168"></script>
-<script src="app.js?v=20261201"></script>
+<script src="app.js?v=20261202"></script>
 <script src="servidor.js?v=20261180"></script>
 <script src="pixfx.js?v=3"></script>
-<script src="arena.js?v=20261201"></script>
+<script src="arena.js?v=20261202"></script>
 <script src="portada.js?v=20261105"></script>
 <script>
 /* Guardado del juego en el celular (sw.js): sólo en el sitio real, nunca en pruebas locales */

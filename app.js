@@ -979,18 +979,88 @@ function seccionEntrenar(p, copias){
     return `<div class="ent-ej" data-id="${p.id}" data-c="${e.c}">
       <div class="ent-cab"><b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}</small>
         <button class="open-btn sec ent-fz" ${tope || coins < precioSubirFuerza(e.f) ? 'disabled' : ''}>${tope ? 'Fuerza máxima' : 'Subir fuerza · 🪙 ' + precioSubirFuerza(e.f)}</button></div>
+      ${fusionHTML(p, e, copias)}
+      ${estrellasHTML(p, e, copias)}
       <div class="ent-movs">${['corto', 'medio', 'largo'].map((alc, k) => { const m = movs[alc]; return `<div class="ent-mov"><span><small>${nomAlc[k]}</small> ${m ? m.n : '—'} <i style="color:${TYPE_COLORS[m ? m.tipo : 'normal']}">●</i></span>
         <button class="open-btn sec ent-at" data-k="${k}" ${ops[k] < 2 || coins < pAt ? 'disabled' : ''}>Cambiar · 🪙 ${pAt}</button></div>`; }).join('')}
         <button class="open-btn sec ent-tres" ${ops.some(n => n < 2) || coins < pTres ? 'disabled' : ''}>Cambiar los 3 · 🪙 ${pTres}</button></div>
       ${esp ? '<small>Si cambiás un ataque de una especial, pierde el ataque exclusivo de ese botón (y su golpe extra). Cuesta ×3.</small>' : ''}</div>`;
   }).join('');
 }
+/* Fusión de copias (18/11): las repetidas de la MISMA especie suben la fuerza de otra copia. Shiny sólo con shiny, común sólo con común. Mismo cálculo que el servidor. */
+const gananciaFusion = (fObj, fCopia) => { const g = 1 + Math.floor(fCopia / 20); return fObj >= 95 ? 1 : fObj >= 80 ? Math.max(1, Math.floor(g / 2)) : g; };
+function fusionHTML(p, e, copias){
+  if(p.especial || e.f >= 100) return '';
+  const otras = copias.filter(x => x.c !== e.c && !!x.s === !!e.s);
+  if(!otras.length) return `<div class="ent-fus"><small>🔗 Fusión: necesitás otra copia ${e.s ? '✨ shiny ' : ''}para sumarle fuerza.</small></div>`;
+  return `<div class="ent-fus"><small>🔗 <b>Fusionar copias${e.s ? ' ✨ shiny' : ''}</b> (se gastan y le suman fuerza a esta):</small>
+    <div class="ent-fus-lista">${otras.map(x => `<label class="ej-chip ${claseFuerza(x.f)}"><input type="checkbox" class="fus-ck" data-c="${x.c}" data-f="${x.f}" data-est="${estN(x) ? 1 : 0}"> 💪 ${x.f}${estN(x) ? ' ⭐' : ''}</label>`).join('')}</div>
+    <button class="open-btn sec ent-fus-go" data-f="${e.f}" disabled>Elegí copias para fusionar</button></div>`;
+}
+function fusionPrevia(box){
+  const go = box.querySelector('.ent-fus-go'); if(!go) return;
+  let f = Number(go.dataset.f), n = 0;
+  box.querySelectorAll('.fus-ck:checked').forEach(ck => { f = Math.min(100, f + gananciaFusion(f, Number(ck.dataset.f))); n++; });
+  go.disabled = !n; go.textContent = n ? `Fusionar ${n} → 💪 ${go.dataset.f} → ${f}` : 'Elegí copias para fusionar';
+}
+function fusionarServidor(id, serie, cs){
+  if(!puedeJugar('entrenar')) return;
+  accionServidor('fusionar', {id, c: serie, cs}).then(res => {
+    if(!res.ok) return avisoServidor(res.motivo);
+    const r = res.resultado;
+    avisoServidor('ok', '🔗 Fuerza ' + r.antes + ' → ' + r.f + ' (' + r.usadas + ' copia' + (r.usadas === 1 ? '' : 's') + ' fusionada' + (r.usadas === 1 ? '' : 's') + ')');
+    abrirDetalle(id);
+  }).catch(() => {}).then(soltar('entrenar'));
+}
+/* Estrellas de entrenamiento (18/11): hasta 5 por ejemplar; cada una cuesta copias de la misma especie (4, 6, 9, 13, 19; shiny sólo con shiny) y mejora crítico, daño crítico o velocidad. */
+const ESTRELLAS_COSTO = [4, 6, 9, 13, 19];
+const estN = e => ['cr', 'cm', 've'].reduce((t, k) => t + (Math.max(0, Math.floor(Number(e.est && e.est[k])) || 0)), 0);
+function estrellasHTML(p, e, copias){
+  if(p.especial) return '';
+  const n = estN(e), est = e.est || {};
+  const fila = `<small>⭐ <b>Estrellas de entrenamiento</b> ${'★'.repeat(n)}${'☆'.repeat(5 - n)}${n ? ` · 💥 crítico +${(est.cr || 0) * 2}% · ×+${((est.cm || 0) * .1).toFixed(1)} · ⚡ +${((est.ve || 0) * .5).toFixed(1)}★` : ''}</small>`;
+  if(n >= 5) return `<div class="ent-fus">${fila}<small>Entrenamiento al máximo.</small></div>`;
+  const costo = ESTRELLAS_COSTO[n], otras = copias.filter(x => x.c !== e.c && !!x.s === !!e.s);
+  if(otras.length < costo) return `<div class="ent-fus">${fila}<small>Próxima estrella: ${costo} copias${e.s ? ' ✨ shiny' : ''} de esta especie (tenés ${otras.length}).</small></div>`;
+  const s = fichaDe(p, e) || {}, topeCrit = s.critRaw >= s.topeCrit - 1e-9, topeVel = s.velRaw >= s.topeVel - 1e-9;
+  return `<div class="ent-fus">${fila}<small>Próxima estrella: elegí <b>${costo}</b> copias${e.s ? ' ✨ shiny' : ''} para gastar y qué mejorar:</small>
+    <div class="ent-fus-lista">${otras.map(x => `<label class="ej-chip ${claseFuerza(x.f)}"><input type="checkbox" class="est-ck" data-c="${x.c}" data-costo="${costo}" data-est="${estN(x) ? 1 : 0}"> 💪 ${x.f}${estN(x) ? ' ⭐' : ''}</label>`).join('')}</div>
+    <div class="ent-est-bot"><button class="open-btn sec ent-est-go" data-m="cr" ${topeCrit ? 'data-tope="1"' : ''} disabled>💥 Crítico +2%${topeCrit ? ' (tope)' : ''}</button>
+      <button class="open-btn sec ent-est-go" data-m="cm" disabled>🔥 Daño crítico +0,1</button>
+      <button class="open-btn sec ent-est-go" data-m="ve" ${topeVel ? 'data-tope="1"' : ''} disabled>⚡ Velocidad +½★${topeVel ? ' (tope)' : ''}</button></div></div>`;
+}
+function estrellasPrevia(box){
+  const cks = [...box.querySelectorAll('.est-ck')]; if(!cks.length) return;
+  const costo = Number(cks[0].dataset.costo), n = cks.filter(c => c.checked).length;
+  cks.forEach(c => { c.disabled = !c.checked && n >= costo; });
+  box.querySelectorAll('.ent-est-go').forEach(b => { b.disabled = n !== costo || !!b.dataset.tope; });
+}
+function estrellaServidor(id, serie, cs, mejora){
+  if(!puedeJugar('entrenar')) return;
+  accionServidor('entrenarEstrella', {id, c: serie, cs, mejora}).then(res => {
+    if(!res.ok) return avisoServidor(res.motivo);
+    avisoServidor('ok', '⭐ ¡Estrella ' + res.resultado.estrellas + ' de 5! (' + res.resultado.usadas + ' copias usadas)');
+    abrirDetalle(id);
+  }).catch(() => {}).then(soltar('entrenar'));
+}
+document.getElementById('detalleBody').addEventListener('change', ev => { const ck = ev.target.closest('input.fus-ck'); if(ck) fusionPrevia(ck.closest('.ent-ej')); const ek = ev.target.closest('input.est-ck'); if(ek) estrellasPrevia(ek.closest('.ent-ej')); });
 document.getElementById('detalleBody').addEventListener('click', ev => {
   const fb = ev.target.closest('button.ej-fav');
   if(fb){ favoritoServidor(Number(fb.dataset.id), fb.dataset.c); return; }
   const b = ev.target.closest('button'); const box = b && b.closest('.ent-ej'); if(!box || b.disabled) return;
   const id = Number(box.dataset.id), c = box.dataset.c;
   const p = DATA.find(x => x.id === id) || ESPECIAL_POR_ID[id], nom = p ? p.name : 'esta figurita';
+  if(b.classList.contains('ent-est-go')){
+    const cs = [...box.querySelectorAll('.est-ck:checked')].map(ck => ck.dataset.c), conEst = [...box.querySelectorAll('.est-ck:checked')].some(ck => ck.dataset.est === '1');
+    const q = {cr: 'el crítico', cm: 'el daño crítico', ve: 'la velocidad'}[b.dataset.m];
+    if(cs.length && confirm('¿Gastar ' + cs.length + ' copias de ' + nom + ' para mejorar ' + q + ' de la N.º ' + c + '?' + (conEst ? ' ⚠️ Alguna de las copias elegidas tiene estrellas y las pierde.' : '') + ' No se puede volver atrás.')) estrellaServidor(id, c, cs, b.dataset.m);
+    return;
+  }
+  if(b.classList.contains('ent-fus-go')){
+    const cs = [...box.querySelectorAll('.fus-ck:checked')].map(ck => ck.dataset.c); if(!cs.length) return;
+    if(confirm('¿Fusionar ' + cs.length + ' copia' + (cs.length === 1 ? '' : 's') + ' de ' + nom + ' en la N.º ' + c + '? Las copias elegidas se gastan' + (box.querySelector('.fus-ck:checked[data-est="1"]') ? ' (⚠️ alguna tiene estrellas y las pierde)' : '') + ' y no se puede volver atrás.')) fusionarServidor(id, c, cs);
+    return;
+  }
   if(b.classList.contains('ent-fz')){ if(confirm('¿Subir la fuerza de ' + nom + ' N.º ' + c + '? Suma entre 1 y 3 y se cobra el precio.')) subirFuerzaServidor(id, c); }
   else if(b.classList.contains('ent-at')){ if(confirm('¿Cambiar este ataque por otro al azar? Se cobra el precio y no se puede volver atrás.')) cambiarAtaquesServidor(id, c, [Number(b.dataset.k)]); }
   else if(b.classList.contains('ent-tres')){ if(confirm('¿Cambiar los 3 ataques por otros al azar? Se cobra el precio y no se puede volver atrás.')) cambiarAtaquesServidor(id, c, [0, 1, 2]); }
@@ -1182,11 +1252,11 @@ function fichaDe(p, ej){
 }
 function fichaHTML(p, ej, conAtaques){
   const s = fichaDe(p, ej); if(!s) return '';
-  return `<div class="ficha-stats"><span>💪 Fuerza <b>${s.f}</b></span><span>❤️ Vida <b>${s.vida}</b></span><span>⚔️ Golpe <b>${s.golpe}%</b></span><span>💥 Crítico <b>${s.crit}%</b> ×${s.critMult.toFixed(1)}</span><span>⚡ Veloc. <b>${'★'.repeat(s.vel)}</b></span></div>` +
+  return `<div class="ficha-stats"><span>💪 Fuerza <b>${s.f}</b></span><span>❤️ Vida <b>${s.vida}</b></span><span>⚔️ Golpe <b>${s.golpe}%</b></span><span>💥 Crítico <b>${s.crit}%</b> ×${s.critMult.toFixed(1)}</span><span>⚡ Veloc. <b>${s.velTxt}</b></span></div>` +
     (conAtaques && s.movs.length ? `<div class="ficha-movs">${s.movs.join(' · ')}</div>` : '');
 }
 function fichaLinea(p, f){
-  const s = fichaDe(p, {f}); return s ? `<br><small>💪 ${s.f} · ❤️ Vida ${s.vida} · ⚔️ Golpe ${s.golpe}% · 💥 Crítico ${s.crit}% ×${s.critMult.toFixed(1)} · ⚡ ${'★'.repeat(s.vel)}</small>` : '';
+  const s = fichaDe(p, {f}); return s ? `<br><small>💪 ${s.f} · ❤️ Vida ${s.vida} · ⚔️ Golpe ${s.golpe}% · 💥 Crítico ${s.crit}% ×${s.critMult.toFixed(1)} · ⚡ ${s.velTxt}</small>` : '';
 }
 function showReveal(pulls, titulo){
   document.getElementById('revealTitle').textContent = titulo || 'Abriste un sobre';
@@ -1670,7 +1740,31 @@ const ARENA_EXTRA = {'zeta centeno': [658]};
 const arenaPermitida = p => REGIONES_ARENA.includes(p.region) || (Object.values(ARENA_EXTRA).some(l => l.includes(p.id)) && (() => { try{ return (ARENA_EXTRA[claveNombre(jugador)] || []).includes(p.id); }catch(e){ return false; } })());   /* try: `jugador` se declara más abajo y puede estar sin inicializar al arrancar */
 function kantoMios(){ return DATA.filter(p => arenaPermitida(p) && state[p.id].got); }   // nombre histórico: ahora son Kanto + Johto + Hoenn + Sinnoh + Teselia + Kalos
 
+/* 18/11 (Zeta, inicio más claro): una tarjeta que dice qué conviene hacer ahora y lleva ahí con un toque. */
+function proximoPaso(){
+  const tengo = DATA.filter(p => state[p.id].got).length, dups = repetidasTotales(), pocas = kantoMios().length < PELEA_MIN;
+  if(tengo < 6 && coins >= PACK_COST) return {i: '📦', t: 'Abrí tu primer sobre', d: 'Cada sobre trae figuritas nuevas para tu Pokédex.', b: 'Abrir sobre', id: 'openBtn'};
+  if(coins < PACK_COST && tengo < 12) return {i: '🪙', t: 'Ganá monedas', d: 'Respondé preguntas rápidas y juntá para tus sobres.', b: 'Responder', id: 'earnBtn'};
+  if(!maestro.peleas && !pocas) return {i: '⚔️', t: 'Probá tu primera pelea', d: 'Armá tu equipo y peleá en la Arena: ganás monedas y subís de rango.', b: 'Pelear', id: 'battleBtn'};
+  if(pocas) return {i: '📦', t: 'Conseguí más Pokémon', d: 'Con ' + PELEA_MIN + ' Pokémon ya podés pelear en la Arena. Abrí sobres o salí a la Aventura.', b: coins >= PACK_COST ? 'Abrir sobre' : 'Ir a la aventura', id: coins >= PACK_COST ? 'openBtn' : 'advBtn'};
+  if(dups >= 6) return {i: '💪', t: 'Tenés ' + dups + ' repetidas', d: 'Fusionalas para subir la fuerza de tu mejor Pokémon, o canjealas y evolucionalas.', b: 'Ver repetidas', id: 'repetidasBtn'};
+  return {i: '🗺️', t: 'Salí a la Aventura', d: 'Atrapá Pokémon, vencé a los líderes y ganá medallas.', b: 'Ir a la aventura', id: 'advBtn'};
+}
+function pintarProximoPaso(){
+  const box = document.getElementById('proximoPaso'); if(!box || typeof coins === 'undefined') return;
+  if(MODO_SERVIDOR && !servidorListo){ box.hidden = true; return; }
+  const p = proximoPaso();
+  box.hidden = false; box.dataset.accion = p.id;
+  document.getElementById('pasoIcono').textContent = p.i;
+  document.getElementById('pasoTitulo').textContent = p.t;
+  document.getElementById('pasoDetalle').textContent = p.d;
+  document.getElementById('pasoBtn').textContent = p.b;
+}
+document.getElementById('pasoBtn').onclick = () => { const id = (document.getElementById('proximoPaso').dataset.accion || ''); const b = id && document.getElementById(id); if(b && !b.disabled) b.click(); };
+document.getElementById('repetidasPokedexBtn').onclick = () => { document.getElementById('repetidasCloseBtn').click(); document.getElementById('pokedexBtn').click(); };
+
 function updateBarras(){
+  try{ pintarProximoPaso(); }catch(e){}
   const dups = repetidasTotales();
   const tengo = DATA.filter(p => state[p.id].got).length;
   const dc = document.getElementById('dupCount');
@@ -8037,14 +8131,14 @@ function enviarMaestro(){
 let ultimoTopSemana = null, subMaestro = 'semana';
 function cargarTopSemana(){
   if(!MODO_SERVIDOR) return Promise.resolve();
-  return fetch(SERVIDOR_URL + '/semana-top', {cache: 'no-store'})
+  return fetch(SERVIDOR_URL + '/semana-top' + qYo(), {cache: 'no-store'})
     .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(d => { ultimoTopSemana = d; if(rankTab === 'maestro' || rankTab === 'hoy') renderRank(); })
     .catch(() => {});
 }
 function cargarTopMaestro(){
   cargarTopSemana();
-  return fetch(MODO_SERVIDOR ? SERVIDOR_URL + '/maestro-top' : API_BASE + '/pokemon-maestro-top', {cache: 'no-store'})
+  return fetch(MODO_SERVIDOR ? SERVIDOR_URL + '/maestro-top' + qYo() : API_BASE + '/pokemon-maestro-top', {cache: 'no-store'})
     .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(data => { ultimoTopMaestro = data; topMaestroFallo = false; if(rankTab === 'maestro') renderRank(); })
     .catch(() => { topMaestroFallo = true; if(rankTab === 'maestro') renderRank(); });
@@ -8058,7 +8152,7 @@ function pintarSubMaestro(){
   if(!sub){
     sub = document.createElement('div');
     sub.id = 'rankSub'; sub.className = 'rank-sub-tabs';
-    document.getElementById('rankList').parentNode.insertBefore(sub, document.getElementById('rankList'));
+    document.getElementById('rankList').parentNode.insertBefore(sub, document.getElementById('rankAyuda') || document.getElementById('rankList'));
   }
   sub.hidden = rankTab !== 'hoy' || !semanalActivo();   // 12/11 Zeta: las vistas de la semana van SÓLO en Semanal (en Maestros se repetían)
   if(sub.hidden) return;
@@ -8081,11 +8175,45 @@ function agruparPremios(textos){
   textos.forEach((t, i) => { const g = gr[gr.length - 1]; if(g && g.t === t) g.hasta = i + 1; else gr.push({t, desde: i + 1, hasta: i + 1}); });
   return gr;
 }
+/* 18/11 (Zeta): "dónde está cada jugador". El servidor devuelve el puesto del jugador en cada ranking (`yo`, se pide con ?yo=nombre). */
+const qYo = () => (typeof jugador === 'string' && jugador ? '?yo=' + encodeURIComponent(jugador) : '');
+const AYUDA_RANK = {
+  semana: '⚔️ <b>Arena</b>: gana quien suma más puntos peleando esta semana. Se reinicia cada lunes y hay premios.',
+  colec: '📦 <b>Sobres</b>: gana quien abre más cartas esta semana. Se reinicia cada lunes y hay premios.',
+  historico: '📖 Quién tiene <b>más figuritas</b> en su álbum, de siempre. El premio grande es completar la Pokédex.',
+  maestro: '🏅 Puntos de la <b>Arena de todos los tiempos</b>. De ellos sale tu rango de Maestro.',
+  liga: '🏟️ Los <b>10 primeros</b> en reunir las <b>19 medallas</b> de los gimnasios clasifican a la Liga de Jujuy.',
+  hoy: '📅 Quién sumó más figuritas <b>hoy</b>.',
+  evento: '🎉 El ranking del evento que está en juego.',
+  salon: '🏛️ Quienes completaron la Pokédex.'
+};
+function pintarAyudaRank(clave){ const el = document.getElementById('rankAyuda'); if(el){ el.innerHTML = AYUDA_RANK[clave] || ''; el.hidden = !AYUDA_RANK[clave]; } }
+/* Tarjeta "Vos vas N.º X": puesto, cuánto falta para pasar al de adelante y qué hacer si todavía no estás. `yo` viene del servidor; `unidad` = 'pts', 'cartas' o 'figuritas'. */
+function pintarYoRank(yo, unidad, comoEntrar){
+  const el = document.getElementById('rankYo'); if(!el) return;
+  if(!MODO_SERVIDOR || !yo){ el.hidden = true; return; }
+  el.hidden = false;
+  if(!yo.puesto){ el.innerHTML = '<span class="yo-pos">📍</span><div><b>Todavía no estás en este ranking</b><small>' + esc(comoEntrar) + '</small></div>'; return; }
+  const sube = yo.puesto === 1 ? '🎉 ¡Vas <b>primero</b>!' : yo.faltan === 0 ? 'Empatás con el <b>' + (yo.puesto - 1) + '.º</b>: con un poco más lo pasás.' : (yo.faltan === 1 ? 'Te falta <b>1 ' + unidad.replace(/s$/, '') : 'Te faltan <b>' + yo.faltan + ' ' + unidad) + '</b> para pasar al <b>' + (yo.puesto - 1) + '.º</b>.';
+  el.innerHTML = '<span class="yo-pos">' + yo.puesto + '.º</span><div><b>Vos vas ' + yo.puesto + '.º de ' + yo.total + '</b><small>' + yo.valor + ' ' + unidad + (yo.ganadas !== undefined ? ' · ' + yo.ganadas + ' ganada' + (yo.ganadas === 1 ? '' : 's') : '') + ' · ' + sube + '</small></div>';
+}
+/* Si el jugador no entra en el top 10, su fila aparece abajo (separada por "···") para que se vea dónde está */
+function agregarMiFila(lista, yo, textoScore){
+  if(!MODO_SERVIDOR || !yo || !yo.puesto || yo.puesto <= TOPE_RANKING) return;
+  const sep = document.createElement('div'); sep.className = 'rank-sep'; sep.textContent = '· · ·'; lista.appendChild(sep);
+  const row = document.createElement('div'); row.className = 'rank-row rank-row-ma me';
+  row.innerHTML = '<div class="rank-pos"><span>' + yo.puesto + '</span></div><div class="rank-name"><span></span><small class="rank-rango">Vos</small></div><div class="rank-score">' + textoScore + '</div>';
+  row.querySelector('.rank-name span').textContent = jugador;
+  lista.appendChild(row);
+}
 function renderRankSemana(lista, cont, done){
   const d = ultimoTopSemana, colec = subMaestro === 'colec';
   if(!d){ lista.innerHTML = '<div class="rank-empty">Cargando la semana…</div>'; cont.hidden = true; done.innerHTML = ''; return; }
   const filas = (colec ? d.colec : d.arena).slice(0, TOPE_RANKING), cfg = colec ? d.premios.colec : d.premios.arena;
   cont.hidden = true;
+  const miSem = d.yo && (colec ? d.yo.colec : d.yo.arena);
+  pintarAyudaRank(colec ? 'colec' : 'semana');
+  pintarYoRank(miSem, colec ? 'cartas' : 'pts', colec ? 'Abrí un sobre para sumar cartas y entrar al ranking de la semana.' : 'Ganá una pelea en la Arena para entrar al ranking de la semana.');
   if(!filas.length) lista.innerHTML = '<div class="rank-empty">' + (colec ? 'Nadie abrió sobres todavía esta semana. ¡Abrí uno y sé el primero!' : 'Nadie ganó todavía esta semana en la Arena. ¡Ganá una pelea y sé el primero!') + '</div>';
   filas.forEach(f => {
     const row = document.createElement('div');
@@ -8097,13 +8225,73 @@ function renderRankSemana(lista, cont, done){
     row.querySelector('.rank-rango').remove();
     lista.appendChild(row);
   });
+  if(miSem) agregarMiFila(lista, miSem, colec ? miSem.valor + ' <span class="rank-sub">cartas abiertas</span>' : miSem.valor + ' <span class="rank-sub">pts · ' + (miSem.ganadas || 0) + ' ganada' + ((miSem.ganadas || 0) === 1 ? '' : 's') + '</span>');
   const ant = d.anterior && (colec ? d.anterior.colec : d.anterior.arena);
-  done.innerHTML = '<div class="hof-title">🎁 Premios de la semana</div>' +
+  done.innerHTML = '<div class="rank-cierre">⏳ ' + textoFaltaSemana(d.termina) + '</div><details class="hof-det"><summary>🎁 Premios de la semana</summary>' +
     '<div class="hof-sub">' + (colec ? 'Gana el que abre más cartas en sobres: todas cuentan, aunque ya las tengas.' : 'Gana el que suma más puntos peleando en la Arena.') +
-    ' Todos arrancan de cero cada lunes.<br><b>' + textoFaltaSemana(d.termina) + '</b><br>Los premios te llegan solos al entrar al juego.</div>' +
+    ' Todos arrancan de cero cada lunes.<br>Los premios te llegan solos al entrar al juego.</div>' +
     agruparPremios(cfg.textos).map(g => '<div class="hof-row rango premio-sem"><span class="rango-pts">' + (g.desde === g.hasta ? g.desde + '°' : g.desde + '°–' + g.hasta + '°') + '</span><div class="hof-name">' + esc(g.t) + '</div></div>').join('') +
     '<div class="hof-row rango premio-sem"><span class="rango-pts">+</span><div class="hof-name"><b>Participar</b><br><small>' + (colec ? cfg.minimo + ' cartas abiertas' : cfg.minimo + ' peleas') + ' en la semana: ' + esc(cfg.textoMinimo) + '</small></div></div>' +
-    (ant && ant.length ? '<div class="hof-title" style="margin-top:14px">🏅 La semana pasada</div>' + ant.map(g => '<div class="hof-row"><span class="rango-pts">' + g.puesto + '°</span><div class="hof-name"><b>' + esc(g.nombre) + '</b></div></div>').join('') : '');
+    (ant && ant.length ? '<div class="hof-title" style="margin-top:14px">🏅 La semana pasada</div>' + ant.map(g => '<div class="hof-row"><span class="rango-pts">' + g.puesto + '°</span><div class="hof-name"><b>' + esc(g.nombre) + '</b></div></div>').join('') : '') + '</details>';
+}
+/* Ranking de la Liga de Jujuy (18/11, pedido de Zeta): los clasificados (19 medallas) y la carrera de quién va con cuántas. */
+let ultimoLiga = null, ligaFallo = false;
+function cargarLigaRank(){
+  if(!MODO_SERVIDOR) return Promise.resolve();
+  return fetch(SERVIDOR_URL + '/liga' + qYo(), {cache: 'no-store'}).then(r => r.json())
+    .then(d => { if(d && d.ok){ ultimoLiga = d; ligaFallo = false; } else ligaFallo = true; if(rankTab === 'liga') renderRank(); })
+    .catch(() => { ligaFallo = true; if(rankTab === 'liga') renderRank(); });
+}
+function renderRankLiga(lista, cont, done){
+  cont.hidden = true; done.innerHTML = '';
+  pintarAyudaRank('liga');
+  if(!MODO_SERVIDOR){ pintarYoRank(null); lista.innerHTML = '<div class="rank-empty">La Liga se juega con tu cuenta: entrá con tu usuario.</div>'; return; }
+  if(!ultimoLiga){
+    pintarYoRank(null);
+    lista.innerHTML = ligaFallo ? '<div class="rank-empty">No se pudo cargar la Liga.<br><button type="button" class="close-btn" id="rankReintentarLiga" style="margin-top:10px;padding:10px 18px;">Reintentar</button></div>' : '<div class="rank-empty">Cargando la Liga…</div>';
+    const b = document.getElementById('rankReintentarLiga'); if(b) b.onclick = () => cargarLigaRank();
+    return;
+  }
+  const d = ultimoLiga, cupos = d.cupos || 10, clas = d.clasificados || [], tot = d.total || 19;
+  const yo = d.yo || null;
+  const soyClas = clas.some(c => (c.nombre || '').toLowerCase() === (jugador || '').toLowerCase());
+  if(soyClas){ const el = document.getElementById('rankYo'); el.hidden = false; el.innerHTML = '<span class="yo-pos">🏟️</span><div><b>¡Ya estás clasificado a la Liga!</b><small>Entraste entre los ' + cupos + ' primeros con las ' + tot + ' medallas.</small></div>'; }
+  else pintarYoRank(yo, 'medallas', 'Ganale al primer líder de gimnasio en la Aventura para entrar a la carrera.');
+  /* 1) la carrera de medallas (lo que hoy tiene movimiento) */
+  const h2 = document.createElement('div'); h2.className = 'rank-sec'; h2.innerHTML = '🏅 La carrera: medallas de cada uno';
+  lista.appendChild(h2);
+  const car = d.carrera || [];
+  if(!car.length) lista.insertAdjacentHTML('beforeend', '<div class="rank-empty">Todavía nadie ganó una medalla. ¡Vencé al primer líder y arrancá la carrera!</div>');
+  car.forEach(f => {
+    const row = document.createElement('div');
+    row.className = 'rank-row rank-row-ma' + ((f.nombre || '').toLowerCase() === (jugador || '').toLowerCase() ? ' me' : '');
+    row.innerHTML = '<div class="rank-pos"><span>' + f.puesto + '</span></div><div class="rank-name"><span></span><small class="rank-rango">' + (f.clasificado ? 'Clasificado ✅' : '') + '</small></div><div class="rank-score">' + f.medallas + '<span class="rank-sub">de ' + tot + ' medallas</span></div>';
+    row.querySelector('.rank-name span').textContent = f.nombre;
+    if(!f.clasificado) row.querySelector('.rank-rango').remove();
+    lista.appendChild(row);
+  });
+  if(yo && yo.puesto && yo.puesto > 10 && !soyClas){
+    const sep = document.createElement('div'); sep.className = 'rank-sep'; sep.textContent = '· · ·'; lista.appendChild(sep);
+    const row = document.createElement('div'); row.className = 'rank-row rank-row-ma me';
+    row.innerHTML = '<div class="rank-pos"><span>' + yo.puesto + '</span></div><div class="rank-name"><span></span><small class="rank-rango">Vos</small></div><div class="rank-score">' + yo.valor + '<span class="rank-sub">de ' + tot + ' medallas</span></div>';
+    row.querySelector('.rank-name span').textContent = jugador;
+    lista.appendChild(row);
+  }
+  /* 2) los clasificados, aparte y abajo: sin nadie es una sola línea; con clasificados se listan sólo los que ya están */
+  const h1 = document.createElement('div'); h1.className = 'rank-sec rank-sec-clas'; h1.innerHTML = '🏟️ Clasificados a la Liga <b>' + clas.length + '/' + cupos + '</b>';
+  lista.appendChild(h1);
+  if(!clas.length) lista.insertAdjacentHTML('beforeend', '<div class="rank-empty rank-empty-clas">Todavía no hay clasificados: los ' + cupos + ' lugares están libres. Entra quien reúna primero las ' + tot + ' medallas.</div>');
+  else{
+    clas.slice().sort((x, y) => x.puesto - y.puesto).forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'rank-row rank-row-ma' + ((c.nombre || '').toLowerCase() === (jugador || '').toLowerCase() ? ' me' : '');
+      row.innerHTML = '<div class="rank-pos">' + iconoPuesto(c.puesto) + '<span>' + c.puesto + '</span></div><div class="rank-name"><span></span><small class="rank-rango"></small></div><div class="rank-score">✅</div>';
+      row.querySelector('.rank-name span').textContent = c.nombre;
+      const hr = row.querySelector('.rank-rango'); if(typeof horaLiga === 'function') hr.textContent = horaLiga(c.ts); else hr.remove();
+      lista.appendChild(row);
+    });
+    if(clas.length < cupos) lista.insertAdjacentHTML('beforeend', '<div class="rank-empty rank-empty-clas">Quedan <b>' + (cupos - clas.length) + '</b> lugar' + (cupos - clas.length === 1 ? '' : 'es') + ' libre' + (cupos - clas.length === 1 ? '' : 's') + '.</div>');
+  }
 }
 function renderRankMaestro(lista, cont, done){
   /* 12/11 Zeta: Maestros muestra sólo el ranking de siempre de la Arena; lo de la semana (Arena y Sobres) está en Semanal y no se repite acá */
@@ -8135,6 +8323,9 @@ function renderRankMaestroHistorico(lista, cont, done){
       row.querySelector('.rank-rango').textContent = RANGOS_MAESTRO[rangoMaestro(f.pts)].nombre;
       lista.appendChild(row);
     });
+    pintarAyudaRank('maestro');
+    pintarYoRank(ultimoTopMaestro.yo, 'pts', 'Ganá una pelea en la Arena para sumar puntos de Maestro.');
+    if(ultimoTopMaestro.yo) agregarMiFila(lista, ultimoTopMaestro.yo, ultimoTopMaestro.yo.valor + ' <span class="rank-sub">pts · ' + (ultimoTopMaestro.yo.ganadas || 0) + ' ganadas</span>');
   }
   /* abajo: en qué rango estás y qué premio destraba cada uno */
   const mio = rangoPropio(), sig = RANGOS_MAESTRO[mio + 1];
@@ -8388,14 +8579,14 @@ let topFallo = false;   // el último intento de traer el ranking falló
 function cargarTop(){
   topFallo = false;
   setStatus('actualizando...');
-  return fetch(MODO_SERVIDOR ? SERVIDOR_URL + '/top' : API_BASE + '/pokemon-top', {cache: 'no-store'})
+  return fetch(MODO_SERVIDOR ? SERVIDOR_URL + '/top' + qYo() : API_BASE + '/pokemon-top', {cache: 'no-store'})
     .then(r => {
       if(!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     })
     .then(data => {
       ultimoTop = data;
-      setStatus('');
+      setStatus(MODO_SERVIDOR ? 'Actualizado ' + new Date().toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit'}) : '');
       cargarTopSemana();
       renderRank();
     })
@@ -8467,7 +8658,10 @@ function renderRank(){
     return;
   }
 
+  if(rankTab === 'liga'){ renderRankLiga(lista, cont, done); return; }
+
   if(rankTab === 'salon'){
+    pintarAyudaRank('salon'); pintarYoRank(null);
     cont.hidden = true;
     if(!ultimoTop) lista.innerHTML = '<div class="rank-empty">Cargando…</div>';
     else renderSalonDeLaFama(done);
@@ -8475,6 +8669,7 @@ function renderRank(){
   }
 
   if(rankTab === 'evento'){
+    pintarAyudaRank('evento'); pintarYoRank(null);
     renderRankEvento(lista, cont);
     const evA = eventoActivo();
     if(evA && evA.premios) renderPremiosEvento(done, evA);
@@ -8505,6 +8700,9 @@ function renderRank(){
   }
 
   const filas = ((rankTab === 'hoy' ? ultimoTop.hoy : ultimoTop.historico) || []).slice(0, TOPE_RANKING);
+  const miFig = ultimoTop.yo && (rankTab === 'hoy' ? ultimoTop.yo.hoy : ultimoTop.yo.historico);
+  pintarAyudaRank(rankTab === 'hoy' ? 'hoy' : 'historico');
+  pintarYoRank(miFig, 'figuritas', 'Abrí un sobre para sumar figuritas y entrar al ranking.');
   if(filas.length === 0){
     lista.innerHTML = '<div class="rank-empty">Todavía no hay nadie en el ranking' +
       (rankTab === 'hoy' ? ' hoy' : '') + '. ¡Abrí un sobre y sé el primero!</div>';
@@ -8525,6 +8723,7 @@ function renderRank(){
       lista.appendChild(row);
     });
   }
+  if(miFig) agregarMiFila(lista, miFig, miFig.valor + ' <span style="font-size:10px;color:var(--ink-dim);font-family:\'Space Mono\',monospace;">(' + Math.round(miFig.valor / DATA.length * 100) + '%)</span>');
 
   renderSalonDeLaFama(done);
   /* el Salón de la Fama y los ganadores de eventos van plegados: el ranking queda corto y se ve de un vistazo */
@@ -9083,10 +9282,11 @@ document.getElementById('nameInput').addEventListener('keydown', e => {
 });
 function activarRankTab(valor){
   rankTab = valor;
-  ['tabEvento', 'tabHoy', 'tabHist', 'tabMaestro', 'tabSalon'].forEach(id => {
+  ['tabEvento', 'tabHoy', 'tabHist', 'tabMaestro', 'tabLiga', 'tabSalon'].forEach(id => {
     const el = document.getElementById(id);
     const on = (id === 'tabEvento' && valor === 'evento')
       || (id === 'tabMaestro' && valor === 'maestro')
+      || (id === 'tabLiga' && valor === 'liga')
       || (id === 'tabSalon' && valor === 'salon')
       || (id === 'tabHoy' && valor === 'hoy')
       || (id === 'tabHist' && valor === 'historico');
@@ -9094,10 +9294,12 @@ function activarRankTab(valor){
     el.setAttribute('aria-selected', on ? 'true' : 'false');
   });
   if(valor === 'maestro') cargarTopMaestro();
+  if(valor === 'liga') cargarLigaRank();
   if(valor === 'salon') cargarTopHalloween();
   renderRank();
 }
 document.getElementById('tabMaestro').onclick = () => activarRankTab('maestro');
+document.getElementById('tabLiga').onclick = () => activarRankTab('liga');
 document.getElementById('tabEvento').onclick = () => activarRankTab('evento');
 document.getElementById('tabSalon').onclick = () => activarRankTab('salon');
 document.getElementById('tabHoy').onclick = () => activarRankTab('hoy');

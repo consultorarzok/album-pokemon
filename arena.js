@@ -78,6 +78,15 @@ const hash = (id, k) => frac(Math.sin(id * 12.9898 + k * 78.233) * 43758.5453);
 const SESGO_CRIT = {fighting:.05, dark:.04, ghost:.03, psychic:.03, electric:.02, bug:.02, rock:-.02, normal:-.01};
 const SESGO_VEL  = {electric:.22, flying:.18, bug:.10, ghost:.08, psychic:.06, fighting:.05, normal:.04, fire:.04,
                     fairy:.03, dragon:.02, water:0, ice:-.02, grass:-.04, poison:-.06, ground:-.12, rock:-.22};
+/* 18/11: estrellas de entrenamiento (ej.est = {cr, cm, ve}): crítico +2 puntos, daño crítico +0,1, velocidad +0,07 (media estrella). Topes: crítico 35 %, velocidad 5★. */
+const TOPE_CRIT = .35, TOPE_VEL = 1.35;
+function statsEj(p, ej){
+  const st = (ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : (p.especial && VEL_ESPECIAL[p.id]) ? Object.assign({}, statsDe(p), {vel:VEL_ESPECIAL[p.id]}) : statsDe(p);
+  const e = ej && ej.est;
+  if(!e) return st;
+  const n = k => Math.max(0, Math.min(5, Math.floor(Number(e[k])) || 0));
+  return {crit:Math.max(st.crit, Math.min(TOPE_CRIT, st.crit + .02 * n('cr'))), critMult:Math.round((st.critMult + .1 * n('cm')) * 10) / 10, vel:Math.max(st.vel, Math.min(TOPE_VEL, st.vel + .07 * n('ve')))};
+}
 function statsDe(p){
   const crit = Math.min(.30, Math.max(.04, .07 + hash(p.id, 1) * .14 + (SESGO_CRIT[p.type] || 0)));
   const critMult = Math.round((1.4 + hash(p.id, 2) * .8 + (p.type === 'fighting' ? .1 : 0)) * 10) / 10;
@@ -2122,18 +2131,18 @@ Object.assign(window.__arenaMovs, {movsEjemplar, opcionesDeAtaque, terminarConRe
 /* 18/11 Zeta: la ficha completa de un ejemplar para la Pokédex y el cuadro de captura: fuerza, vida (PS), golpe, crítico, velocidad y ataques. Misma cuenta que crearMon. */
 window.__arenaMovs.fichaStats = (p, ej) => {
   const f = Math.max(1, Math.min(100, Math.round(ej && ej.f ? (ej.f > 100 ? ej.f - 100 : ej.f) : 50))), kb = .8 + f / 250;
-  const st = (ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : (p.especial && VEL_ESPECIAL[p.id]) ? Object.assign({}, statsDe(p), {vel:VEL_ESPECIAL[p.id]}) : statsDe(p);
+  const st = statsEj(p, ej);
   let movs = [];
   try{ const m = movsEjemplar(p, ej || null); movs = ORDEN_BOTONES.map(k => m[k] ? m[k].n : '').filter(Boolean); }catch(e){}
-  return {f, vida:Math.round((60 + bstDe(p) * .22) * kb), golpe:Math.round(kb * 100), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), movs};
+  return {f, vida:Math.round((60 + bstDe(p) * .22) * kb), golpe:Math.round(kb * 100), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), velTxt:(v => '★'.repeat(Math.floor(v)) + (v % 1 ? '½' : ''))(Math.max(1, Math.min(5, Math.round((st.vel - .65) / .07) / 2))), critRaw:st.crit, velRaw:st.vel, topeCrit:TOPE_CRIT, topeVel:TOPE_VEL, est:(ej && ej.est) || null, movs};
 };
 /* 18/11 Zeta: la ficha completa de un ejemplar para la Pokédex y el cuadro de captura: fuerza, vida (PS), golpe, crítico, velocidad y ataques. Misma cuenta que crearMon. */
 window.__arenaMovs.fichaStats = (p, ej) => {
   const f = Math.max(1, Math.min(100, Math.round(ej && ej.f ? (ej.f > 100 ? ej.f - 100 : ej.f) : 50))), kb = .8 + f / 250;
-  const st = (ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : (p.especial && VEL_ESPECIAL[p.id]) ? Object.assign({}, statsDe(p), {vel:VEL_ESPECIAL[p.id]}) : statsDe(p);
+  const st = statsEj(p, ej);
   let movs = [];
   try{ const m = movsEjemplar(p, ej || null); movs = ORDEN_BOTONES.map(k => m[k] ? m[k].n : '').filter(Boolean); }catch(e){}
-  return {f, vida:Math.round((60 + bstDe(p) * .22) * kb), golpe:Math.round(kb * 100), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), movs};
+  return {f, vida:Math.round((60 + bstDe(p) * .22) * kb), golpe:Math.round(kb * 100), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), velTxt:(v => '★'.repeat(Math.floor(v)) + (v % 1 ? '½' : ''))(Math.max(1, Math.min(5, Math.round((st.vel - .65) / .07) / 2))), critRaw:st.crit, velRaw:st.vel, topeCrit:TOPE_CRIT, topeVel:TOPE_VEL, est:(ej && ej.est) || null, movs};
 };
 function crearMon(p, rival, ejFijo){
   const ej = ejFijo || (rival ? null : mejorEjemplar(p.id));
@@ -2146,7 +2155,7 @@ function crearMon(p, rival, ejFijo){
      el rival, como no tiene ejemplar guardado, saca unos al azar en cada pelea */
   const movs = movsEjemplar(p, ej);
   const enMax = EN_MAX * (ENERGIA_ESPECIAL[p.id] || 1);
-  return {p, bst, max, hp:max, en:enMax, enMax, vivo:true, st:(ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : (p.especial && VEL_ESPECIAL[p.id]) ? Object.assign({}, statsDe(p), {vel:VEL_ESPECIAL[p.id]}) : statsDe(p), fz, k, defX:defx, ocultoPS:!!(ejFijo && ejFijo.oculto), vario:!!(ej && ej.s), movs};
+  return {p, bst, max, hp:max, en:enMax, enMax, vivo:true, st:statsEj(p, ej), fz, k, defX:defx, ocultoPS:!!(ejFijo && ejFijo.oculto), vario:!!(ej && ej.s), movs};
 }
 const POSE_0 = {};
 function crearEntidad(lado){
@@ -3929,7 +3938,7 @@ async function luchar(mios, duelo){
   const estilo = elige(Object.keys(ESTILOS));
   AR = {
     yo:  {mons:duelo && !multi ? duelo.yo.equipo.map(x => crearMon(pDe(x.id), false, x)) : mios ? mios.map(p => crearMon(p)) : [], idx:0, act:null, nombre:window.__yoNombre || 'Vos'},
-    riv: {mons:rivJug ? rivJug.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:x.c || ('RIV' + i), s:!!x.s, m:x.m, v:x.v})) : gim ? gim.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:'GIM' + i, s:!!x.s, dif:x.dif, vida:x.vida, def:x.def, oculto:true})) : duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
+    riv: {mons:rivJug ? rivJug.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:x.c || ('RIV' + i), s:!!x.s, m:x.m, v:x.v, est:x.est})) : gim ? gim.equipo.map((x, i) => crearMon(pDe(x.id), true, {f:x.f, c:'GIM' + i, s:!!x.s, dif:x.dif, vida:x.vida, def:x.def, oculto:true})) : duelo && !multi ? duelo.rival.equipo.map(x => crearMon(pDe(x.id), true, x)) : rival.map(p => crearMon(p, true)), idx:0, act:null, nombre:ent.nombre},
     zoom:ZOOM_1V1, lados:['yo', 'riv'], bando:{yo:'A', riv:'B'}, espejo:{riv:true}, porSlot:{}, miSlot:null, multi:false, modo:'1v1', spawn:{yo:[.55, .35], riv:[-.55, -.2]},
     online:!!duelo, red:{ult:0, obj:{}},
     estilo:ESTILOS[estilo], proys:[], zonas:[], pend:[], hold:new Set(), keys:new Set(), joy:{x:0, y:0},
@@ -4558,7 +4567,7 @@ function mostrarResultadoIncursion(m){
       const r = res.resultado;
       try{ await animar(r); }catch(e){}
       if(tokInc !== TOK) return;
-      if(r.atrapado){ sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con fuerza ${r.f > 100 ? r.f - 100 : r.f}.` + (() => { const s = window.__arenaMovs.fichaStats(p, {f:r.f}); return ` ❤️ Vida ${s.vida} · ⚔️ Golpe ${s.golpe}% · 💥 Crítico ${s.crit}% ×${s.critMult.toFixed(1)} · ⚡ ${'★'.repeat(s.vel)}`; })(), 0, true, 'atrapado'); }
+      if(r.atrapado){ sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con fuerza ${r.f > 100 ? r.f - 100 : r.f}.` + (() => { const s = window.__arenaMovs.fichaStats(p, {f:r.f}); return ` ❤️ Vida ${s.vida} · ⚔️ Golpe ${s.golpe}% · 💥 Crítico ${s.crit}% ×${s.critMult.toFixed(1)} · ⚡ ${s.velTxt}`; })(), 0, true, 'atrapado'); }
       if(r.escapo) return pinta(`${p.name} se soltó y se escapó…`, 0, true, 'escapo');
       pinta(`¡Casi! ${p.name} se soltó. Probá de nuevo.`, r.quedan, false);
     }).catch(() => pinta('Sin conexión. Probá de nuevo.', m.bolas, false));

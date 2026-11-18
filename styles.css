@@ -1202,3 +1202,48 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;}
 .reveal-card .ficha-stats{flex-direction:column;align-items:center;gap:2px;font-size:10px;} .reveal-card .ficha-movs{font-size:10px;}
 .reveal-card .ficha-stats span:first-child{display:none;}
 #specialFicha .ficha-stats,#specialFicha .ficha-movs{color:#cfd3ea;} #specialFicha .ficha-stats b{color:#fff;} #specialFicha{margin-top:6px;padding:0 8px 4px;}
+.ent-fus{margin:8px 0;display:flex;flex-direction:column;gap:6px;}
+.ent-fus small{color:var(--ink-dim);}
+.ent-fus-lista{display:flex;flex-wrap:wrap;gap:6px;}
+.ent-fus-lista label{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px;cursor:pointer;}
+.ent-fus-lista input{width:20px;height:20px;}
+.ent-fus-go{min-height:44px;}
+.ent-est-bot{display:flex;flex-wrap:wrap;gap:6px;}
+.ent-est-bot .open-btn{min-height:44px;flex:1 1 auto;}
+
+/* ===== 18/11: inicio más claro (próximo paso, cómo se juega) y ranking con tu puesto ===== */
+.paso-box{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#FFF6D6,#FFE9A8);border:1.5px solid var(--gold);border-radius:14px;padding:12px 14px;margin:0 0 14px;}
+.paso-box[hidden]{display:none;}
+.paso-icono{font-size:30px;line-height:1;flex:0 0 auto;}
+.paso-txt{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 auto;}
+.paso-txt small{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold-ink);}
+.paso-txt b{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:18px;line-height:1.15;color:var(--ink);}
+.paso-txt span{font-size:14px;line-height:1.35;color:var(--ink-dim);}
+.paso-box .open-btn{flex:0 0 auto;min-height:44px;}
+.como-juego{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:0 16px;margin:0 0 16px;}
+.como-juego summary{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:16px;color:var(--ink);list-style:none;}
+.como-juego summary::-webkit-details-marker{display:none;}
+.como-juego summary small{font-weight:500;font-size:12px;color:var(--ink-dim);}
+.como-juego[open] summary{border-bottom:1px solid var(--border);margin-bottom:8px;}
+.como-juego ol{margin:0 0 12px;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.4;color:var(--ink-dim);}
+.como-juego li b{color:var(--ink);}
+.pokedex-launch-label small{font-weight:500;font-size:12px;color:var(--ink-dim);}
+.acc-mejorar{background:#F3F8FF;border-color:var(--poke-blue);}
+.rank-ayuda{margin:0 0 10px;font-size:13.5px;line-height:1.4;color:var(--ink-dim);}
+.rank-ayuda[hidden]{display:none;}
+.rank-yo{display:flex;align-items:center;gap:12px;background:#FFFBEE;border:1.5px solid var(--gold);border-radius:12px;padding:10px 12px;margin:0 0 10px;}
+.rank-yo[hidden]{display:none;}
+.rank-yo .yo-pos{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:22px;color:var(--gold-ink);min-width:44px;text-align:center;flex:0 0 auto;}
+.rank-yo div{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.rank-yo b{font-family:'Baloo 2',sans-serif;font-size:16px;color:var(--ink);}
+.rank-yo small{font-size:13px;line-height:1.35;color:var(--ink-dim);}
+.rank-yo small b{font-size:13px;color:var(--ink);}
+.rank-sep{text-align:center;color:var(--ink-dim);letter-spacing:.3em;font-size:14px;line-height:1;padding:2px 0;}
+.rank-cierre{text-align:center;font-family:'Space Mono',monospace;font-size:12.5px;color:var(--gold-ink);font-weight:700;margin:12px 0 4px;}
+@media (max-width:420px){.paso-box{flex-wrap:wrap}.paso-box .open-btn{width:100%}}
+
+.portada-sub{margin:0 0 14px;max-width:320px;text-align:center;font-family:'Baloo 2',sans-serif;font-weight:600;font-size:15px;line-height:1.35;color:#F2F6FF;text-shadow:0 1px 4px rgba(0,0,0,.7);}
+.portada-sub + .portada-entrar{margin-top:0;}
+.rank-subchip{min-height:44px;}
+.rank-sec{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;color:var(--ink);margin:10px 0 2px;}
+.rank-row.libre{opacity:.65;}
