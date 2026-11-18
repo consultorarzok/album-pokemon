@@ -638,7 +638,7 @@ function altarDeVuelta(){
   if(!p) return;
   if(v.gano) iniciarEncuentro(p);
   else if(v.seFue) advMensaje(`💨 <b>${p.name}</b> se cansó de esperar y se fue. Volvé mañana.`);
-  else advMensaje(`<b>${p.name}</b> sigue en el altar. Te quedan ${v.quedan} oportunidad${v.quedan === 1 ? '' : 'es'}: tocá el altar de nuevo.`);
+  else retarAltar(p, v.quedan);   // perdió: le quedan oportunidades, se ofrece pelear otra vez
 }
 function posAdv(){ return {mapa: advMapa, x: Math.round(advPx), y: Math.round(advPy)}; }
 function hablarProfesor(n){

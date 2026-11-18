@@ -4015,6 +4015,7 @@ function terminarServidor(gane){
   terminarConReintento({gane, kos, vivos, tLucha: AR.tLucha}).then(res => {
     if(!res.ok){ pintarFin(gane, vacio, [], 'Esta pelea no se pudo anotar.'); return; }
     const r = res.resultado;
+    if(r.altar && window.__altarVuelta) Object.assign(window.__altarVuelta, {fin:true}, r.altar);   // 18/11: pelea previa del altar: se lo cuenta a la Aventura
     const pr = {monedas:r.monedas, lineas:r.lineas, bolas:r.bolas, pts:r.pts,
       bolasTxt:Object.keys(r.bolas).map(t => `+${r.bolas[t]} ${nombres[t]}`).join(' · ')};
     const subidas = r.subidas.map(u => ({nombre:u.nombre, premio:textoPremioRango(RANGOS_MAESTRO[u.nivel].premio || {}) +
@@ -4042,8 +4043,9 @@ function pintarFin(gane, pr, subidas, aviso){
     <div><button class="ar-b ar-med" id="arCerrar2"><b>Cerrar</b></button>
     <button class="ar-b ar-med" id="arOtra"><b>Revancha</b></button></div></div>`;
   $('arCerrar2').onclick = cerrarArena;
-  $('arOtra').onclick = () => abrirArena();
-  $('arOtra').focus({preventScroll:true});
+  const av = window.__altarVuelta;
+  if(av && av.fin){ $('arOtra').hidden = true; $('arCerrar2').focus({preventScroll:true}); }   // en el altar no hay revancha: sigue el desafío en la Aventura
+  else{ $('arOtra').onclick = () => abrirArena(); $('arOtra').focus({preventScroll:true}); }
 }
 
 function calcularPremio(gane){
@@ -4728,7 +4730,7 @@ function cerrarArena(){
   $('arRoot').innerHTML = '';
   if(typeof updateBarras === 'function') updateBarras();
   window.__retoArena = null;
-  if(window.__retoVolver){ window.__retoVolver = false; if(typeof abrirAventura === 'function') abrirAventura(); if(window.__ofrecerGuia){ window.__ofrecerGuia = false; setTimeout(() => { if(typeof ofrecerGuiaProximo === 'function') ofrecerGuiaProximo(); }, 1200); } }   // después del gimnasio, de vuelta a la Aventura
+  if(window.__retoVolver){ window.__retoVolver = false; if(typeof abrirAventura === 'function') abrirAventura(); if(window.__altarVuelta && window.__altarVuelta.fin && typeof altarDeVuelta === 'function') setTimeout(altarDeVuelta, 400); if(window.__ofrecerGuia){ window.__ofrecerGuia = false; setTimeout(() => { if(typeof ofrecerGuiaProximo === 'function') ofrecerGuiaProximo(); }, 1200); } }   // después del gimnasio, de vuelta a la Aventura
 }
 
 /* ---------------- teclado ---------------- */
