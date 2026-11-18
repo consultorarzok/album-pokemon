@@ -4720,6 +4720,7 @@ function limpiar(){
 }
 
 function cerrarArena(){
+  window.__arenaCerroEn = Date.now();   // 18/11: ver botonIncursion (el toque que cierra no debe caer en el botón de la Aventura que queda debajo)
   if(AR && AR.online && AR.fase !== 'fin') enviarSala({t:'salir'});
   cerrarSala();
   limpiar();

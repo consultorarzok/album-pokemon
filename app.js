@@ -2821,6 +2821,7 @@ function botonIncursion(){
     const p0 = DATA.find(d => d.id === incursionPendiente.id) || {name: 'el legendario'}, p = incursionPendiente.f > 100 ? Object.assign({}, p0, {name: p0.name + ' ✨ SHINY'}) : p0;
     b.textContent = `🎯 Tirarle a ${p.name} (${incBolas})`;
     b.onclick = () => {
+      if(Date.now() - (window.__arenaCerroEn || 0) < 900) return;   // 18/11: el toque de "Después"/Volver caía sobre este botón (queda justo debajo) y tiraba solo
       b.disabled = true;
       accionServidor('tirarIncursion', {}).then(res => {
         if(!res.ok) return advMensaje(res.motivo === 'se_escapo' ? `${p.name} se escapó.` : 'No se pudo tirar.');
