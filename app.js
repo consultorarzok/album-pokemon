@@ -2586,16 +2586,16 @@ const BOLAS = {
    fijas de Jujuy durante `duracionMin`; entran EXACTAMENTE 5 entrenadores y pelean todos contra él en la Arena. Si le ganan, cada uno
    recibe Incursión Balls según la parte del daño que hizo (3 / 2 / 1) para tirarle. El servidor (juego.js) usa esta misma tabla. */
 const INCURSIONES = {
-  duracionMin: 30, jugadores: 5, probAtrapar: .35, vidaJefe: 20,
+  duracionMin: 60, jugadores: 5, probAtrapar: .35, vidaJefe: 20,   // 18/11 Zeta: los turnos normales abren 1 hora (antes 30 min)
   /* Zeta 31/10: 4 turnos fijos al día para todos (hora de Jujuy); en cada turno abren `porTurno` (4 de las 7) guaridas, que rotan: cada región tiene
      incursión en más de la mitad de los turnos, así hay siempre dónde jugar. Un solo intento por entrenador por turno (para todas las guaridas juntas). */
   turnos: [9, 14, 19, 23], porTurno: 5,   // 18/11: 9 guaridas (se sumaron Yavi y el Cardonal) y abren 5 por turno
   /* Aperturas ESPECIALES (fuera de los turnos): ventana propia con su propia clave (un intento nuevo por entrenador), abren las guaridas de `regiones` ('todas' = las 7).
      03/11 Zeta: compensación por las peleas que no arrancaban (bug de arena.js), 30 minutos desde 23:32 hora de Jujuy. */
-  extras: [/* 18/11 Zeta: RONDA NOCTURNA DE LEGENDARIOS Y SEMILEGENDARIOS, las 9 guaridas abiertas desde las 00:30 hasta las 04:00 de Jujuy (07:00 UTC). El jefe de cada guarida CAMBIA cada 30 min (pool `rotar.pool`, distinto en cada guarida);
+  extras: [/* 18/11 Zeta: RONDA NOCTURNA DE LEGENDARIOS Y SEMILEGENDARIOS, las 9 guaridas abiertas desde las 00:30 hasta las 04:00 de Jujuy (07:00 UTC). El jefe de cada guarida CAMBIA cada 10 min (pool `rotar.pool`, distinto en cada guarida);
        cada cambio es un intento nuevo. Fuerza 80-100 (`fmin`). Va primero. */
-    {desde: 1794972426166, hasta: 1794985200000, clave: 'EXTRA-20261118-NOCHE', regiones: 'todas',
-     rotar: {cadaMin: 30, fmin: 80, pool: [144, 145, 146, 150, 243, 149, 244, 245, 249, 250, 377, 248, 378, 379, 380, 381, 382, 373, 383, 384, 480, 481, 482, 376, 483, 484, 485, 486, 487, 445, 488, 491, 493, 638, 639, 635, 640, 641, 642, 643, 644, 706, 645, 646, 716, 717, 718, 784, 785, 786, 787, 788, 791, 887, 792, 800, 888, 889, 890, 998, 1007, 1008]}},
+    {desde: 1794972426166, hasta: 1794985200000, clave: 'EXTRA-20261118-NOCHE2', regiones: 'todas',
+     rotar: {cadaMin: 10, fmin: 80, pool: [144, 145, 146, 150, 243, 149, 244, 245, 249, 250, 377, 248, 378, 379, 380, 381, 382, 373, 383, 384, 480, 481, 482, 376, 483, 484, 485, 486, 487, 445, 488, 491, 493, 638, 639, 635, 640, 641, 642, 643, 644, 706, 645, 646, 716, 717, 718, 784, 785, 786, 787, 788, 791, 887, 792, 800, 888, 889, 890, 998, 1007, 1008]}},
     /* 16/11 Zeta: RONDA SHINY FAMOSOS (Charizard, etc.), 7 guaridas 5 h, va primero. */
     {desde: 1794800661000, hasta: 1794818661000, clave: 'EXTRA-20261116-SHINYFAMOSOS', regiones: 'todas'},
     /* 16/11 Zeta: RONDA SHINY LEGENDARIOS, las 7 guaridas abiertas 5 h; el legendario de cada guarida sale SIEMPRE shiny (ver `shiny.evento`). Va primero. */
