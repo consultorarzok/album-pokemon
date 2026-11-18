@@ -1247,3 +1247,5 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;}
 .rank-subchip{min-height:44px;}
 .rank-sec{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;color:var(--ink);margin:10px 0 2px;}
 .rank-row.libre{opacity:.65;}
+.nov-donde{margin:6px 4px 0;font-size:14px;line-height:1.4;color:var(--ink-dim);text-align:center;}
+.nov-donde b{color:var(--ink);}
