@@ -945,7 +945,7 @@ function renderGrid(){
 /* ====================== CARTEL DE NOVEDADES ======================
    05/11 Zeta: sale DOS veces (13/11: TRES) por dispositivo (la 1.ª al entrar y la 2.ª en la siguiente vez que entra), después de los carteles de nombre,
    personaje y PIN. Se cuenta cuando el jugador lo cierra. Pasada NOVEDADES_HASTA no sale más. Para una novedad nueva se cambia NOVEDADES_ID. */
-const NOVEDADES_ID = '20261118', NOVEDADES_HASTA = '2026-11-27', NOVEDADES_VECES = 3;   // 13/11 Zeta: el cartel de la actualización sale 3 veces por jugador
+const NOVEDADES_ID = '20261118b', NOVEDADES_HASTA = '2026-11-27', NOVEDADES_VECES = 3;   // 13/11 Zeta: el cartel de la actualización sale 3 veces por jugador
 function novedadesVistas(){ try{ return localStorage.getItem('album-novedades-id') === NOVEDADES_ID ? (Number(localStorage.getItem('album-novedades-veces')) || 0) : 0; }catch(e){ return 0; } }
 function mostrarNovedades(intentos){
   try{
@@ -979,86 +979,76 @@ function seccionEntrenar(p, copias){
     return `<div class="ent-ej" data-id="${p.id}" data-c="${e.c}">
       <div class="ent-cab"><b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}</small>
         <button class="open-btn sec ent-fz" ${tope || coins < precioSubirFuerza(e.f) ? 'disabled' : ''}>${tope ? 'Fuerza máxima' : 'Subir fuerza · 🪙 ' + precioSubirFuerza(e.f)}</button></div>
-      ${fusionHTML(p, e, copias)}
-      ${estrellasHTML(p, e, copias)}
+      ${mejorasHTML(p, e, copias)}
       <div class="ent-movs">${['corto', 'medio', 'largo'].map((alc, k) => { const m = movs[alc]; return `<div class="ent-mov"><span><small>${nomAlc[k]}</small> ${m ? m.n : '—'} <i style="color:${TYPE_COLORS[m ? m.tipo : 'normal']}">●</i></span>
         <button class="open-btn sec ent-at" data-k="${k}" ${ops[k] < 2 || coins < pAt ? 'disabled' : ''}>Cambiar · 🪙 ${pAt}</button></div>`; }).join('')}
         <button class="open-btn sec ent-tres" ${ops.some(n => n < 2) || coins < pTres ? 'disabled' : ''}>Cambiar los 3 · 🪙 ${pTres}</button></div>
       ${esp ? '<small>Si cambiás un ataque de una especial, pierde el ataque exclusivo de ese botón (y su golpe extra). Cuesta ×3.</small>' : ''}</div>`;
   }).join('');
 }
-/* Fusión de copias (18/11): las repetidas de la MISMA especie suben la fuerza de otra copia. Shiny sólo con shiny, común sólo con común. Mismo cálculo que el servidor. */
-const gananciaFusion = (fObj, fCopia) => { const g = 1 + Math.floor(fCopia / 20); return fObj >= 95 ? 1 : fObj >= 80 ? Math.max(1, Math.floor(g / 2)) : g; };
-function fusionHTML(p, e, copias){
-  if(p.especial || e.f >= 100) return '';
-  const otras = copias.filter(x => x.c !== e.c && !!x.s === !!e.s);
-  if(!otras.length) return `<div class="ent-fus"><small>🔗 Fusión: necesitás otra copia ${e.s ? '✨ shiny ' : ''}para sumarle fuerza.</small></div>`;
-  return `<div class="ent-fus"><small>🔗 <b>Fusionar copias${e.s ? ' ✨ shiny' : ''}</b> (se gastan y le suman fuerza a esta):</small>
-    <div class="ent-fus-lista">${otras.map(x => `<label class="ej-chip ${claseFuerza(x.f)}"><input type="checkbox" class="fus-ck" data-c="${x.c}" data-f="${x.f}" data-est="${estN(x) ? 1 : 0}"> 💪 ${x.f}${estN(x) ? ' ⭐' : ''}</label>`).join('')}</div>
-    <button class="open-btn sec ent-fus-go" data-f="${e.f}" disabled>Elegí copias para fusionar</button></div>`;
-}
-function fusionPrevia(box){
-  const go = box.querySelector('.ent-fus-go'); if(!go) return;
-  let f = Number(go.dataset.f), n = 0;
-  box.querySelectorAll('.fus-ck:checked').forEach(ck => { f = Math.min(100, f + gananciaFusion(f, Number(ck.dataset.f))); n++; });
-  go.disabled = !n; go.textContent = n ? `Fusionar ${n} → 💪 ${go.dataset.f} → ${f}` : 'Elegí copias para fusionar';
-}
-function fusionarServidor(id, serie, cs){
-  if(!puedeJugar('entrenar')) return;
-  accionServidor('fusionar', {id, c: serie, cs}).then(res => {
-    if(!res.ok) return avisoServidor(res.motivo);
-    const r = res.resultado;
-    avisoServidor('ok', '🔗 Fuerza ' + r.antes + ' → ' + r.f + ' (' + r.usadas + ' copia' + (r.usadas === 1 ? '' : 's') + ' fusionada' + (r.usadas === 1 ? '' : 's') + ')');
-    abrirDetalle(id);
-  }).catch(() => {}).then(soltar('entrenar'));
-}
-/* Estrellas de entrenamiento (18/11): hasta 5 por ejemplar; cada una cuesta copias de la misma especie (4, 6, 9, 13, 19; shiny sólo con shiny) y mejora crítico, daño crítico o velocidad. */
-const ESTRELLAS_COSTO = [4, 6, 9, 13, 19];
-const estN = e => ['cr', 'cm', 've'].reduce((t, k) => t + (Math.max(0, Math.floor(Number(e.est && e.est[k])) || 0)), 0);
-function estrellasHTML(p, e, copias){
+/* Mejoras por repetidas (18/11, rediseño pedido por Zeta): la FUERZA sólo sube con monedas. Con copias repetidas de la MISMA especie (shiny sólo con shiny)
+   se mejoran vida, daño, crítico y velocidad, pero cada ejemplar elige SÓLO 2 de las 4: las otras quedan bloqueadas. 5 niveles por característica,
+   cada nivel cuesta 4, 6, 9, 13 y 19 copias. Los números de cada nivel los aplica la Arena (arena.js: estN/statsEj). */
+const MEJORA_COSTO = [4, 6, 9, 13, 19], MEJORA_REINICIO = 50000;
+const MEJORAS = [['vi', '❤️', 'Vida', '+4% por nivel'], ['da', '💥', 'Daño', '+4% por nivel'], ['cr', '🎯', 'Crítico', '+2% de probabilidad'], ['ve', '⚡', 'Velocidad', 'más veloz y esquiva con menos espera']];
+const mejN = (e, k) => Math.max(0, Math.min(5, Math.floor(Number(e && e.est && e.est[k])) || 0));
+function mejorasHTML(p, e, copias){
   if(p.especial) return '';
-  const n = estN(e), est = e.est || {};
-  const fila = `<small>⭐ <b>Estrellas de entrenamiento</b> ${'★'.repeat(n)}${'☆'.repeat(5 - n)}${n ? ` · 💥 crítico +${(est.cr || 0) * 2}% · ×+${((est.cm || 0) * .1).toFixed(1)} · ⚡ +${((est.ve || 0) * .5).toFixed(1)}★` : ''}</small>`;
-  if(n >= 5) return `<div class="ent-fus">${fila}<small>Entrenamiento al máximo.</small></div>`;
-  const costo = ESTRELLAS_COSTO[n], otras = copias.filter(x => x.c !== e.c && !!x.s === !!e.s);
-  if(otras.length < costo) return `<div class="ent-fus">${fila}<small>Próxima estrella: ${costo} copias${e.s ? ' ✨ shiny' : ''} de esta especie (tenés ${otras.length}).</small></div>`;
-  const s = fichaDe(p, e) || {}, topeCrit = s.critRaw >= s.topeCrit - 1e-9, topeVel = s.velRaw >= s.topeVel - 1e-9;
-  return `<div class="ent-fus">${fila}<small>Próxima estrella: elegí <b>${costo}</b> copias${e.s ? ' ✨ shiny' : ''} para gastar y qué mejorar:</small>
-    <div class="ent-fus-lista">${otras.map(x => `<label class="ej-chip ${claseFuerza(x.f)}"><input type="checkbox" class="est-ck" data-c="${x.c}" data-costo="${costo}" data-est="${estN(x) ? 1 : 0}"> 💪 ${x.f}${estN(x) ? ' ⭐' : ''}</label>`).join('')}</div>
-    <div class="ent-est-bot"><button class="open-btn sec ent-est-go" data-m="cr" ${topeCrit ? 'data-tope="1"' : ''} disabled>💥 Crítico +2%${topeCrit ? ' (tope)' : ''}</button>
-      <button class="open-btn sec ent-est-go" data-m="cm" disabled>🔥 Daño crítico +0,1</button>
-      <button class="open-btn sec ent-est-go" data-m="ve" ${topeVel ? 'data-tope="1"' : ''} disabled>⚡ Velocidad +½★${topeVel ? ' (tope)' : ''}</button></div></div>`;
+  const activos = MEJORAS.filter(m => mejN(e, m[0]) > 0), llenas = activos.length >= 2;
+  const otras = copias.filter(x => x.c !== e.c && !!x.s === !!e.s);
+  const s = fichaDe(p, e) || {}, tope = {cr: s.critRaw >= s.topeCrit - 1e-9, ve: s.velRaw >= s.topeVel - 1e-9};
+  const filas = MEJORAS.map(([k, ico, nom, que]) => {
+    const n = mejN(e, k), bloq = n === 0 && llenas, max = n >= 5, costo = MEJORA_COSTO[n];
+    const etiqueta = bloq ? '🔒 Bloqueada' : max ? 'Al máximo' : tope[k] ? 'Tope alcanzado' : 'Mejorar · ' + costo + ' copias';
+    return `<div class="mej-fila${bloq ? ' bloq' : ''}"><div class="mej-nom"><b>${ico} ${nom}</b><small>${que}</small></div><span class="mej-pips" aria-label="nivel ${n} de 5">${'▰'.repeat(n)}${'▱'.repeat(5 - n)}</span>
+      <button class="open-btn sec ent-mej-go" data-stat="${k}" data-costo="${costo}" ${bloq || max || tope[k] ? 'data-fijo="1"' : ''} disabled>${etiqueta}</button></div>`;
+  }).join('');
+  const nota = `<small>🧩 <b>Especialidades ${activos.length}/2</b>: con repetidas elegís <b>2</b> de estas 4 y las otras quedan bloqueadas. La 💪 fuerza sólo sube con monedas.</small>`;
+  const minimo = Math.min(...MEJORAS.filter(m => !(mejN(e, m[0]) === 0 && llenas) && mejN(e, m[0]) < 5).map(m => MEJORA_COSTO[mejN(e, m[0])]).concat([99]));
+  const lista = !otras.length ? `<small>Necesitás copias repetidas ${e.s ? '✨ shiny ' : ''}de este Pokémon para mejorarlo.</small>`
+    : otras.length < minimo ? `<small>Próxima mejora: ${minimo} copias ${e.s ? '✨ shiny ' : ''}(tenés ${otras.length}).</small>`
+    : `<small>Elegí las copias a gastar${e.s ? ' (✨ shiny)' : ''} y tocá la característica:</small><div class="ent-fus-lista">${otras.map(x => `<label class="ej-chip ${claseFuerza(x.f)}"><input type="checkbox" class="mej-ck" data-c="${x.c}" data-est="${MEJORAS.some(m => mejN(x, m[0]) > 0) ? 1 : 0}"> 💪 ${x.f}${MEJORAS.some(m => mejN(x, m[0]) > 0) ? ' 🧩' : ''}</label>`).join('')}</div>`;
+  const reiniciar = activos.length ? `<button class="open-btn sec ent-mej-reset" ${coins < MEJORA_REINICIO ? 'disabled' : ''}>Cambiar de especialidad · 🪙 ${MEJORA_REINICIO.toLocaleString('es-AR')}</button><small>Borra las mejoras de este Pokémon (las copias gastadas no vuelven).</small>` : '';
+  return `<div class="ent-fus mej">${nota}${filas}${lista}${reiniciar}</div>`;
 }
-function estrellasPrevia(box){
-  const cks = [...box.querySelectorAll('.est-ck')]; if(!cks.length) return;
-  const costo = Number(cks[0].dataset.costo), n = cks.filter(c => c.checked).length;
-  cks.forEach(c => { c.disabled = !c.checked && n >= costo; });
-  box.querySelectorAll('.ent-est-go').forEach(b => { b.disabled = n !== costo || !!b.dataset.tope; });
+function mejPrevia(box){
+  const n = box.querySelectorAll('.mej-ck:checked').length;
+  const cks = [...box.querySelectorAll('.mej-ck')], maxCosto = Math.max(...[...box.querySelectorAll('.ent-mej-go')].filter(b => !b.dataset.fijo).map(b => Number(b.dataset.costo)).concat([0]));
+  cks.forEach(c => { c.disabled = !c.checked && n >= maxCosto; });
+  box.querySelectorAll('.ent-mej-go').forEach(b => { b.disabled = !!b.dataset.fijo || n !== Number(b.dataset.costo); });
 }
-function estrellaServidor(id, serie, cs, mejora){
+function mejorarServidor(id, serie, cs, stat){
   if(!puedeJugar('entrenar')) return;
-  accionServidor('entrenarEstrella', {id, c: serie, cs, mejora}).then(res => {
+  accionServidor('mejorarStat', {id, c: serie, cs, stat}).then(res => {
     if(!res.ok) return avisoServidor(res.motivo);
-    avisoServidor('ok', '⭐ ¡Estrella ' + res.resultado.estrellas + ' de 5! (' + res.resultado.usadas + ' copias usadas)');
+    const r = res.resultado, m = MEJORAS.find(x => x[0] === r.stat);
+    avisoServidor('ok', m[1] + ' ' + m[2] + ' nivel ' + r.nivel + ' de 5 (' + r.usadas + ' copias usadas)');
     abrirDetalle(id);
   }).catch(() => {}).then(soltar('entrenar'));
 }
-document.getElementById('detalleBody').addEventListener('change', ev => { const ck = ev.target.closest('input.fus-ck'); if(ck) fusionPrevia(ck.closest('.ent-ej')); const ek = ev.target.closest('input.est-ck'); if(ek) estrellasPrevia(ek.closest('.ent-ej')); });
+function reiniciarMejorasServidor(id, serie){
+  if(!puedeJugar('entrenar')) return;
+  accionServidor('reiniciarMejoras', {id, c: serie}).then(res => {
+    if(!res.ok) return avisoServidor(res.motivo);
+    avisoServidor('ok', '🧩 Mejoras reiniciadas (−' + res.resultado.costo + ' monedas)');
+    updateCoins(); abrirDetalle(id);
+  }).catch(() => {}).then(soltar('entrenar'));
+}
+document.getElementById('detalleBody').addEventListener('change', ev => { const ck = ev.target.closest('input.mej-ck'); if(ck) mejPrevia(ck.closest('.ent-ej')); });
 document.getElementById('detalleBody').addEventListener('click', ev => {
   const fb = ev.target.closest('button.ej-fav');
   if(fb){ favoritoServidor(Number(fb.dataset.id), fb.dataset.c); return; }
   const b = ev.target.closest('button'); const box = b && b.closest('.ent-ej'); if(!box || b.disabled) return;
   const id = Number(box.dataset.id), c = box.dataset.c;
   const p = DATA.find(x => x.id === id) || ESPECIAL_POR_ID[id], nom = p ? p.name : 'esta figurita';
-  if(b.classList.contains('ent-est-go')){
-    const cs = [...box.querySelectorAll('.est-ck:checked')].map(ck => ck.dataset.c), conEst = [...box.querySelectorAll('.est-ck:checked')].some(ck => ck.dataset.est === '1');
-    const q = {cr: 'el crítico', cm: 'el daño crítico', ve: 'la velocidad'}[b.dataset.m];
-    if(cs.length && confirm('¿Gastar ' + cs.length + ' copias de ' + nom + ' para mejorar ' + q + ' de la N.º ' + c + '?' + (conEst ? ' ⚠️ Alguna de las copias elegidas tiene estrellas y las pierde.' : '') + ' No se puede volver atrás.')) estrellaServidor(id, c, cs, b.dataset.m);
+  if(b.classList.contains('ent-mej-go')){
+    const marc = [...box.querySelectorAll('.mej-ck:checked')], cs = marc.map(ck => ck.dataset.c), conMejoras = marc.some(ck => ck.dataset.est === '1');
+    const m = MEJORAS.find(x => x[0] === b.dataset.stat);
+    if(cs.length && confirm('¿Gastar ' + cs.length + ' copias de ' + nom + ' para mejorar ' + m[2].toLowerCase() + ' de la N.º ' + c + '? Quedan elegidas tus 2 especialidades (las otras se bloquean).' + (conMejoras ? ' ⚠️ Alguna de las copias elegidas tiene mejoras y las pierde.' : '') + ' No se puede volver atrás.')) mejorarServidor(id, c, cs, b.dataset.stat);
     return;
   }
-  if(b.classList.contains('ent-fus-go')){
-    const cs = [...box.querySelectorAll('.fus-ck:checked')].map(ck => ck.dataset.c); if(!cs.length) return;
-    if(confirm('¿Fusionar ' + cs.length + ' copia' + (cs.length === 1 ? '' : 's') + ' de ' + nom + ' en la N.º ' + c + '? Las copias elegidas se gastan' + (box.querySelector('.fus-ck:checked[data-est="1"]') ? ' (⚠️ alguna tiene estrellas y las pierde)' : '') + ' y no se puede volver atrás.')) fusionarServidor(id, c, cs);
+  if(b.classList.contains('ent-mej-reset')){
+    if(confirm('¿Cambiar de especialidad? Se borran las mejoras de ' + nom + ' N.º ' + c + ' y cuesta ' + MEJORA_REINICIO.toLocaleString('es-AR') + ' monedas. Las copias gastadas no vuelven.')) reiniciarMejorasServidor(id, c);
     return;
   }
   if(b.classList.contains('ent-fz')){ if(confirm('¿Subir la fuerza de ' + nom + ' N.º ' + c + '? Suma entre 1 y 3 y se cobra el precio.')) subirFuerzaServidor(id, c); }
@@ -1747,7 +1737,7 @@ function proximoPaso(){
   if(coins < PACK_COST && tengo < 12) return {i: '🪙', t: 'Ganá monedas', d: 'Respondé preguntas rápidas y juntá para tus sobres.', b: 'Responder', id: 'earnBtn'};
   if(!maestro.peleas && !pocas) return {i: '⚔️', t: 'Probá tu primera pelea', d: 'Armá tu equipo y peleá en la Arena: ganás monedas y subís de rango.', b: 'Pelear', id: 'battleBtn'};
   if(pocas) return {i: '📦', t: 'Conseguí más Pokémon', d: 'Con ' + PELEA_MIN + ' Pokémon ya podés pelear en la Arena. Abrí sobres o salí a la Aventura.', b: coins >= PACK_COST ? 'Abrir sobre' : 'Ir a la aventura', id: coins >= PACK_COST ? 'openBtn' : 'advBtn'};
-  if(dups >= 6) return {i: '💪', t: 'Tenés ' + dups + ' repetidas', d: 'Fusionalas para subir la fuerza de tu mejor Pokémon, o canjealas y evolucionalas.', b: 'Ver repetidas', id: 'repetidasBtn'};
+  if(dups >= 6) return {i: '💪', t: 'Tenés ' + dups + ' repetidas', d: 'Usalas para mejorar a tu mejor Pokémon (vida, daño, crítico o velocidad), o canjealas y evolucionalas.', b: 'Ver repetidas', id: 'repetidasBtn'};
   return {i: '🗺️', t: 'Salí a la Aventura', d: 'Atrapá Pokémon, vencé a los líderes y ganá medallas.', b: 'Ir a la aventura', id: 'advBtn'};
 }
 function pintarProximoPaso(){

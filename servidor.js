@@ -50,14 +50,14 @@ const enCurso = new Set();           // jugadas esperando respuesta (evita el do
 const POR_ID_C = Object.fromEntries(DATA.map(p => [p.id, p]));
 const aPull = x => ({p: POR_ID_C[x.id], isNew: x.isNew});
 /* jugadas que pueden cambiar las figuritas: sólo ésas vuelven a dibujar el álbum entero */
-const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'fusionar', 'entrenarEstrella', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar']);
+const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'mejorarStat', 'reiniciarMejoras', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar']);
 
 const MENSAJES = {
   lejos_del_lider: 'Para desafiar al gimnasio tenés que estar al lado del líder.', falta_medalla_previa: 'Primero tenés que ganarle al líder anterior: los gimnasios van en orden.', ya_ganado: 'A ese líder ya le ganaste: seguí con el siguiente.', faltan_requisitos: 'Todavía no cumplís lo que pide ese líder para pelear.', todavia_no: 'Todavía no completaste esa misión.',
   sin_habilitar: 'Primero habilitá a ese Pokémon como compañero', ya_habilitado: 'Ese Pokémon ya está habilitado de compañero', no_puede_ser_companero: 'Ese Pokémon no puede ser compañero (no queda bien en el mapa)', se_consigue_canjeando: 'Esa pokébola se consigue cambiando las de abajo', sin_bolas: 'No te alcanzan las pokébolas para ese cambio', canje_invalido: 'Ese cambio no existe',
   sin_monedas: 'No te alcanzan las monedas.',
   fuerza_maxima: 'Esa figurita ya tiene la fuerza máxima.',
-  fusion_shiny_distinto: 'Shiny sólo se fusiona con shiny, y común con común.', fusion_invalida: 'Elegí qué copias fusionar.', estrella_invalida: 'Elegí qué mejorar.', estrellas_maximas: 'Ya tiene las 5 estrellas.', estrella_copias: 'Elegí la cantidad justa de copias.', sobran_copias: 'Con menos copias ya llega a 100: sacá alguna.',
+  fusion_shiny_distinto: 'Shiny sólo se usa con shiny, y común con común.', fusion_invalida: 'Elegí qué copias fusionar.', mejora_invalida: 'Elegí qué mejorar.', mejora_maxima: 'Esa característica ya está al máximo.', mejora_copias: 'Elegí la cantidad justa de copias.', especialidades_llenas: 'Este Pokémon ya eligió sus 2 especialidades: las otras están bloqueadas.', sin_mejoras: 'Este Pokémon no tiene mejoras para reiniciar.', sobran_copias: 'Con menos copias ya llega a 100: sacá alguna.',
   especial_sin_cambio: 'Los ataques de las figuritas especiales no se cambian.',
   slots_invalidos: 'Elegí qué ataque cambiar.',
   sin_diamantes: 'No te alcanzan los diamantes.',

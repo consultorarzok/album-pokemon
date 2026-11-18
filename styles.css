@@ -1249,3 +1249,13 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;}
 .rank-row.libre{opacity:.65;}
 .nov-donde{margin:6px 4px 0;font-size:14px;line-height:1.4;color:var(--ink-dim);text-align:center;}
 .nov-donde b{color:var(--ink);}
+
+.mej{gap:8px;}
+.mej-fila{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 10px;}
+.mej-fila.bloq{opacity:.55;background:var(--panel);}
+.mej-nom{display:flex;flex-direction:column;min-width:0;flex:1 1 120px;}
+.mej-nom b{font-family:'Baloo 2',sans-serif;font-size:15px;color:var(--ink);}
+.mej-nom small{font-size:12px;color:var(--ink-dim);}
+.mej-pips{font-size:15px;letter-spacing:2px;color:var(--poke-blue);}
+.mej-fila .open-btn{min-height:44px;flex:0 0 auto;}
+.ent-mej-reset{min-height:44px;}

@@ -41,7 +41,7 @@ const suf = Math.random().toString(36).slice(2, 6);
   const txt = await p.evaluate(() => document.querySelector('.zonas').innerText);
   check('cada función dice qué hace (Sobre, Repetidas, Arena, Aventura)', /nuevas por/.test(txt) && /canjear, evolucionar, intercambiar y mejorar/.test(txt) && /duelos con amigos e incursiones/.test(txt) && /19 medallas/.test(txt), txt.slice(0, 300));
   await p.click('#repetidasBtn');
-  check('Repetidas explica cómo mejorar un Pokémon (fusión y estrellas)', await p.evaluate(() => /fusionando copias/.test(document.getElementById('repetidasOverlay').innerText) && !!document.getElementById('repetidasPokedexBtn')));
+  check('Repetidas explica cómo mejorar un Pokémon (2 especialidades)', await p.evaluate(() => /2 de estas 4/.test(document.getElementById('repetidasOverlay').innerText) && !!document.getElementById('repetidasPokedexBtn')));
   await p.click('#repetidasPokedexBtn');
   check('el botón "Ir a la Pokédex" cierra Repetidas y abre la Pokédex', await p.waitForFunction(() => !document.getElementById('repetidasOverlay').classList.contains('show') && document.getElementById('pokedexOverlay') && document.getElementById('pokedexOverlay').classList.contains('show'), null, {timeout: 5000}).then(() => true, () => false));
   await p.evaluate(() => document.querySelectorAll('.overlay.show').forEach(e => e.classList.remove('show')));

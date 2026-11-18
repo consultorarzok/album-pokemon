@@ -78,14 +78,16 @@ const hash = (id, k) => frac(Math.sin(id * 12.9898 + k * 78.233) * 43758.5453);
 const SESGO_CRIT = {fighting:.05, dark:.04, ghost:.03, psychic:.03, electric:.02, bug:.02, rock:-.02, normal:-.01};
 const SESGO_VEL  = {electric:.22, flying:.18, bug:.10, ghost:.08, psychic:.06, fighting:.05, normal:.04, fire:.04,
                     fairy:.03, dragon:.02, water:0, ice:-.02, grass:-.04, poison:-.06, ground:-.12, rock:-.22};
-/* 18/11: estrellas de entrenamiento (ej.est = {cr, cm, ve}): crítico +2 puntos, daño crítico +0,1, velocidad +0,07 (media estrella). Topes: crítico 35 %, velocidad 5★. */
+/* 18/11 (rediseño, Zeta): mejoras por repetidas en ej.est = {vi, da, cr, ve} (niveles 0-5). Cada ejemplar elige SÓLO 2 de las 4 (lo exige el servidor).
+   vi = vida +4 % por nivel · da = daño +4 % por nivel · cr = crítico +2 puntos por nivel (tope 35 %) · ve = velocidad +0,07 por nivel (tope 1,35) y la esquiva espera 0,08 s menos por nivel.
+   La fuerza NO sube con repetidas (sólo con monedas). */
 const TOPE_CRIT = .35, TOPE_VEL = 1.35;
+const estN = (ej, k) => Math.max(0, Math.min(5, Math.floor(Number(ej && ej.est && ej.est[k])) || 0));
+const cdEsq = e => Math.max(.5, ESQ.cd - .08 * (e.mon && e.mon.est ? estN({est:e.mon.est}, 've') : 0));
 function statsEj(p, ej){
   const st = (ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : (p.especial && VEL_ESPECIAL[p.id]) ? Object.assign({}, statsDe(p), {vel:VEL_ESPECIAL[p.id]}) : statsDe(p);
-  const e = ej && ej.est;
-  if(!e) return st;
-  const n = k => Math.max(0, Math.min(5, Math.floor(Number(e[k])) || 0));
-  return {crit:Math.max(st.crit, Math.min(TOPE_CRIT, st.crit + .02 * n('cr'))), critMult:Math.round((st.critMult + .1 * n('cm')) * 10) / 10, vel:Math.max(st.vel, Math.min(TOPE_VEL, st.vel + .07 * n('ve')))};
+  if(!ej || !ej.est) return st;
+  return {crit:Math.max(st.crit, Math.min(TOPE_CRIT, st.crit + .02 * estN(ej, 'cr'))), critMult:st.critMult, vel:Math.max(st.vel, Math.min(TOPE_VEL, st.vel + .07 * estN(ej, 've')))};
 }
 function statsDe(p){
   const crit = Math.min(.30, Math.max(.04, .07 + hash(p.id, 1) * .14 + (SESGO_CRIT[p.type] || 0)));
@@ -2127,14 +2129,14 @@ function movsEjemplar(p, ej){
 }
 /* cuántos ataques distintos puede tener en cada botón (si es 1, cambiarlo no sirve) */
 const opcionesDeAtaque = p => p.id === 10156 ? [1, 1, 1] : ATAQUES.map(alc => { const id = p.base || p.id, l = (APRENDE[id] || {})[alc] || []; return new Set(l.map(x => x.i)).size + (((APR_EXTRA[id] || {})[alc] || []).length); });
-Object.assign(window.__arenaMovs, {movsEjemplar, opcionesDeAtaque, terminarConReintento});
+Object.assign(window.__arenaMovs, {movsEjemplar, opcionesDeAtaque, terminarConReintento, esqCd: ej => cdEsq({mon: {est: (ej && ej.est) || null}})});
 /* 18/11 Zeta: la ficha completa de un ejemplar para la Pokédex y el cuadro de captura: fuerza, vida (PS), golpe, crítico, velocidad y ataques. Misma cuenta que crearMon. */
 window.__arenaMovs.fichaStats = (p, ej) => {
   const f = Math.max(1, Math.min(100, Math.round(ej && ej.f ? (ej.f > 100 ? ej.f - 100 : ej.f) : 50))), kb = .8 + f / 250;
   const st = statsEj(p, ej);
   let movs = [];
   try{ const m = movsEjemplar(p, ej || null); movs = ORDEN_BOTONES.map(k => m[k] ? m[k].n : '').filter(Boolean); }catch(e){}
-  return {f, vida:Math.round((60 + bstDe(p) * .22) * kb), golpe:Math.round(kb * 100), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), velTxt:(v => '★'.repeat(Math.floor(v)) + (v % 1 ? '½' : ''))(Math.max(1, Math.min(5, Math.round((st.vel - .65) / .07) / 2))), critRaw:st.crit, velRaw:st.vel, topeCrit:TOPE_CRIT, topeVel:TOPE_VEL, est:(ej && ej.est) || null, movs};
+  return {f, vida:Math.round((60 + bstDe(p) * .22) * kb * (1 + .04 * estN(ej, 'vi'))), golpe:Math.round(kb * 100 * (1 + .04 * estN(ej, 'da'))), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), velTxt:(v => '★'.repeat(Math.floor(v)) + (v % 1 ? '½' : ''))(Math.max(1, Math.min(5, Math.round((st.vel - .65) / .07) / 2))), critRaw:st.crit, velRaw:st.vel, topeCrit:TOPE_CRIT, topeVel:TOPE_VEL, est:(ej && ej.est) || null, movs};
 };
 /* 18/11 Zeta: la ficha completa de un ejemplar para la Pokédex y el cuadro de captura: fuerza, vida (PS), golpe, crítico, velocidad y ataques. Misma cuenta que crearMon. */
 window.__arenaMovs.fichaStats = (p, ej) => {
@@ -2142,20 +2144,20 @@ window.__arenaMovs.fichaStats = (p, ej) => {
   const st = statsEj(p, ej);
   let movs = [];
   try{ const m = movsEjemplar(p, ej || null); movs = ORDEN_BOTONES.map(k => m[k] ? m[k].n : '').filter(Boolean); }catch(e){}
-  return {f, vida:Math.round((60 + bstDe(p) * .22) * kb), golpe:Math.round(kb * 100), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), velTxt:(v => '★'.repeat(Math.floor(v)) + (v % 1 ? '½' : ''))(Math.max(1, Math.min(5, Math.round((st.vel - .65) / .07) / 2))), critRaw:st.crit, velRaw:st.vel, topeCrit:TOPE_CRIT, topeVel:TOPE_VEL, est:(ej && ej.est) || null, movs};
+  return {f, vida:Math.round((60 + bstDe(p) * .22) * kb * (1 + .04 * estN(ej, 'vi'))), golpe:Math.round(kb * 100 * (1 + .04 * estN(ej, 'da'))), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), velTxt:(v => '★'.repeat(Math.floor(v)) + (v % 1 ? '½' : ''))(Math.max(1, Math.min(5, Math.round((st.vel - .65) / .07) / 2))), critRaw:st.crit, velRaw:st.vel, topeCrit:TOPE_CRIT, topeVel:TOPE_VEL, est:(ej && ej.est) || null, movs};
 };
 function crearMon(p, rival, ejFijo){
   const ej = ejFijo || (rival ? null : mejorEjemplar(p.id));
   const fz = ejFijo ? ejFijo.f : rival ? fuerzaRival() : ((ej || {}).f || 50);
   /* 14/11 modo historia (Zeta: "muy fáciles"): los Pokémon de los líderes traen 3 multiplicadores del servidor: dif = poder de ataque, vida = vida (el doble o más) y def = defensa (reduce el daño que reciben) */
   const kb = .8 + fz / 250, hpx = (ejFijo && ejFijo.vida) || 1, defx = (ejFijo && ejFijo.def) || 1,
-     k = kb * ((ejFijo && ejFijo.dif) || 1),   /* 05/11 Zeta: vida y daño van de ×0,80 (fuerza 1) a ×1,20 (fuerza 100); antes .9 + fz/500 (×0,90 a ×1,10) */
-     bst = bstDe(p), max = Math.round((60 + bst * .22) * kb * hpx);
+     k = kb * ((ejFijo && ejFijo.dif) || 1) * (1 + .04 * estN(ej, 'da')),   /* 05/11 Zeta: vida y daño van de ×0,80 (fuerza 1) a ×1,20 (fuerza 100); antes .9 + fz/500 (×0,90 a ×1,10) */
+     bst = bstDe(p), max = Math.round((60 + bst * .22) * kb * hpx * (1 + .04 * estN(ej, 'vi')));
   /* los ataques salen del número de serie del ejemplar (siempre los mismos para esa figurita);
      el rival, como no tiene ejemplar guardado, saca unos al azar en cada pelea */
   const movs = movsEjemplar(p, ej);
   const enMax = EN_MAX * (ENERGIA_ESPECIAL[p.id] || 1);
-  return {p, bst, max, hp:max, en:enMax, enMax, vivo:true, st:statsEj(p, ej), fz, k, defX:defx, ocultoPS:!!(ejFijo && ejFijo.oculto), vario:!!(ej && ej.s), movs};
+  return {p, bst, max, hp:max, en:enMax, enMax, vivo:true, est:(ej && ej.est) ? {vi:estN(ej, 'vi'), da:estN(ej, 'da'), cr:estN(ej, 'cr'), ve:estN(ej, 've')} : null, st:statsEj(p, ej), fz, k, defX:defx, ocultoPS:!!(ejFijo && ejFijo.oculto), vario:!!(ej && ej.s), movs};
 }
 const POSE_0 = {};
 function crearEntidad(lado){
@@ -2446,7 +2448,7 @@ function pintarCooldowns(){
     b.classList.toggle('listo', cd <= 0 && m.en >= coste);
   };
   slotsDe(m).forEach(k => set('arB-' + k, e.cd[k], ALC[k].cd, ALC[k].coste));
-  set('arB-esquivar', e.cd.esq, ESQ.cd, ESQ.coste);
+  set('arB-esquivar', e.cd.esq, cdEsq(e), ESQ.coste);
   const cb = $('arB-equipo');
   if(cb) cb.disabled = !AR.yo.mons.some((x, i) => x.vivo && i !== AR.yo.idx) || AR.cambioCd > 0;
 }
@@ -2545,7 +2547,7 @@ function iniciarBase(e, tipo, dirPref){
   const O = tipo !== 'esquivar' && dirPref && (dirPref.x || dirPref.y) && e.lado !== 'yo' ? objetivoPorDir(e, dirPref) : otro(e);
   if(tipo === 'esquivar'){
     if(e.cd.esq > 0 || m.en < ESQ.coste) return false;
-    m.en -= ESQ.coste; e.cd.esq = ESQ.cd;
+    m.en -= ESQ.coste; e.cd.esq = cdEsq(e);
     let d = dirPref && (dirPref.x || dirPref.y) ? dirPref : null;
     if(!d && Math.hypot(e.vx, e.vy) > velMax(e) * .3) d = {x:e.vx, y:e.vy};
     if(!d){

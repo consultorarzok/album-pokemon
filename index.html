@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261203">
+<link rel="stylesheet" href="styles.css?v=20261204">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -66,7 +66,7 @@
       <li><b>📦 Abrí sobres</b> para sumar figuritas a tu Pokédex.</li>
       <li><b>⚔️ Peleá en la Arena</b> con tu equipo: ganás monedas, pokébolas y puntos de Maestro (sube tu rango).</li>
       <li><b>🗺️ Recorré la Aventura</b>: atrapá Pokémon, vencé a los 19 líderes y llegá a la Liga de Jujuy.</li>
-      <li><b>💪 Mejorá a tus Pokémon</b> en su ficha de la Pokédex: entrenar con monedas, fusionar copias repetidas y ganar estrellas.</li>
+      <li><b>💪 Mejorá a tus Pokémon</b> en su ficha de la Pokédex: la fuerza sube con monedas y, con repetidas, elegís <b>2 especialidades</b> (vida, daño, crítico o velocidad).</li>
       <li><b>🏆 Subí en el ranking</b> y ganá premios cada lunes.</li>
     </ol>
   </details>
@@ -262,19 +262,19 @@
   <div class="reveal-panel nov-panel" style="max-width:430px;margin:0 auto;">
     <span class="nov-pill">NOVEDADES</span>
     <h2 id="novTit">¡Subí a tus Pokémon!</h2>
-    <div class="nov-card nov-pelea"><div class="nov-ico" aria-hidden="true">🔗</div><div>
-      <h3>Fusioná tus repetidas</h3>
-      <p>Juntá copias del <b>mismo Pokémon</b> y sumale <b>fuerza</b> a la que elijas: más vida y más daño. <b>Shiny con shiny</b> y los <b>legendarios</b> también. Cada copia suma de +1 a +6.</p>
+    <div class="nov-card nov-pelea"><div class="nov-ico" aria-hidden="true">🧩</div><div>
+      <h3>Elegí tus 2 especialidades</h3>
+      <p>Con tus repetidas mejorás <b>vida, daño, crítico o velocidad</b>, pero <b>solo 2 de las 4</b>: ahí está la estrategia. Juntá copias del mismo Pokémon (<b>shiny con shiny</b>, y los <b>legendarios</b> también).</p>
     </div></div>
-    <div class="nov-card nov-evo"><div class="nov-ico" aria-hidden="true">⭐</div><div>
-      <h3>Estrellas de entrenamiento</h3>
-      <p>Hasta <b>5 estrellas</b> por Pokémon. Cada una mejora su <b>crítico</b>, su <b>daño crítico</b> o su <b>velocidad</b>. Cuestan 4, 6, 9, 13 y 19 copias.</p>
+    <div class="nov-card nov-evo"><div class="nov-ico" aria-hidden="true">⚡</div><div>
+      <h3>5 niveles por característica</h3>
+      <p>Cuestan 4, 6, 9, 13 y 19 copias. La <b>velocidad</b> te hace más veloz y te deja <b>esquivar con menos espera</b>.</p>
     </div></div>
     <div class="nov-card nov-pelea"><div class="nov-ico" aria-hidden="true">🏟️</div><div>
       <h3>Mirá dónde estás</h3>
       <p>El ranking ahora te muestra tu <b>puesto</b> y cuánto te falta para pasar al de adelante. Nueva pestaña <b>Liga</b>: la carrera de medallas.</p>
     </div></div>
-    <p class="nov-donde">Entrá a la ficha de tu Pokémon (Pokédex) → <b>Entrenar</b>.</p>
+    <p class="nov-donde">La 💪 fuerza sigue subiendo solo con monedas. Entrá a la ficha de tu Pokémon (Pokédex) → <b>Entrenar</b>.</p>
     <button class="close-btn" id="novedadesCierraBtn" style="margin-top:14px;">¡A jugar!</button>
   </div>
 </div>
@@ -300,7 +300,7 @@
         <button class="open-btn sec" id="intercambioBtn">Intercambiar</button>
       </div>
       <div class="acc acc-mejorar">
-        <div class="acc-txt"><b>💪 Mejorar un Pokémon</b><span>Abrí su ficha en la Pokédex → <b>Entrenar</b>: subí la fuerza con monedas o <b>fusionando copias</b> repetidas, y ganá ⭐ estrellas (crítico y velocidad). Shiny solo con shiny.</span></div>
+        <div class="acc-txt"><b>💪 Mejorar un Pokémon</b><span>Abrí su ficha en la Pokédex → <b>Entrenar</b>: la fuerza sube con monedas y, con copias repetidas, mejorás <b>2 de estas 4</b>: vida, daño, crítico o velocidad. Shiny solo con shiny.</span></div>
         <button class="open-btn sec" id="repetidasPokedexBtn">Ir a la Pokédex</button>
       </div>
     </div>
@@ -557,10 +557,10 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261168"></script>
-<script src="app.js?v=20261203"></script>
+<script src="app.js?v=20261204"></script>
 <script src="servidor.js?v=20261180"></script>
 <script src="pixfx.js?v=3"></script>
-<script src="arena.js?v=20261203"></script>
+<script src="arena.js?v=20261204"></script>
 <script src="portada.js?v=20261105"></script>
 <script>
 /* Guardado del juego en el celular (sw.js): sólo en el sitio real, nunca en pruebas locales */
