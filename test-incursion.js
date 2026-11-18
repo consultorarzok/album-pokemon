@@ -15,7 +15,7 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   await page.evaluate(() => document.getElementById('advBtn').click()); await page.waitForTimeout(600);
   const g = await page.evaluate(() => ({n: GUARIDAS.length, regiones: GUARIDAS.map(g => g.region).join(), puertas: GUARIDAS.every(g => ADV_MAPS.overworld.rows[g.puerta[1]][g.puerta[0]] === '7'),
     solo: [...SOLO_INCURSION].join(), sobreSinSolo: poolSobre().every(p => !SOLO_INCURSION.has(p.id)), advSinSolo: ADV_DATA.every(p => !SOLO_INCURSION.has(p.id))}));
-  check('una guarida por región (7) con su puerta', g.n === 7 && g.puertas && g.regiones === 'kanto,johto,hoenn,sinnoh,unova,kalos,alola');
+  check('una guarida por región (9: 7 + Yavi y Cardonal) con su puerta', g.n === 9 && g.puertas && g.regiones === 'kanto,johto,hoenn,sinnoh,unova,kalos,alola,yavi,coctaca');
   check('los legendarios de incursión no salen en sobres ni en la Aventura', g.sobreSinSolo && g.advSinSolo && g.solo === '150,249,384,487,646,716,800');
   const msj = await page.evaluate(() => {
     const k = GUARIDAS[0], real = Date.now;

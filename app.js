@@ -1925,27 +1925,27 @@ const ADV_MAPS = {
       "#^^^,,a~~~~~~~~~~~~~~~f~NNNN#,,,|#,,,,,,,,,,\"\",#\",a~~~~~~~a,,,lhh,h,.hh,,h,,.BBBBBBBB~~~~~~~a,,,,,#,,\",#a~~~~~~~a\"\"\"\"\"\",,,,,,,,,,,,,#|,,,\"\"aaa~~~a.a,,,,#,,,,,,^^#",
       "#^^^aaf~~~~~~~~~~~~~~~~~NNNN#,\",|,,,,,\",,\",,\",,,,,a~~~~~~~a,,,...............~~~~~~~~~~~~~~~a,,,,,,,,,,\"a~~~~~~~a\"\"\"\"\"\"\"\"uuuuuuu,,,,#|,,,\"\"aaa~~~a.a,#,,,,,,,,,^^#",
       "#^^^~~~~~~~~~~~~~~~~~~~~~~NNN\",,|,,\"\",,,,,,,,,\",\"#a~~~~~~~a,,\",,,,hh.h,hh,,l.~~~~~~~~~~~~~~aa,,,,,,\"$#,,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"#####,,,,,|,,,\"\"aaa~~~a.a,,,,,,,,,,,^^#",
-      "#^^^f~~~~~~~~~~~~~~~~~~~~~NNN,,#|,#,m,,,,,,,,,,,,#a~~~~~~~a,,,hh,,,,.,hh,,,,.aa~~~~~~~~~~~aa,,,,,,,,,,,,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"####,,,,,,|,,,\"\"aaa~~~a.a,,,,,,,,,,,^^#",
-      "#^^^~~~~~~~~~~..BBBBBBB~~~~NNmmm|mmmmmmm,,\"#,,,b,,a~~~~~~~a,,,hhh,,,.l,,,,,,.,aaa~~~~~~~~#a,#\",,,,,,,,#,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"........,,|,,,\"\"aaa~~~a.a,,,,l,,,,,,^^#",
-      "#^^^~~~~~~~~~~BBBBBBBBB~~~~NNNmm|mmmmmmmmm,,,,,,,,a~~~~~~~a,,,h,h,,,.hh,h,,,.,,,#a#~~aaaa#\",,,,#\",\"#,,,,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"........,,|,,j\"\"aaa~~~a.a,,h,.,,,,,,^^#",
-      "#^^^~~~~~~~~~~~~~~~~~~~~~~~NNmmm|mmmmmmmmm,,\",,,,,a~~~~~~~a\",,,,h,,,.,,h,,hh.,,,,,aa#a,,,\",\",\",,\",\",,,#,a~~~~~~~a\"\"\"\"\"\"\"\"\"\"\",,,,,,,,,|,,,\"\"aaa~~~a.a,,h,.,,h,,,^^#",
-      "#^^^a~~~~~~~~~~~~~~~~~~~~~~~NNmm|mmmmmmmmm,##\",,\",a~~~~~~~a\"\",,h,,,h.,,,,,,,.eeeeee,,,#,,,\",,\",,j\",,,\",,a~~~~~~~a\"\"\"\"\"\"\"\"\"####,,,,,,#|#,,\"\"aaa~~~a.a,hih.hh,,,,^^#",
-      "#^^^~~~~~~~~~~~~~~~~~~~~~~~~Nmmm|mmmmmmmmmm,#,,,,,a~~~~~~~a,,,,,,,h,.,,,,,ee.eeeeeeee,,\"\",,,,\"\",,\",,,,,\"a~~~~~~~a\"\"\"\"\"\"\"\"######,,,,,,|,,,\"\"aaa~~~a.ah,,,.,,hh,,^^#",
-      "#^^^f~~~~~~~~~~~~~~~~~BBBBBNN...|...mmmmmmm,\",,\",,a~~~~~~~a,#,,,,,,\",c,\",,ee.eeeeeeee,,\",,,#\",,,#,\"#,,,,a~~~~~~~ac\"\"\"\"\"\"\"####,,,,,,,,|,,,\"\"aaa~~~a.a,h,hI,,,,,,^^#",
-      "#^^^#a~~~~~~~~~~~~~~~~BBBBNNN...|..mmmmmmmm\",,,,,\"a~~~~~~~a,,,,,\",,,,,,,,\"ee.eeeeeeee,,,,,,\",,,,,,,,\",,,a~~~~~~~a\"\"\"\"\"\"\"######,,,,,,,|,,,\"\"aaa~~~a.ajhhh.mlhh,,^^#",
-      "#^^^,f~~~~~~~~~~~~~~~~~~~NNNNmmm|mmmmmmmmm#,,,,\",,a~~~~~~~a,,,\",,,,,,\",,#,eec....eeeee,,,,,,,,,,,\",,,,,,a~~~~~~~a####\"#######,,,,,,#,|,,,\"\"aaa~~~a...........,,^^#",
-      "#^^^,aa~~~~~~~~~~~~~~~~NNNNNmmmm|mmmmmmmm,m,\",\",,,a~~~~~~~a,,,,,,#,\",,,,,,ee....eeeee\"\",\"F\"#,,,\",,,,,,,,a~~~~~~~a#########,,,,,,,,,,,|,,,\"\"aaa~~~a.almmm.mmm,,,^^#",
-      "#^^^,,aa#aa~~~~~~~~~~aaNNNNNmmmm|mmmmmmmm\",,,\",,,#a~~~~~~~a,,,,,,,,,\",\",,,ee.eeeeeeeFFFFFFFFFF#,,\",\",\",,a~~~~~~~a,#######,,,,,,,,,,,,|,,,\"\"aaa~~~a.ammmm.mmmh,,^^#",
-      "#^^^,,L\",Caa#~#aa##aaa,,,,,\",#mm|mmmmmmm,FF,,,,,\",a~~~~~~~a,,\"\",,,#,#,,,,,,e.eeeeeeFFFFFVFFFFFF\",,,,,\"\",a~~~~~~~a,,,,#,#,#,,,,,,,#,,#|#,,\"\"aaa~~~a.ahmmm.mmmm,,^^#",
-      "#^^^,,ZNNNNN....................|...........F,F,,,a~~~~~~~a,,,,,,,,,,,,,\",,,.eeeeeFFFFVVVVVVFFFFF,,,,,,,a~~~~~~~a,,,,,,,,,,,,,,,,,,,,|,,,\"\"aaa~~~a.ah,mm.mmm,,,^^#",
-      "#^^^,,NNZNNN....................|...........FFFFF,a~~~~~~~a,,\",,,,,,,,,,,,,,.\"ee,FFFFFVVVVVVVFFFF,,,,,,,a~~~~~~~a,#,,,,,,,,,,,,,,,,,,|,,,\"\"aaa~~~a.ah,,h.h,h,,,^^#",
-      "#^^^,\"NNN,ZN..NNNNNZNNNNNNNNZ,,\"|,,\",FFFFF..FFFF,\"a~~~~~~~a,#\",,\",,\",,,,,,,,...............VVVLFFF##,,,,a~~~~~~~a,,,,,,,,,,,,,,,NC,,N|,,,\"\"aaa~~~a.a,hhh.,h,,,,^^#",
-      "#^^^,\"NNNNNN..NNNNNNNZNNNNNNN,,,|\",\"FFFFVV..VFFFF,a~~~~~~~a,,\"\"\",,,,\",,,,\"#,..............VVVFFFF,,,,,,\"a~~~~~~~a,,,,,#,,,,,NNNNNNNNN|NN,\"\"aaa~~~a.a,,hl.hhh,,,^^#",
-      "#^^^,,NNNNNN..ZNNNNNNNNZNNNNN\"\",|,\",FFFVVVVVVVFFFFa~~~~~~~a,,,,,,,,,,,,,,,,,.,,,,,,FFFVVVVVVFFFFF,,,,,,,a~~~~~~~a##,,,,,,,,NNNNNNNNNN|NNNNNaaa~~~a.a,,,,,,,,,,,^^#",
-      "#^^^,,NZNNNN..NNZNNNNNNNNZNNN,,,|\",,FFLFVVVVVFFFFFa~~~~~~~a\"\",\"#,\"\",,,,,,\"\",.\"\",,#,FFFFFVVFFFFF\",,,,,,b,a~~~~~~~a,,,,,,,,NNNNNNNNNNNN|NNNNNaaa~~~a.a,,,,,,,,,,,^^#",
-      "#^^^,\"NNNZNN..NNNNZNNNNNNNNZN,,,|,,jFFFFFFFVFFFFF,a~~~~~~~a\",\",,\"\",,,#\",,,,#.,,\",,,,FFFFFFFFF,,,,,,,,\",,a~~~~~~~a,,,,#,,NNNNNNNNNNNNN|NNNNNaaa~~~a.a,,,,,,,,,,,^^#",
-      "#^^^,,NNNNNZNNNNNNNNZNNNNNNNN\",,|,\",,FFFFFFFFFFF\",a~~~~~~~a\",,\",,,,,\"\",\",,,#.,,,#\"\",,#\"#F,F,,,,#,,\",,,,,a~~~~~~~a,,,,,,,,NNNNNNNNNLNN|NNNNNaaa~~~a.a,,,,,,,,,,,^^#",
-      "#^^^,,NNNNNNNZNNNNNNNNZNNNNNN#,,|,\"\"\",#FFFFFFF,#\",a~~~~~~~a,\"#,,,,,,\",,#,,,,.,$,,,#,,,,,,,,,\",,,,j,\",,,,a~~~~~~~a,,,,,,,NNNNNNNNNNNNN|NNNNNaaa~~~a.a,,,,,,,,,#,^^#",
+      "#^^^f~~~~~~~~~~~~~~~~~~~~~NNN,,#|,#,m,,,,,,,,,,,,#a~~~~~~~a,,,hh,,,,.,hh,,,,.aa~~~~~~~~~~~aa,,,,,,,,,,,,a~~~~~~~a\"\"\"#############,,,,|,,,\"\"aaa~~~a.a,,,,,,,,,,,^^#",
+      "#^^^~~~~~~~~~~..BBBBBBB~~~~NNmmm|mmmmmmm,,\"#,,,b,,a~~~~~~~a,,,hhh,,,.l,,,,,,.,aaa~~~~~~~~#a,#\",,,,,,,,#,a~~~~~~~a\"\"\"#############..,,|,,,\"\"aaa~~~a.a,,,,l,,,,,,^^#",
+      "#^^^~~~~~~~~~~BBBBBBBBB~~~~NNNmm|mmmmmmmmm,,,,,,,,a~~~~~~~a,,,h,h,,,.hh,h,,,.,,,#a#~~aaaa#\",,,,#\",\"#,,,,a~~~~~~~a\"\"\"#^#8888888#^#..,,|,,j\"\"aaa~~~a.a,,h,.,,,,,,^^#",
+      "#^^^~~~~~~~~~~~~~~~~~~~~~~~NNmmm|mmmmmmmmm,,\",,,,,a~~~~~~~a\",,,,h,,,.,,h,,hh.,,,,,aa#a,,,\",\",\",,\",\",,,#,a~~~~~~~a\"\"\"###8888888###,,,,|,,,\"\"aaa~~~a.a,,h,.,,h,,,^^#",
+      "#^^^a~~~~~~~~~~~~~~~~~~~~~~~NNmm|mmmmmmmmm,##\",,\",a~~~~~~~a\"\",,h,,,h.,,,,,,,.eeeeee,,,#,,,\",,\",,j\",,,\",,a~~~~~~~a\"\"\"###8888888###,,,#|#,,\"\"aaa~~~a.a,hih.hh,,,,^^#",
+      "#^^^~~~~~~~~~~~~~~~~~~~~~~~~Nmmm|mmmmmmmmmm,#,,,,,a~~~~~~~a,,,,,,,h,.,,,,,ee.eeeeeeee,,\"\",,,,\"\",,\",,,,,\"a~~~~~~~a\"\"\"^#^8888888^#^,,,,|,,,\"\"aaa~~~a.ah,,,.,,hh,,^^#",
+      "#^^^f~~~~~~~~~~~~~~~~~BBBBBNN...|...mmmmmmm,\",,\",,a~~~~~~~a,#,,,,,,\",c,\",,ee.eeeeeeee,,\",,,#\",,,#,\"#,,,,a~~~~~~~ac\"\"###8888888###,,,,|,,,\"\"aaa~~~a.a,h,hI,,,,,,^^#",
+      "#^^^#a~~~~~~~~~~~~~~~~BBBBNNN...|..mmmmmmmm\",,,,,\"a~~~~~~~a,,,,,\",,,,,,,,\"ee.eeeeeeee,,,,,,\",,,,,,,,\",,,a~~~~~~~a\"\"\"###^^^7^^^###,,,,|,,,\"\"aaa~~~a.ajhhh.mlhh,,^^#",
+      "#^^^,f~~~~~~~~~~~~~~~~~~~NNNNmmm|mmmmmmmmm#,,,,\",,a~~~~~~~a,#############,eec....eeeee,,,,,,,,,,,\",,,,,,a~~~~~~~a####^#^#^.^#^#^#,,#,|,,,\"\"aaa~~~a...........,,^^#",
+      "#^^^,aa~~~~~~~~~~~~~~~~NNNNNmmmm|mmmmmmmm,m,\",\",,,a~~~~~~~a,#############,ee....eeeee\"\",\"F\"#,,,\",,,,,,,,a~~~~~~~a########^.^#####,,,,|,,,\"\"aaa~~~a.almmm.mmm,,,^^#",
+      "#^^^,,aa#aa~~~~~~~~~~aaNNNNNmmmm|mmmmmmmm\",,,\",,,#a~~~~~~~a,#^#8888888#^#,ee.eeeeeeeFFFFFFFFFF#,,\",\",\",,a~~~~~~~a,#######^.^#####,,,,|,,,\"\"aaa~~~a.ammmm.mmmh,,^^#",
+      "#^^^,,L\",Caa#~#aa##aaa,,,,,\",#mm|mmmmmmm,FF,,,,,\",a~~~~~~~a,###8888888###,,e.eeeeeeFFFFFVFFFFFF\",,,,,\"\",a~~~~~~~a,,,,#,#,#.,,,,,,#,,#|#,,\"\"aaa~~~a.ahmmm.mmmm,,^^#",
+      "#^^^,,ZNNNNN....................|...........F,F,,,a~~~~~~~a,###8888888###,,,.eeeeeFFFFVVVVVVFFFFF,,,,,,,a~~~~~~~a,,,,,,,,,.,,,,,,,,,,|,,,\"\"aaa~~~a.ah,mm.mmm,,,^^#",
+      "#^^^,,NNZNNN....................|...........FFFFF,a~~~~~~~a,^#^8888888^#^,,,.\"ee,FFFFFVVVVVVVFFFF,,,,,,,a~~~~~~~a,#,,,,,,,,,,,,,,,,,,|,,,\"\"aaa~~~a.ah,,h.h,h,,,^^#",
+      "#^^^,\"NNN,ZN..NNNNNZNNNNNNNNZ,,\"|,,\",FFFFF..FFFF,\"a~~~~~~~a,###8888888###,,,...............VVVLFFF##,,,,a~~~~~~~a,,,,,,,,,,,,,,,NC,,N|,,,\"\"aaa~~~a.a,hhh.,h,,,,^^#",
+      "#^^^,\"NNNNNN..NNNNNNNZNNNNNNN,,,|\",\"FFFFVV..VFFFF,a~~~~~~~a,###^^^7^^^###\"#,..............VVVFFFF,,,,,,\"a~~~~~~~a,,,,,#,,,,,NNNNNNNNN|NN,\"\"aaa~~~a.a,,hl.hhh,,,^^#",
+      "#^^^,,NNNNNN..ZNNNNNNNNZNNNNN\"\",|,\",FFFVVVVVVVFFFFa~~~~~~~a,#^#^#^.^#^#^#,,,.,,,,,,FFFVVVVVVFFFFF,,,,,,,a~~~~~~~a##,,,,,,,,NNNNNNNNNN|NNNNNaaa~~~a.a,,,,,,,,,,,^^#",
+      "#^^^,,NZNNNN..NNZNNNNNNNNZNNN,,,|\",,FFLFVVVVVFFFFFa~~~~~~~a\"#####^.^#####\"\",.\"\",,#,FFFFFVVFFFFF\",,,,,,b,a~~~~~~~a,,,,,,,,NNNNNNNNNNNN|NNNNNaaa~~~a.a,,,,,,,,,,,^^#",
+      "#^^^,\"NNNZNN..NNNNZNNNNNNNNZN,,,|,,jFFFFFFFVFFFFF,a~~~~~~~a\"#####^.^#####,,#.,,\",,,,FFFFFFFFF,,,,,,,,\",,a~~~~~~~a,,,,#,,NNNNNNNNNNNNN|NNNNNaaa~~~a.a,,,,,,,,,,,^^#",
+      "#^^^,,NNNNNZNNNNNNNNZNNNNNNNN\",,|,\",,FFFFFFFFFFF\",a~~~~~~~a\",,\",,,.,\"\",\",,,#.,,,#\"\",,#\"#F,F,,,,#,,\",,,,,a~~~~~~~a,,,,,,,,NNNNNNNNNLNN|NNNNNaaa~~~a.a,,,,,,,,,,,^^#",
+      "#^^^,,NNNNNNNZNNNNNNNNZNNNNNN#,,|,\"\"\",#FFFFFFF,#\",a~~~~~~~a,\"#,,,,.,\",,#,,,,.,$,,,#,,,,,,,,,\",,,,j,\",,,,a~~~~~~~a,,,,,,,NNNNNNNNNNNNN|NNNNNaaa~~~a.a,,,,,,,,,#,^^#",
       "#^^^,,ZNNNNNNNNZNNNNNNNNZNNNN,,,|,,\",,,\"FF,#\"\",#,,a~~~~~~~a,,,,,\"#,,,,,,,,,,.,,,,#,,#,\"#,,#,,,\",,#,,,,,,a~~~~~~~a,,,,,,,,NNNNNNNNNNNN|NNNNNaaa~~~a.a,,,,,,#,,,,^^#",
       "#^^^,,NNZNNNNNNNNZNNNNNNNNZNN,\",|,,##,,\",,,\"#\"\",,,a~~~~~~~a#,,,\",#,\",,,,\",\",.,,\",,\"\",,,,,,#,#,,\",#,,,\",,a~~~~~~~a,,,,,,,,,NNNNNNNNNNN|NNNNNaaa~~~a.a##,,,,,,,,,^^#",
       "#^^^#,NNNNZNNNNNNNNZNNNNNNNNZ,,,|,,\",\",,,,,,,,,,,,a~~~~~~~a###,,\",,,,,,,,#,,.,,,\",,#,,,,,,,\",,,,#,,,,,,,a~~~~~~~a,,,,,,,,,,,NNNNNNNNN|NNZNNaca~~~a.a,,,,,,,,,,,^^#",
@@ -2589,10 +2589,14 @@ const INCURSIONES = {
   duracionMin: 30, jugadores: 5, probAtrapar: .35, vidaJefe: 20,
   /* Zeta 31/10: 4 turnos fijos al día para todos (hora de Jujuy); en cada turno abren `porTurno` (4 de las 7) guaridas, que rotan: cada región tiene
      incursión en más de la mitad de los turnos, así hay siempre dónde jugar. Un solo intento por entrenador por turno (para todas las guaridas juntas). */
-  turnos: [9, 14, 19, 23], porTurno: 4,
+  turnos: [9, 14, 19, 23], porTurno: 5,   // 18/11: 9 guaridas (se sumaron Yavi y el Cardonal) y abren 5 por turno
   /* Aperturas ESPECIALES (fuera de los turnos): ventana propia con su propia clave (un intento nuevo por entrenador), abren las guaridas de `regiones` ('todas' = las 7).
      03/11 Zeta: compensación por las peleas que no arrancaban (bug de arena.js), 30 minutos desde 23:32 hora de Jujuy. */
-  extras: [/* 16/11 Zeta: RONDA SHINY FAMOSOS (Charizard, etc.), 7 guaridas 5 h, va primero. */
+  extras: [/* 18/11 Zeta: RONDA NOCTURNA DE LEGENDARIOS Y SEMILEGENDARIOS, las 9 guaridas abiertas desde las 00:30 hasta las 04:00 de Jujuy (07:00 UTC). El jefe de cada guarida CAMBIA cada 30 min (pool `rotar.pool`, distinto en cada guarida);
+       cada cambio es un intento nuevo. Fuerza 80-100 (`fmin`). Va primero. */
+    {desde: 1794972426166, hasta: 1794985200000, clave: 'EXTRA-20261118-NOCHE', regiones: 'todas',
+     rotar: {cadaMin: 30, fmin: 80, pool: [144, 145, 146, 150, 243, 149, 244, 245, 249, 250, 377, 248, 378, 379, 380, 381, 382, 373, 383, 384, 480, 481, 482, 376, 483, 484, 485, 486, 487, 445, 488, 491, 493, 638, 639, 635, 640, 641, 642, 643, 644, 706, 645, 646, 716, 717, 718, 784, 785, 786, 787, 788, 791, 887, 792, 800, 888, 889, 890, 998, 1007, 1008]}},
+    /* 16/11 Zeta: RONDA SHINY FAMOSOS (Charizard, etc.), 7 guaridas 5 h, va primero. */
     {desde: 1794800661000, hasta: 1794818661000, clave: 'EXTRA-20261116-SHINYFAMOSOS', regiones: 'todas'},
     /* 16/11 Zeta: RONDA SHINY LEGENDARIOS, las 7 guaridas abiertas 5 h; el legendario de cada guarida sale SIEMPRE shiny (ver `shiny.evento`). Va primero. */
     {desde: 1794799684000, hasta: 1794817684000, clave: 'EXTRA-20261116-SHINYLEG', regiones: 'todas'},
@@ -2619,19 +2623,25 @@ const INCURSIONES = {
     {region: 'sinnoh', legendario: 487},   // Giratina
     {region: 'unova',  legendario: 646},   // Kyurem
     {region: 'kalos',  legendario: 716},   // Xerneas
-    {region: 'alola',  legendario: 800}    // Necrozma
+    {region: 'alola',  legendario: 800},   // Necrozma
+    {region: 'yavi',   legendario: 646},   // 18/11 guarida nueva en Puna norte (Yavi): Kyurem (ya es exclusivo de incursión, no cambia sobres)
+    {region: 'coctaca', legendario: 384}   // 18/11 guarida nueva en el Cardonal (Alta Quebrada): Rayquaza (ya es exclusivo de incursión)
   ]
 };
 /* Los legendarios de las incursiones SÓLO se consiguen ahí (Zeta 31/10): sobres, canje, pasto, altares y regalos al azar usan DATA_LIBRE */
 const SOLO_INCURSION = new Set(INCURSIONES.regiones.map(r => r.legendario));
 const DATA_LIBRE = DATA.filter(p => !SOLO_INCURSION.has(p.id));
-const GUARIDAS = [{"region": "kanto", "x0": 56, "y0": 222, "w": 13, "h": 11, "suelo": "verde", "puerta": [62, 229], "piso": [3, 2, 7, 5]}, {"region": "johto", "x0": 114, "y0": 223, "w": 13, "h": 11, "suelo": "verde", "puerta": [120, 230], "piso": [3, 2, 7, 5]}, {"region": "hoenn", "x0": 8, "y0": 222, "w": 13, "h": 11, "suelo": "fuego", "puerta": [14, 229], "piso": [3, 2, 7, 5]}, {"region": "sinnoh", "x0": 114, "y0": 103, "w": 13, "h": 11, "suelo": "fuego", "puerta": [120, 110], "piso": [3, 2, 7, 5]}, {"region": "unova", "x0": 6, "y0": 103, "w": 13, "h": 11, "suelo": "verde", "puerta": [12, 110], "piso": [3, 2, 7, 5]}, {"region": "kalos", "x0": 60, "y0": 103, "w": 13, "h": 11, "suelo": "verde", "puerta": [66, 110], "piso": [3, 2, 7, 5]}, {"region": "alola", "x0": 56, "y0": 267, "w": 13, "h": 11, "suelo": "fuego", "puerta": [62, 274], "piso": [3, 2, 7, 5]}];   // (las escribe aplicar_mundo6.py: dónde está cada guarida en el mapa)
+const GUARIDAS = [{"region": "kanto", "x0": 56, "y0": 222, "w": 13, "h": 11, "suelo": "verde", "puerta": [62, 229], "piso": [3, 2, 7, 5]}, {"region": "johto", "x0": 114, "y0": 223, "w": 13, "h": 11, "suelo": "verde", "puerta": [120, 230], "piso": [3, 2, 7, 5]}, {"region": "hoenn", "x0": 8, "y0": 222, "w": 13, "h": 11, "suelo": "fuego", "puerta": [14, 229], "piso": [3, 2, 7, 5]}, {"region": "sinnoh", "x0": 114, "y0": 103, "w": 13, "h": 11, "suelo": "fuego", "puerta": [120, 110], "piso": [3, 2, 7, 5]}, {"region": "unova", "x0": 6, "y0": 103, "w": 13, "h": 11, "suelo": "verde", "puerta": [12, 110], "piso": [3, 2, 7, 5]}, {"region": "kalos", "x0": 60, "y0": 103, "w": 13, "h": 11, "suelo": "verde", "puerta": [66, 110], "piso": [3, 2, 7, 5]}, {"region": "alola", "x0": 56, "y0": 267, "w": 13, "h": 11, "suelo": "fuego", "puerta": [62, 274], "piso": [3, 2, 7, 5]}, {"region": "yavi", "x0": 60, "y0": 62, "w": 13, "h": 11, "suelo": "verde", "puerta": [66, 69], "piso": [3, 2, 7, 5]}, {"region": "coctaca", "x0": 116, "y0": 54, "w": 13, "h": 11, "suelo": "verde", "puerta": [122, 61], "piso": [3, 2, 7, 5]}];   // (las escribe aplicar_mundo6.py: dónde está cada guarida en el mapa)
 const INC_BALL = {nombre: 'Incursión Ball', img: ITEM_CDN + 'beast-ball.png'};
 let incBolas = 0, incursionPendiente = null;   // vienen del servidor
 /* ¿Qué guaridas abren en cada turno? El número de turno (día * 4 + turno del día) reparte las 7 regiones de a `porTurno`, dando la vuelta sin parar. */
 function aperturaIncursion(cfg, ahora){
   const H = 3 * 3600e3, dur = INCURSIONES.duracionMin * 60e3, T = INCURSIONES.turnos, n = INCURSIONES.regiones.length, k = INCURSIONES.porTurno;
   const ex = (INCURSIONES.extras || []).find(e => ahora >= e.desde && ahora < e.hasta && (e.regiones === 'todas' || e.regiones.includes(cfg.region)));
+  if(ex && ex.rotar){   // 18/11: el jefe cambia cada `cadaMin` minutos; cada cambio es una apertura nueva (intento nuevo). Misma cuenta que el servidor (juego.js).
+    const cada = ex.rotar.cadaMin * 60e3, slot = Math.floor((ahora - ex.desde) / cada), iReg = INCURSIONES.regiones.findIndex(r => r.region === cfg.region);
+    return {abierta: true, desde: ex.desde + slot * cada, hasta: ex.hasta, cambia: Math.min(ex.desde + (slot + 1) * cada, ex.hasta), jefe: {id: ex.rotar.pool[(slot * n + iReg) % ex.rotar.pool.length], s: false}, fmin: ex.rotar.fmin};
+  }
   if(ex) return {abierta: true, desde: ex.desde, hasta: ex.hasta, jefe: ex.jefe};
   const idx = INCURSIONES.regiones.findIndex(r => r.region === cfg.region), loc = new Date(ahora - H);
   let proxima = null;
@@ -2651,7 +2661,7 @@ const diaHoraJujuy = t => { const d = new Date(t), hoy = new Date(Date.now() - 3
 /* ---------- Botón ⚔️ "Incursión": cartel que dice dónde hay una abierta, a qué distancia queda y para qué lado, y una flecha que te guía ---------- */
 let advGuia = null;   // región de la guarida a la que te guía la flecha (o null)
 let advGuiaObj = null;   // 14/11 modo historia: casillero {x, y} de un líder o del Guardián al que te guía la flecha (o null). Una sola flecha a la vez
-const REGION_LOCAL = {kanto: 'Valles', johto: 'Yungas', hoenn: 'Quebrada', sinnoh: 'Alta Quebrada', unova: 'Puna', kalos: 'Puna norte', alola: 'Valle de los Pericos'};
+const REGION_LOCAL = {kanto: 'Valles', johto: 'Yungas', hoenn: 'Quebrada', sinnoh: 'Alta Quebrada', unova: 'Puna', kalos: 'Puna norte', alola: 'Valle de los Pericos', yavi: 'Yavi (Puna norte)', coctaca: 'Cardonal (Alta Quebrada)'};
 function rumboA(gx, gy){
   const dx = gx - advX, dy = gy - advY, dist = Math.round(Math.hypot(dx, dy));
   const ang = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360, nombres = ['este', 'sureste', 'sur', 'suroeste', 'oeste', 'noroeste', 'norte', 'noreste'];
@@ -2661,7 +2671,7 @@ function rumboA(gx, gy){
 function eventoShinyInc(ahora = Date.now()){ const e = INCURSIONES.shiny && INCURSIONES.shiny.evento; return e && ahora >= e.desde && ahora < e.hasta ? e : null; }
 function panelIncursiones(){
   const lista = document.getElementById('advIncLista'), sub = document.getElementById('advIncSub');
-  const ahora = Date.now(), filas = GUARIDAS.map(g => { const cfg = cfgIncursion(g.region); return {g, cfg, ap: aperturaIncursion(cfg, ahora), p: Object.assign({}, DATA.find(d => d.id === jefeGuarida(cfg, aperturaIncursion(cfg, ahora)).id) || {name: '?', img: ''}, aperturaIncursion(cfg, ahora).jefe ? {sh: 1} : {})}; });
+  const ahora = Date.now(), filas = GUARIDAS.map(g => { const cfg = cfgIncursion(g.region); return {g, cfg, ap: aperturaIncursion(cfg, ahora), p: Object.assign({}, DATA.find(d => d.id === jefeGuarida(cfg, aperturaIncursion(cfg, ahora)).id) || {name: '?', img: ''}, (aperturaIncursion(cfg, ahora).jefe || {}).s ? {sh: 1} : {})}; });
   filas.sort((a, b) => (b.ap.abierta - a.ap.abierta) || ((a.ap.proxima || 0) - (b.ap.proxima || 0)));
   const hay = filas.filter(f => f.ap.abierta).length;
   const evS = eventoShinyInc();
@@ -2670,7 +2680,7 @@ function panelIncursiones(){
     const r = advMapa === 'overworld' ? rumboA(g.puerta[0], g.puerta[1]) : null;
     const donde = r ? `a ${r.dist} casilleros al ${r.rumbo}` : 'en el mapa (salí de la cueva)';
     return `<div class="adv-inc-fila${ap.abierta ? ' abierta' : ''}"><img src="${p.sh ? imgVario(p) : p.img}" alt="" onerror="this.style.visibility='hidden'">` +
-      `<div class="adv-inc-texto"><b>${REGION_LOCAL[g.region] || g.region}</b> · ${p.name}${p.sh ? ' ✨ BLANCO' : ''}<br>${ap.abierta ? '🔴 <b>ABIERTA</b> hasta las ' + horaJujuy(ap.hasta) : '🔒 abre ' + etiquetaApertura(ap.proxima)}<br><small>${donde}</small></div>` +
+      `<div class="adv-inc-texto"><b>${REGION_LOCAL[g.region] || g.region}</b> · ${p.name}${p.sh ? ' ✨ BLANCO' : ''}<br>${ap.abierta ? '🔴 <b>ABIERTA</b> hasta las ' + horaJujuy(ap.hasta) + (ap.cambia && ap.cambia < ap.hasta ? ' · cambia de legendario a las ' + horaJujuy(ap.cambia) : '') : '🔒 abre ' + etiquetaApertura(ap.proxima)}<br><small>${donde}</small></div>` +
       `<button type="button" data-reg="${g.region}" class="${advGuia === g.region ? 'activo' : ''}">${advGuia === g.region ? 'Quitar flecha' : 'Guiarme'}</button></div>`;
   }).join('');
   lista.querySelectorAll('button[data-reg]').forEach(b => b.onclick = () => {
@@ -2703,7 +2713,7 @@ function dibujarGuiaIncursion(g){
 const camGuia = {x: 0, y: 0};
 /* Qué incursiones hay abiertas ahora (o cuáles abren en el próximo turno), para avisar al entrar a la Aventura */
 function avisoIncursiones(){
-  const LOCAL = {kanto: 'Valles', johto: 'Yungas', hoenn: 'Quebrada', sinnoh: 'Alta Quebrada', unova: 'Puna', kalos: 'Puna norte', alola: 'Valle de los Pericos'};   // los nombres que se ven en el mapa
+  const LOCAL = {kanto: 'Valles', johto: 'Yungas', hoenn: 'Quebrada', sinnoh: 'Alta Quebrada', unova: 'Puna', kalos: 'Puna norte', alola: 'Valle de los Pericos', yavi: 'Yavi (Puna norte)', coctaca: 'Cardonal (Alta Quebrada)'};   // los nombres que se ven en el mapa
   const nombre = r => { const p = DATA.find(d => d.id === r.legendario); return (LOCAL[r.region] || REGION_LABEL[r.region] || r.region) + ' (' + (p ? p.name : '?') + ')'; };
   const aps = INCURSIONES.regiones.map(r => [r, aperturaIncursion(r, Date.now())]);
   const abiertas = aps.filter(([, a]) => a.abierta);
@@ -7043,7 +7053,7 @@ function advLeerCartel(x, y){
     const cfg = cfgIncursion(gu.region), ap = aperturaIncursion(cfg, Date.now()), p = DATA.find(d => d.id === jefeGuarida(cfg, ap).id) || {name: 'un legendario'};
     advMensaje(ap.abierta
       ? `⚔️ <b>¡La guarida de ${p.name} está abierta!</b> Hasta las ${horaJujuy(ap.hasta)}. Tocá <b>Incursión</b>: hasta 5 entrenadores (con 4 o 5 se le puede ganar).`
-      : `🔒 <b>Guarida de ${p.name}</b> (fuerza 90-100). Hay 4 turnos por día (09:00, 14:00, 19:00 y 23:00, hora de Jujuy) y en cada uno abren 4 de las 7 guaridas. A esta le toca el ${diaHoraJujuy(ap.proxima)}.`);
+      : `🔒 <b>Guarida de ${p.name}</b> (fuerza 90-100). Hay 4 turnos por día (09:00, 14:00, 19:00 y 23:00, hora de Jujuy) y en cada uno abren 5 de las 9 guaridas. A esta le toca el ${diaHoraJujuy(ap.proxima)}.`);
     return;
   }
   if(cerradoPorEvento(x, y)){
