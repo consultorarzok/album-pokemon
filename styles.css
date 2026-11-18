@@ -1193,3 +1193,12 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;}
 .ar-grid,.ar-grid *,.ar-eq-caja,.ar-eq-caja *,.ar-conf-caja,.ar-conf-caja *,.ar-fin-caja,.ar-fin-caja *,.ar-duelo,.ar-duelo *,
 .adv-incpanel-caja,.adv-incpanel-caja *,.adv-mis-caja,.adv-mis-caja *{touch-action:pan-y;}
 .ar-grid .ar-fav, .ar-grid .ar-sel{touch-action:pan-y;}
+
+/* 18/11: ficha completa de stats (Pokédex y cuadro al atrapar) */
+.ficha-stats{display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:center;margin-top:6px;font-family:'Space Mono',monospace;font-size:11px;line-height:1.4;color:var(--ink-dim);}
+.ficha-stats span{white-space:nowrap;} .ficha-stats b{color:var(--ink);}
+.ficha-movs{margin-top:4px;font-size:11px;line-height:1.35;color:var(--ink-dim);text-align:center;}
+.det-sec + .ficha-stats{justify-content:flex-start;margin:2px 0 6px;} .det-sec + .ficha-stats + .ficha-movs{text-align:left;margin-bottom:8px;}
+.reveal-card .ficha-stats{flex-direction:column;align-items:center;gap:2px;font-size:10px;} .reveal-card .ficha-movs{font-size:10px;}
+.reveal-card .ficha-stats span:first-child{display:none;}
+#specialFicha .ficha-stats,#specialFicha .ficha-movs{color:#cfd3ea;} #specialFicha .ficha-stats b{color:#fff;} #specialFicha{margin-top:6px;padding:0 8px 4px;}

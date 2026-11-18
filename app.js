@@ -1031,9 +1031,11 @@ function abrirDetalle(id){
       <span class="det-pill">${p.rarity}</span>
       ${vario ? '<span class="det-pill det-shiny">✨ Shiny</span>' : ''}
     </div>
+    <div class="det-sec"><b>Ficha${copias.length > 1 ? ' (tu mejor copia)' : ''}</b></div>
+    ${fichaHTML(p, mejor || copias[0], true)}
     <div class="det-sec"><b>Tus copias</b><span>Tenés ${copias.length}${dup > 0 ? ' (' + dup + ' repetida' + (dup === 1 ? '' : 's') + ')' : ' · sin repetidas'}</span></div>
     <div class="ej-lista det-copias" role="list" aria-label="Copias de ${p.name}">${copias.map(e =>
-      `<div class="ej-chip ${claseFuerza(e.f)}" role="listitem" title="${nivelFuerza(e.f)}"><b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}${e.s ? ' · shiny' : ''}${e === mejor ? ' · ⭐ Arena' : ''}</small>${MODO_SERVIDOR && copias.length > 1 ? `<button class="open-btn sec ej-fav" data-id="${p.id}" data-c="${e.c}">${e.fav ? '⭐ Favorita (quitar)' : '☆ Usar ésta'}</button>` : ''}</div>`).join('')}</div>
+      `<div class="ej-chip ${claseFuerza(e.f)}" role="listitem" title="${nivelFuerza(e.f)}"><b>${e.s ? '✨ ' : ''}💪 ${e.f}</b>${(s => s ? `<small>❤️ ${s.vida} · 💥 ${s.crit}%</small>` : '')(fichaDe(p, e))}<small>N.º ${e.c}${e.s ? ' · shiny' : ''}${e === mejor ? ' · ⭐ Arena' : ''}</small>${MODO_SERVIDOR && copias.length > 1 ? `<button class="open-btn sec ej-fav" data-id="${p.id}" data-c="${e.c}">${e.fav ? '⭐ Favorita (quitar)' : '☆ Usar ésta'}</button>` : ''}</div>`).join('')}</div>
     ${MODO_SERVIDOR ? seccionEntrenar(p, copias) : ''}
     <div class="det-sec"><b>Evolución</b></div>
     <div class="det-evo">
@@ -1159,6 +1161,7 @@ function playSpecialSequence(specials, index, onDone){
   document.getElementById('specialImg').src = p.img;
   document.getElementById('specialName').textContent = p.name;
   document.getElementById('specialTag').textContent = `${pull.isNew ? '¡Nueva!' : 'Repetida'} · Tipo ${TYPE_LABEL[p.type]}`;
+  { const l = ejemplares(p.id), ej = l[l.length - 1]; document.getElementById('specialFicha').innerHTML = ej ? fichaHTML(p, ej, true) : ''; }
   document.getElementById('specialCardWrap').style.background = `linear-gradient(160deg, ${TYPE_COLORS[p.type]}33, #12172B)`;
 
   document.getElementById('specialOverlay').classList.add('show');
@@ -1173,6 +1176,18 @@ function playSpecialSequence(specials, index, onDone){
   };
 }
 
+/* 18/11 Zeta: ficha completa (fuerza, vida, golpe, crítico, velocidad, ataques) para la Pokédex y el cuadro al atrapar */
+function fichaDe(p, ej){
+  try{ const A = window.__arenaMovs; return A && A.fichaStats ? A.fichaStats(p, ej) : null; }catch(e){ return null; }
+}
+function fichaHTML(p, ej, conAtaques){
+  const s = fichaDe(p, ej); if(!s) return '';
+  return `<div class="ficha-stats"><span>💪 Fuerza <b>${s.f}</b></span><span>❤️ Vida <b>${s.vida}</b></span><span>⚔️ Golpe <b>${s.golpe}%</b></span><span>💥 Crítico <b>${s.crit}%</b> ×${s.critMult.toFixed(1)}</span><span>⚡ Veloc. <b>${'★'.repeat(s.vel)}</b></span></div>` +
+    (conAtaques && s.movs.length ? `<div class="ficha-movs">${s.movs.join(' · ')}</div>` : '');
+}
+function fichaLinea(p, f){
+  const s = fichaDe(p, {f}); return s ? `<br><small>💪 ${s.f} · ❤️ Vida ${s.vida} · ⚔️ Golpe ${s.golpe}% · 💥 Crítico ${s.crit}% ×${s.critMult.toFixed(1)} · ⚡ ${'★'.repeat(s.vel)}</small>` : '';
+}
 function showReveal(pulls, titulo){
   document.getElementById('revealTitle').textContent = titulo || 'Abriste un sobre';
   const box = document.getElementById('revealCards');
@@ -1191,7 +1206,7 @@ function showReveal(pulls, titulo){
       <div class="rname">${pull.p.name}</div>
       <div class="tag ${pull.isNew?'new':'dup'}">${pull.isNew?'¡Nueva!':'Repetida'}</div>
       ${ej && ej.s ? '<div class="rvario">✨ ¡Shiny!</div>' : ''}
-      ${ej ? `<div class="rfuerza ${claseFuerza(ej.f)}" title="${nivelFuerza(ej.f)}">💪 ${ej.f}</div>` : ''}`;
+      ${ej ? `<div class="rfuerza ${claseFuerza(ej.f)}" title="${nivelFuerza(ej.f)}">💪 ${ej.f}</div>` + fichaHTML(pull.p, ej, true) : ''}`;
     box.appendChild(card);
   });
   /* 15/11 Zeta: botón para seguir sin cerrar y volver a entrar: "Abrir otro sobre" (sobres) o "Canjear otra vez" (canje de repetidas) */
@@ -1212,7 +1227,7 @@ function mostrarEspeciales(pulls, despues){
   box.innerHTML = pulls.map(pull => `<div class="reveal-card vario" style="border-left:3px solid ${TYPE_COLORS[pull.p.type]}">
       <img src="${pull.p.img}" alt="${pull.p.name}"><div class="rname">${pull.p.name}</div>
       <div class="tag new">⭐ Edición especial</div>
-      <div class="rfuerza ${claseFuerza(especiales[pull.p.id].f)}">💪 ${especiales[pull.p.id].f}</div></div>`).join('');
+      <div class="rfuerza ${claseFuerza(especiales[pull.p.id].f)}">💪 ${especiales[pull.p.id].f}</div>${fichaHTML(pull.p, especiales[pull.p.id], true)}</div>`).join('');
   const ov = document.getElementById('overlay');
   ov.classList.add('show');
   if(despues){
@@ -2810,7 +2825,7 @@ function botonIncursion(){
       accionServidor('tirarIncursion', {}).then(res => {
         if(!res.ok) return advMensaje(res.motivo === 'se_escapo' ? `${p.name} se escapó.` : 'No se pudo tirar.');
         const r = res.resultado;
-        advMensaje(r.atrapado ? `✨ <b>¡Atrapaste a ${p.name}!</b> Llega con fuerza ${r.f > 100 ? r.f - 100 : r.f}.` : r.escapo ? `${p.name} se soltó y se escapó…` : `¡Casi! ${p.name} se soltó. Te quedan ${r.quedan}.`);
+        advMensaje(r.atrapado ? `✨ <b>¡Atrapaste a ${p.name}!</b> Llega con fuerza ${r.f > 100 ? r.f - 100 : r.f}.${fichaLinea(p, r.f)}` : r.escapo ? `${p.name} se soltó y se escapó…` : `¡Casi! ${p.name} se soltó. Te quedan ${r.quedan}.`);
         if(r.atrapado){ renderGrid(); updateProgress(); }
       }).catch(() => advMensaje('Sin conexión.')).then(() => { b.disabled = false; b.dataset.k = ''; });
     };
@@ -6944,7 +6959,7 @@ function advPaso1(dt){
   const avist = avistamientoActivo();
   if(avist && cx === avist.x && cy === avist.y){
     legendarioVisible = null;
-    iniciarEncuentro(avist.p);
+    llegarAlAltar(avist.p);
     return;
   }
 
@@ -7123,7 +7138,7 @@ function advMover(dx, dy){
   const avist = avistamientoActivo();
   if(avist && nx === avist.x && ny === avist.y){
     legendarioVisible = null;
-    iniciarEncuentro(avist.p);
+    llegarAlAltar(avist.p);
     return;
   }
 
@@ -7152,6 +7167,12 @@ function salirEncuentro(t, x, y){
   aparecerSalvajes(sale, x, y);
 }
 
+/* 16/11 (Zeta): al llegar al altar el legendario ya no se atrapa directo: primero hay que ganarle una pelea (su fuerza sale del rango del jugador; 3 oportunidades).
+   Sin servidor (modo viejo / pruebas de archivo) se atrapa como siempre. */
+function llegarAlAltar(p){
+  if(MODO_SERVIDOR && typeof retarAltar === 'function') retarAltar(p);
+  else iniciarEncuentro(p);
+}
 function iniciarEncuentro(p){
   encuentro = {p, tiros:0};
   document.getElementById('encTitle').textContent = `¡Un ${p.name} salvaje!`;

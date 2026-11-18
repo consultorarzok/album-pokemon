@@ -72,7 +72,7 @@ const MENSAJES = {
   album_completo: '¡Ya tenés todas!',
   sin_bolas: 'No te quedan de esa pokébola.',
   no_es_tuyo: 'Ese Pokémon no está en tu álbum.',
-  equipo_invalido: 'Elegí entre 3 y 6 Pokémon.',
+  equipo_invalido: 'Elegí entre 3 y 6 Pokémon.', falta_ganar_pelea: 'Primero tenés que ganarle la pelea al legendario.', ya_ganado_altar: 'Ya le ganaste: ¡tirá las pokébolas!', sin_encuentro: 'El legendario ya se fue del altar.',
   pelea_muy_corta: 'Esa pelea no se pudo anotar.',
   pelea_imposible: 'Esa pelea no se pudo anotar.',
   sin_migrar: 'Estamos cargando tu álbum, esperá un segundo.',
@@ -622,6 +622,23 @@ function charla(quien, txt, botones){
   teclasApretadas.clear(); advEje = {x: 0, y: 0};
   c.hidden = false;
   bx.firstChild.focus({preventScroll: true});
+}
+/* 16/11: pelea previa del legendario del altar. Lo decide el servidor (equipo, fuerza según tu rango, 3 intentos); acá sólo se pregunta y se abre la Arena. */
+function retarAltar(p, quedan){
+  const falta = quedan !== undefined ? `<br>Te quedan <b>${quedan}</b> oportunidad${quedan === 1 ? '' : 'es'}.` : '<br>Tenés <b>3 oportunidades</b>.';
+  charla(p.name, `¡<b>${p.name}</b> te desafía! Para poder atraparlo primero tenés que ganarle una pelea. Su fuerza depende de tu rango de Maestro.${falta}`,
+    [{t: '⚔️ ¡A pelear!', fn: () => { window.__retoArena = Object.assign({reto: 'altar', nombre: p.name}, posAdv()); window.__altarVuelta = {id: p.id}; cerrarAventura(); abrirArena(); }},
+     {t: 'Huir', sec: true, fn: () => { accionServidor('huir').catch(() => {}); advMensaje(`💨 <b>${p.name}</b> se fue del altar.`); }}]);
+}
+/* Al volver de la Arena: si ganó, a tirar pokébolas; si perdió, cuántas oportunidades le quedan */
+function altarDeVuelta(){
+  const v = window.__altarVuelta; window.__altarVuelta = null;
+  if(!v || !v.fin) return;
+  const p = POR_ID_C[v.id];
+  if(!p) return;
+  if(v.gano) iniciarEncuentro(p);
+  else if(v.seFue) advMensaje(`💨 <b>${p.name}</b> se cansó de esperar y se fue. Volvé mañana.`);
+  else advMensaje(`<b>${p.name}</b> sigue en el altar. Te quedan ${v.quedan} oportunidad${v.quedan === 1 ? '' : 'es'}: tocá el altar de nuevo.`);
 }
 function posAdv(){ return {mapa: advMapa, x: Math.round(advPx), y: Math.round(advPy)}; }
 function hablarProfesor(n){

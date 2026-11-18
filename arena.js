@@ -2119,6 +2119,22 @@ function movsEjemplar(p, ej){
 /* cuántos ataques distintos puede tener en cada botón (si es 1, cambiarlo no sirve) */
 const opcionesDeAtaque = p => p.id === 10156 ? [1, 1, 1] : ATAQUES.map(alc => { const id = p.base || p.id, l = (APRENDE[id] || {})[alc] || []; return new Set(l.map(x => x.i)).size + (((APR_EXTRA[id] || {})[alc] || []).length); });
 Object.assign(window.__arenaMovs, {movsEjemplar, opcionesDeAtaque, terminarConReintento});
+/* 18/11 Zeta: la ficha completa de un ejemplar para la Pokédex y el cuadro de captura: fuerza, vida (PS), golpe, crítico, velocidad y ataques. Misma cuenta que crearMon. */
+window.__arenaMovs.fichaStats = (p, ej) => {
+  const f = Math.max(1, Math.min(100, Math.round(ej && ej.f ? (ej.f > 100 ? ej.f - 100 : ej.f) : 50))), kb = .8 + f / 250;
+  const st = (ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : (p.especial && VEL_ESPECIAL[p.id]) ? Object.assign({}, statsDe(p), {vel:VEL_ESPECIAL[p.id]}) : statsDe(p);
+  let movs = [];
+  try{ const m = movsEjemplar(p, ej || null); movs = ORDEN_BOTONES.map(k => m[k] ? m[k].n : '').filter(Boolean); }catch(e){}
+  return {f, vida:Math.round((60 + bstDe(p) * .22) * kb), golpe:Math.round(kb * 100), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), movs};
+};
+/* 18/11 Zeta: la ficha completa de un ejemplar para la Pokédex y el cuadro de captura: fuerza, vida (PS), golpe, crítico, velocidad y ataques. Misma cuenta que crearMon. */
+window.__arenaMovs.fichaStats = (p, ej) => {
+  const f = Math.max(1, Math.min(100, Math.round(ej && ej.f ? (ej.f > 100 ? ej.f - 100 : ej.f) : 50))), kb = .8 + f / 250;
+  const st = (ej && ej.v) ? Object.assign({}, statsDe(p), {vel:ej.v}) : (p.especial && VEL_ESPECIAL[p.id]) ? Object.assign({}, statsDe(p), {vel:VEL_ESPECIAL[p.id]}) : statsDe(p);
+  let movs = [];
+  try{ const m = movsEjemplar(p, ej || null); movs = ORDEN_BOTONES.map(k => m[k] ? m[k].n : '').filter(Boolean); }catch(e){}
+  return {f, vida:Math.round((60 + bstDe(p) * .22) * kb), golpe:Math.round(kb * 100), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), movs};
+};
 function crearMon(p, rival, ejFijo){
   const ej = ejFijo || (rival ? null : mejorEjemplar(p.id));
   const fz = ejFijo ? ejFijo.f : rival ? fuerzaRival() : ((ej || {}).f || 50);
@@ -4540,7 +4556,7 @@ function mostrarResultadoIncursion(m){
       const r = res.resultado;
       try{ await animar(r); }catch(e){}
       if(tokInc !== TOK) return;
-      if(r.atrapado){ sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con fuerza ${r.f > 100 ? r.f - 100 : r.f}.`, 0, true, 'atrapado'); }
+      if(r.atrapado){ sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con fuerza ${r.f > 100 ? r.f - 100 : r.f}.` + (() => { const s = window.__arenaMovs.fichaStats(p, {f:r.f}); return ` ❤️ Vida ${s.vida} · ⚔️ Golpe ${s.golpe}% · 💥 Crítico ${s.crit}% ×${s.critMult.toFixed(1)} · ⚡ ${'★'.repeat(s.vel)}`; })(), 0, true, 'atrapado'); }
       if(r.escapo) return pinta(`${p.name} se soltó y se escapó…`, 0, true, 'escapo');
       pinta(`¡Casi! ${p.name} se soltó. Probá de nuevo.`, r.quedan, false);
     }).catch(() => pinta('Sin conexión. Probá de nuevo.', m.bolas, false));
