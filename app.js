@@ -2693,6 +2693,9 @@ const INCURSIONES = {
      03/11 Zeta: compensación por las peleas que no arrancaban (bug de arena.js), 30 minutos desde 23:32 hora de Jujuy. */
   extras: [/* 18/11 Zeta: RONDA NOCTURNA DE LEGENDARIOS Y SEMILEGENDARIOS, las 9 guaridas abiertas desde las 00:30 hasta las 04:00 de Jujuy (07:00 UTC). El jefe de cada guarida CAMBIA cada 10 min (pool `rotar.pool`, distinto en cada guarida);
        cada cambio es un intento nuevo. Fuerza 80-100 (`fmin`). Va primero. */
+    /* 19/11 Zeta: TODAS LAS INCURSIONES DE TODO EL DÍA son la ronda de legendarios y semilegendarios (el jefe cambia cada 10 min, las 9 guaridas abiertas sin parar), para tener más chances de atrapar buenos ahora que se pueden subir stats. Hasta las 00:00 de Jujuy del 20/11. Va primero. */
+    {desde: 1795059720000, hasta: 1795143600000, clave: 'EXTRA-20261119-TODODIA', regiones: 'todas',
+     rotar: {cadaMin: 10, fmin: 80, pool: [144, 145, 146, 150, 243, 149, 244, 245, 249, 250, 377, 248, 378, 379, 380, 381, 382, 373, 383, 384, 480, 481, 482, 376, 483, 484, 485, 486, 487, 445, 488, 491, 493, 638, 639, 635, 640, 641, 642, 643, 644, 706, 645, 646, 716, 717, 718, 784, 785, 786, 787, 788, 791, 887, 792, 800, 888, 889, 890, 998, 1007, 1008]}},
     {desde: 1794972426166, hasta: 1794985200000, clave: 'EXTRA-20261118-NOCHE2', regiones: 'todas',
      rotar: {cadaMin: 10, fmin: 80, pool: [144, 145, 146, 150, 243, 149, 244, 245, 249, 250, 377, 248, 378, 379, 380, 381, 382, 373, 383, 384, 480, 481, 482, 376, 483, 484, 485, 486, 487, 445, 488, 491, 493, 638, 639, 635, 640, 641, 642, 643, 644, 706, 645, 646, 716, 717, 718, 784, 785, 786, 787, 788, 791, 887, 792, 800, 888, 889, 890, 998, 1007, 1008]}},
     /* 16/11 Zeta: RONDA SHINY FAMOSOS (Charizard, etc.), 7 guaridas 5 h, va primero. */
