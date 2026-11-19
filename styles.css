@@ -993,7 +993,7 @@
 .ar-hud.mini .ar-tip,.ar-hud.mini .ar-num,.ar-hud.mini .ar-nom,.ar-hud.mini .ar-barra.en{display:none;}
 .ar-hud.mini .ar-ent{display:block;font-size:1em;font-weight:700;color:#e8ecff;margin:0 0 .15em;}
 .ar-hud.mini.yo{border-color:#FFD54A;} .ar-hud.mini.yo .ar-barra.en{display:block;}
-.ar-hud.mini.riv,.ar-hud.mini.r2,.ar-hud.mini.r3,.ar-hud.mini.r4{order:1;} .ar-hud.mini.al{order:2;} .ar-hud.mini.yo{order:3;}
+.ar-hud.mini.riv,.ar-hud.mini.r2,.ar-hud.mini.r3,.ar-hud.mini.r4,.ar-hud.mini.r5{order:1;} .ar-hud.mini.al{order:2;} .ar-hud.mini.yo{order:3;}
 .ar-hud.mini .ar-bola{width:.7em;height:.7em;}
 .ar-lobby-acc{display:flex;gap:6px;align-items:center;flex:0 0 auto;}
 .ar-lobby-modos{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}

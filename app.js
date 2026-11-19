@@ -2688,7 +2688,7 @@ const BOLAS = {
 const POOL_JEFES_ROTA = [144, 145, 146, 150, 243, 149, 244, 245, 249, 250, 377, 248, 378, 379, 380, 381, 382, 373, 383, 384, 480, 481, 482, 376, 483, 484, 485, 486, 487, 445, 488, 491, 493, 638, 639, 635, 640, 641, 642, 643, 644, 706, 645, 646, 716, 717, 718, 784, 785, 786, 787, 788, 791, 887, 792, 800, 888, 889, 890, 998, 1007, 1008];
 const INCURSIONES = {
   rotarTurnos: {cadaMin: 10, fmin: 80, pool: POOL_JEFES_ROTA},   // 19/11 Zeta: "todos los días de aquí en adelante, no 24 hs": en cada turno diario abren las 9 guaridas y el legendario cambia cada 10 min
-  duracionMin: 160, jugadores: 5, probAtrapar: .35, vidaJefe: 28,   // 19/11 Zeta: turnos 2 h (antes 1 h 30) y vida 26 (antes 23) ·   // 19/11 Zeta: los turnos normales abren 1 h 30 min (antes 1 h) · vida del legendario 20 → 26 (un poco más) · 18/11 Zeta: los turnos normales abren 1 hora (antes 30 min)
+  duracionMin: 160, jugadores: 6, probAtrapar: .35, vidaJefe: 28,   // 19/11 Zeta: turnos 2 h (antes 1 h 30) y vida 26 (antes 23) ·   // 19/11 Zeta: los turnos normales abren 1 h 30 min (antes 1 h) · vida del legendario 20 → 26 (un poco más) · 18/11 Zeta: los turnos normales abren 1 hora (antes 30 min)
   /* Zeta 31/10: 4 turnos fijos al día para todos (hora de Jujuy); en cada turno abren `porTurno` (4 de las 7) guaridas, que rotan: cada región tiene
      incursión en más de la mitad de los turnos, así hay siempre dónde jugar. Un solo intento por entrenador por turno (para todas las guaridas juntas). */
   turnos: [9, 14, 19, 23], porTurno: 5,   // 18/11: 9 guaridas (se sumaron Yavi y el Cardonal) y abren 5 por turno
@@ -7160,7 +7160,7 @@ function advLeerCartel(x, y){
   if(gu){
     const cfg = cfgIncursion(gu.region), ap = aperturaIncursion(cfg, Date.now()), p = DATA.find(d => d.id === jefeGuarida(cfg, ap).id) || {name: 'un legendario'};
     advMensaje(ap.abierta
-      ? `⚔️ <b>¡La guarida de ${p.name} está abierta!</b> ${ap.hasta - Date.now() > 12 * 3600e3 ? 'Cambia de legendario a las ' + horaJujuy(ap.cambia) + '.' : 'Hasta las ' + horaJujuy(ap.hasta) + '.'} Tocá <b>Incursión</b>: hasta 5 entrenadores (con 4 o 5 se le puede ganar).`
+      ? `⚔️ <b>¡La guarida de ${p.name} está abierta!</b> ${ap.hasta - Date.now() > 12 * 3600e3 ? 'Cambia de legendario a las ' + horaJujuy(ap.cambia) + '.' : 'Hasta las ' + horaJujuy(ap.hasta) + '.'} Tocá <b>Incursión</b>: hasta 6 entrenadores (con 4 o más se le puede ganar).`
       : `🔒 <b>Guarida de ${p.name}</b> (fuerza 90-100). Hay 4 turnos por día (09:00, 14:00, 19:00 y 23:00, hora de Jujuy) y en cada uno abren 5 de las 9 guaridas. A esta le toca el ${diaHoraJujuy(ap.proxima)}.`);
     return;
   }

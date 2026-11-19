@@ -3971,7 +3971,7 @@ function armarIncursion(d, pDe){
   AR.estilo = ESTILOS.legendario;
   AR.lados = ['yo']; AR.bando = {yo:'A'}; AR.espejo = {}; AR.porSlot = {[d.miSlot]:'yo'}; AR.spawn = {}; AR.slotDe = {yo:yo.slot};
   AR.yo = {mons:eq(yo), idx:0, act:null, nombre:yo.nombre};
-  const libres = ['al', 'r2', 'r3', 'r4'];
+  const libres = ['al', 'r2', 'r3', 'r4', 'r5'];
   otros.forEach(j => { const l = libres.shift(); AR.lados.push(l); AR.bando[l] = 'A'; AR.espejo[l] = false; AR.porSlot[j.slot] = l; AR.slotDe[l] = j.slot; AR[l] = {mons:eq(j), idx:0, act:null, nombre:j.nombre}; });
   const pj = pDe(d.jefe.id), jefe = crearMon(pj, true, {f:d.jefe.f, c:'jefe' + d.jefe.id, s:!!d.jefe.s});
   jefe.max = Math.round(jefe.max * d.jefe.vida); jefe.hp = jefe.max; jefe.jefe = true;
@@ -4646,13 +4646,13 @@ function mostrarResultadoIncursion(m){
   pinta(m.bolas ? `Tenés ${m.bolas} para tirarle. Cada una tiene ${Math.round((typeof INCURSIONES !== 'undefined' ? INCURSIONES.probAtrapar : .35) * 100)}% de atraparlo.` : 'No le sacaste vida: esta vez no te tocan Incursión Balls.', m.bolas, !m.bolas);
 }
 
-/* ---- sala de la incursión: hasta 5; con 5 arranca sola, con menos se empieza a mano (y sólo con 4 o 5 se le puede ganar) ---- */
+/* ---- sala de la incursión: hasta 6; con 6 arranca sola, con menos se empieza a mano (y sólo con 4 o 5 se le puede ganar) ---- */
 function pintarIncursion(equipo, inc){
   const root = $('arRoot'), p = DATA.find(x => x.id === inc.legendario) || {name:'el legendario'};
   root.innerHTML = `<div class="ar-pick ar-duelo">
     <h2>⚔️ Incursión contra ${p.name}</h2>
     ${typeof eventoShinyInc === 'function' && eventoShinyInc() ? '<p style="color:#FFD84A"><b>✨ EVENTO SHINY:</b> si le ganan, puede aparecer un shiny para atrapar.</p>' : ''}
-    <p>Pueden entrar hasta <b>5 entrenadores</b>. Con 5 arranca sola; si no llegan, tocá <b>Iniciar</b> (podés pelear con 1 solo, pero sólo con 4 o 5 se le gana) (esperamos hasta 20 minutos). Ojo: ${p.name} es igual de fuerte para todos: con 1, 2 o 3 entrenadores no se le puede ganar; con <b>4 o 5</b> sí.</p>
+    <p>Pueden entrar hasta <b>6 entrenadores</b>. Con 6 arranca sola; si no llegan, tocá <b>Iniciar</b> (podés pelear con 1 solo, pero sólo con 4 o más se le gana) (esperamos hasta 20 minutos). Ojo: ${p.name} es igual de fuerte para todos: con 1, 2 o 3 entrenadores no se le puede ganar; con <b>4 o 5</b> sí.</p>
     <div class="ar-duelo-eq">${equipo.map(x => `<img src="${spIcono(x.id, (mejorEjemplar(x.id) || {}).s)}" alt="${x.name}" title="${x.name}" width="48" height="48">`).join('')}</div>
     <ul class="ar-lobby-lista" id="arILista" aria-label="Entrenadores en la incursión"></ul>
     <div class="ar-duelo-estado" id="arIEstado" role="status" aria-live="polite">Entrando a la guarida…</div>
@@ -4665,13 +4665,13 @@ function pintarIncursion(equipo, inc){
   const alMensaje = m => {
     if(m.t === 'lobby'){
       $('arILista').innerHTML = m.jugadores.map(x => `<li${x.conectado ? '' : ' class="off"'}><span><b>${esc(x.nombre)}</b>${x.id === m.yo ? ' (vos)' : ''}${x.conectado ? '' : ' · sin conexión'}</span></li>`).join('');
-      const faltan = m.incursion ? m.incursion.faltan : 5 - m.jugadores.length;
+      const faltan = m.incursion ? m.incursion.faltan : 6 - m.jugadores.length;
       if(m.incursion && m.incursion.id){   // 04/11: el jefe de esta sala puede ser otro (shiny): el título dice contra quién se pelea de verdad
         const pb = DATA.find(x => x.id === m.incursion.id), h2 = $('arRoot').querySelector('h2');
         if(pb && h2) h2.textContent = '⚔️ Incursión contra ' + pb.name + (m.incursion.s ? ' ✨ SHINY' : '');
       }
       const n = m.jugadores.length, conectados = m.jugadores.filter(x => x.conectado).length, bt = $('arIEmpezar');
-      est.innerHTML = faltan > 0 ? `Hay <b>${n}</b> de 5. Esperando entrenadores: faltan <b>${faltan}</b>. Avisales a tus amigos que vengan a la guarida.` : '¡Están los 5! Arrancando…';
+      est.innerHTML = faltan > 0 ? `Hay <b>${n}</b> de 6. Esperando entrenadores: faltan <b>${faltan}</b>. Avisales a tus amigos que vengan a la guarida.` : '¡Están los 6! Arrancando…';
       if(bt){ bt.disabled = !conectados || faltan <= 0; bt.innerHTML = `<b>Iniciar${conectados ? ' (con ' + conectados + ')' : ''}</b>`; }
       return;
     }
@@ -4726,7 +4726,7 @@ function pintarDuelo(equipo, volver){
     const soyHost = m.host === m.yo, n = m.jugadores.length;
     const dosVsDos = m.modo === '2v2', nA = m.jugadores.filter(x => x.bando === 'A').length, nB = m.jugadores.filter(x => x.bando === 'B').length;
     const listo = !!m.modo && (!dosVsDos || (nA === 2 && nB === 2));
-    const modo = n < 2 ? 'Esperando entrenadores… (podés sumar hasta 5)'
+    const modo = n < 2 ? 'Esperando entrenadores… (podés sumar hasta 6)'
       : m.modos.length > 1 ? `<span class="ar-lobby-modos" role="group" aria-label="Modo de batalla">${m.modos.map(k => `<button type="button" class="ar-b ar-lobby-m${k === m.modo ? ' on' : ''}" data-m="${k}"${soyHost ? '' : ' disabled'} aria-pressed="${k === m.modo}"><b>${NOMBRE_MODO[k]}</b></button>`).join('')}</span>`
       : `${NOMBRE_MODO[m.modo]} listo`;
     box.innerHTML = `<div class="ar-lobby-cod">Sala <b>${esc(m.codigo)}</b></div>
