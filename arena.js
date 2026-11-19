@@ -1345,6 +1345,7 @@ function movDe(mon, alc){
 const nombreAtaque = (mon, alc) => movDe(mon, alc).n;
 /* para las pruebas (no se usa en el juego) */
 window.__arenaMovs = {movsDe, APRENDE, MOVS_CAT, nombreAtaque, ATAQUES};
+window.__arenaMovs.pilotar = (l, tipo, dir) => AR && E[l] ? iniciar(E[l], tipo, dir) : false;   // sólo para videos/pruebas: hace que un Pokémon ataque o esquive
 /* Ataques medios que se ven distinto a lo que da su efecto genérico. */
 const FORMA_MOV = {'Ascuas':'llama', 'Furia Dragón':'llama', 'Pulso Dragón':'llama', 'Canto':'nota', 'Beso Amoroso':'corazon',
   'Rayo Aurora':'arcoiris', 'Psicorrayo':'arcoiris', 'Bola Voltio':'voltio', 'Bomba Huevo':'huevo', 'Onda Vacío':'medialuna'};
@@ -1379,7 +1380,7 @@ const ESTILOS = {
   agresivo:    {nombre:'Agresivo',    w:{acercar:2, corto:3, medio:2, largo:1.6, orbitar:1, esquivar:.5}, reflejo:.35},
   tirador:     {nombre:'Tirador',     w:{acercar:.5, corto:.6, medio:4, largo:2.5, orbitar:2, retroceder:1.5, esquivar:.6}, reflejo:.45},
   escurridizo: {nombre:'Escurridizo', w:{acercar:1, corto:1.6, medio:2, largo:1.8, orbitar:3, retroceder:1, esquivar:2}, reflejo:.65},
-  legendario:  {nombre:'Legendario',  w:{acercar:1.4, corto:3.6, medio:3, largo:2.6, orbitar:.25}, reflejo:.08},   // 03/11 Zeta: el legendario de la incursión tenía que atacar (casi no esquiva ni se aleja)
+  legendario:  {nombre:'Legendario',  w:{acercar:1.4, corto:3.6, medio:3, largo:2.6, orbitar:.25}, reflejo:.2},   // 03/11 Zeta: el legendario de la incursión tenía que atacar (casi no esquiva ni se aleja)
   equilibrado: {nombre:'Equilibrado', w:{acercar:1.5, corto:2, medio:2.5, largo:2, orbitar:2, retroceder:.5, esquivar:1}, reflejo:.45}
 };
 const NOMBRES_RIVAL = ['Marcos', 'Lucía', 'Nico', 'Sofi', 'Facu', 'Cami', 'Tomi', 'Vale', 'Lauti', 'Mica'];
@@ -2518,7 +2519,7 @@ function golpear(att, def, alc, x, y, fz){
   def.stun = res.crit ? .3 : .18;
   const dir = unit(pie(att), pie(def)), emp = u() * (base(alc) === 'corto' ? 55 : 30) * (res.crit ? 1.4 : 1);
   def.kx = dir.x * emp; def.ky = dir.y * emp; def.vx = def.vy = 0;
-  if(def.accion && def.accion.tipo !== 'esquivar') cortarAccion(def);
+  if(def.accion && def.accion.tipo !== 'esquivar' && !(def.mon.jefe && base(def.accion.tipo) === 'largo')) cortarAccion(def);   // 19/11 Zeta: cuando el legendario hace su ulti (carga y rayo barredor) no se le corta aunque lo golpeen; la vida sí le baja
   if(res.crit || res.mult > 1) festejo(res.crit);
   pintarHud();
   if(d.hp <= 0) caer(def);
@@ -2528,6 +2529,7 @@ function golpear(att, def, alc, x, y, fz){
 function cortarAccion(e){
   const A = e.accion; if(!A) return;
   if(A.tele) A.tele.forEach(t => t.remove());
+  if(A.barr) A.barr.el.remove();
   e.wrap.classList.remove('ar-carga');
   e.accion = null; e.pose = null;
 }
@@ -2568,6 +2570,7 @@ function iniciarBase(e, tipo, dirPref){
     m.en -= a.coste; e.cd[tipo] = a.cd;
   }
   e.accion = {tipo, t:0, dir:unit(pie(e), pie(O)), hecho:false, mov:movDe(m, tipo), obj:O.lado};
+  if(m.jefe && base(tipo) === 'largo') e.accion.mov = Object.assign({}, e.accion.mov, {fx:'rayo', n:'Rayo barredor'});   // 19/11: el largo del legendario siempre es un rayo recto (ver barridoJefe)
   if(base(tipo) === 'largo'){ prepararLargo(e); sfx('carga'); }
   return true;
 }
@@ -2630,7 +2633,12 @@ function fxCorto(mov, att, def, x, y, dir){
 
 /* ---- ataques de medio alcance ---- */
 function proyectil(e, o){
-  const O = otro(e), U = u(), c = o.suelo ? pie(e) : cen(e);
+  const O = o.objetivo || otro(e), U = u(), c = o.suelo ? pie(e) : cen(e);
+  /* 19/11 Zeta: los tiros del legendario salen RECTOS (sin arco, curva, vaivén ni persecución) y llegan hasta el fondo del mapa */
+  if(e.mon && e.mon.jefe){
+    o = Object.assign({}, o, {arco:0, wobble:0, homing:0, boom:false, vel:Math.max(o.vel || 0, 95)});
+    o.vida = Math.max(o.vida || 1.5, Math.hypot(G.W, G.H) * 1.1 / (o.vel * U));
+  }
   let d = unit(c, o.suelo ? pie(O) : cen(O));
   if(o.ang){ const ca = Math.cos(o.ang), sa = Math.sin(o.ang); d = {x:d.x * ca - d.y * sa, y:d.x * sa + d.y * ca}; }
   const tam = Math.max(6, o.tam * U), col = TYPE_COLORS[o.tipo];
@@ -2651,11 +2659,16 @@ function proyectil(e, o){
 
 function disparoMedio(e){
   const mov = (e.accion && e.accion.mov) || movDe(e.mon, 'medio'), grupo = {pego:false}, base = {tipo:mov.tipo, grupo, forma:FORMA_MOV[mov.n] || mov.forma, alc:e.accion ? e.accion.tipo : 'medio'};
+  /* 19/11 Zeta: el legendario le dispara a TODOS los que están peleando (una tanda de hasta 4 tiros al más cercano y 1 tiro a cada uno de los otros) */
+  const blancos = e.mon.jefe ? enemigosDe(e).filter(x => x.mon && x.mon.vivo) : [null], principal = e.mon.jefe ? otro(e) : null;
   const rafaga = (n, cada, o) => {
-    for(let i = 0; i < n; i++){
-      const f = () => { if(AR && e.mon && e.mon.vivo) proyectil(e, Object.assign({}, base, typeof o === 'function' ? o(i) : o)); };
-      if(i) despues(cada * i, f); else f();
-    }
+    blancos.forEach(bl => {
+      const nn = bl ? Math.min(n, bl === principal ? 4 : 1) : n;   // al más cercano una tanda de hasta 4; a cada uno de los otros, 1 tiro
+      for(let i = 0; i < nn; i++){
+        const f = () => { if(AR && e.mon && e.mon.vivo) proyectil(e, Object.assign({}, base, bl ? {objetivo:bl} : {}, typeof o === 'function' ? o(i) : o)); };
+        if(i) despues(cada * i, f); else f();
+      }
+    });
   };
   if(mov.n === 'Bola Plasma'){ rafaga(1, 0, {tam:7, vel:125, giro:0, vida:1.4}); return; }   // Zeraora: bola eléctrica grande y rápida (Zeta 07/11)
   switch(mov.fx){
@@ -3141,6 +3154,7 @@ function estallidoZona(z, mov){
 
 function dispararLargo(e){
   const A = e.accion, mov = A.mov, O = otro(e), tipo = mov.tipo, col = TYPE_COLORS[tipo], U = u(), st = partDe(tipo);
+  if(e.mon.jefe && mov.fx === 'rayo'){ barridoJefe(e, A, O); return; }
   if(mov.fx === 'bolaVoltio'){   // Bola Voltio: una bola eléctrica enorme que sale derecho hacia el rival
     const d = A.dirLock || unit(cen(e), cen(O));
     proyectil(e, {tipo:'electric', forma:'voltio', tam:12, vel:125, giro:0, vida:1.8, grupo:{pego:false}, alc:A.tipo, estela:true});
@@ -3238,6 +3252,46 @@ function dispararLargo(e){
   sfx('lluvia');
   if(mov.n === 'Fuego Fatuo'){ fatuoSalida(e, z); AR.zonas.push({alc:A.tipo, e:e.lado, zona:z, t:0, imp:.42, mov, estalla:true}); return; }
   AR.zonas.push({alc:A.tipo, e:e.lado, zona:z, t:0, imp:.05, mov, estalla:true});
+}
+
+/* ---- RAYO BARREDOR del legendario (19/11 Zeta) ---- */
+function barridoJefe(e, A, O){
+  const c = cen(e), d = A.dirLock || unit(c, cen(O)), a0 = Math.atan2(d.y, d.x), tipo = A.mov.tipo, col = TYPE_COLORS[tipo], U = u();
+  const L = Math.hypot(G.W, G.H) * 1.15;
+  /* gira hacia el lado donde hay MÁS enemigos para barrerlos a todos; si empatan, hacia la IZQUIERDA (apuntando hacia abajo, el giro horario va a la izquierda; hacia arriba, al revés) */
+  const vivos = enemigosDe(e).filter(o => o.mon && o.mon.vivo);
+  const cuantos = sg => vivos.reduce((n, o) => { const oc = cen(o); let da = (Math.atan2(oc.y - c.y, oc.x - c.x) - a0) * sg; da = Math.atan2(Math.sin(da), Math.cos(da)); return n + (da > -.15 && da < BARRIDO.giro + .1 ? 1 : 0); }, 0);
+  let sign = d.y >= 0 ? 1 : -1;
+  if(cuantos(-sign) > cuantos(sign)) sign = -sign;
+  const alto = Math.max(5, 5.5 * U);
+  const el = mk('ar-rayo ar-barrido', {left:c.x + 'px', top:c.y + 'px', width:L + 'px', height:alto + 'px', opacity:0,
+    background:`linear-gradient(to bottom, transparent, ${col}66 18%, ${col} 36%, #ffffff 50%, ${col} 64%, ${col}66 82%, transparent)`, boxShadow:`0 0 ${U * 3}px ${col}, 0 0 ${U * 7}px ${col}88`});
+  A.barr = {el, a0, sign, t:0, L, alto, ult:{}, col, tipo, chis:0};
+  destello(c.x + d.x * e.w * .3, c.y + d.y * e.h * .3, .9); sacudir(1.2); sfx('rayo'); flashPantalla(col);
+  e.kx -= d.x * 30 * U; e.ky -= d.y * 30 * U;
+}
+function avanzarBarrido(e, A, dt){
+  const B = A.barr, U = u(), c = cen(e);
+  B.t += dt;
+  const k = Math.min(1, B.t / BARRIDO.dur), ang = B.a0 + B.sign * BARRIDO.giro * k;
+  const dx = Math.cos(ang), dy = Math.sin(ang);
+  B.el.style.left = c.x + 'px'; B.el.style.top = c.y + 'px';
+  B.el.style.opacity = B.t < .12 ? B.t / .12 : (k > .92 ? Math.max(0, (1 - k) / .08) : 1);
+  B.el.style.transform = `translate(0,-50%) rotate(${ang * 180 / Math.PI}deg)`;
+  e.pose = {sx:1.05, sy:.95, dx:azar(-1, 1) * e.w * .02};
+  /* chispas del elemento a lo largo del rayo */
+  B.chis -= dt;
+  if(B.chis <= 0){ B.chis = .06; const f = Math.random(); chispa(c.x + dx * B.L * f * .6, c.y + dy * B.L * f * .6, B.tipo, 1, azar(-3, 3) * U, azar(-3, 3) * U, 300); }
+  /* pega a TODOS los que toque el rayo (cada celular se encarga del daño de su propio Pokémon) */
+  for(const O of enemigosDe(e)){
+    if(!O.mon || !O.mon.vivo) continue;
+    const oc = cen(O), vx = oc.x - c.x, vy = oc.y - c.y, proj = vx * dx + vy * dy, lat = Math.abs(vx * dy - vy * dx);
+    const ult = B.ult[O.lado] == null ? -BARRIDO.tick : B.ult[O.lado];   // el primer golpe es apenas lo toca
+    if(proj > 0 && lat <= radio(O) + B.alto * .5 && B.t - ult >= BARRIDO.tick){
+      if(golpear(e, O, A.tipo, oc.x, oc.y, BARRIDO.fz)){ B.ult[O.lado] = B.t; marca(pie(O).x, pie(O).y, 5 * U, B.col); }
+      else B.ult[O.lado] = B.t - BARRIDO.tick * .5;   // esquivó / era inmune: reintenta pronto
+    }
+  }
 }
 
 /* para las pruebas (no se usa en el juego): dispara un efecto de largo alcance sobre el rival sin esperar la carga */
@@ -3361,6 +3415,8 @@ function avanzarAccion(e, dt){
       dispararLargo(e);
       if(A.tele) A.tele.forEach(x => x.remove());
       A.tele = null;
+    } else if(A.barr){
+      avanzarBarrido(e, A, dt);
     } else if(A.dash && A.dash.t < .3 && !A.dash.pego){
       /* la carrera: va derecho por la línea marcada; si alcanza al rival, ráfaga de golpes */
       const D = A.dash; D.t += dt;
@@ -3382,7 +3438,7 @@ function avanzarAccion(e, dt){
       const k = Math.min(1, (A.t - .62) / .3);
       e.pose = {sx:.86 + .14 * k, sy:1.14 - .14 * k, dx:-e.w * .1 * (1 - k)};
     }
-    if(A.t >= .62 + (fx === 'lluvia' ? .85 : .42)) cortarAccion(e);
+    if(A.t >= .62 + (A.barr ? BARRIDO.dur : (fx === 'lluvia' ? .85 : .42))) cortarAccion(e);
   }
 }
 
@@ -3587,7 +3643,7 @@ function botDecidir(e){
   if(e.mon.jefe && ATAQUES.includes(acc)) b.cicloI = (b.cicloI || 0) + 1;   // el ciclo sólo avanza cuando de verdad ataca (si se acerca o espera energía, repite el mismo paso)
   b.hist.unshift(acc); b.hist.length = Math.min(3, b.hist.length);
   b.modo = acc; b.dirOrb = Math.random() < .5 ? 1 : -1;
-  b.t = {acercar:azar(.7, 1.3), orbitar:azar(1, 1.8), retroceder:azar(.6, 1), esquivar:.3, corto:.6, medio:.7, largo:1.3}[acc] * azar(.85, 1.2) * (e.mon.jefe ? .4 : 1);
+  b.t = {acercar:azar(.7, 1.3), orbitar:azar(1, 1.8), retroceder:azar(.6, 1), esquivar:.3, corto:.6, medio:.7, largo:1.3}[acc] * azar(.85, 1.2) * (e.mon.jefe ? .25 : 1);
   b.ejecutado = false;
 }
 
@@ -3602,9 +3658,17 @@ function botActualizar(e, dt){
       const c = cen(e), rx = c.x - p.x, ry = c.y - p.y, v = Math.hypot(p.vx, p.vy), t = (rx * p.vx + ry * p.vy) / (v * v);
       const lat = Math.abs(rx * p.vy - ry * p.vx) / v;
       if(t > 0 && t < .38 && lat < radio(e) * 1.5){
-        b.reac = .7;
+        b.reac = e.mon.jefe ? .6 : .7;
         const s = Math.random() < .5 ? 1 : -1;
         if(Math.random() < AR.estilo.reflejo && iniciar(e, 'esquivar', {x:-p.vy / v * s, y:p.vx / v * s})) return out;
+        break;
+      }
+    }
+    /* el legendario: si cualquiera de los 5 le está cargando un largo, se tira a esquivar de costado */
+    if(e.mon.jefe && !e.accion){
+      for(const q of enemigosDe(e)){
+        if(!q.mon || !q.mon.vivo || !q.accion || base(q.accion.tipo) !== 'largo' || q.accion.hecho || q.accion.t < .2 || q.accion.t > .55) continue;
+        if(Math.random() < AR.estilo.reflejo * .6){ const a = unit(pie(q), pie(e)), s = Math.random() < .5 ? 1 : -1; b.reac = .5; if(iniciar(e, 'esquivar', {x:-a.y * s, y:a.x * s})) return out; }
         break;
       }
     }
@@ -3723,7 +3787,7 @@ function bucle(ts){
     }
     const bi = (!AR.online || (AR.raid && AR.raid.host)) ? botActualizar(E.riv, h) : {x:0, y:0};   // en la incursión, el legendario lo maneja el anfitrión
     actualizarMon(E.yo, h, intent);
-    AR.lados.forEach(l => { if(l !== 'yo') actualizarMon(E[l], h, l === 'riv' ? bi : {x:0, y:0}); });
+    AR.lados.forEach(l => { if(l !== 'yo') actualizarMon(E[l], h, l === 'riv' ? bi : ((AR.intentos && AR.intentos[l]) || {x:0, y:0})); });   // AR.intentos: sólo para grabar videos/pruebas (mueve a los compañeros)
     if(AR.online) seguirRemoto(h);
     avanzarProyectiles(h);
     avanzarZonas(h);
@@ -3894,7 +3958,10 @@ function armarMulti(d, pDe){
    que también decide el daño que recibe y se lo cuenta al servidor (quién le pegó cuánto) para repartir las Incursión Balls. */
 const JEFE_ATAQUE = 2.5;   // el legendario de la incursión pega ×2,5 (15/11 Zeta: "que sea 2,5"; antes 1,8, 03/11 antes 1,4, y antes de eso 1,6)
 /* 15/11 Zeta: el legendario VARÍA siempre de ataque y repite este orden: medio alcance, largo alcance, medio alcance, largo alcance y golpe (corto). */
-const CICLO_JEFE = ['medio', 'largo', 'medio', 'largo', 'corto'];
+/* 19/11 Zeta (incursiones más difíciles): el legendario dispara más (2 de medio por cada largo), esquiva mucho más, todos sus tiros salen RECTOS hasta el fondo del mapa
+   y su ataque largo es un RAYO BARREDOR: sale derecho hacia uno y se va moviendo hacia la izquierda ~2,6 s pegándole a todos los que toque. */
+const CICLO_JEFE = ['medio', 'medio', 'largo', 'medio', 'medio', 'corto', 'largo'];
+const BARRIDO = {dur:2.6, giro:1.4, tick:.4, fz:.4};   // dur = segundos que dura · giro = radianes que se mueve (~80°) · tick = cada cuánto pega · fz = qué parte de un golpe largo pega cada vez
 function armarIncursion(d, pDe){
   const yo = d.jugadores.find(j => j.slot === d.miSlot), otros = d.jugadores.filter(j => j.slot !== d.miSlot);
   const eq = j => j.equipo.map(x => crearMon(pDe(x.id), false, x));
@@ -4405,7 +4472,7 @@ function golpeRemoto(m, lado){
   sfx(m.crit ? 'critico' : 'golpe');
 
   clase(def, 'ar-golpe', 320);
-  if(def.accion && def.accion.tipo !== 'esquivar') cortarAccion(def);
+  if(def.accion && def.accion.tipo !== 'esquivar' && !(def.mon.jefe && base(def.accion.tipo) === 'largo')) cortarAccion(def);
   if(m.crit || m.mult > 1) festejo(m.crit);
   pintarHud();
   if(d.hp <= 0) caer(def);

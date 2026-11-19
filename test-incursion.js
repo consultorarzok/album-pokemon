@@ -53,14 +53,14 @@ const check = (n, c) => { if(c){ ok++; console.log('  ✅ ' + n); } else { fail+
   check('el anfitrión calcula el daño que recibe el legendario (' + dano + ')', dano > 0);
   // 15/11: el legendario VARÍA siempre de ataque y repite: medio, largo, medio, largo, corto (golpe)
   const ciclo = await page.evaluate(() => new Promise(r => { const E = __arena.ent(), seq = []; let ult = E.riv.bot.cicloI || 0;
-    const t = setInterval(() => { E.riv.mon.hp = E.riv.mon.max; E.riv.mon.en = E.riv.mon.enMax; const c = E.riv.bot.cicloI || 0; if(c !== ult){ seq.push(E.riv.bot.hist[0]); ult = c; } if(seq.length >= 12){ clearInterval(t); r(seq); } }, 40);
+    const t = setInterval(() => { E.riv.mon.hp = E.riv.mon.max; E.riv.mon.en = E.riv.mon.enMax; const c = E.riv.bot.cicloI || 0; if(c !== ult){ seq.push(E.riv.bot.hist[0]); ult = c; } if(seq.length >= 14){ clearInterval(t); r(seq); } }, 40);
     setTimeout(() => { clearInterval(t); r(seq); }, 40000); }));
   await page.evaluate(() => { (window.__orig || []).forEach(([mm, mx]) => { mm.max = mx; mm.hp = mx; }); });
-  const PAT = ['medio', 'largo', 'medio', 'largo', 'corto'];
+  const PAT = ['medio', 'medio', 'largo', 'medio', 'medio', 'corto', 'largo'];   // 19/11: ahora dispara más (2 de medio por cada largo)
   const desde = PAT.findIndex((p, i) => ciclo.length && p === ciclo[0]);
   const estable = ciclo.slice(2);   // 15/11: fallaba ~1 de 5 veces: medio y largo aparecen 2 veces en el ciclo, así que no se sabe de dónde arrancó (indexOf) y la lectura cada 40 ms se pierde los primeros pasos: se prueba cualquier posición de arranque
-  check('el legendario sigue el ciclo medio, largo, medio, largo, golpe (vistos: ' + ciclo.join(' ') + ')', estable.length >= 6 && [0, 1, 2, 3, 4].some(o => estable.every((x, i) => x === PAT[(o + i) % 5])) && new Set(ciclo).size === 3, ciclo);
-  check('nunca repite el mismo ataque dos veces seguidas', ciclo.length >= 8 && ciclo.every((x, i) => i === 0 || x !== ciclo[i - 1]), ciclo);
+  check('el legendario sigue el ciclo medio, medio, largo, medio, medio, golpe, largo (vistos: ' + ciclo.join(' ') + ')', estable.length >= 6 && [0, 1, 2, 3, 4, 5, 6].some(o => estable.every((x, i) => x === PAT[(o + i) % 7])) && new Set(ciclo).size === 3, ciclo);
+  check('dispara más: de medio alcance es la mayoría de sus ataques', ciclo.length >= 8 && ciclo.filter(x => x === 'medio').length > ciclo.length / 2 - 1, ciclo);
   const fuerte = await page.evaluate(() => { const E = __arena.ent(); E.yo.invul = 0; E.yo.rodando = false; const antes = E.yo.mon.hp; let dmg = 0; for(const a of ['corto', 'medio', 'largo']){ E.yo.mon.vivo = true; E.yo.invul = 0; E.yo.rodando = false; E.yo.mon.hp = E.yo.mon.max; __arena.golpeDe('riv', 'yo', a); dmg = Math.max(dmg, E.yo.mon.max - E.yo.mon.hp); } return {dmg, max: E.yo.mon.max, movs: E.riv.mon.movs ? JSON.stringify(E.riv.mon.movs).slice(0, 200) : ''}; });
   check('el legendario pega fuerte (' + fuerte.dmg + ' de ' + fuerte.max + ')', fuerte.dmg > fuerte.max * .15);
   await page.screenshot({path: '/tmp/claude-0/-root/b70858be-5edb-4e9c-bb87-88f6028271ef/scratchpad/incursion_pelea.png'});

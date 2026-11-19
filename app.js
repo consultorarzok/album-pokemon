@@ -2685,7 +2685,7 @@ const BOLAS = {
    fijas de Jujuy durante `duracionMin`; entran EXACTAMENTE 5 entrenadores y pelean todos contra él en la Arena. Si le ganan, cada uno
    recibe Incursión Balls según la parte del daño que hizo (3 / 2 / 1) para tirarle. El servidor (juego.js) usa esta misma tabla. */
 const INCURSIONES = {
-  duracionMin: 60, jugadores: 5, probAtrapar: .35, vidaJefe: 20,   // 18/11 Zeta: los turnos normales abren 1 hora (antes 30 min)
+  duracionMin: 90, jugadores: 5, probAtrapar: .35, vidaJefe: 26,   // 19/11 Zeta: los turnos normales abren 1 h 30 min (antes 1 h) · vida del legendario 20 → 26 (un poco más) · 18/11 Zeta: los turnos normales abren 1 hora (antes 30 min)
   /* Zeta 31/10: 4 turnos fijos al día para todos (hora de Jujuy); en cada turno abren `porTurno` (4 de las 7) guaridas, que rotan: cada región tiene
      incursión en más de la mitad de los turnos, así hay siempre dónde jugar. Un solo intento por entrenador por turno (para todas las guaridas juntas). */
   turnos: [9, 14, 19, 23], porTurno: 5,   // 18/11: 9 guaridas (se sumaron Yavi y el Cardonal) y abren 5 por turno
