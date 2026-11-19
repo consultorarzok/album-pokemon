@@ -2486,7 +2486,7 @@ function golpear(att, def, alc, x, y, fz){
   }
   if(def.invul > 0) return false;
   const res = calcularDanio(att.mon, def.mon, alc, tipo, mov.pot), d = def.mon;
-  if(att.mon.jefe && res.dmg > 0) res.dmg = Math.round(res.dmg * JEFE_ATAQUE);   // el legendario de la incursión pega más fuerte (Zeta 31/10)
+  if(att.mon.jefe && res.dmg > 0) res.dmg = Math.round(res.dmg * JEFE_ATAQUE * (att.mon.atkMult || 1));   // el legendario de la incursión pega más fuerte (Zeta 31/10)
   if(fz && res.dmg > 0) res.dmg = Math.max(1, Math.round(res.dmg * fz));   // 13/11 Zeta: en los ataques de zona, el centro pega más que la punta
   if(roce && res.dmg > 0){
     res.dmg = Math.max(1, Math.round(res.dmg * ROCE_LARGO)); res.crit = false;
@@ -3974,7 +3974,7 @@ function armarIncursion(d, pDe){
   const libres = ['al', 'r2', 'r3', 'r4', 'r5'];
   otros.forEach(j => { const l = libres.shift(); AR.lados.push(l); AR.bando[l] = 'A'; AR.espejo[l] = false; AR.porSlot[j.slot] = l; AR.slotDe[l] = j.slot; AR[l] = {mons:eq(j), idx:0, act:null, nombre:j.nombre}; });
   const pj = pDe(d.jefe.id), jefe = crearMon(pj, true, {f:d.jefe.f, c:'jefe' + d.jefe.id, s:!!d.jefe.s});
-  jefe.max = Math.round(jefe.max * d.jefe.vida); jefe.hp = jefe.max; jefe.jefe = true;
+  jefe.atkMult = d.jefe.atk || 1; jefe.max = Math.round(jefe.max * d.jefe.vida); jefe.hp = jefe.max; jefe.jefe = true;
   AR.lados.push('riv'); AR.bando.riv = 'B'; AR.espejo.riv = false; AR.porSlot[d.jefe.slot] = 'riv'; AR.slotDe.riv = d.jefe.slot;
   AR.riv = {mons:[jefe], idx:0, act:null, nombre:pj.name};
   AR.rivalNombre = pj.name;
