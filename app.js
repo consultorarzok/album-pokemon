@@ -2712,7 +2712,7 @@ const INCURSIONES = {
   /* SHINY de incursión (Zeta 03/11): al ganar, lo que queda por atrapar puede ser SHINY. Siempre: `prob` de que el legendario sea shiny (los legendarios sólo salen acá).
      Durante `evento` (4 h, sólo hoy): `probPool` de que aparezca un shiny famoso de la historia Pokémon (lista `pool`, fuerza 90-100) y `probPropio` de que el legendario sea shiny. */
   shiny: {
-    prob: .01,   // 19/11 Zeta: bajada de 6 % a 1 % (muy difícil); en las rondas rotativas se sortea por jugador al ganar y sin cartel
+    prob: .003,   // 19/11 Zeta: bajada de 6 % a 1 % y luego a 0,3 % (salió varias veces) (muy difícil); en las rondas rotativas se sortea por jugador al ganar y sin cartel
     evento: {desde: 1794800661000, hasta: 1794818661000, destacados: [6, 130, 149, 94, 448, 445], probDest: .50, probPool: .30, probPropio: .20},   // 16/11 ronda shiny famosos (la anterior: legendario siempre shiny)
     pool: [6, 3, 9, 25, 59, 65, 68, 103, 133, 143, 359, 130, 149, 94, 248, 197, 196, 448, 445, 373, 376, 658, 257, 350, 151, 251, 245, 243, 244, 144, 145, 146, 385, 491, 250, 382, 383, 483, 484, 643, 644]
     /* Charizard negro, Gyarados rojo (Lago de la Furia), Dragonite, Gengar, Tyranitar, Umbreon, Espeon, Lucario, Garchomp, Salamence, Metagross, Greninja, Blaziken, Milotic,
