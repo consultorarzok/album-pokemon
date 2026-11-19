@@ -4671,7 +4671,7 @@ function pintarIncursion(equipo, inc){
         if(pb && h2) h2.textContent = '⚔️ Incursión contra ' + pb.name + (m.incursion.s ? ' ✨ SHINY' : '');
       }
       const n = m.jugadores.length, conectados = m.jugadores.filter(x => x.conectado).length, bt = $('arIEmpezar');
-      est.innerHTML = faltan > 0 ? `Hay <b>${n}</b> de 5. Esperando entrenadores: faltan <b>${faltan}</b>. Avisales a tus amigos que vengan a la guarida.${n < 4 ? ' <b>Con menos de 4 no se le puede ganar.</b>' : ''}` : '¡Están los 5! Arrancando…';
+      est.innerHTML = faltan > 0 ? `Hay <b>${n}</b> de 5. Esperando entrenadores: faltan <b>${faltan}</b>. Avisales a tus amigos que vengan a la guarida.` : '¡Están los 5! Arrancando…';
       if(bt){ bt.disabled = !conectados || faltan <= 0; bt.innerHTML = `<b>Iniciar${conectados ? ' (con ' + conectados + ')' : ''}</b>`; }
       return;
     }
