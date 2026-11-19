@@ -2684,7 +2684,10 @@ const BOLAS = {
    En cada región hay una guarida cerrada con un legendario (fuerza 90-100, mucha vida, pega más fuerte). La puerta se abre a horas
    fijas de Jujuy durante `duracionMin`; entran EXACTAMENTE 5 entrenadores y pelean todos contra él en la Arena. Si le ganan, cada uno
    recibe Incursión Balls según la parte del daño que hizo (3 / 2 / 1) para tirarle. El servidor (juego.js) usa esta misma tabla. */
+/* 19/11 Zeta: legendarios y semilegendarios que rotan cada 10 min como jefes de TODAS las incursiones de los turnos diarios */
+const POOL_JEFES_ROTA = [144, 145, 146, 150, 243, 149, 244, 245, 249, 250, 377, 248, 378, 379, 380, 381, 382, 373, 383, 384, 480, 481, 482, 376, 483, 484, 485, 486, 487, 445, 488, 491, 493, 638, 639, 635, 640, 641, 642, 643, 644, 706, 645, 646, 716, 717, 718, 784, 785, 786, 787, 788, 791, 887, 792, 800, 888, 889, 890, 998, 1007, 1008];
 const INCURSIONES = {
+  rotarTurnos: {cadaMin: 10, fmin: 80, pool: POOL_JEFES_ROTA},   // 19/11 Zeta: "todos los días de aquí en adelante, no 24 hs": en cada turno diario abren las 9 guaridas y el legendario cambia cada 10 min
   duracionMin: 90, jugadores: 5, probAtrapar: .35, vidaJefe: 26,   // 19/11 Zeta: los turnos normales abren 1 h 30 min (antes 1 h) · vida del legendario 20 → 26 (un poco más) · 18/11 Zeta: los turnos normales abren 1 hora (antes 30 min)
   /* Zeta 31/10: 4 turnos fijos al día para todos (hora de Jujuy); en cada turno abren `porTurno` (4 de las 7) guaridas, que rotan: cada región tiene
      incursión en más de la mitad de los turnos, así hay siempre dónde jugar. Un solo intento por entrenador por turno (para todas las guaridas juntas). */
@@ -2693,9 +2696,6 @@ const INCURSIONES = {
      03/11 Zeta: compensación por las peleas que no arrancaban (bug de arena.js), 30 minutos desde 23:32 hora de Jujuy. */
   extras: [/* 18/11 Zeta: RONDA NOCTURNA DE LEGENDARIOS Y SEMILEGENDARIOS, las 9 guaridas abiertas desde las 00:30 hasta las 04:00 de Jujuy (07:00 UTC). El jefe de cada guarida CAMBIA cada 10 min (pool `rotar.pool`, distinto en cada guarida);
        cada cambio es un intento nuevo. Fuerza 80-100 (`fmin`). Va primero. */
-    /* 19/11 Zeta: TODAS LAS INCURSIONES DE TODO EL DÍA son la ronda de legendarios y semilegendarios (el jefe cambia cada 10 min, las 9 guaridas abiertas sin parar), para tener más chances de atrapar buenos ahora que se pueden subir stats. Hasta las 00:00 de Jujuy del 20/11. Va primero. */
-    {desde: 1795059720000, hasta: 1795143600000, clave: 'EXTRA-20261119-TODODIA', regiones: 'todas',
-     rotar: {cadaMin: 10, fmin: 80, pool: [144, 145, 146, 150, 243, 149, 244, 245, 249, 250, 377, 248, 378, 379, 380, 381, 382, 373, 383, 384, 480, 481, 482, 376, 483, 484, 485, 486, 487, 445, 488, 491, 493, 638, 639, 635, 640, 641, 642, 643, 644, 706, 645, 646, 716, 717, 718, 784, 785, 786, 787, 788, 791, 887, 792, 800, 888, 889, 890, 998, 1007, 1008]}},
     {desde: 1794972426166, hasta: 1794985200000, clave: 'EXTRA-20261118-NOCHE2', regiones: 'todas',
      rotar: {cadaMin: 10, fmin: 80, pool: [144, 145, 146, 150, 243, 149, 244, 245, 249, 250, 377, 248, 378, 379, 380, 381, 382, 373, 383, 384, 480, 481, 482, 376, 483, 484, 485, 486, 487, 445, 488, 491, 493, 638, 639, 635, 640, 641, 642, 643, 644, 706, 645, 646, 716, 717, 718, 784, 785, 786, 787, 788, 791, 887, 792, 800, 888, 889, 890, 998, 1007, 1008]}},
     /* 16/11 Zeta: RONDA SHINY FAMOSOS (Charizard, etc.), 7 guaridas 5 h, va primero. */
@@ -2751,9 +2751,14 @@ function aperturaIncursion(cfg, ahora){
     const dia = Date.UTC(loc.getUTCFullYear(), loc.getUTCMonth(), loc.getUTCDate() + off);
     const turno = Math.floor(dia / 86400e3) * T.length + ti;
     let toca = false; for(let q = 0; q < k; q++) if((turno * k + q) % n === idx) toca = true;
+    const rt = INCURSIONES.rotarTurnos; if(rt) toca = true;   // con la ronda rotativa abren las 9 en cada turno
     if(!toca) return;
     const desde = dia + h * 3600e3 + H;
-    if(ahora >= desde && ahora < desde + dur){ proxima = {abierta: true, desde, hasta: desde + dur}; }
+    if(ahora >= desde && ahora < desde + dur && rt){   // misma cuenta que el servidor (juego.js)
+      const cada = rt.cadaMin * 60e3, slot = Math.floor((ahora - desde) / cada), semilla = Math.floor(desde / 3600e3);
+      proxima = {abierta: true, desde: desde + slot * cada, hasta: desde + dur, cambia: Math.min(desde + (slot + 1) * cada, desde + dur), jefe: {id: rt.pool[(slot * n + idx + semilla * 7) % rt.pool.length], s: false}, fmin: rt.fmin};
+    }
+    else if(ahora >= desde && ahora < desde + dur){ proxima = {abierta: true, desde, hasta: desde + dur}; }
     else if(desde > ahora && !(proxima && proxima.abierta) && (proxima === null || desde < proxima)) proxima = desde;
   });
   return proxima && proxima.abierta ? proxima : {abierta: false, proxima};
@@ -2782,7 +2787,7 @@ function panelIncursiones(){
     const r = advMapa === 'overworld' ? rumboA(g.puerta[0], g.puerta[1]) : null;
     const donde = r ? `a ${r.dist} casilleros al ${r.rumbo}` : 'en el mapa (salí de la cueva)';
     return `<div class="adv-inc-fila${ap.abierta ? ' abierta' : ''}"><img src="${p.sh ? imgVario(p) : p.img}" alt="" onerror="this.style.visibility='hidden'">` +
-      `<div class="adv-inc-texto"><b>${REGION_LOCAL[g.region] || g.region}</b> · ${p.name}${p.sh ? ' ✨ BLANCO' : ''}<br>${ap.abierta ? '🔴 <b>ABIERTA</b> hasta las ' + horaJujuy(ap.hasta) + (ap.cambia && ap.cambia < ap.hasta ? ' · cambia de legendario a las ' + horaJujuy(ap.cambia) : '') : '🔒 abre ' + etiquetaApertura(ap.proxima)}<br><small>${donde}</small></div>` +
+      `<div class="adv-inc-texto"><b>${REGION_LOCAL[g.region] || g.region}</b> · ${p.name}${p.sh ? ' ✨ BLANCO' : ''}<br>${ap.abierta ? (ap.hasta - Date.now() > 12 * 3600e3 ? '🔴 <b>ABIERTA siempre</b>' : '🔴 <b>ABIERTA</b> hasta las ' + horaJujuy(ap.hasta)) + (ap.cambia && ap.cambia < ap.hasta ? ' · cambia de legendario a las ' + horaJujuy(ap.cambia) : '') : '🔒 abre ' + etiquetaApertura(ap.proxima)}<br><small>${donde}</small></div>` +
       `<button type="button" data-reg="${g.region}" class="${advGuia === g.region ? 'activo' : ''}">${advGuia === g.region ? 'Quitar flecha' : 'Guiarme'}</button></div>`;
   }).join('');
   lista.querySelectorAll('button[data-reg]').forEach(b => b.onclick = () => {
@@ -2816,11 +2821,11 @@ const camGuia = {x: 0, y: 0};
 /* Qué incursiones hay abiertas ahora (o cuáles abren en el próximo turno), para avisar al entrar a la Aventura */
 function avisoIncursiones(){
   const LOCAL = {kanto: 'Valles', johto: 'Yungas', hoenn: 'Quebrada', sinnoh: 'Alta Quebrada', unova: 'Puna', kalos: 'Puna norte', alola: 'Valle de los Pericos', yavi: 'Yavi (Puna norte)', coctaca: 'Cardonal (Alta Quebrada)'};   // los nombres que se ven en el mapa
-  const nombre = r => { const p = DATA.find(d => d.id === r.legendario); return (LOCAL[r.region] || REGION_LABEL[r.region] || r.region) + ' (' + (p ? p.name : '?') + ')'; };
+  const nombre = r => { const ap = aperturaIncursion(r, Date.now()), p = DATA.find(d => d.id === (ap.abierta && ap.jefe ? ap.jefe.id : r.legendario));   /* 19/11: con la ronda rotativa, el jefe de ahora (no el de siempre) */ return (LOCAL[r.region] || REGION_LABEL[r.region] || r.region) + ' (' + (p ? p.name : '?') + ')'; };
   const aps = INCURSIONES.regiones.map(r => [r, aperturaIncursion(r, Date.now())]);
   const abiertas = aps.filter(([, a]) => a.abierta);
   const evS = eventoShinyInc(), tagS = evS ? '✨ <b>EVENTO SHINY</b>: al ganar puede aparecer un shiny. ' : '';
-  if(abiertas.length) return tagS + `⚔️ <b>Hay incursión abierta ahora</b> en: ${abiertas.map(([r]) => nombre(r)).join(', ')}. Cierran a las ${horaJujuy(abiertas[0][1].hasta)}.`;
+  if(abiertas.length) return tagS + `⚔️ <b>Hay incursión abierta ahora</b> en: ${abiertas.map(([r]) => nombre(r)).join(', ')}. ${abiertas[0][1].hasta - Date.now() > 12 * 3600e3 ? 'Están siempre abiertas: el legendario de cada una cambia cada 10 minutos.' : 'Cierran a las ' + horaJujuy(abiertas[0][1].hasta) + '.'}`;
   const prox = Math.min(...aps.map(([, a]) => a.proxima || Infinity));
   if(!isFinite(prox)) return '';
   return `⚔️ Próxima incursión: <b>${etiquetaApertura(prox)}</b> en ${aps.filter(([, a]) => a.proxima === prox).map(([r]) => nombre(r)).join(', ')}.`;
@@ -7155,7 +7160,7 @@ function advLeerCartel(x, y){
   if(gu){
     const cfg = cfgIncursion(gu.region), ap = aperturaIncursion(cfg, Date.now()), p = DATA.find(d => d.id === jefeGuarida(cfg, ap).id) || {name: 'un legendario'};
     advMensaje(ap.abierta
-      ? `⚔️ <b>¡La guarida de ${p.name} está abierta!</b> Hasta las ${horaJujuy(ap.hasta)}. Tocá <b>Incursión</b>: hasta 5 entrenadores (con 4 o 5 se le puede ganar).`
+      ? `⚔️ <b>¡La guarida de ${p.name} está abierta!</b> ${ap.hasta - Date.now() > 12 * 3600e3 ? 'Cambia de legendario a las ' + horaJujuy(ap.cambia) + '.' : 'Hasta las ' + horaJujuy(ap.hasta) + '.'} Tocá <b>Incursión</b>: hasta 5 entrenadores (con 4 o 5 se le puede ganar).`
       : `🔒 <b>Guarida de ${p.name}</b> (fuerza 90-100). Hay 4 turnos por día (09:00, 14:00, 19:00 y 23:00, hora de Jujuy) y en cada uno abren 5 de las 9 guaridas. A esta le toca el ${diaHoraJujuy(ap.proxima)}.`);
     return;
   }
