@@ -4570,8 +4570,10 @@ function mostrarResultadoIncursion(m){
   const boss =DATA.find(x => x.id === m.legendario) || {name:'el legendario', id:m.legendario}, f = $('arFin');
   /* 03/11: lo que queda por atrapar puede ser el legendario SHINY o un shiny famoso (premioInc, f > 100 = shiny) */
   const pi = m.premioInc || {id: m.legendario, f: m.fuerza}, esShiny = pi.f > 100, base = DATA.find(x => x.id === pi.id) || boss;
-  const p = Object.assign({}, base, {name: base.name + (esShiny ? ' ✨ SHINY' : ''), img: esShiny && typeof imgVario === 'function' ? imgVario(base) : base.img});
-  p.shinyOnerror = esShiny ? ' onerror="respaldoShiny(this)"' : '';
+  /* 19/11 Zeta: sin cartel de shiny antes de tirar: se pelea y se ve como uno normal; sólo al ATRAPARLO el que tuvo la suerte se entera de que era shiny */
+  const pNormal = Object.assign({}, base, {name: base.name, img: base.img}); pNormal.shinyOnerror = '';
+  const pShiny = Object.assign({}, base, {name: base.name + ' ✨ SHINY', img: typeof imgVario === 'function' ? imgVario(base) : base.img}); pShiny.shinyOnerror = ' onerror="respaldoShiny(this)"';
+  let p = pNormal, revelado = false;
   sfx(m.gane ? 'gana' : 'pierde');
   if(m.gane) festejo(true);
   f.hidden = false;
@@ -4584,7 +4586,7 @@ function mostrarResultadoIncursion(m){
   }
   /* 03/11 Zeta: al terminar la incursión se ve la ESCENA de captura: el legendario, la Incursión Ball que sale volando, lo absorbe, se sacude en el piso y se ve si quedó o se soltó */
   const pinta = (txt, quedan, fin, estado) => {
-    f.innerHTML = `<div class="ar-fin-caja" style="border-color:#3DDC6E"><b style="color:#3DDC6E">¡Le ganaron a ${boss.name}!</b>${esShiny ? `<span style="display:block;color:#FFD84A;margin-top:4px">✨ ¡Era SHINY!</span>` : ''}
+    f.innerHTML = `<div class="ar-fin-caja" style="border-color:#3DDC6E"><b style="color:#3DDC6E">¡Le ganaron a ${boss.name}!</b>${revelado ? `<span style="display:block;color:#FFD84A;margin-top:4px">✨ ¡Era SHINY!</span>` : ''}
       <div class="inc-escena" id="incEsc"><img id="incLeg" class="inc-leg" src="${p.img || ''}" alt="${p.name}"${p.shinyOnerror}><img id="incBola" class="inc-bola" src="${INC_BALL.img}" alt="Incursión Ball"><div class="inc-suelo"></div></div>
       <span>Le sacaste el <b>${m.parte}%</b> de la vida: te ganaste <b>${m.bolas} Incursión Ball${m.bolas === 1 ? '' : 's'}</b>.</span>
       <span id="arIncTxt" style="display:block;margin-top:8px">${txt}</span>
@@ -4636,7 +4638,7 @@ function mostrarResultadoIncursion(m){
       const r = res.resultado;
       try{ await animar(r); }catch(e){}
       if(tokInc !== TOK) return;
-      if(r.atrapado){ sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con fuerza ${r.f > 100 ? r.f - 100 : r.f}.` + (() => { const s = window.__arenaMovs.fichaStats(p, {f:r.f}); return ` ❤️ Vida ${s.vida} · ⚔️ Golpe ${s.golpe}% · 💥 Crítico ${s.crit}% ×${s.critMult.toFixed(1)} · ⚡ ${s.velTxt}`; })(), 0, true, 'atrapado'); }
+      if(r.atrapado){ if(r.f > 100){ p = pShiny; revelado = true; } sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con fuerza ${r.f > 100 ? r.f - 100 : r.f}.` + (() => { const s = window.__arenaMovs.fichaStats(p, {f:r.f}); return ` ❤️ Vida ${s.vida} · ⚔️ Golpe ${s.golpe}% · 💥 Crítico ${s.crit}% ×${s.critMult.toFixed(1)} · ⚡ ${s.velTxt}`; })(), 0, true, 'atrapado'); }
       if(r.escapo) return pinta(`${p.name} se soltó y se escapó…`, 0, true, 'escapo');
       pinta(`¡Casi! ${p.name} se soltó. Probá de nuevo.`, r.quedan, false);
     }).catch(() => pinta('Sin conexión. Probá de nuevo.', m.bolas, false));
