@@ -50,13 +50,13 @@ const enCurso = new Set();           // jugadas esperando respuesta (evita el do
 const POR_ID_C = Object.fromEntries(DATA.map(p => [p.id, p]));
 const aPull = x => ({p: POR_ID_C[x.id], isNew: x.isNew});
 /* jugadas que pueden cambiar las figuritas: sólo ésas vuelven a dibujar el álbum entero */
-const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'mejorarStat', 'reiniciarMejoras', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar']);
+const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'mejorarStat', 'reiniciarMejoras', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar', 'calendarioCobrar']);
 
 const MENSAJES = {
   lejos_del_lider: 'Para desafiar al gimnasio tenés que estar al lado del líder.', falta_medalla_previa: 'Primero tenés que ganarle al líder anterior: los gimnasios van en orden.', ya_ganado: 'A ese líder ya le ganaste: seguí con el siguiente.', faltan_requisitos: 'Todavía no cumplís lo que pide ese líder para pelear.', todavia_no: 'Todavía no completaste esa misión.',
   sin_habilitar: 'Primero habilitá a ese Pokémon como compañero', ya_habilitado: 'Ese Pokémon ya está habilitado de compañero', no_puede_ser_companero: 'Ese Pokémon no puede ser compañero (no queda bien en el mapa)', se_consigue_canjeando: 'Esa pokébola se consigue cambiando las de abajo', sin_bolas: 'No te alcanzan las pokébolas para ese cambio', canje_invalido: 'Ese cambio no existe',
   sin_monedas: 'No te alcanzan las monedas.',
-  fuerza_maxima: 'Esa figurita ya tiene la fuerza máxima.',
+  fuerza_maxima: 'Esa figurita ya tiene el nivel máximo.',
   fusion_shiny_distinto: 'Shiny sólo se usa con shiny, y común con común.', fusion_invalida: 'Elegí qué copias fusionar.', mejora_invalida: 'Elegí qué mejorar.', mejora_maxima: 'Esa característica ya está al máximo.', mejora_copias: 'Elegí la cantidad justa de copias.', especialidades_llenas: 'Este Pokémon ya eligió sus 2 especialidades: las otras están bloqueadas.', sin_mejoras: 'Este Pokémon no tiene mejoras para reiniciar.', sobran_copias: 'Con menos copias ya llega a 100: sacá alguna.',
   especial_sin_cambio: 'Los ataques de las figuritas especiales no se cambian.',
   slots_invalidos: 'Elegí qué ataque cambiar.',
@@ -194,6 +194,7 @@ function listo(progreso, tienePin, avatar){
   sincronizarCodigos();
   pedirAvatarSiFalta(() => { if(!tienePin) ofrecerPin(); }, avatar === undefined ? null : avatar);
   setTimeout(() => mostrarNovedades(0), 2500);
+  calAlEntrar();
 }
 
 /* Subir UNA vez el álbum que el chico tenía en este navegador (el servidor no deja hacerlo dos
@@ -382,7 +383,7 @@ function subirFuerzaServidor(id, serie){
   accionServidor('subirFuerza', {id, c: serie}).then(res => {
     if(!res.ok) return avisoServidor(res.motivo);
     const r = res.resultado;
-    avisoServidor('ok', '💪 Fuerza ' + r.antes + ' → ' + r.f + ' (−' + r.costo + ' monedas)');
+    avisoServidor('ok', '💪 Nivel ' + r.antes + ' → ' + r.f + ' (−' + r.costo + ' monedas)');
     updateCoins(); abrirDetalle(id);
   }).catch(() => {}).then(soltar('entrenar'));
 }
@@ -627,7 +628,7 @@ function charla(quien, txt, botones){
 /* 16/11: pelea previa del legendario del altar. Lo decide el servidor (equipo, fuerza según tu rango, 3 intentos); acá sólo se pregunta y se abre la Arena. */
 function retarAltar(p, quedan){
   const falta = quedan !== undefined ? `<br>Te quedan <b>${quedan}</b> oportunidad${quedan === 1 ? '' : 'es'}.` : '<br>Tenés <b>3 oportunidades</b>.';
-  charla(p.name, `¡<b>${p.name}</b> te desafía! Para poder atraparlo primero tenés que ganarle una pelea. Su fuerza depende de tu rango de Maestro.${falta}`,
+  charla(p.name, `¡<b>${p.name}</b> te desafía! Para poder atraparlo primero tenés que ganarle una pelea. Su nivel depende de tu rango de Maestro.${falta}`,
     [{t: '⚔️ ¡A pelear!', fn: () => { window.__retoArena = Object.assign({reto: 'altar', nombre: p.name}, posAdv()); window.__altarVuelta = {id: p.id}; cerrarAventura(); abrirArena(); }},
      {t: 'Huir', sec: true, fn: () => { accionServidor('huir').catch(() => {}); advMensaje(`💨 <b>${p.name}</b> se fue del altar.`); }}]);
 }
@@ -954,6 +955,101 @@ function cobrarRegalosServidor(){
       esEvento: out.evento ? EVENTOS.find(e => e.slug === out.evento) : null, esBienvenida: !!out.bienvenida, mensaje: out.mensaje || '',
       diamantesGanados: out.diamantes || 0, monturasGanadas: out.monturas || []});
   }).catch(() => {});
+}
+
+
+/* ---------------- Calendario de regalos de 28 días (21/11) ----------------
+   El servidor decide todo (qué día toca, el premio y el Pokémon sorpresa); acá sólo se muestra y se cobra. Personal de cada jugador:
+   avanza por día jugado, faltar un día no pierde nada. */
+const CAL = {estado: null, avisado: false};
+const calTextoPremio = x => x.tipo ? x.texto : [premioTexto(x.premio), x.premio && x.premio.epica ? '+' + x.premio.epica + ' carta épica' : ''].filter(Boolean).join(' · ');
+const calImg = id => (typeof POR_ID_C !== 'undefined' && POR_ID_C[id]) ? POR_ID_C[id].img : '';
+const calNom = id => (typeof POR_ID_C !== 'undefined' && POR_ID_C[id]) ? POR_ID_C[id].name : '';
+const calNivel = n => n[0] === n[1] ? String(n[0]) : n[0] + ' a ' + n[1];
+/* lo que se gana ese día, con dibujo: el del día 28 es el Pokémon real (+ su montura); los de 7, 14 y 21 son una silueta de ejemplo y se sortean al cobrar */
+function calPremioHTML(x){
+  if(!x.tipo) return calTextoPremio(x);
+  if(x.tipo === 'inicial'){
+    const m = (typeof MONTURAS !== 'undefined' && MONTURAS[x.montura]) || null;
+    const av = (typeof avatarActual !== 'undefined' && (avatarActual === 'may' || avatarActual === 'red')) ? avatarActual : 'red';
+    const lado = m ? `images/monturas/${x.montura}-${av}-lado-cuerpo.png` : '';   // la montura vista de costado, con tu entrenador arriba
+    return `<div class="cal-prem"><div class="cal-prem-img"><img src="${calImg(x.pokemon)}" alt="${calNom(x.pokemon)}"></div>`
+      + (m ? `<div class="cal-prem-img cal-prem-mont"><img src="${lado}" alt="${m.nombre} con tu entrenador" onerror="this.src='${calImg(m.id)}'"></div>` : '')
+      + `<div class="cal-prem-txt"><b>${calNom(x.pokemon)} nivel ${calNivel(x.nivel)}</b>con Vida y Velocidad ya mejoradas${m ? `<br>+ la montura <em class="cal-mn">${m.nombre}</em>` : ''}</div></div>`;
+  }
+  return `<div class="cal-prem"><div class="cal-prem-img"><img class="cal-sil" src="${calImg(x.muestra)}" alt=""></div>`
+    + `<div class="cal-prem-txt"><b>${x.nombre} sorpresa</b>nivel ${calNivel(x.nivel)} · ¿cuál será? 🤔</div></div>`;
+}
+function calPintar(){
+  const e = CAL.estado, box = document.getElementById('calBox');
+  if(!e || !box) return;
+  const hecho = e.hoyCobrado, dia = e.proximo, sig = e.lista[dia - 1], meta = e.lista[e.lista.length - 1];
+  box.hidden = false; box.classList.toggle('cal-listo', !hecho);
+  document.getElementById('calTitulo').textContent = hecho ? `Día ${e.dias} de ${e.lista.length} cobrado ✔` : `Hoy: día ${dia} de ${e.lista.length}`;
+  document.getElementById('calDetalle').textContent = hecho
+    ? `Mañana te espera: ${calTextoPremio(sig)}`
+    : `Tu regalo de hoy: ${calTextoPremio(sig)}`;
+  document.getElementById('calFill').style.width = Math.round(e.dias / e.lista.length * 100) + '%';
+  const b = document.getElementById('calBtn'); b.textContent = hecho ? 'Ver' : 'Cobrar';
+  const g = document.getElementById('calGrid'); if(!g) return;
+  /* el premio mayor, siempre a la vista: ahí está lo que vale la pena llegar al día 28 */
+  let mx = document.getElementById('calMeta');
+  if(!mx){ mx = document.createElement('div'); mx.id = 'calMeta'; mx.className = 'cal-meta'; g.insertAdjacentElement('beforebegin', mx); }
+  const faltan = Math.max(0, meta.d - e.dias - (hecho ? 0 : 0));
+  mx.innerHTML = `<small>🏆 Premio del día ${meta.d}${faltan ? ` · te faltan ${faltan} día${faltan === 1 ? '' : 's'}` : ' · ¡listo!'}</small>` + calPremioHTML(meta);
+  g.innerHTML = '';
+  e.lista.forEach(x => {
+    const d = document.createElement('button'); d.type = 'button';
+    d.className = 'cal-dia' + (x.cobrado ? ' hecho' : '') + (x.tipo ? ' gordo' : '') + (!hecho && x.d === dia ? ' hoy' : '');
+    const mini = x.tipo ? (x.tipo === 'inicial' ? calImg(x.pokemon) : calImg(x.muestra)) : '';
+    d.innerHTML = `${x.d}<small>${x.cobrado ? '✅' : mini ? `<img class="cal-mini${x.tipo === 'inicial' ? '' : ' cal-sil'}" src="${mini}" alt="">` : x.tipo ? '🎁' : '·'}</small>`;
+    d.setAttribute('aria-label', `Día ${x.d}: ${x.tipo ? x.texto : calTextoPremio(x)}${x.cobrado ? ' (cobrado)' : ''}`);
+    d.onclick = () => { document.getElementById('calDet').innerHTML = `<b>Día ${x.d}${x.cobrado ? ' ✅' : ''}:</b> ` + calPremioHTML(x); };
+    g.appendChild(d);
+  });
+  let det = document.getElementById('calDet');
+  if(!det){ det = document.createElement('div'); det.id = 'calDet'; det.className = 'cal-det'; g.insertAdjacentElement('afterend', det); }
+  det.innerHTML = `<b>${hecho ? 'Mañana' : 'Hoy'}, día ${dia}:</b> ` + calPremioHTML(sig);
+  const c = document.getElementById('calCobrar'); c.hidden = hecho; c.disabled = false;
+  document.getElementById('calOvSub').textContent = e.ciclo > 1 ? `Calendario nº ${e.ciclo}. Un regalo por cada día que entrás: si faltás un día no perdés nada.` : 'Un regalo por cada día que entrás. Si faltás un día no perdés nada: seguís donde quedaste.';
+}
+function calCargar(){
+  if(!servidorListo) return Promise.resolve(null);
+  return accionServidor('calendarioVer', {}).then(res => { if(res.ok){ CAL.estado = res.resultado; calPintar(); } return CAL.estado; }).catch(() => null);
+}
+function calCobrar(){
+  if(!servidorListo || !puedeJugar('calendario')) return;
+  document.getElementById('calCobrar').disabled = true;
+  accionServidor('calendarioCobrar', {}).then(res => {
+    if(!res.ok){ avisoServidor(res.motivo); return calCargar(); }
+    const out = res.resultado;
+    CAL.estado = out.vista; calPintar(); updateCoins(); enviarPuntaje();
+    document.getElementById('calOverlay').classList.remove('show');
+    mostrarRegalos({total: out.monedas, regaladas: [], ejPulls: out.pulls.map(aPull), espPulls: [], bolasGanadas: out.bolas, esAventura: false, esEvento: null, esBienvenida: false,
+      mensaje: `Regalo del día ${out.dia} de tu calendario`, diamantesGanados: 0, monturasGanadas: out.montura && !out.montura_repetida ? [out.montura] : []});
+  }).catch(() => {}).then(soltar('calendario'));
+}
+function calAbrir(){
+  if(!servidorListo){ avisoServidor('sin_conexion', 'El calendario necesita conexión 📶'); return; }
+  document.getElementById('calOverlay').classList.add('show');
+  calCargar();
+}
+(() => {
+  const b = document.getElementById('calBtn'); if(b) b.onclick = calAbrir;
+  const c = document.getElementById('calCobrar'); if(c) c.onclick = calCobrar;
+  const x = document.getElementById('calCerrar'); if(x) x.onclick = () => document.getElementById('calOverlay').classList.remove('show');
+})();
+/* al entrar: se muestra la tarjeta y, UNA vez por día, se abre solo el calendario si todavía no cobró (sin pisar otra ventana abierta) */
+function calAlEntrar(){
+  calCargar().then(e => {
+    if(!e || e.hoyCobrado || CAL.avisado) return;
+    let intentos = 0;   // si hay otra ventana abierta (PIN, novedades, regalo de bienvenida) se espera a que la cierren, hasta ~1 minuto
+    const t = setInterval(() => {
+      if(CAL.avisado || (CAL.estado && CAL.estado.hoyCobrado) || ++intentos > 20){ clearInterval(t); return; }
+      if(intentos < 2 || (typeof advAbierto !== 'undefined' && advAbierto) || document.querySelector('.name-overlay.show, .overlay.show, #overlay.show, #battleOverlay.show')) return;   // sólo en el inicio: nunca encima de la Aventura, la Arena u otra ventana
+      clearInterval(t); CAL.avisado = true; calAbrir();
+    }, 3000);
+  });
 }
 
 /* ---------------- Códigos de intercambio ---------------- */

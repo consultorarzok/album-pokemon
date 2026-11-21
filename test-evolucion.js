@@ -55,7 +55,7 @@ const SHOTS = process.env.SHOTS || '';
     check('abre la escena de evolución', await p.evaluate(() => document.getElementById('evoEscena').classList.contains('show')));
     await p.click('#evoSaltar');   // 14/11: escena de evolución (se puede saltar)
     await p.waitForTimeout(200);
-    check('muestra "evolucionó a Ivysaur" con la fuerza que se mantuvo y shiny', /evolucionó a Ivysaur/.test(await p.textContent('#evoTexto')) && /Fuerza 90/.test(await p.textContent('#evoFichaDatos')) && /shiny/.test(await p.textContent('#evoFichaNombre')));
+    check('muestra "evolucionó a Ivysaur" con la fuerza que se mantuvo y shiny', /evolucionó a Ivysaur/.test(await p.textContent('#evoTexto')) && /Nivel 90/.test(await p.textContent('#evoFichaDatos')) && /shiny/.test(await p.textContent('#evoFichaNombre')));
     if(SHOTS) await p.screenshot({path: SHOTS + '/evolucion-' + w + '-carta.png'});
     await p.click('#evoSeguir');
     await p.waitForTimeout(300);

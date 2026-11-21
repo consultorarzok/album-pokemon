@@ -1259,3 +1259,52 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;}
 .mej-pips{font-size:15px;letter-spacing:2px;color:var(--poke-blue);}
 .mej-fila .open-btn{min-height:44px;flex:0 0 auto;}
 .ent-mej-reset{min-height:44px;}
+
+
+/* Calendario de regalos de 28 días (21/11) */
+.cal-box{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#E8F6EC,#CDEBD6);border:1.5px solid #3F9F6B;border-radius:14px;padding:12px 14px;margin:0 0 14px;}
+.cal-box[hidden]{display:none;}
+.cal-box.cal-listo{background:linear-gradient(135deg,#FFF6D6,#FFE9A8);border-color:var(--gold);}
+.cal-icono{font-size:30px;line-height:1;flex:0 0 auto;}
+.cal-txt{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 auto;}
+.cal-txt small{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#1F6B44;}
+.cal-box.cal-listo .cal-txt small{color:var(--gold-ink);}
+.cal-txt b{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:18px;line-height:1.15;color:var(--ink);}
+.cal-txt span{font-size:14px;line-height:1.35;color:var(--ink-dim);}
+.cal-txt .cal-barra{display:block;height:6px;border-radius:4px;background:rgba(0,0,0,.12);overflow:hidden;margin-top:4px;}
+.cal-txt .cal-barra i{display:block;height:100%;width:0;background:#3F9F6B;border-radius:4px;transition:width .4s;}
+.cal-box .open-btn{flex:0 0 auto;min-height:44px;}
+.cal-modal{max-width:380px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin:0 0 14px;}
+.name-box .cal-dia{position:relative;width:auto;min-width:0;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;border:1.5px solid var(--border);background:var(--panel);color:var(--ink);font-family:'Baloo 2',sans-serif;font-weight:700;font-size:13px;line-height:1;padding:0;margin:0;cursor:pointer;}
+.name-box .cal-dia small{font-size:14px;line-height:1;margin-top:2px;}
+.name-box .cal-dia.hecho{background:#CDEBD6;border-color:#3F9F6B;}
+.name-box .cal-dia.gordo{background:linear-gradient(135deg,#FFF6D6,#FFE9A8);border-color:var(--gold);}
+.name-box .cal-dia.gordo.hecho{background:linear-gradient(135deg,#BDE7CB,#9AD7B1);border-color:#3F9F6B;}
+.name-box .cal-dia.hoy{border-color:var(--red);box-shadow:0 0 0 2px var(--red);}
+.cal-det{font-size:13px;color:var(--ink);background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:9px 10px;margin:0 0 14px;line-height:1.4;}
+@media (max-width:360px){.name-box .cal-dia{font-size:12px}}
+.cal-modal{max-height:92vh;overflow-y:auto;}
+
+.cal-meta{background:linear-gradient(135deg,#FFF6D6,#FFE9A8);border:1.5px solid var(--gold);border-radius:12px;padding:10px 12px;margin:0 0 12px;text-align:left;}
+.cal-meta>small{display:block;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--gold-ink);margin:0 0 6px;}
+.cal-prem{display:flex;align-items:center;gap:10px;text-align:left;}
+.cal-prem-img{position:relative;flex:0 0 auto;width:84px;height:84px;display:flex;align-items:center;justify-content:center;}
+.cal-prem-img img{max-width:84px;max-height:84px;object-fit:contain;}
+.cal-prem-img img.cal-mont{position:absolute;right:-14px;bottom:-4px;width:44px;height:44px;border-radius:50%;background:#fff;border:2px solid var(--gold);padding:2px;}
+.cal-prem-txt{font-size:13px;line-height:1.4;color:var(--ink);}
+.cal-prem-txt b{display:block;font-family:'Baloo 2',sans-serif;font-size:16px;line-height:1.15;color:var(--ink);}
+img.cal-sil{filter:brightness(0);opacity:.55;}
+.name-box .cal-dia small img.cal-mini{width:26px;height:26px;object-fit:contain;display:block;}
+.name-box .cal-dia small:has(img){margin-top:0;}
+.cal-det .cal-prem{margin-top:6px;}
+.cal-det .cal-prem-img{width:64px;height:64px;}
+.cal-det .cal-prem-img img{max-width:64px;max-height:64px;}
+.cal-prem-img{margin-right:12px;}
+.cal-prem-mont img{max-width:96px;max-height:84px;}
+.cal-det .cal-prem-mont img{max-width:72px;max-height:64px;}
+.cal-prem{flex-wrap:wrap;}
+.cal-prem-txt{flex:1 1 100%;}
+.cal-prem-img{width:auto;min-width:84px;}
+.cal-det .cal-prem-img{min-width:64px;}
+.cal-prem-txt em.cal-mn{font-style:normal;font-weight:800;}

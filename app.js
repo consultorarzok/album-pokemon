@@ -652,7 +652,7 @@ function renderEspeciales(){
   /* misma figurita que las del álbum (.slot dentro de .grid), sólo marcada como especial */
   const estrella = '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>';
   box.innerHTML = mias.length ? '<h3 class="esp-tit">Especiales</h3><div class="grid esp-grid" role="list" aria-label="Figuritas especiales">' + mias.map(e =>
-    `<div class="slot got especial${e.aura ? ' aura-oscura' : ''}" role="listitem" data-esp="${e.id}" style="cursor:pointer" aria-label="${e.name}, figurita especial, fuerza ${especiales[e.id].f}. Se usa en la Arena. Tocá para entrenarla" title="${e.name} · fuerza ${especiales[e.id].f}">` +
+    `<div class="slot got especial${e.aura ? ' aura-oscura' : ''}" role="listitem" data-esp="${e.id}" style="cursor:pointer" aria-label="${e.name}, figurita especial, fuerza ${especiales[e.id].f}. Se usa en la Arena. Tocá para entrenarla" title="${e.name} · nivel ${especiales[e.id].f}">` +
     `<div class="num">#${String(e.base).padStart(3,'0')}</div><div class="esp-tag">${estrella}</div>` +
     `<img src="${e.img}" alt="" loading="lazy"><div class="name">${e.name}</div>` +
     `<div class="typebar" style="background:${TYPE_COLORS[e.type]}"></div></div>`).join('') + '</div>' : '';
@@ -978,7 +978,7 @@ function seccionEntrenar(p, copias){
     const movs = M.movsEjemplar(p, e), tope = e.f >= 100;
     return `<div class="ent-ej" data-id="${p.id}" data-c="${e.c}">
       <div class="ent-cab"><b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}</small>
-        <button class="open-btn sec ent-fz" ${tope || coins < precioSubirFuerza(e.f) ? 'disabled' : ''}>${tope ? 'Fuerza máxima' : 'Subir fuerza · 🪙 ' + precioSubirFuerza(e.f)}</button></div>
+        <button class="open-btn sec ent-fz" ${tope || coins < precioSubirFuerza(e.f) ? 'disabled' : ''}>${tope ? 'Nivel máximo' : 'Subir nivel · 🪙 ' + precioSubirFuerza(e.f)}</button></div>
       ${mejorasHTML(p, e, copias)}
       <div class="ent-movs">${['corto', 'medio', 'largo'].map((alc, k) => { const m = movs[alc]; return `<div class="ent-mov"><span><small>${nomAlc[k]}</small> ${m ? m.n : '—'} <i style="color:${TYPE_COLORS[m ? m.tipo : 'normal']}">●</i></span>
         <button class="open-btn sec ent-at" data-k="${k}" ${ops[k] < 2 || coins < pAt ? 'disabled' : ''}>Cambiar · 🪙 ${pAt}</button></div>`; }).join('')}
@@ -990,7 +990,7 @@ function seccionEntrenar(p, copias){
    se mejoran vida, daño, crítico y velocidad, pero cada ejemplar elige SÓLO 2 de las 4: las otras quedan bloqueadas. 5 niveles por característica,
    cada nivel cuesta 4, 6, 9, 13 y 19 copias. Los números de cada nivel los aplica la Arena (arena.js: estN/statsEj). */
 const MEJORA_COSTO = [4, 6, 9, 13, 19], MEJORA_REINICIO = 50000;
-const MEJORAS = [['vi', '❤️', 'Vida', '+4% por nivel'], ['da', '💥', 'Daño', '+4% por nivel'], ['cr', '🎯', 'Crítico', '+2% de probabilidad'], ['ve', '⚡', 'Velocidad', 'más veloz y esquiva con menos espera']];
+const MEJORAS = [['vi', '❤️', 'Vida', '+4% por mejora'], ['da', '💥', 'Daño', '+4% por mejora'], ['cr', '🎯', 'Crítico', '+2% de probabilidad'], ['ve', '⚡', 'Velocidad', 'más veloz y esquiva con menos espera']];
 const mejN = (e, k) => Math.max(0, Math.min(5, Math.floor(Number(e && e.est && e.est[k])) || 0));
 function mejorasHTML(p, e, copias){
   if(p.especial) return '';
@@ -1000,10 +1000,10 @@ function mejorasHTML(p, e, copias){
   const filas = MEJORAS.map(([k, ico, nom, que]) => {
     const n = mejN(e, k), bloq = n === 0 && llenas, max = n >= 5, costo = MEJORA_COSTO[n];
     const etiqueta = bloq ? '🔒 Bloqueada' : max ? 'Al máximo' : tope[k] ? 'Tope alcanzado' : 'Mejorar · ' + costo + ' copias';
-    return `<div class="mej-fila${bloq ? ' bloq' : ''}"><div class="mej-nom"><b>${ico} ${nom}</b><small>${que}</small></div><span class="mej-pips" aria-label="nivel ${n} de 5">${'▰'.repeat(n)}${'▱'.repeat(5 - n)}</span>
+    return `<div class="mej-fila${bloq ? ' bloq' : ''}"><div class="mej-nom"><b>${ico} ${nom}</b><small>${que}</small></div><span class="mej-pips" aria-label="mejora ${n} de 5">${'▰'.repeat(n)}${'▱'.repeat(5 - n)}</span>
       <button class="open-btn sec ent-mej-go" data-stat="${k}" data-costo="${costo}" ${bloq || max || tope[k] ? 'data-fijo="1"' : ''} disabled>${etiqueta}</button></div>`;
   }).join('');
-  const nota = `<small>🧩 <b>Especialidades ${activos.length}/2</b>: con repetidas elegís <b>2</b> de estas 4 y las otras quedan bloqueadas. La 💪 fuerza sólo sube con monedas.</small>`;
+  const nota = `<small>🧩 <b>Especialidades ${activos.length}/2</b>: con repetidas elegís <b>2</b> de estas 4 y las otras quedan bloqueadas. El 💪 nivel sólo sube con monedas.</small>`;
   const minimo = Math.min(...MEJORAS.filter(m => !(mejN(e, m[0]) === 0 && llenas) && mejN(e, m[0]) < 5).map(m => MEJORA_COSTO[mejN(e, m[0])]).concat([99]));
   const lista = !otras.length ? `<small>Necesitás copias repetidas ${e.s ? '✨ shiny ' : ''}de este Pokémon para mejorarlo.</small>`
     : otras.length < minimo ? `<small>Próxima mejora: ${minimo} copias ${e.s ? '✨ shiny ' : ''}(tenés ${otras.length}).</small>`
@@ -1022,7 +1022,7 @@ function mejorarServidor(id, serie, cs, stat){
   accionServidor('mejorarStat', {id, c: serie, cs, stat}).then(res => {
     if(!res.ok) return avisoServidor(res.motivo);
     const r = res.resultado, m = MEJORAS.find(x => x[0] === r.stat);
-    avisoServidor('ok', m[1] + ' ' + m[2] + ' nivel ' + r.nivel + ' de 5 (' + r.usadas + ' copias usadas)');
+    avisoServidor('ok', m[1] + ' ' + m[2] + ' mejora ' + r.nivel + ' de 5 (' + r.usadas + ' copias usadas)');
     abrirDetalle(id);
   }).catch(() => {}).then(soltar('entrenar'));
 }
@@ -1051,7 +1051,7 @@ document.getElementById('detalleBody').addEventListener('click', ev => {
     if(confirm('¿Cambiar de especialidad? Se borran las mejoras de ' + nom + ' N.º ' + c + ' y cuesta ' + MEJORA_REINICIO.toLocaleString('es-AR') + ' monedas. Las copias gastadas no vuelven.')) reiniciarMejorasServidor(id, c);
     return;
   }
-  if(b.classList.contains('ent-fz')){ if(confirm('¿Subir la fuerza de ' + nom + ' N.º ' + c + '? Suma entre 1 y 3 y se cobra el precio.')) subirFuerzaServidor(id, c); }
+  if(b.classList.contains('ent-fz')){ if(confirm('¿Subir el nivel de ' + nom + ' N.º ' + c + '? Suma entre 1 y 3 y se cobra el precio.')) subirFuerzaServidor(id, c); }
   else if(b.classList.contains('ent-at')){ if(confirm('¿Cambiar este ataque por otro al azar? Se cobra el precio y no se puede volver atrás.')) cambiarAtaquesServidor(id, c, [Number(b.dataset.k)]); }
   else if(b.classList.contains('ent-tres')){ if(confirm('¿Cambiar los 3 ataques por otros al azar? Se cobra el precio y no se puede volver atrás.')) cambiarAtaquesServidor(id, c, [0, 1, 2]); }
 });
@@ -1242,7 +1242,7 @@ function fichaDe(p, ej){
 }
 function fichaHTML(p, ej, conAtaques){
   const s = fichaDe(p, ej); if(!s) return '';
-  return `<div class="ficha-stats"><span>💪 Fuerza <b>${s.f}</b></span><span>❤️ Vida <b>${s.vida}</b></span><span>⚔️ Golpe <b>${s.golpe}%</b></span><span>💥 Crítico <b>${s.crit}%</b> ×${s.critMult.toFixed(1)}</span><span>⚡ Veloc. <b>${s.velTxt}</b></span></div>` +
+  return `<div class="ficha-stats"><span>💪 Nivel <b>${s.f}</b></span><span>❤️ Vida <b>${s.vida}</b></span><span>⚔️ Golpe <b>${s.golpe}%</b></span><span>💥 Crítico <b>${s.crit}%</b> ×${s.critMult.toFixed(1)}</span><span>⚡ Veloc. <b>${s.velTxt}</b></span></div>` +
     (conAtaques && s.movs.length ? `<div class="ficha-movs">${s.movs.join(' · ')}</div>` : '');
 }
 function fichaLinea(p, f){
@@ -1468,11 +1468,11 @@ function evoRevelar(desde, hacia, ej, nueva, color, shiny, salteado){
   evoEspera(salteado ? 50 : 1100, () => {
     document.getElementById('evoFichaNombre').textContent = (shiny ? '✨ ' : '') + hacia.name + (shiny ? ' shiny' : '');
     const datos = [TYPE_LABEL[hacia.type] || hacia.type, hacia.rarity];
-    if(ej && ej.f) datos.unshift('Fuerza ' + ej.f + ' · se mantuvo');
+    if(ej && ej.f) datos.unshift('Nivel ' + ej.f + ' · se mantuvo');
     document.getElementById('evoFichaDatos').textContent = datos.join(' · ');
     document.getElementById('evoFicha').hidden = false;
     esc._compartir = () => {
-      const msg = '¡Mi ' + desde.name + ' evolucionó a ' + hacia.name + (shiny ? ' ✨shiny✨' : '') + (ej && ej.f ? ' con fuerza ' + ej.f : '') +
+      const msg = '¡Mi ' + desde.name + ' evolucionó a ' + hacia.name + (shiny ? ' ✨shiny✨' : '') + (ej && ej.f ? ' con nivel ' + ej.f : '') +
         ' en Entrenadores RZ! 🎉\n¿Vos ya evolucionaste los tuyos? https://entrenadoresrz.com/';
       window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
     };
@@ -2918,7 +2918,7 @@ function botonIncursion(){
       accionServidor('tirarIncursion', {}).then(res => {
         if(!res.ok) return advMensaje(res.motivo === 'se_escapo' ? `${p.name} se escapó.` : 'No se pudo tirar.');
         const r = res.resultado;
-        advMensaje(r.atrapado ? `✨ <b>¡Atrapaste a ${p.name}!</b> Llega con fuerza ${r.f > 100 ? r.f - 100 : r.f}.${fichaLinea(p, r.f)}` : r.escapo ? `${p.name} se soltó y se escapó…` : `¡Casi! ${p.name} se soltó. Te quedan ${r.quedan}.`);
+        advMensaje(r.atrapado ? `✨ <b>¡Atrapaste a ${p.name}!</b> Llega con nivel ${r.f > 100 ? r.f - 100 : r.f}.${fichaLinea(p, r.f)}` : r.escapo ? `${p.name} se soltó y se escapó…` : `¡Casi! ${p.name} se soltó. Te quedan ${r.quedan}.`);
         if(r.atrapado){ renderGrid(); updateProgress(); }
       }).catch(() => advMensaje('Sin conexión.')).then(() => { b.disabled = false; b.dataset.k = ''; });
     };
@@ -7161,7 +7161,7 @@ function advLeerCartel(x, y){
     const cfg = cfgIncursion(gu.region), ap = aperturaIncursion(cfg, Date.now()), p = DATA.find(d => d.id === jefeGuarida(cfg, ap).id) || {name: 'un legendario'};
     advMensaje(ap.abierta
       ? `⚔️ <b>¡La guarida de ${p.name} está abierta!</b> ${ap.hasta - Date.now() > 12 * 3600e3 ? 'Cambia de legendario a las ' + horaJujuy(ap.cambia) + '.' : 'Hasta las ' + horaJujuy(ap.hasta) + '.'} Tocá <b>Incursión</b>: hasta 6 entrenadores (con 4 o más se le puede ganar).`
-      : `🔒 <b>Guarida de ${p.name}</b> (fuerza 90-100). Hay 4 turnos por día (09:00, 14:00, 19:00 y 23:00, hora de Jujuy) y en cada uno abren 5 de las 9 guaridas. A esta le toca el ${diaHoraJujuy(ap.proxima)}.`);
+      : `🔒 <b>Guarida de ${p.name}</b> (nivel 90-100). Hay 4 turnos por día (09:00, 14:00, 19:00 y 23:00, hora de Jujuy) y en cada uno abren 5 de las 9 guaridas. A esta le toca el ${diaHoraJujuy(ap.proxima)}.`);
     return;
   }
   if(cerradoPorEvento(x, y)){
@@ -7260,7 +7260,7 @@ function salirEncuentro(t, x, y){
   aparecerSalvajes(sale, x, y);
 }
 
-/* 16/11 (Zeta): al llegar al altar el legendario ya no se atrapa directo: primero hay que ganarle una pelea (su fuerza sale del rango del jugador; 3 oportunidades).
+/* 16/11 (Zeta): al llegar al altar el legendario ya no se atrapa directo: primero hay que ganarle una pelea (su nivel sale del rango del jugador; 3 oportunidades).
    Sin servidor (modo viejo / pruebas de archivo) se atrapa como siempre. */
 function llegarAlAltar(p){
   if(MODO_SERVIDOR && typeof retarAltar === 'function') retarAltar(p);

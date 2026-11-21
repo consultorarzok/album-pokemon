@@ -38,7 +38,7 @@ const suf = Math.random().toString(36).slice(2, 6);
   const obj = await p.evaluate(() => document.querySelector('.ent-ej').dataset.c);
   const box = `.ent-ej[data-c="${obj}"]`;
   const f0 = await ficha(25, obj);
-  check('se ven las 4 características y la fuerza dice que sólo sube con monedas', await p.evaluate(b => document.querySelectorAll(b + ' .mej-fila').length === 4 && /fuerza sólo sube con monedas/.test(document.querySelector(b + ' .mej').innerText), box));
+  check('se ven las 4 características y el nivel dice que sólo sube con monedas', await p.evaluate(b => document.querySelectorAll(b + ' .mej-fila').length === 4 && /nivel sólo sube con monedas/.test(document.querySelector(b + ' .mej').innerText), box));
   check('todo empieza apagado hasta elegir las copias', await p.evaluate(b => [...document.querySelectorAll(b + ' .ent-mej-go')].every(x => x.disabled), box));
   await marcar(box, 4);
   check('con 4 copias elegidas se prenden las 4 características (nivel 1 cuesta 4)', await p.evaluate(b => [...document.querySelectorAll(b + ' .ent-mej-go')].every(x => !x.disabled), box));
