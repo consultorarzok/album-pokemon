@@ -3989,10 +3989,12 @@ async function luchar(mios, duelo){
   /* con servidor: anota que empieza la pelea y con qué equipo (al terminar controla el tiempo y los premios) */
   /* Modo historia (14/11): desafío de gimnasio. El equipo del líder lo manda el servidor, que además valida que estés al lado del líder */
   const reto = !duelo && window.__retoArena ? window.__retoArena : null;
+  const falso = !duelo && !reto && window.__rivalFalso && Date.now() < window.__rivalFalso.hasta ? window.__rivalFalso : null;   // 22/11: rival de relleno de la Aventura (nombre + fuerza), sin tocar a ningún jugador real
+  window.__rivalFalso = null;
   window.__retoArena = null;
   let gim = null, rivJug = null;
   if(MODO_SERVIDOR && !duelo){
-    const pidoRival = !reto && !Array.isArray(window.__rivalIds) && !window.__rivalNombre;   // 14/11: el rival es un jugador real con su equipo de favoritos ★ (lo arma el servidor)
+    const pidoRival = !reto && !Array.isArray(window.__rivalIds) && !window.__rivalNombre && !falso;   // 14/11: el rival es un jugador real con su equipo de favoritos ★ (lo arma el servidor)
     const res = await accionServidor('arenaEmpezar', reto ? {equipo: mios.map(p => p.id), reto: reto.reto, mapa: reto.mapa, x: reto.x, y: reto.y} : pidoRival ? {equipo: mios.map(p => p.id), desafio: true} : {equipo: mios.map(p => p.id)}).catch(() => null);
     if(!res || !res.ok){ avisoServidor(res ? (res.motivo === 'lejos_del_npc' ? 'lejos_del_lider' : res.motivo) : 'sin_conexion'); return; }
     if(reto && res.resultado && res.resultado.equipo) gim = {nombre: res.resultado.lider, equipo: res.resultado.equipo};
@@ -4001,7 +4003,7 @@ async function luchar(mios, duelo){
   const pDe = id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id];
   const multi = !!(duelo && duelo.multi);
   const rival = gim ? gim.equipo.map(x => pDe(x.id)) : rivJug ? rivJug.equipo.map(x => pDe(x.id)) : duelo && !multi ? duelo.rival.equipo.map(x => pDe(x.id)) : (multi ? [] : armarRival(mios));
-  const ent = gim ? {nombre:gim.nombre, fig:null} : rivJug ? {nombre:rivJug.nombre, fig:null} : duelo && !multi ? {nombre:duelo.rival.nombre, fig:null} : multi ? {nombre:'', fig:null} : elegirRival();
+  const ent = gim ? {nombre:gim.nombre, fig:null} : rivJug ? {nombre:rivJug.nombre, fig:null} : duelo && !multi ? {nombre:duelo.rival.nombre, fig:null} : multi ? {nombre:'', fig:null} : falso ? {nombre:falso.n, fig:falso.fig} : elegirRival();
   if(gim) window.__retoVolver = true;   // al cerrar la Arena se vuelve a la Aventura
   rivalFig = ent.fig;
   const estilo = elige(Object.keys(ESTILOS));

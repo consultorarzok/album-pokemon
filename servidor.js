@@ -1243,7 +1243,7 @@ const FALSOS = [
   {n: 'Slayer', av: 'red', rg: 5}, {n: 'Dark28', av: 'red', rg: 1}
 ];
 const FALSO_BLOQUE_MS = 5 * 60e3, FALSO_BLOQUES = 4, FALSO_PASO_MS = 280;   // turno = 4 bloques = 20 min
-const falsosCache = {};
+const falsosCache = {}, falsosPelea = {};   // falsosPelea: id -> hasta cuándo no buscan batalla (después de pelear)
 function falsosInicio(){
   if(falsosCache.ok !== undefined) return falsosCache.ok;
   falsosCache.ok = false;
@@ -1338,6 +1338,10 @@ function falsosMover(ahora){
     else if(plan.tipo === 'cueva'){ delete MUNDO.otros[id]; return; }   // ya entró a la cueva: no se ve hasta el próximo bloque
     else a = [plan.fin.x, plan.fin.y, plan.d];
     mundoPoner({id, n: f.n, av: f.av, rg: f.rg, m: 'overworld', x: a[0] * 16, y: a[1] * 16, d: a[2], p: 0}, ahora, false);
+    /* parados en su lugar, "buscan batalla" (⚔️ sobre la cabeza) 60 s de cada 100 s, salvo un rato después de pelear con uno */
+    const quieto = paso >= plan.cam.length, hasta = falsosPelea[id] || 0;
+    if(quieto && Date.now() > hasta && ((seg - plan.cam.length * FALSO_PASO_MS + 100e3 * 10 - i * 13e3) % 100e3) < 60e3) MUNDO.busca[id] = ahora + 600;
+    else if(MUNDO.busca[id]) delete MUNDO.busca[id];
   });
 }
 function mundoPoner(o, ahora, saltar){
@@ -1533,13 +1537,14 @@ function sincronizarBatGlobos(lista, escala){
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'adv-batglobo'; b.textContent = '⚔️'; b.setAttribute('aria-label', 'Aceptar la batalla');
     b.addEventListener('pointerdown', ev => ev.stopPropagation());   // no es para caminar
-    b.onclick = () => batallaTocar();
+    b.onclick = () => { const id = Number(b.dataset.id); if(id <= -500 && id > -600) batallaFalso(id); else batallaTocar(); };
     caja.appendChild(b);
   }
   [...caja.children].forEach((el, i) => {
     const o = lista[i];
     if(!o){ el.style.display = 'none'; return; }
     el.style.display = 'grid';
+    el.dataset.id = o.id == null ? '' : String(o.id);
     el.classList.toggle('propio', o.id == null);
     el.style.left = Math.round((o.px + 8) * escala) + 'px';
     el.style.top  = Math.round((o.py - 17) * escala) + 'px';
@@ -1549,6 +1554,17 @@ function batallaEmpezar(m){
   batallaReiniciar();
   if(typeof window.abrirDueloRapido !== 'function' || !m.codigo || arenaAbierta()) return;
   window.abrirDueloRapido({codigo: String(m.codigo), rival: String(m.rival || 'otro entrenador').slice(0, 20)});
+}
+/* Tocás el ⚔️ de uno de los jugadores de relleno: peleás en la Arena contra un equipo armado por el juego (parecido al tuyo), con su nombre.
+   Paga lo mismo que una pelea común de la Arena (no suma nada especial). Después de pelear, ese jugador no busca batalla por 3 min. */
+function batallaFalso(id){
+  const f = FALSOS[-500 - id];
+  if(!f || arenaAbierta() || typeof window.abrirArena !== 'function') return;
+  if(typeof window.puedeDueloRapido === 'function' && !window.puedeDueloRapido()) return;
+  if(MUNDO.buscando){ try{ MUNDO.ws && MUNDO.ws.send(JSON.stringify({k: 'b', on: false})); }catch(e){} batallaReiniciar(); }
+  falsosPelea[id] = Date.now() + 180e3; delete MUNDO.busca[id];
+  window.__rivalFalso = {n: f.n, fig: Math.round(((typeof DATA !== 'undefined' && DATA.length) || 400) * (.25 + .1 * f.rg)), hasta: Date.now() + 5 * 60e3};
+  window.abrirArena();
 }
 function batallaTocar(){
   const bb = document.getElementById('advBatBtn');
