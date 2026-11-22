@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261219">
+<link rel="stylesheet" href="styles.css?v=20261220">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -168,7 +168,6 @@
   <div class="adv-batglobos" id="advBatGlobos"></div>
   <button class="adv-back" id="advCloseBtn">◀ Atrás</button>
   <div class="adv-hud">
-    <button type="button" class="pill adv-ligapill" id="advLigaGuiaBtn" aria-label="La Liga de Jujuy: guiarte hasta tu próximo objetivo" hidden>🧭 La Liga</button>
     <span class="pill">🪙 <b id="advCoins">0</b></span>
     <button type="button" class="pill adv-musica" id="advMusicaBtn" data-musica-btn aria-label="Música" style="cursor:pointer;">🎵</button>
   </div>
@@ -197,6 +196,10 @@
     <button type="button" class="adv-atajo" id="advIncInfoBtn" aria-label="Incursiones: dónde hay una abierta"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/flame.svg" alt="" width="32" height="32"></span><small>Incursión</small><i class="adv-atajo-punto" id="advIncPunto" hidden></i></button>
       <button type="button" class="adv-atajo adv-solo-central" id="advGuiaBtn" aria-label="Cómo se juega: ver la guía de nuevo"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/compass.svg" alt="" width="32" height="32"></span><small>Guía</small></button>
   </div>
+  <div class="adv-liga-grupo" id="advLigaGrupo" hidden>
+    <button type="button" class="adv-atajo" id="advLigaGuiaBtn" aria-label="La Liga de Jujuy: una flecha te guía hasta tu próximo objetivo"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/map-pin.svg" alt="" width="32" height="32"></span><small>Liga</small></button>
+    <button type="button" class="adv-atajo" id="advLigaInfoBtn" aria-label="Guía de la Liga: tus medallas y qué tenés que hacer"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/medal.svg" alt="" width="32" height="32"></span><small>Mi Liga</small></button>
+  </div>
   <div class="adv-tour" id="advTour" hidden>
     <div class="adv-tour-foco" id="advTourFoco"></div>
     <div class="adv-tour-card" id="advTourCard" role="dialog" aria-live="polite">
@@ -208,13 +211,19 @@
   </div>
   <div class="adv-incpanel" id="advMisPanel" hidden role="dialog" aria-modal="true" aria-label="Misiones">
     <div class="adv-incpanel-caja adv-mis-caja">
-      <h3>📜 La Liga de Jujuy</h3>
-      <div id="advMisHistoria"></div>
-      <div class="adv-mis-medallas" id="advMisMedallas"></div>
+      <h3>📜 Misiones</h3>
       <h4>Misiones de hoy</h4>
       <div id="advMisLista"></div>
-      <button type="button" class="adv-liga-btn" id="advLigaBtn">🏆 Clasificados a la Liga <b id="advLigaCont"></b></button>
       <button type="button" class="adv-inc-cerrar" id="advMisCerrar">Cerrar</button>
+    </div>
+  </div>
+  <div class="adv-incpanel" id="advLigaGuiaPanel" hidden role="dialog" aria-modal="true" aria-label="Guía de la Liga">
+    <div class="adv-incpanel-caja adv-mis-caja">
+      <h3>🏆 La Liga de Jujuy</h3>
+      <div id="advMisHistoria"></div>
+      <div class="adv-mis-medallas" id="advMisMedallas"></div>
+      <button type="button" class="adv-liga-btn" id="advLigaBtn">🏆 Clasificados a la Liga <b id="advLigaCont"></b></button>
+      <button type="button" class="adv-inc-cerrar" id="advLigaGuiaCerrar">Cerrar</button>
     </div>
   </div>
   <div class="adv-incpanel" id="advLigaPanel" hidden role="dialog" aria-modal="true" aria-label="Clasificados a la Liga">
@@ -605,8 +614,8 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261168"></script>
-<script src="app.js?v=20261219"></script>
-<script src="servidor.js?v=20261219"></script>
+<script src="app.js?v=20261220"></script>
+<script src="servidor.js?v=20261220"></script>
 <script src="pixfx.js?v=3"></script>
 <script src="arena.js?v=20261216"></script>
 <script src="portada.js?v=20261216"></script>

@@ -9598,7 +9598,7 @@ window.addEventListener('online', () => { if(topFallo) cargarTop(); });
 
   /* --- el Inicio de antes se muda: avisos y firma al panel de Misiones, rankings a su panel --- */
   const caja = document.querySelector('#advMisPanel .adv-mis-caja');
-  const avisos = document.createElement('div'); avisos.id = 'advMenuAvisos'; caja.insertBefore(avisos, $('advMisHistoria'));
+  const avisos = document.createElement('div'); avisos.id = 'advMenuAvisos'; caja.insertBefore(avisos, caja.querySelector('h4'));
   ['eventoBanner', 'diaTematico', 'proximoPaso'].forEach(id => { const e = $(id); if(e) avisos.appendChild(e); });
   { const f = document.querySelector('footer.firma'); if(f){ const w = document.createElement('div'); w.id = 'advMenuFirma'; w.appendChild(f); caja.insertBefore(w, $('advMisCerrar')); } }
   $('rankHost').appendChild(document.querySelector('.rank-panel'));
@@ -9613,7 +9613,7 @@ window.addEventListener('online', () => { if(topFallo) cargarTop(); });
   $('advRankBtn').onclick  = () => { libre(); $('rankOverlay').classList.add('show'); try{ cargarTop(); }catch(e){} };
   $('rankCloseBtn').onclick = () => $('rankOverlay').classList.remove('show');
   $('rankAtrasBtn').onclick = () => $('rankCloseBtn').click();
-  window.cerrarMenuCentral = () => { $('advMisPanel').hidden = true; };   // "Ir a la aventura" del próximo paso: ya estás acá
+  window.cerrarMenuCentral = () => { $('advMisPanel').hidden = true; $('advLigaGuiaPanel').hidden = true; };   // "Ir a la aventura" del próximo paso: ya estás acá
   $('advSobreBtn').onclick = () => { libre(); if(coins < PACK_COST){ advMensaje('Un sobre cuesta <b>' + PACK_COST + '</b> monedas: te faltan <b>' + (PACK_COST - coins) + '</b>. Ganalas con <b>Preguntas</b> o peleando.'); return; } $('openBtn').click(); };
   $('advRepBtn').onclick   = () => { libre(); $('repetidasBtn').click(); };
   $('advEvoBtn').onclick   = () => { libre(); abrirEvolucion(); };
@@ -9631,7 +9631,8 @@ window.addEventListener('online', () => { if(topFallo) cargarTop(); });
     {sel: '#advRankBtn',  t: 'Ranking', d: 'Mirá todos los rankings: semanal, histórico, Maestros y Liga. Ahí ves tu puesto.'},
     {sel: '#advPokedexBtn', t: 'Pokédex', d: 'Tus figuritas. Tocá una para ver su ficha, entrenarla y mejorarla.'},
     {sel: '#advTiendaBtn', t: 'Tienda', d: 'Comprá pokébolas y monturas.'},
-    {sel: '#advMisBtn',   t: 'Misiones', d: 'La historia de la Liga de Jujuy, tus medallas, las misiones del día y los avisos de eventos.'},
+    {sel: '#advMisBtn',   t: 'Misiones', d: 'Las misiones del día para ganar premios y los avisos de eventos.'},
+    {sel: '#advLigaGrupo', t: 'La Liga', d: '<b>Liga</b> pone una flecha que te guía hasta tu próximo objetivo. <b>Mi Liga</b> muestra tus medallas y qué te falta hacer.'},
     {sel: '#advIncInfoBtn', t: 'Incursión', d: 'Te dice dónde hay una incursión abierta y te guía hasta ahí.'},
     {sel: '#advAtajosTop', t: 'Tu colección', d: 'Arriba tenés los <b>sobres</b>, las <b>repetidas</b>, <b>evolucionar</b>, los <b>códigos</b> y tus <b>regalos</b> del día.'},
     {sel: '#advGuiaBtn',  t: 'Guía', d: 'Si te olvidás de algo, tocá acá y te lo explico de nuevo.'}

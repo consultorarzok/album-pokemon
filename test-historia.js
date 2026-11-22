@@ -45,6 +45,9 @@ const suf = Math.random().toString(36).slice(2, 6);
   // misiones
   await p.click('#advMisBtn');
   check('panel de misiones: 3 misiones + bono', await p.waitForFunction(() => document.querySelectorAll('#advMisLista .adv-mis-fila').length === 4, null, {timeout: 8000}).then(() => true, () => false));
+  await p.evaluate(() => { document.getElementById('advMisPanel').hidden = true; });
+  await p.click('#advLigaInfoBtn'); await p.waitForTimeout(1200);
+  check('la guía de la Liga es un panel aparte de Misiones', await p.evaluate(() => !document.getElementById('advLigaGuiaPanel').hidden && document.getElementById('advMisPanel').hidden && !document.querySelector('#advMisPanel #advMisHistoria')));
   check('muestra el paso 2 del capítulo', /Paso 2 de 4/.test(await p.textContent('#advMisHistoria')));
   check('las 19 medallas, ninguna ganada', await p.evaluate(() => document.querySelectorAll('#advMisMedallas img').length === 19 && !document.querySelector('#advMisMedallas .on')));
   if(SHOTS) await p.screenshot({path: SHOTS + '/historia-misiones.png'});
@@ -77,7 +80,7 @@ const suf = Math.random().toString(36).slice(2, 6);
   check('el servidor rechaza el gimnasio 2 sin la medalla 1 (falta_medalla_previa)', g2 && g2.ok === false && g2.motivo === 'falta_medalla_previa', g2);
   // panel de misiones: próximo objetivo con botón de flecha
   await p.evaluate(() => { advGuiaObj = null; });
-  await p.click('#advMisBtn'); await p.waitForTimeout(1200);
+  await p.evaluate(() => { document.getElementById('advMisPanel').hidden = true; }); await p.click('#advLigaInfoBtn'); await p.waitForTimeout(1200);
   check('en el paso 2 (atrapar 3) no hay lugar al que guiar: sin botón Guiarme', await p.evaluate(() => !document.getElementById('advMisGuia')));
   const objs = await p.evaluate(() => [proximoObjetivo({paso: 0, cnt: 0, medallas: []}), proximoObjetivo({paso: 1, cnt: 3, medallas: []}), proximoObjetivo({paso: 3, cnt: 0, medallas: []}), proximoObjetivo({paso: 3, cnt: 0, medallas: ['g1']}), proximoObjetivo({paso: 4, cnt: 0, medallas: ['g1']}), proximoObjetivo({paso: 4, cnt: 0, medallas: ['g1', 'g2', 'g3']}), proximoObjetivo({paso: 4, cnt: 0, medallas: MEDALLAS.map(m => m.id)})].map(o => o && [o.x, o.y]));
   check('próximo objetivo: Guardián (79,125) al inicio y al cumplir; Rey (93,148) en el paso 3; Guardián al ganar la medalla; luego g2 (139,135), g4 y nada con las 19',
@@ -87,7 +90,7 @@ const suf = Math.random().toString(36).slice(2, 6);
   const ganado = await p.evaluate(() => { HIST.estado = {paso: 4, cnt: 0, medallas: ['g1'], dia: {ms: [], d: ''}, bonoPremio: {}}; return proximoObjetivo(HIST.estado) && [proximoObjetivo(HIST.estado).x, proximoObjetivo(HIST.estado).y]; });
   check('con la medalla 1, el próximo objetivo es el líder 2 (139,135)', JSON.stringify(ganado) === JSON.stringify([139, 135]), ganado);
   // etapa 2 (guía): el líder 5 (Cauchari 38,32) sin la medalla 1 te manda al PRIMERO que falta (el 1: Rey sin Corona, 93,148), no al anterior (el 4)
-  await p.evaluate(() => { document.getElementById('advMisPanel').hidden = true; document.getElementById('arenaOverlay').classList.remove('show'); window.__retoVolver = false; advAbierto || abrirAventura(); document.getElementById('advCharla').hidden = true; advGuiaObj = null; });
+  await p.evaluate(() => { document.getElementById('advMisPanel').hidden = true; document.getElementById('advLigaGuiaPanel').hidden = true; document.getElementById('arenaOverlay').classList.remove('show'); window.__retoVolver = false; advAbierto || abrirAventura(); document.getElementById('advCharla').hidden = true; advGuiaObj = null; });
   await p.waitForTimeout(1500);
   await p.evaluate(() => { document.getElementById('advCharlaTxt').textContent = ''; advPonerEn(38, 33); });
   await p.waitForFunction(() => /Señor del Rayo/.test(document.getElementById('advNpcBtn').textContent) && !document.getElementById('advNpcBtn').hidden, null, {timeout: 8000});
@@ -97,7 +100,7 @@ const suf = Math.random().toString(36).slice(2, 6);
   await p.evaluate(() => [...document.querySelectorAll('#advCharlaBotones button')].find(b => /Guiame/.test(b.textContent)).click());
   check('la flecha apunta al líder 1 (93,148)', await p.evaluate(() => advGuiaObj && advGuiaObj.x === 93 && advGuiaObj.y === 148));
   // botón de arriba "🧭 La Liga"
-  check('hay un botón arriba "🧭 La Liga" visible', await p.evaluate(() => { const b = document.getElementById('advLigaGuiaBtn'); return !!b && !b.hidden && /La Liga/.test(b.textContent); }));
+  check('hay un botón "Liga" visible (grupo propio a la derecha)', await p.evaluate(() => { const b = document.getElementById('advLigaGuiaBtn'), g = document.getElementById('advLigaGrupo'); return !!b && !g.hidden && /Liga/.test(b.textContent); }));
   check('mientras hay flecha el botón está iluminado', await p.waitForFunction(() => document.getElementById('advLigaGuiaBtn').classList.contains('activo'), null, {timeout: 3000}).then(() => true, () => false));
   await p.click('#advLigaGuiaBtn'); await p.waitForTimeout(300);
   check('tocar el botón con flecha prendida la apaga', await p.evaluate(() => advGuiaObj === null));
@@ -106,7 +109,7 @@ const suf = Math.random().toString(36).slice(2, 6);
   // etapa 2 (requisitos): con la medalla 1 y sin cumplir lo del líder 2, el líder lista lo que pide (✅/⬜) y no ofrece pelear
   const req = await p.evaluate(async () => (await accionServidor('historiaVer', {gym: 'g2'})).resultado.reqGym);
   check('el servidor devuelve los requisitos del líder 2 (4 Bicho, atrapar 7, levantar 5, 40 figuritas)', req && req.id === 'g2' && req.req.length === 4 && /Bicho/.test(req.req[0].t) && /Atrap/.test(req.req[1].t), req);
-  await p.evaluate(() => { document.getElementById('advMisPanel').hidden = true; document.getElementById('advCharla').hidden = true; document.getElementById('advCharlaTxt').textContent = ''; window.__cargarOrig = cargarHistoria; cargarHistoria = () => Promise.resolve({paso: 4, cnt: 0, medallas: ['g1'], dia: {ms: [], d: ''}, bonoPremio: {}, sig: 'g2', req: [], reqGym: {id: 'g2', req: [{t: 'Tené 3 Pokémon de tipo Bicho', meta: 3, v: 1, ok: false}, {t: 'Atrapá 5 Pokémon en la Aventura', meta: 5, v: 5, ok: true}]}}); advPonerEn(139, 136); });
+  await p.evaluate(() => { document.getElementById('advMisPanel').hidden = true; document.getElementById('advLigaGuiaPanel').hidden = true; document.getElementById('advCharla').hidden = true; document.getElementById('advCharlaTxt').textContent = ''; window.__cargarOrig = cargarHistoria; cargarHistoria = () => Promise.resolve({paso: 4, cnt: 0, medallas: ['g1'], dia: {ms: [], d: ''}, bonoPremio: {}, sig: 'g2', req: [], reqGym: {id: 'g2', req: [{t: 'Tené 3 Pokémon de tipo Bicho', meta: 3, v: 1, ok: false}, {t: 'Atrapá 5 Pokémon en la Aventura', meta: 5, v: 5, ok: true}]}}); advPonerEn(139, 136); });
   await p.waitForFunction(() => /Guardián de la Selva/.test(document.getElementById('advNpcBtn').textContent) && !document.getElementById('advNpcBtn').hidden, null, {timeout: 8000});
   await p.click('#advNpcBtn');
   await p.waitForFunction(() => /cumplir esto/.test(document.getElementById('advCharlaTxt').textContent), null, {timeout: 8000});

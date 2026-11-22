@@ -1393,3 +1393,16 @@ body.central .adv-atajo small{font-size:8px;}
 .adv-chatlog b{color:#FFD25E;}
 body.chat-abierto .adv-stick,body.chat-abierto .adv-atajos,body.chat-abierto .adv-atajos-top{opacity:.35;pointer-events:none;}
 .adv-chatbar{padding-bottom:calc(8px + env(safe-area-inset-bottom));}
+
+/* Liga (22/11, pedido de Zeta): botones propios, separados del resto, a la derecha debajo del minimapa */
+.adv-liga-grupo{position:absolute;right:10px;top:196px;z-index:4;display:flex;flex-direction:column;gap:4px;padding:5px;border-radius:16px;background:rgba(255,211,90,.16);border:1.5px solid rgba(255,211,90,.55);}
+.adv-liga-grupo[hidden]{display:none;}
+.adv-liga-grupo .adv-atajo{border-color:rgba(255,211,90,.7);}
+.adv-liga-grupo .adv-atajo.activo{background:#ffd35a;color:#1a1a1a;}
+#advLigaGuiaBtn span:has(.ico-svg){background:linear-gradient(#FFC93C,#D98E04);}
+#advLigaInfoBtn span:has(.ico-svg){background:linear-gradient(#FF7A45,#C2410C);}
+body.chat-abierto .adv-liga-grupo{opacity:.35;pointer-events:none;}
+/* fila de arriba: todo a la izquierda, en una sola fila */
+.adv-atajos-top{display:flex;flex-wrap:nowrap;justify-content:flex-start;align-items:center;}
+.adv-atajos-top .adv-atajo{flex:0 0 auto;}
+@media (max-width:360px){ body.central .adv-atajos-top .adv-atajo{width:40px;height:40px;} }

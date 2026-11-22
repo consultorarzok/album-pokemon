@@ -676,9 +676,9 @@ function guiaLiga(){
   });
 }
 (() => {
-  const b = document.getElementById('advLigaGuiaBtn'); if(!b) return;
+  const b = document.getElementById('advLigaGuiaBtn'), g = document.getElementById('advLigaGrupo'); if(!b || !g) return;
   b.onclick = guiaLiga;
-  setInterval(() => { b.hidden = !servidorListo; b.classList.toggle('activo', !!advGuiaObj); }, 600);   // se muestra con el servidor y se ilumina mientras hay flecha
+  setInterval(() => { g.hidden = !servidorListo; b.classList.toggle('activo', !!advGuiaObj); }, 600);   // se muestra con el servidor y se ilumina mientras hay flecha
 })();
 /* Qué viene ahora en la historia (capítulo 1 y después los gimnasios EN ORDEN); null si no hay un lugar al que ir todavía */
 function proximoObjetivo(e){
@@ -746,7 +746,7 @@ function pintarMisiones(){
     const act = !!(advGuiaObj && advGuiaObj.x === ob.x && advGuiaObj.y === ob.y);
     const reqTxt = e.paso >= CAP1.length && e.req && e.req.length ? `<br><small>Para desafiarlo necesitás:</small><br>${listaReq(e.req)}<br>` : '';
     document.getElementById('advMisHistoria').insertAdjacentHTML('beforeend', `<div class="adv-mis-paso" style="margin-top:8px">📍 <b>Próximo objetivo:</b> ${ob.texto}.${reqTxt}<br><button type="button" class="adv-liga-btn" id="advMisGuia" style="margin:8px 0 0">${act ? '❌ Quitar flecha' : '🧭 Guiarme con una flecha'}</button></div>`);
-    document.getElementById('advMisGuia').onclick = () => { if(act) advGuiaObj = null; else { guiarA(ob); document.getElementById('advMisPanel').hidden = true; } pintarMisiones(); };
+    document.getElementById('advMisGuia').onclick = () => { if(act) advGuiaObj = null; else { guiarA(ob); document.getElementById('advLigaGuiaPanel').hidden = true; } pintarMisiones(); };
   }
   document.getElementById('advMisMedallas').innerHTML = `<div style="width:100%;text-align:center;font-size:12px;margin-bottom:2px">🏅 Medallas: <b>${e.medallas.length} de ${MEDALLAS.length}</b></div>` + MEDALLAS.map(m => `<span class="adv-mis-medalla${e.medallas.includes(m.id) ? ' on' : ''}" title="${m.nombre} · ${m.lider} · ${m.lugar}"><img src="images/medallas/${m.id}.png" alt="${m.nombre}${e.medallas.includes(m.id) ? '' : ' (todavía no)'}"></span>`).join('');
   const L = document.getElementById('advMisLista'); L.innerHTML = '';
@@ -785,6 +785,12 @@ function abrirMisiones(){
   document.getElementById('advMisPanel').hidden = false;
   cargarHistoria(); cargarLiga();
 }
+function abrirLigaGuia(){
+  if(!servidorListo){ advMensaje('La guía de la Liga necesita conexión 📶'); return; }
+  teclasApretadas.clear(); advEje = {x: 0, y: 0};
+  document.getElementById('advLigaGuiaPanel').hidden = false;
+  cargarHistoria(); cargarLiga();
+}
 /* ---- Liga de Jujuy: los 10 primeros con las 19 medallas (los anota el servidor; acá sólo se muestran) ---- */
 const LIGA = {datos: null, timer: null};
 const horaLiga = ts => { try{ return new Date(ts).toLocaleString('es-AR', {timeZone: 'America/Argentina/Jujuy', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false}).replace(',', ' ·'); }catch(e){ return ''; } };
@@ -819,6 +825,8 @@ function abrirLiga(){
 (() => {
   const b = document.getElementById('advMisBtn'); if(b) b.onclick = abrirMisiones;
   const c = document.getElementById('advMisCerrar'); if(c) c.onclick = () => { document.getElementById('advMisPanel').hidden = true; };
+  const li = document.getElementById('advLigaInfoBtn'); if(li) li.onclick = abrirLigaGuia;
+  const lc = document.getElementById('advLigaGuiaCerrar'); if(lc) lc.onclick = () => { document.getElementById('advLigaGuiaPanel').hidden = true; };
   setInterval(() => { if(servidorListo && typeof advAbierto !== 'undefined' && advAbierto) cargarHistoria(); }, 90000);   // el puntito de "hay algo para cobrar"
 })();
 

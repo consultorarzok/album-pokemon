@@ -91,6 +91,14 @@ const nota = t => { notas.push(t); console.log('  · ' + t); };
   const mis = await p.evaluate(() => document.getElementById('advMisPanel').hidden ? null : document.getElementById('advMisPanel').innerText.replace(/\s+/g, ' ').slice(0, 700));
   check('Misiones abre', !!mis); nota('Misiones dice: ' + mis);
   await p.evaluate(() => { document.getElementById('advMisPanel').hidden = true; });
+  check('Misiones ya no mezcla la historia de la Liga', await p.evaluate(() => !document.querySelector('#advMisPanel #advMisHistoria') && !document.querySelector('#advMisPanel #advMisMedallas')));
+  check('el grupo Liga está a la derecha, debajo del minimapa, sin pisarlo', await p.evaluate(() => { const g = document.getElementById('advLigaGrupo').getBoundingClientRect(), m = document.getElementById('advMini').getBoundingClientRect(); return !document.getElementById('advLigaGrupo').hidden && g.left > innerWidth / 2 && g.top >= m.bottom && g.right <= innerWidth; }));
+  await p.tap('#advLigaInfoBtn'); await p.waitForTimeout(1500); await shot('16b-mi-liga');
+  const lig = await p.evaluate(() => document.getElementById('advLigaGuiaPanel').hidden ? null : document.getElementById('advLigaGuiaPanel').innerText.replace(/\s+/g, ' ').slice(0, 600));
+  check('Mi Liga abre con el paso y las medallas', !!lig && /Capítulo 1/.test(lig) && /Medallas/.test(lig)); nota('Mi Liga dice: ' + lig);
+  await p.evaluate(() => { document.getElementById('advLigaGuiaPanel').hidden = true; });
+  await p.tap('#advLigaGuiaBtn'); await p.waitForTimeout(1500); await shot('16c-liga-flecha');
+  check('el botón Liga guía: pone la flecha o explica el paso', await p.evaluate(() => !!advGuiaObj || /Liga de Jujuy|Guardián/.test(document.getElementById('advZona').textContent + document.getElementById('advCharlaTxt').textContent)));
   await p.tap('#advIncInfoBtn'); await p.waitForTimeout(1000); await shot('17-incursion'); check('Incursión abre', await p.evaluate(() => !document.getElementById('advIncPanel') || !document.getElementById('advIncPanel').hidden || true));
   await p.evaluate(() => { document.querySelectorAll('.adv-incpanel').forEach(e => e.hidden = true); });
 
