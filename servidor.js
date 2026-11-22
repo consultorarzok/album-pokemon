@@ -1151,7 +1151,7 @@ if(MODO_SERVIDOR) arrancarServidor();
    Mientras la Aventura está abierta, una conexión al "mundo" del servidor: cada celular cuenta
    dónde está (~5 veces por segundo, sólo si se movió; si está quieto, cada 20 s para seguir
    visible) y recibe a los demás. Es sólo para verse: no paga ni descuenta nada. */
-const MUNDO = {ws: null, abierto: false, otros: {}, ultimoEnvio: 0, ultimo: '', reintento: null, yo: null, globos: {}, buscando: false, busca: {}, bots: null, desfase: 0};
+const MUNDO = {log: [], ws: null, abierto: false, otros: {}, ultimoEnvio: 0, ultimo: '', reintento: null, yo: null, globos: {}, buscando: false, busca: {}, bots: null, desfase: 0};
 function mundoEntrar(){
   if(!MODO_SERVIDOR) return;
   MUNDO.abierto = true;
@@ -1184,7 +1184,12 @@ function mundoSalir(){
 }
 function mundoMensaje(m){
   const ahora = performance.now();
-  if(m.t === 'chat'){ MUNDO.globos[m.id] = {txt: String(m.txt || '').slice(0, 60), hasta: ahora + 6500}; return; }
+  if(m.t === 'chat'){
+    MUNDO.globos[m.id] = {txt: String(m.txt || '').slice(0, 60), hasta: ahora + 6500};
+    const o = MUNDO.otros[m.id], quien = m.id === MUNDO.yo ? 'Vos' : ((o && o.n) || 'Entrenador');   // 22/11: historial para leer lo que te contestan mientras escribís
+    MUNDO.log.push({q: quien, t: String(m.txt || '').slice(0, 60), a: Date.now()}); if(MUNDO.log.length > 30) MUNDO.log.shift();
+    chatLogPintar(); return;
+  }
   if(m.t === 'chat_no'){ chatAviso(m); return; }
   if(m.t === 'busca'){ if(!arenaAbierta()) MUNDO.busca[m.id] = ahora + BATALLA_BUSCA_MS; return; }
   if(m.t === 'busca_no'){ delete MUNDO.busca[m.id]; return; }
@@ -1309,16 +1314,71 @@ function chatAviso(m){
   a.textContent = CHAT_AVISOS[m.motivo] || 'No se pudo mandar.';
   clearTimeout(chatAviso._t); chatAviso._t = setTimeout(() => { a.textContent = ''; }, 4000);
 }
+/* 22/11 Zeta: "a la hora de escribir se corta, no se ve la pantalla, se pone lento". Al abrir el teclado el celular achica la pantalla y el juego redibujaba el mapa
+   en cada cuadro de la animación (y lo estiraba). Ahora, mientras se escribe: el mapa queda con el tamaño que tenía (no se redibuja por el cambio de tamaño), la barra se pega
+   justo arriba del teclado (visualViewport) y se ve el historial de los últimos mensajes. */
+function chatTecladoInicio(){
+  const cv = document.getElementById('advMap'); if(!cv || document.body.classList.contains('chat-abierto')) return;
+  cv._fijo = {w: cv.clientWidth, h: cv.clientHeight};
+  cv.style.width = cv._fijo.w + 'px'; cv.style.height = cv._fijo.h + 'px'; cv.style.top = '0'; cv.style.bottom = 'auto'; cv.style.right = 'auto';
+  document.body.classList.add('chat-abierto');
+  teclasApretadas.clear(); advEje = {x: 0, y: 0};
+  if(window.visualViewport){ window.visualViewport.addEventListener('resize', chatTecladoAjustar); window.visualViewport.addEventListener('scroll', chatTecladoAjustar); }
+  chatTecladoAjustar();
+}
+function chatTecladoFin(){
+  const cv = document.getElementById('advMap'), bar = document.getElementById('advChatBar');
+  if(!document.body.classList.contains('chat-abierto')) return;
+  document.body.classList.remove('chat-abierto');
+  if(window.visualViewport){ window.visualViewport.removeEventListener('resize', chatTecladoAjustar); window.visualViewport.removeEventListener('scroll', chatTecladoAjustar); }
+  if(cv){ cv.style.width = cv.style.height = cv.style.top = cv.style.bottom = cv.style.right = ''; cv._fijo = null; }
+  if(bar){ bar.style.bottom = ''; }
+  const lg = document.getElementById('advChatLog'); if(lg){ lg.hidden = true; lg.style.bottom = ''; }
+  requestAnimationFrame(() => { try{ advRender(); }catch(e){} });
+}
+function chatTecladoAjustar(){
+  const bar = document.getElementById('advChatBar'), lg = document.getElementById('advChatLog'), vv = window.visualViewport;
+  if(!bar || bar.hidden) return;
+  const tapado = vv ? Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) : 0;   // lo que tapa el teclado (iPhone: no achica la página, achica la vista)
+  bar.style.bottom = tapado + 'px';
+  if(lg) lg.style.bottom = (tapado + bar.offsetHeight + 6) + 'px';
+  clearTimeout(chatTecladoAjustar._t); chatTecladoAjustar._t = setTimeout(chatMapaAjustar, 260);   // cuando el teclado termina de abrirse: UN solo redibujado
+}
+/* el mapa pasa a ocupar sólo lo que se ve arriba de la barra, así el personaje queda a la vista (centrado) y no detrás del teclado */
+function chatMapaAjustar(){
+  const cv = document.getElementById('advMap'), bar = document.getElementById('advChatBar'), vv = window.visualViewport;
+  if(!cv || !bar || bar.hidden || !document.body.classList.contains('chat-abierto')) return;
+  const visibleAbajo = vv ? vv.offsetTop + vv.height : window.innerHeight;
+  const h = Math.max(160, Math.round(visibleAbajo - bar.offsetHeight - 4));
+  if(Math.abs(h - cv.clientHeight) > 2){ cv.style.height = h + 'px'; try{ advRender(); }catch(e){} }
+}
+function chatLogPintar(){
+  const lg = document.getElementById('advChatLog'), bar = document.getElementById('advChatBar');
+  if(!lg || !bar || bar.hidden) return;
+  const hace = Date.now() - 90000, ult = MUNDO.log.filter(l => l.a >= hace).slice(-5);
+  lg.innerHTML = '';
+  ult.forEach(l => { const d = document.createElement('div'); const b = document.createElement('b'); b.textContent = l.q + ': '; d.appendChild(b); d.appendChild(document.createTextNode(l.t)); lg.appendChild(d); });
+  lg.hidden = !ult.length; lg.scrollTop = lg.scrollHeight;
+  chatTecladoAjustar();
+}
+/* 22/11: salir a WhatsApp y volver: la conexión del mundo se cae en segundo plano; al volver se rehace YA (y no a los 4 s, ni quedarse sin ver a nadie) */
+function mundoRevivir(){
+  if(!MUNDO.abierto) return;
+  const ws = MUNDO.ws;
+  if(ws && ws.readyState === 1){ MUNDO.ultimo = ''; return; }   // sigue viva: que mande su posición ya
+  if(ws && ws.readyState === 0) return;
+  MUNDO.ws = null; clearTimeout(MUNDO.reintento); mundoConectar();
+}
 function chatCerrar(){
   const bar = document.getElementById('advChatBar');
-  if(bar && !bar.hidden){ bar.hidden = true; const i = document.getElementById('advChatInput'); if(i){ i.value = ''; i.blur(); } }
+  if(bar && !bar.hidden){ bar.hidden = true; const i = document.getElementById('advChatInput'); if(i){ i.value = ''; i.blur(); } chatTecladoFin(); }
   const b = document.getElementById('advChatBtn'); if(b && MUNDO.ws) b.hidden = false;
   const bb = document.getElementById('advBatBtn'); if(bb && MUNDO.ws) bb.hidden = false;
 }
 (() => {
   const btn = document.getElementById('advChatBtn'), bar = document.getElementById('advChatBar'), inp = document.getElementById('advChatInput');
   if(!btn || !bar || !inp) return;
-  btn.onclick = () => { bar.hidden = false; btn.hidden = true; const bb = document.getElementById('advBatBtn'); if(bb) bb.hidden = true; inp.focus(); };
+  btn.onclick = () => { chatTecladoInicio(); bar.hidden = false; btn.hidden = true; const bb = document.getElementById('advBatBtn'); if(bb) bb.hidden = true; chatLogPintar(); inp.focus({preventScroll: true}); };
   bar.addEventListener('submit', ev => {
     ev.preventDefault();
     const txt = inp.value.trim();

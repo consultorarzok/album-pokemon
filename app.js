@@ -7586,8 +7586,17 @@ function advEncerrado(){
 function abrirAventuraAhora(){
   try{ precargarHojasNpc(); }catch(e){}   // 15/11: recién ahora se bajan las hojas de los NPC y líderes
   /* 11/11: se usa advInicioHecho y NO advDibujado: el pedido de pantalla completa dispara un 'resize' en el celular que llama a advRender() antes de acá, marcaba el mapa como dibujado y el personaje quedaba trabado en la esquina (1,1) */
+  if(!advInicioHecho && AVENTURA_CENTRAL){   // 22/11: volver al mismo lugar donde estabas (si fue hace menos de 12 h y es un lugar válido)
+    try{
+      const g = JSON.parse(localStorage.getItem(ADV_POS_KEY) || 'null');
+      advMapa = 'overworld';
+      const t = g && advTileEn(g.x, g.y);
+      if(g && Date.now() - g.t < 12 * 3600e3 && t && t.walk && !t.entra){ advPonerEn(g.x, g.y); advZonaActual = ''; }
+    }catch(e){}
+  }
   const _t0 = advTileEn(Math.floor(advPx / ADV_PX), Math.floor(advPy / ADV_PX));
-  if(!advInicioHecho || (advMapa === 'overworld' && (!_t0 || !_t0.walk || advEncerrado()))){
+  const _volvio = AVENTURA_CENTRAL && !advInicioHecho && advPx !== 16 && advPy !== 16;   // ya se la puso en el lugar guardado
+  if(!_volvio && (!advInicioHecho || (advMapa === 'overworld' && (!_t0 || !_t0.walk || advEncerrado())))){
     const inicio = advBuscarTile('overworld', '@');
     advPonerEn(inicio.x, inicio.y);
     advZonaActual = '';
@@ -7705,7 +7714,34 @@ zonaToque.addEventListener('pointermove', ev => {
   zonaToque.addEventListener(tipo, ev => { if(ev.pointerId === stickPuntero) soltarStick(); });
 });
 
-window.addEventListener('resize', () => { if(advAbierto) advRender(); });
+let advResizeRaf = 0;
+window.addEventListener('resize', () => {
+  /* 22/11: el teclado del chat achica la pantalla: no se redibuja el mapa por eso (se hace al cerrarlo); y los 'resize' seguidos se juntan en uno por cuadro */
+  if(advAbierto && document.body.classList.contains('chat-abierto')){ if(typeof chatTecladoAjustar === 'function') chatTecladoAjustar(); return; }   // con el teclado abierto el ajuste se hace una sola vez, al terminar
+  if(!advAbierto || advResizeRaf) return;
+  advResizeRaf = requestAnimationFrame(() => { advResizeRaf = 0; if(advAbierto && !document.body.classList.contains('chat-abierto')) advRender(); });
+});
+/* 22/11 Zeta: "salí a mandar un WhatsApp, volví y se cerró todo / se tilda". Se guarda dónde estás (para volver al mismo lugar aunque el celular cierre la pestaña por falta de memoria)
+   y al volver a la app se retoma: reloj sin saltos, mundo reconectado y mapa redibujado. */
+const ADV_POS_KEY = 'album-aventura-pos';
+function advGuardarPos(){
+  if(!advAbierto || !advInicioHecho) return;
+  try{
+    const v = advMapa === 'overworld' ? {x: advX, y: advY} : advVuelta;   // adentro de una cueva se vuelve a la entrada
+    if(v) localStorage.setItem(ADV_POS_KEY, JSON.stringify({x: v.x, y: v.y, t: Date.now()}));
+  }catch(e){}
+}
+setInterval(advGuardarPos, 4000);
+window.addEventListener('pagehide', advGuardarPos);
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){ advGuardarPos(); return; }
+  if(!advAbierto) return;
+  advUltimo = performance.now(); advMedia = 16; advAbiertoT = 0;   // sin saltos de tiempo ni bajar la calidad por lo que pasó en segundo plano
+  if(!advRaf) advRaf = requestAnimationFrame(advCiclo);
+  requestAnimationFrame(() => { try{ advRender(); }catch(e){} });
+  if(typeof mundoRevivir === 'function') mundoRevivir();
+});
+window.addEventListener('pageshow', ev => { if(ev.persisted && advAbierto){ advUltimo = performance.now(); if(!advRaf) advRaf = requestAnimationFrame(advCiclo); if(typeof mundoRevivir === 'function') mundoRevivir(); } });
 
 document.getElementById('advBtn').onclick = abrirAventura;
 document.getElementById('advCloseBtn').onclick = cerrarAventura;

@@ -1387,3 +1387,9 @@ body.central .adv-atajo small{font-size:8px;}
 #advRegaloBtn span:has(.ico-svg){background:linear-gradient(#FF7EB6,#C9387A);}
 #advGuiaBtn span:has(.ico-svg){background:linear-gradient(#4C8DFF,#2457C5);}
 @media (max-height:560px){ body.central .adv-atajos{display:grid;grid-template-columns:repeat(3,44px);top:58px;} body.central .adv-atajos-top .adv-atajo{width:44px;height:44px;} }
+/* chat cómodo (22/11): historial arriba de la barra y barra pegada al teclado */
+.adv-chatlog{position:absolute;left:10px;right:10px;bottom:70px;z-index:6;max-height:30%;overflow:auto;display:flex;flex-direction:column;gap:3px;padding:6px 10px;border-radius:12px;background:rgba(16,20,38,.9);color:#fff;font-family:'Baloo 2',sans-serif;font-size:14px;line-height:1.25;pointer-events:none;}
+.adv-chatlog[hidden]{display:none;}
+.adv-chatlog b{color:#FFD25E;}
+body.chat-abierto .adv-stick,body.chat-abierto .adv-atajos,body.chat-abierto .adv-atajos-top{opacity:.35;pointer-events:none;}
+.adv-chatbar{padding-bottom:calc(8px + env(safe-area-inset-bottom));}
