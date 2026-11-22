@@ -6014,7 +6014,7 @@ function avistamientoActivo(){
    pedazo del mapa y la cámara sigue al jugador). */
 function advEscala(ancho, alto){
   const chico = Math.min(ancho, alto);
-  let base = (chico < 420 ? 1.55 : chico < 700 ? 1.85 : 2.3) * 0.92;   // 22/11 Zeta: cámara 15 % más lejos y luego un poco más cerca (0,85 → 0,92) para que los botones no tapen el mapa para que los botones no tapen el mapa   // 13/11 Zeta: la cámara un poco más lejos todavía (antes 1,85 / 2,2 / 2,7): se ven menos los defectos de los compañeros y más terreno   // 12/11 Zeta: la cámara un poco más lejos (antes 2,3 / 2,7 / 3,2)   // Zeta 27/10: con mejor gráfico se ve más terreno (antes 3 / 3,4 / 4)
+  let base = (chico < 420 ? 1.55 : chico < 700 ? 1.85 : 2.3) * 1.012;   // 22/11 Zeta: cámara 10 % más cerca (0,92 → 1,012) porque no se veían los Pokémon;   // 22/11 Zeta: cámara 15 % más lejos y luego un poco más cerca (0,85 → 0,92) para que los botones no tapen el mapa para que los botones no tapen el mapa   // 13/11 Zeta: la cámara un poco más lejos todavía (antes 1,85 / 2,2 / 2,7): se ven menos los defectos de los compañeros y más terreno   // 12/11 Zeta: la cámara un poco más lejos (antes 2,3 / 2,7 / 3,2)   // Zeta 27/10: con mejor gráfico se ve más terreno (antes 3 / 3,4 / 4)
   /* El avistamiento ya no pasa siempre pegado al altar (RADIO_AVISTAMIENTO):
      la cámara se aleja lo que haga falta para que jugador y altar-plataforma
      entren los dos en pantalla, con aire, en vez de un alejamiento fijo que

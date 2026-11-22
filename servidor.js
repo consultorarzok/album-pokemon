@@ -1232,6 +1232,114 @@ function botsMover(ahora, saltar){
     mundoPoner({id: b.id, n: b.n, av: b.av, npc: b.npc, m: 'overworld', x: a[0] * 16, y: a[1] * 16, d: a[2], p: i % 4}, ahora, !!saltar);
   }
 }
+/* 22/11 (Zeta): jugadores de relleno. 10 nombres que se ven como entrenadores más, para todos: 5 a la vez, y cada 20 min se
+   cambian por los otros 5 (el grupo que se va entra a una cueva; el nuevo sale de una). Cada 5 min van a un lugar nuevo: parados al lado
+   de uno de los 6 primeros líderes, sobre un altar, o se meten en una cueva. Caminan por los caminos reales del mapa. Todo sale del reloj
+   del servidor (igual que los bots), así que todos ven lo mismo, sin gastar nada del servidor. Sólo se ven (sin chat, sin ranking, sin premios). */
+const FALSOS = [
+  {n: 'Naruto Uzumaki', av: 'red', rg: 3}, {n: 'Gabriel0027', av: 'red', rg: 1}, {n: 'Bosterito', av: 'red', rg: 2},
+  {n: 'Luana L.', av: 'may', rg: 2}, {n: 'Franco Lopez', av: 'red', rg: 4},
+  {n: 'Anto ♡', av: 'may', rg: 3}, {n: 'Robert', av: 'red', rg: 2}, {n: 'Guerrero09', av: 'red', rg: 1},
+  {n: 'Slayer', av: 'red', rg: 5}, {n: 'Dark28', av: 'red', rg: 1}
+];
+const FALSO_BLOQUE_MS = 5 * 60e3, FALSO_BLOQUES = 4, FALSO_PASO_MS = 280;   // turno = 4 bloques = 20 min
+const falsosCache = {};
+function falsosInicio(){
+  if(falsosCache.ok !== undefined) return falsosCache.ok;
+  falsosCache.ok = false;
+  try{
+    const mp = ADV_MAPS.overworld, rows = mp.rows, W = mp.cols, H = rows.length;
+    const cam = new Uint8Array(W * H), altares = [], cuevas = [];
+    for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
+      const ch = rows[y].charAt(x), t = ADV_TILE[ch];
+      if(t && t.walk) cam[y * W + x] = 1;
+      if(ch === 'L') altares.push([x, y]);
+      if(ch === 'C' || ch === '$') cuevas.push([x, y]);
+    }
+    /* los 6 primeros líderes (los bots -107…-112 de bots.json); alrededor de cada uno, casilleros caminables donde pararse */
+    const lid = [[93, 149], [139, 136], [26, 178], [133, 110], [38, 32], [90, 13]].map(([lx, ly]) => {
+      const c = [];
+      for(const r of [1, 2]) for(const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [2, 0], [-2, 0], [0, 2], [0, -2]]){
+        if(Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+        const x = lx + dx, y = ly + dy;
+        if(x >= 0 && y >= 0 && x < W && y < H && cam[y * W + x]) c.push([x, y, Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'izq' : 'der') : (dy > 0 ? 'arriba' : 'abajo')]);
+      }
+      return c;
+    }).filter(c => c.length);
+    Object.assign(falsosCache, {ok: lid.length > 0 && cuevas.length > 0, W, H, cam, altares, cuevas, lid, memo: new Map()});
+    /* sólo los lugares del continente principal (hay islitas a las que no se llega caminando) */
+    const base = falsoBFS(lid[0][0][0], lid[0][0][1]).dist;
+    const sirve = a => base[a[1] * W + a[0]] >= 0;
+    falsosCache.altares = altares.filter(sirve); falsosCache.cuevas = cuevas.filter(sirve);
+    falsosCache.lid = lid.map(c => c.filter(sirve)).filter(c => c.length);
+    falsosCache.ok = falsosCache.lid.length > 0 && falsosCache.cuevas.length > 0;
+  }catch(e){ falsosCache.ok = false; }
+  return falsosCache.ok;
+}
+function falsoRand(a, b, c){ let h = Math.imul(a + 1, 73856093) ^ Math.imul(b + 1, 19349663) ^ Math.imul(c + 1, 83492791); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+/* Camino más corto (por casilleros caminables) desde (x0,y0): devuelve las distancias y de dónde se llegó a cada casillero */
+function falsoBFS(x0, y0){
+  const {W, H, cam} = falsosCache, dist = new Int32Array(W * H).fill(-1), ant = new Int32Array(W * H).fill(-1);
+  const q = new Int32Array(W * H); let a = 0, b = 0;
+  q[b++] = y0 * W + x0; dist[y0 * W + x0] = 0;
+  while(a < b){
+    const i = q[a++], x = i % W;
+    for(const j of [i + 1, i - 1, i + W, i - W]){
+      if(j < 0 || j >= W * H || dist[j] >= 0 || !cam[j]) continue;
+      if(Math.abs((j % W) - x) > 1) continue;
+      dist[j] = dist[i] + 1; ant[j] = i; q[b++] = j;
+    }
+  }
+  return {dist, ant};
+}
+/* A dónde va el jugador i en el bloque bi del turno tn, y por dónde camina. El bloque 0 sale de una cueva; el último vuelve a una. */
+function falsoPlan(i, tn, bi){
+  const C = falsosCache, clave = i + ':' + tn + ':' + bi;
+  let r = C.memo.get(clave); if(r) return r;
+  let ini;
+  if(bi === 0){ const c = C.cuevas[Math.floor(falsoRand(i, tn, 90) * C.cuevas.length)]; ini = {x: c[0], y: c[1]}; }
+  else ini = falsoPlan(i, tn, bi - 1).fin;
+  const {dist, ant} = falsoBFS(ini.x, ini.y), W = C.W;
+  const alcanza = (x, y) => dist[y * W + x] >= 0 && dist[y * W + x] <= 700;
+  let tipo = bi === FALSO_BLOQUES - 1 ? 'cueva' : (() => { const u = falsoRand(i, tn * 7 + bi, 5); return u < .5 ? 'lider' : u < .78 ? 'altar' : 'cueva'; })();
+  let cand = [];
+  if(tipo === 'lider'){   // cada jugador siempre se para en SU casillero alrededor del líder (así no se pisan)
+    C.lid.forEach(c => { const t = c[i % c.length]; if(alcanza(t[0], t[1])) cand.push({x: t[0], y: t[1], d: t[2]}); });
+  }else if(tipo === 'altar') cand = C.altares.filter(a => alcanza(a[0], a[1])).map(a => ({x: a[0], y: a[1], d: 'abajo'}));
+  else cand = C.cuevas.filter(a => alcanza(a[0], a[1]) && !(a[0] === ini.x && a[1] === ini.y)).map(a => ({x: a[0], y: a[1], d: 'arriba'}));
+  if(!cand.length){ tipo = 'quieto'; cand = [{x: ini.x, y: ini.y, d: 'abajo'}]; }
+  const fin = cand[Math.floor(falsoRand(i, tn * 11 + bi, 17) * cand.length)];
+  const cam = [];   // [x, y, dirección] por paso, desde el origen hasta el destino
+  let j = fin.y * W + fin.x;
+  while(j >= 0){ cam.push([j % W, (j - j % W) / W]); j = ant[j]; }
+  cam.reverse();
+  for(let k = 0; k < cam.length; k++){
+    const p = cam[k], q = cam[k + 1];
+    p[2] = q ? (q[0] > p[0] ? 'der' : q[0] < p[0] ? 'izq' : q[1] > p[1] ? 'abajo' : 'arriba') : fin.d;
+  }
+  r = {fin: {x: fin.x, y: fin.y}, d: fin.d, tipo, cam};
+  C.memo.set(clave, r);
+  if(C.memo.size > 120) C.memo.delete(C.memo.keys().next().value);
+  return r;
+}
+function falsosMover(ahora){
+  if(!falsosInicio()) return;
+  const t = Date.now() + (MUNDO.desfase || 0);
+  const turno = Math.floor(t / (FALSO_BLOQUE_MS * FALSO_BLOQUES)), grupo = turno % 2;
+  const bi = Math.floor((t % (FALSO_BLOQUE_MS * FALSO_BLOQUES)) / FALSO_BLOQUE_MS), seg = t % FALSO_BLOQUE_MS;
+  FALSOS.forEach((f, i) => {
+    const id = -500 - i;
+    if((i < 5 ? 0 : 1) !== grupo){ delete MUNDO.otros[id]; return; }
+    let plan;
+    try{ plan = falsoPlan(i, turno, bi); }catch(e){ delete MUNDO.otros[id]; return; }
+    const paso = Math.floor(seg / FALSO_PASO_MS);
+    let a;
+    if(paso < plan.cam.length) a = plan.cam[paso];
+    else if(plan.tipo === 'cueva'){ delete MUNDO.otros[id]; return; }   // ya entró a la cueva: no se ve hasta el próximo bloque
+    else a = [plan.fin.x, plan.fin.y, plan.d];
+    mundoPoner({id, n: f.n, av: f.av, rg: f.rg, m: 'overworld', x: a[0] * 16, y: a[1] * 16, d: a[2], p: 0}, ahora, false);
+  });
+}
 function mundoPoner(o, ahora, saltar){
   const v = MUNDO.otros[o.id];
   // cambió de mapa o pegó un salto grande (Centro Pokémon, cueva): aparece directo, sin deslizarse
@@ -1244,6 +1352,7 @@ function dibujarOtros(ctx, camX, camY, vw, vh, escala){
   const ahora = performance.now();
   const ws = MUNDO.ws;
   botsMover(ahora, false);
+  falsosMover(ahora);
   if(ws && ws.readyState === 1 && ahora - MUNDO.ultimoEnvio > 200){
     const msg = JSON.stringify({k: 'p', m: advMapa, x: Math.round(advPx), y: Math.round(advPy), d: advDir, p: advPaso, mo: montura || null, c: (companero && companeroHabs[companero]) ? companero : null});
     if(msg !== MUNDO.ultimo || ahora - MUNDO.ultimoEnvio > 20000){
