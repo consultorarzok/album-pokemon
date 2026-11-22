@@ -209,6 +209,7 @@
     portada.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('portada-open');
     corriendo = false;
+    try{ document.dispatchEvent(new Event('portada-cerrada')); }catch(e){}   // 22/11: el juego arranca directo en la Aventura
     var n = document.getElementById('nameInput');
     if (n && n.offsetParent) n.focus();
   }

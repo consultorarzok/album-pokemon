@@ -129,6 +129,7 @@ function accionServidor(accion, args){
 function guardarToken(t){
   tokenServidor = t || '';
   try{ if(t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY); }catch(e){}
+  if(t && typeof MUNDO !== 'undefined' && MUNDO.abierto) mundoConectar();   // 22/11: jugador nuevo que entra a la Aventura antes de tener sesión
 }
 function perderSesion(){
   guardarToken('');

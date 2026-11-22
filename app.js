@@ -10,6 +10,10 @@ const SERVIDOR_URL = (() => { let u = ''; try{ u = localStorage.getItem('album-s
   if(u === 'off') return '';
   return u || (location.protocol === 'file:' ? '' : SERVIDOR_POR_DEFECTO); })();
 const MODO_SERVIDOR = !!SERVIDOR_URL;
+/* 22/11 Zeta: el juego arranca DIRECTO en la Aventura y el Inicio de antes desaparece (sus botones viven en el mapa).
+   Las pruebas automáticas siguen viendo el Inicio clásico salvo que pidan lo nuevo con localStorage 'album-central-test'. */
+const AVENTURA_CENTRAL = (() => { try{ return !(navigator.webdriver && !localStorage.getItem('album-central-test')); }catch(e){ return true; } })();
+if(AVENTURA_CENTRAL) document.body.classList.add('central');
 let eventosServidor = {};   // bases de los eventos que guarda el servidor (las llena servidor.js)
 
 const TYPE_COLORS = {
@@ -945,7 +949,7 @@ function renderGrid(){
 /* ====================== CARTEL DE NOVEDADES ======================
    05/11 Zeta: sale DOS veces (13/11: TRES) por dispositivo (la 1.ª al entrar y la 2.ª en la siguiente vez que entra), después de los carteles de nombre,
    personaje y PIN. Se cuenta cuando el jugador lo cierra. Pasada NOVEDADES_HASTA no sale más. Para una novedad nueva se cambia NOVEDADES_ID. */
-const NOVEDADES_ID = '20261118b', NOVEDADES_HASTA = '2026-11-27', NOVEDADES_VECES = 3;   // 13/11 Zeta: el cartel de la actualización sale 3 veces por jugador
+const NOVEDADES_ID = '20261122a', NOVEDADES_HASTA = '2026-12-06', NOVEDADES_VECES = 3;   // 13/11 Zeta: el cartel de la actualización sale 3 veces por jugador
 function novedadesVistas(){ try{ return localStorage.getItem('album-novedades-id') === NOVEDADES_ID ? (Number(localStorage.getItem('album-novedades-veces')) || 0) : 0; }catch(e){ return 0; } }
 function mostrarNovedades(intentos){
   try{
@@ -6010,7 +6014,7 @@ function avistamientoActivo(){
    pedazo del mapa y la cámara sigue al jugador). */
 function advEscala(ancho, alto){
   const chico = Math.min(ancho, alto);
-  let base = chico < 420 ? 1.55 : chico < 700 ? 1.85 : 2.3;   // 13/11 Zeta: la cámara un poco más lejos todavía (antes 1,85 / 2,2 / 2,7): se ven menos los defectos de los compañeros y más terreno   // 12/11 Zeta: la cámara un poco más lejos (antes 2,3 / 2,7 / 3,2)   // Zeta 27/10: con mejor gráfico se ve más terreno (antes 3 / 3,4 / 4)
+  let base = (chico < 420 ? 1.55 : chico < 700 ? 1.85 : 2.3) * 0.85;   // 22/11 Zeta: la cámara 15 % más lejos para que los botones no tapen el mapa   // 13/11 Zeta: la cámara un poco más lejos todavía (antes 1,85 / 2,2 / 2,7): se ven menos los defectos de los compañeros y más terreno   // 12/11 Zeta: la cámara un poco más lejos (antes 2,3 / 2,7 / 3,2)   // Zeta 27/10: con mejor gráfico se ve más terreno (antes 3 / 3,4 / 4)
   /* El avistamiento ya no pasa siempre pegado al altar (RADIO_AVISTAMIENTO):
      la cámara se aleja lo que haga falta para que jugador y altar-plataforma
      entren los dos en pantalla, con aire, en vez de un alejamiento fijo que
@@ -7197,6 +7201,8 @@ function advCiclo(ahora){
      (y en la pantalla de resultado también). Mientras la arena esté abierta se espera sin dibujar; al cerrarla sigue igual (advUltimo se actualiza arriba: sin saltos). */
   if(advArenaEl === undefined) advArenaEl = document.getElementById('arenaOverlay');
   if(advArenaEl && advArenaEl.classList.contains('show')){ advMedia = 16; advAbiertoT = 0; return; }
+  /* 22/11: con un panel tapando el mapa (Pokédex, ranking, preguntas, tienda…) no se dibuja a escondidas: así nada se pone lento ni se calienta el celular */
+  if(AVENTURA_CENTRAL && document.querySelector('.overlay.show, .special-overlay.show')){ advMedia = 16; advAbiertoT = 0; return; }
   const pos = advPx + ',' + advPy;
   if(pos !== advPosPrev){ advPosPrev = pos; advQuietoDesde = ahora; }
   const quieto = ahora - advQuietoDesde > 400;
@@ -7505,6 +7511,7 @@ function comprarBola(tipo){
 
 /* ---------- Abrir / cerrar la aventura ---------- */
 function abrirAventura(){
+  if(AVENTURA_CENTRAL && advAbierto){ if(typeof cerrarMenuCentral === 'function') cerrarMenuCentral(); return; }   // ya estás en la Aventura: "Ir a la aventura" sólo cierra el menú
   advAbierto = true;
   document.getElementById('advOverlay').classList.add('show');
   /* pantalla de carga: se muestra YA (antes del trabajo pesado) para que no parezca que se colgó, y se retira sola cuando el mapa está dibujado */
@@ -7567,6 +7574,7 @@ function abrirAventuraAhora(){
 }
 
 function cerrarAventura(){
+  if(AVENTURA_CENTRAL) return;   // en el modo central la Aventura es la pantalla principal: no se cierra
   advAbierto = false; advTrenAbordo = false;
   advEje = {x:0, y:0};
   if(advRaf){ cancelAnimationFrame(advRaf); advRaf = null; }
@@ -9505,4 +9513,111 @@ window.addEventListener('online', () => { if(topFallo) cargarTop(); });
 (function noZoomIOS(){
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(n => document.addEventListener(n, e => e.preventDefault(), {passive: false}));
   document.addEventListener('touchmove', e => { if(e.touches && e.touches.length > 1) e.preventDefault(); }, {passive: false});
+})();
+
+
+/* ====================== AVENTURA CENTRAL (22/11) ======================
+   - Al cerrar la portada se entra directo a la Aventura (una sola vez).
+   - Los botones del Inicio de antes viven en el mapa: Preguntas, Arena, Ranking, Pokédex, Tienda, Misiones, Incursión y ☰ Más.
+   - Guía paso a paso (una vez por dispositivo) y cartel de novedades para los que ya jugaban. */
+(() => {
+  if(!AVENTURA_CENTRAL) return;
+  const $ = id => document.getElementById(id);
+  const libre = () => { teclasApretadas.clear(); advEje = {x: 0, y: 0}; };
+  const eraNuevo = (() => { try{ return !localStorage.getItem(NAME_KEY); }catch(e){ return false; } })();
+
+  /* --- el Inicio de antes se muda: avisos y firma al panel de Misiones, rankings a su panel --- */
+  const caja = document.querySelector('#advMisPanel .adv-mis-caja');
+  const avisos = document.createElement('div'); avisos.id = 'advMenuAvisos'; caja.insertBefore(avisos, $('advMisHistoria'));
+  ['eventoBanner', 'diaTematico', 'proximoPaso'].forEach(id => { const e = $(id); if(e) avisos.appendChild(e); });
+  { const f = document.querySelector('footer.firma'); if(f){ const w = document.createElement('div'); w.id = 'advMenuFirma'; w.appendChild(f); caja.insertBefore(w, $('advMisCerrar')); } }
+  $('rankHost').appendChild(document.querySelector('.rank-panel'));
+  { // Códigos pasa a la fila de arriba
+    const c = $('advCodigosBtn'), fila = $('advAtajosTop');
+    if(c){ c.className = 'adv-atajo'; c.innerHTML = '<span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/ticket.svg" alt="" width="32" height="32"></span><small>Códigos</small>'; fila.insertBefore(c, $('advRegaloBtn')); }
+  }
+
+  /* --- botones --- */
+  $('advQuizBtn').onclick  = () => { libre(); $('earnBtn').click(); };
+  $('advArenaBtn').onclick = () => { libre(); abrirArena(); };
+  $('advRankBtn').onclick  = () => { libre(); $('rankOverlay').classList.add('show'); try{ cargarTop(); }catch(e){} };
+  $('rankCloseBtn').onclick = () => $('rankOverlay').classList.remove('show');
+  $('rankAtrasBtn').onclick = () => $('rankCloseBtn').click();
+  window.cerrarMenuCentral = () => { $('advMisPanel').hidden = true; };   // "Ir a la aventura" del próximo paso: ya estás acá
+  $('advSobreBtn').onclick = () => { libre(); if(coins < PACK_COST){ advMensaje('Un sobre cuesta <b>' + PACK_COST + '</b> monedas: te faltan <b>' + (PACK_COST - coins) + '</b>. Ganalas con <b>Preguntas</b> o peleando.'); return; } $('openBtn').click(); };
+  $('advRepBtn').onclick   = () => { libre(); $('repetidasBtn').click(); };
+  $('advEvoBtn').onclick   = () => { libre(); abrirEvolucion(); };
+  $('advRegaloBtn').onclick = () => { libre(); $('calBtn').click(); };
+  setInterval(() => { const box = $('calBox'); $('advRegaloPunto').hidden = !(box && !box.hidden && box.classList.contains('cal-listo')); }, 2000);
+
+  /* --- guía paso a paso --- */
+  const TOUR_KEY = 'album-tour-aventura';
+  const tourHecho = () => { try{ return !!localStorage.getItem(TOUR_KEY); }catch(e){ return false; } };
+  const PASOS = [
+    {sel: '#advStick',    t: 'Moverte', d: 'Arrastrá el joystick para caminar (en la compu, las flechas o WASD). Pasá por la <b>hierba alta</b> y el <b>lago</b> para encontrar Pokémon.'},
+    {sel: () => $('advCoins') && $('advCoins').parentElement, t: 'Tus monedas', d: 'Acá ves cuántas monedas tenés. Sirven para abrir sobres, comprar en la tienda y mejorar a tus Pokémon.'},
+    {sel: '#advQuizBtn',  t: 'Preguntas', d: 'Respondé preguntas rápidas sobre Pokémon y <b>ganá monedas</b>.'},
+    {sel: '#advArenaBtn', t: 'Arena', d: 'Peleá en tiempo real con tu equipo, hacé duelos con amigos o sumate a las incursiones contra legendarios.'},
+    {sel: '#advRankBtn',  t: 'Ranking', d: 'Mirá todos los rankings: semanal, histórico, Maestros y Liga. Ahí ves tu puesto.'},
+    {sel: '#advPokedexBtn', t: 'Pokédex', d: 'Tus figuritas. Tocá una para ver su ficha, entrenarla y mejorarla.'},
+    {sel: '#advTiendaBtn', t: 'Tienda', d: 'Comprá pokébolas y monturas.'},
+    {sel: '#advMisBtn',   t: 'Misiones', d: 'La historia de la Liga de Jujuy, tus medallas, las misiones del día y los avisos de eventos.'},
+    {sel: '#advIncInfoBtn', t: 'Incursión', d: 'Te dice dónde hay una incursión abierta y te guía hasta ahí.'},
+    {sel: '#advAtajosTop', t: 'Tu colección', d: 'Arriba tenés los <b>sobres</b>, las <b>repetidas</b>, <b>evolucionar</b>, los <b>códigos</b> y tus <b>regalos</b> del día.'},
+    {sel: '#advGuiaBtn',  t: 'Guía', d: 'Si te olvidás de algo, tocá acá y te lo explico de nuevo.'}
+  ];
+  let tourPasos = [], tourI = 0, tourActivo = false;
+  const elDe = p => typeof p.sel === 'function' ? p.sel() : document.querySelector(p.sel);
+  const visible = e => { if(!e) return false; const r = e.getBoundingClientRect(); return r.width > 4 && r.height > 4 && getComputedStyle(e).visibility !== 'hidden'; };
+  function tourPintar(){
+    const p = tourPasos[tourI], e = elDe(p), r = e.getBoundingClientRect();
+    const foco = $('advTourFoco'), card = $('advTourCard'), pad = 6;
+    foco.style.left = (r.left - pad) + 'px'; foco.style.top = (r.top - pad) + 'px';
+    foco.style.width = (r.width + pad * 2) + 'px'; foco.style.height = (r.height + pad * 2) + 'px';
+    $('advTourPaso').textContent = 'Paso ' + (tourI + 1) + ' de ' + tourPasos.length;
+    $('advTourTit').textContent = p.t; $('advTourTxt').innerHTML = p.d;
+    $('advTourSig').textContent = tourI === tourPasos.length - 1 ? '¡A jugar!' : 'Siguiente';
+    const W = window.innerWidth, H = window.innerHeight, cw = Math.min(300, W - 20), ch = card.offsetHeight || 150;
+    let x, y;
+    if(r.left < W * 0.3){ x = r.right + 14; y = r.top + r.height / 2 - ch / 2; }                      // botones del costado: la tarjeta va a la derecha
+    else { x = r.left + r.width / 2 - cw / 2; y = r.top > H / 2 ? r.top - ch - 14 : r.bottom + 14; }
+    card.style.left = Math.max(10, Math.min(W - cw - 10, x)) + 'px';
+    card.style.top = Math.max(10, Math.min(H - ch - 10, y)) + 'px';
+  }
+  function tourTerminar(){
+    tourActivo = false; $('advTour').hidden = true;
+    try{ localStorage.setItem(TOUR_KEY, '1'); }catch(e){}
+  }
+  window.empezarGuiaAventura = () => {
+    if(tourActivo) return;
+    libre();
+    tourPasos = PASOS.filter(p => visible(elDe(p)));
+    if(!tourPasos.length) return;
+    tourI = 0; tourActivo = true; $('advTour').hidden = false; tourPintar();
+  };
+  $('advTourSig').onclick = () => { if(tourI >= tourPasos.length - 1) tourTerminar(); else { tourI++; tourPintar(); } };
+  $('advTourSaltar').onclick = tourTerminar;
+  window.addEventListener('resize', () => { if(tourActivo) tourPintar(); });
+  $('advGuiaBtn').onclick = () => { empezarGuiaAventura(); };
+  { const b = $('novedadesTourBtn'); if(b) b.onclick = () => { $('novedadesCierraBtn').click(); setTimeout(empezarGuiaAventura, 300); }; }
+
+  /* la guía de los nuevos arranca sola cuando ya no hay carteles (nombre, personaje, PIN…) ni pantalla de carga */
+  function guiaAutomatica(intentos){
+    if(tourHecho() || tourActivo) return;
+    if(navigator.webdriver && !localStorage.getItem('album-tour-test')) return;
+    const car = $('advCargando');
+    const ocupado = document.querySelector('.overlay.show, .special-overlay.show, .name-overlay.show, .adv-incpanel:not([hidden])') || (car && !car.hidden);
+    if(ocupado){ if(intentos < 120) setTimeout(() => guiaAutomatica(intentos + 1), 1000); return; }
+    empezarGuiaAventura();
+  }
+
+  /* --- entrar directo a la Aventura --- */
+  let entro = false;
+  function entrar(){
+    if(entro) return; entro = true;
+    if(eraNuevo){ try{ localStorage.setItem('album-novedades-id', NOVEDADES_ID); localStorage.setItem('album-novedades-veces', String(NOVEDADES_VECES)); }catch(e){} }   // los nuevos ven la guía, no el cartel de novedades
+    abrirAventura();
+    if(eraNuevo) setTimeout(() => guiaAutomatica(0), 1500);
+  }
+  document.addEventListener('portada-cerrada', entrar);
 })();

@@ -1308,3 +1308,82 @@ img.cal-sil{filter:brightness(0);opacity:.55;}
 .cal-prem-img{width:auto;min-width:84px;}
 .cal-det .cal-prem-img{min-width:64px;}
 .cal-prem-txt em.cal-mn{font-style:normal;font-weight:800;}
+
+/* ====================== AVENTURA CENTRAL (22/11) ======================
+   El juego arranca en la Aventura: el Inicio de antes no se ve y sus botones viven en el mapa. */
+.adv-solo-central{display:none;}
+body.central .adv-solo-central{display:flex;}
+body.central main.wrap{display:none;}
+body.central #musicaBtn{display:none;}
+body.central .adv-back{display:none;}
+body.central .adv-atajos{top:62px;gap:4px;}   /* en L: la fila va arriba (.adv-atajos-top) y la columna debajo */
+body.central .adv-atajo{width:46px;height:46px;border-radius:13px;}
+@media (max-width:400px){ body.central .adv-atajo{width:44px;height:44px;} body.central .adv-atajos{top:58px;} }
+body.central .adv-atajo small{font-size:8px;}
+@media (max-height:560px){
+  body.central .adv-atajos{display:grid;grid-template-columns:repeat(2,44px);gap:4px;}
+  body.central .adv-atajo{width:44px;height:44px;}
+  body.central .adv-atajo span{font-size:17px;}
+  body.central .adv-atajo small{font-size:7.5px;}
+}
+.adv-menu-caja{width:min(440px,100%);}
+.adv-menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;}
+.adv-menu-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:76px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);color:#fff;font-family:'Baloo 2',sans-serif;text-align:left;cursor:pointer;}
+.adv-menu-item:active{transform:scale(.97);}
+.adv-menu-item:disabled{opacity:.5;cursor:default;}
+.adv-menu-item .mi-ico{font-size:22px;line-height:1;}
+.adv-menu-item b{font-size:15px;line-height:1.1;}
+.adv-menu-item small{font-size:11px;opacity:.8;line-height:1.2;}
+#advMenuAvisos > *{margin:0 0 8px;}
+#advMenuAvisos .paso-box,#advMenuAvisos .cal-box{margin-bottom:8px;}
+#advMenuFirma{margin-top:12px;background:#fff;border-radius:12px;padding:4px 10px 12px;}   /* fondo claro: los logos son oscuros y sobre el panel oscuro no se leían */
+#advMenuFirma .firma{margin-top:6px;padding:0;}
+#advMenuFirma .firma strong{color:#1b2140;}
+#advMenuFirma .firma span,#advMenuFirma .firma a{color:#4a5073;}
+#advMenuFirma .firma-logo img{width:150px;}
+#advMenuFirma .firma-pacha{height:48px;}
+#advMenuFirma .firma-colab{margin-top:10px;}
+#rankHost .rank-panel{margin-bottom:0;}
+/* guía en el mapa: se atenúa todo menos el botón que se explica */
+.adv-tour{position:fixed;inset:0;z-index:70;touch-action:manipulation;}
+.adv-tour[hidden]{display:none;}
+.adv-tour-foco{position:fixed;border-radius:16px;box-shadow:0 0 0 9999px rgba(4,8,24,.8),0 0 0 3px #FFD25E,0 0 18px 4px rgba(255,210,94,.55);transition:left .25s ease,top .25s ease,width .25s ease,height .25s ease;pointer-events:none;}
+.adv-tour-card{position:fixed;width:min(300px,calc(100vw - 20px));box-sizing:border-box;background:#141A34;color:#fff;border:2px solid #FFD25E;border-radius:16px;padding:14px;font-family:'Baloo 2',sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.55);}
+.adv-tour-card small{display:block;font-size:11px;color:#FFD25E;font-weight:700;letter-spacing:.4px;}
+.adv-tour-card h3{margin:2px 0 4px;font-size:18px;}
+.adv-tour-card p{margin:0 0 10px;font-size:14px;line-height:1.3;}
+.adv-tour-btns{display:flex;gap:8px;justify-content:flex-end;}
+.adv-tour-btns button{min-height:44px;padding:0 16px;border-radius:10px;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;}
+.adv-tour-btns button#advTourSig{background:#FFD25E;color:#14182b;border-color:#FFD25E;}
+/* íconos de objetos (sprites de PokeAPI) en los botones de la Aventura */
+.ico-item{display:block;width:28px;height:28px;object-fit:contain;image-rendering:pixelated;}
+.adv-atajo span{display:flex;align-items:center;justify-content:center;}
+.adv-menu-item .mi-ico .ico-item{width:34px;height:34px;}
+@media (max-height:560px){ body.central .adv-atajo .ico-item{width:22px;height:22px;} }
+/* íconos simbólicos (Lucide) sobre un fondo de color que dice de qué es cada botón */
+.ico-svg{width:20px;height:20px;}
+.adv-atajo span:has(.ico-svg),.adv-menu-item .mi-ico:has(.ico-svg){display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25);}
+.adv-menu-item .mi-ico:has(.ico-svg){width:38px;height:38px;border-radius:11px;margin-bottom:2px;}
+.adv-menu-item .mi-ico .ico-svg{width:24px;height:24px;}
+#advQuizBtn span:has(.ico-svg){background:linear-gradient(#4C8DFF,#2457C5);}
+#advArenaBtn span:has(.ico-svg){background:linear-gradient(#FF6B5E,#C62828);}
+#advRankBtn span:has(.ico-svg){background:linear-gradient(#FFC93C,#D98E04);}
+#advTiendaBtn span:has(.ico-svg){background:linear-gradient(#3DDC84,#128A4B);}
+#advMisBtn span:has(.ico-svg){background:linear-gradient(#B07CFF,#6A3CC4);}
+#advIncInfoBtn span:has(.ico-svg){background:linear-gradient(#FF9A3C,#D2520A);}
+#advMenuBtn span:has(.ico-svg){background:linear-gradient(#8A93B8,#4A5073);}
+#advSobreBtn .mi-ico{background:linear-gradient(#FFC93C,#D98E04);}
+#advRepBtn .mi-ico{background:linear-gradient(#3DDC84,#128A4B);}
+#advEvoBtn .mi-ico{background:linear-gradient(#B07CFF,#6A3CC4);}
+#advGuiaBtn .mi-ico{background:linear-gradient(#4C8DFF,#2457C5);}
+#advCodigosBtn .mi-ico{background:linear-gradient(#FF6B5E,#C62828);}
+@media (max-height:560px){ body.central .adv-atajo span:has(.ico-svg){width:24px;height:24px;border-radius:7px;} body.central .adv-atajo .ico-svg{width:16px;height:16px;} }
+
+.adv-atajos-top{position:absolute;left:10px;top:10px;z-index:4;gap:4px;}
+#advSobreBtn span:has(.ico-svg){background:linear-gradient(#FFC93C,#D98E04);}
+#advRepBtn span:has(.ico-svg){background:linear-gradient(#3DDC84,#128A4B);}
+#advEvoBtn span:has(.ico-svg){background:linear-gradient(#B07CFF,#6A3CC4);}
+#advCodigosBtn span:has(.ico-svg){background:linear-gradient(#FF6B5E,#C62828);}
+#advRegaloBtn span:has(.ico-svg){background:linear-gradient(#FF7EB6,#C9387A);}
+#advGuiaBtn span:has(.ico-svg){background:linear-gradient(#4C8DFF,#2457C5);}
+@media (max-height:560px){ body.central .adv-atajos{display:grid;grid-template-columns:repeat(3,44px);top:58px;} body.central .adv-atajos-top .adv-atajo{width:44px;height:44px;} }

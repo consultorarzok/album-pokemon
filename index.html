@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261215">
+<link rel="stylesheet" href="styles.css?v=20261216">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -179,12 +179,32 @@
   <button class="adv-chatbtn" id="advChatBtn" hidden aria-label="Escribir un mensaje">💬</button>
   <button class="adv-chatbtn adv-batbtn" id="advBatBtn" hidden aria-label="Buscar una batalla con otro entrenador">⚔️</button>
   <button class="adv-chatbtn adv-montbtn" id="advMontBtn" hidden aria-label="Subirte o bajarte de tu montura"></button>
+  <div class="adv-atajos-top adv-solo-central" id="advAtajosTop">
+    <button type="button" class="adv-atajo" id="advSobreBtn" aria-label="Abrir un sobre de figuritas"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/package-open.svg" alt="" width="32" height="32"></span><small>Sobre</small></button>
+    <button type="button" class="adv-atajo" id="advRepBtn" aria-label="Tus figuritas repetidas: canjear, mejorar"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/copy.svg" alt="" width="32" height="32"></span><small>Repetidas</small></button>
+    <button type="button" class="adv-atajo" id="advEvoBtn" aria-label="Evolucionar un Pokémon con repetidas"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/sparkles.svg" alt="" width="32" height="32"></span><small>Evolucionar</small></button>
+    <!-- Códigos se muda acá por JS -->
+    <button type="button" class="adv-atajo" id="advRegaloBtn" aria-label="Calendario de regalos"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/gift.svg" alt="" width="32" height="32"></span><small>Regalos</small><i class="adv-atajo-punto" id="advRegaloPunto" hidden></i></button>
+  </div>
   <div class="adv-atajos" id="advAtajos">
-    <button type="button" class="adv-atajo" id="advTiendaBtn" aria-label="Tienda: comprar y cambiar pokébolas y monturas"><span aria-hidden="true">🛒</span><small>Tienda</small></button>
-    <button type="button" class="adv-atajo" id="advPokedexBtn" aria-label="Abrir la Pokédex"><span aria-hidden="true">📖</span><small>Pokédex</small></button>
+    <button type="button" class="adv-atajo adv-solo-central" id="advQuizBtn" aria-label="Responder preguntas y ganar monedas"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/circle-help.svg" alt="" width="32" height="32"></span><small>Preguntas</small></button>
+    <button type="button" class="adv-atajo adv-solo-central" id="advArenaBtn" aria-label="Arena de batalla"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/swords.svg" alt="" width="32" height="32"></span><small>Arena</small></button>
+    <button type="button" class="adv-atajo adv-solo-central" id="advRankBtn" aria-label="Rankings"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/trophy.svg" alt="" width="32" height="32"></span><small>Ranking</small></button>
+    <button type="button" class="adv-atajo" id="advTiendaBtn" aria-label="Tienda: comprar y cambiar pokébolas y monturas"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/shopping-cart.svg" alt="" width="32" height="32"></span><small>Tienda</small></button>
+    <button type="button" class="adv-atajo" id="advPokedexBtn" aria-label="Abrir la Pokédex"><span aria-hidden="true"><img class="ico-item" src="images/pokedex-icon.png" alt="" width="32" height="32"></span><small>Pokédex</small></button>
     <button type="button" class="adv-atajo" id="advCodigosBtn" aria-label="Códigos: generar o ingresar un código de intercambio"><span aria-hidden="true">🎟️</span><small>Códigos</small></button>
-    <button type="button" class="adv-atajo" id="advMisBtn" aria-label="Misiones y medallas"><span aria-hidden="true">📜</span><small>Misiones</small><i class="adv-atajo-punto" id="advMisPunto" hidden></i></button>
-    <button type="button" class="adv-atajo" id="advIncInfoBtn" aria-label="Incursiones: dónde hay una abierta"><span aria-hidden="true">⚔️</span><small>Incursión</small><i class="adv-atajo-punto" id="advIncPunto" hidden></i></button>
+    <button type="button" class="adv-atajo" id="advMisBtn" aria-label="Misiones y medallas"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/scroll-text.svg" alt="" width="32" height="32"></span><small>Misiones</small><i class="adv-atajo-punto" id="advMisPunto" hidden></i></button>
+    <button type="button" class="adv-atajo" id="advIncInfoBtn" aria-label="Incursiones: dónde hay una abierta"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/flame.svg" alt="" width="32" height="32"></span><small>Incursión</small><i class="adv-atajo-punto" id="advIncPunto" hidden></i></button>
+      <button type="button" class="adv-atajo adv-solo-central" id="advGuiaBtn" aria-label="Cómo se juega: ver la guía de nuevo"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/compass.svg" alt="" width="32" height="32"></span><small>Guía</small></button>
+  </div>
+  <div class="adv-tour" id="advTour" hidden>
+    <div class="adv-tour-foco" id="advTourFoco"></div>
+    <div class="adv-tour-card" id="advTourCard" role="dialog" aria-live="polite">
+      <small id="advTourPaso"></small>
+      <h3 id="advTourTit"></h3>
+      <p id="advTourTxt"></p>
+      <div class="adv-tour-btns"><button type="button" id="advTourSaltar">Saltar</button><button type="button" id="advTourSig">Siguiente</button></div>
+    </div>
   </div>
   <div class="adv-incpanel" id="advMisPanel" hidden role="dialog" aria-modal="true" aria-label="Misiones">
     <div class="adv-incpanel-caja adv-mis-caja">
@@ -263,23 +283,34 @@
   </div>
 </div>
 
+<div class="overlay" id="rankOverlay" role="dialog" aria-modal="true" aria-label="Rankings" style="z-index:45;">
+  <div class="reveal-panel" style="max-width:560px;margin:0 auto;">
+    <div class="panel-top">
+      <button type="button" class="panel-atras" id="rankAtrasBtn" aria-label="Cerrar los rankings y volver a la Aventura"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Atrás</button>
+      <h2>🏆 Rankings</h2>
+    </div>
+    <div id="rankHost"></div>
+    <button class="close-btn" id="rankCloseBtn" style="margin-top:16px;">Cerrar</button>
+  </div>
+</div>
+
 <div class="overlay" id="novedadesOverlay" role="dialog" aria-modal="true" aria-labelledby="novTit" style="z-index:75;">
   <div class="reveal-panel nov-panel" style="max-width:430px;margin:0 auto;">
     <span class="nov-pill">NOVEDADES</span>
-    <h2 id="novTit">¡Subí a tus Pokémon!</h2>
-    <div class="nov-card nov-pelea"><div class="nov-ico" aria-hidden="true">🧩</div><div>
-      <h3>Elegí tus 2 especialidades</h3>
-      <p>Con tus repetidas mejorás <b>vida, daño, crítico o velocidad</b>, pero <b>solo 2 de las 4</b>: ahí está la estrategia. Juntá copias del mismo Pokémon (<b>shiny con shiny</b>, y los <b>legendarios</b> también).</p>
+    <h2 id="novTit">¡Ahora todo está en la Aventura!</h2>
+    <div class="nov-card nov-pelea"><div class="nov-ico" aria-hidden="true">🗺️</div><div>
+      <h3>Entrás directo al mapa</h3>
+      <p>Se terminó el menú de inicio: el juego arranca en la <b>Aventura</b> y desde ahí hacés todo.</p>
     </div></div>
-    <div class="nov-card nov-evo"><div class="nov-ico" aria-hidden="true">⚡</div><div>
-      <h3>5 mejoras por característica</h3>
-      <p>Cuestan 4, 6, 9, 13 y 19 copias. La <b>velocidad</b> te hace más veloz y te deja <b>esquivar con menos espera</b>.</p>
+    <div class="nov-card nov-evo"><div class="nov-ico" aria-hidden="true">🧭</div><div>
+      <h3>Botones a un costado</h3>
+      <p><b>Preguntas</b>, <b>Arena</b>, <b>Ranking</b>, <b>Pokédex</b>, <b>Tienda</b>, <b>Misiones</b> e <b>Incursión</b>. Arriba están los <b>sobres</b>, las <b>repetidas</b>, <b>evolucionar</b>, los <b>códigos</b> y tus <b>regalos</b>.</p>
     </div></div>
-    <div class="nov-card nov-pelea"><div class="nov-ico" aria-hidden="true">🏟️</div><div>
-      <h3>Mirá dónde estás</h3>
-      <p>El ranking ahora te muestra tu <b>puesto</b> y cuánto te falta para pasar al de adelante. Nueva pestaña <b>Liga</b>: la carrera de medallas.</p>
+    <div class="nov-card nov-pelea"><div class="nov-ico" aria-hidden="true">🔭</div><div>
+      <h3>Se ve más mapa</h3>
+      <p>Alejamos un poco la cámara para que los botones no te tapen el camino.</p>
     </div></div>
-    <p class="nov-donde">El 💪 nivel sigue subiendo solo con monedas. Entrá a la ficha de tu Pokémon (Pokédex) → <b>Entrenar</b>.</p>
+    <button class="open-btn" id="novedadesTourBtn" style="margin-top:12px;width:100%;">Ver cómo funciona</button>
     <button class="close-btn" id="novedadesCierraBtn" style="margin-top:14px;">¡A jugar!</button>
   </div>
 </div>
@@ -573,11 +604,11 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261168"></script>
-<script src="app.js?v=20261215"></script>
-<script src="servidor.js?v=20261180"></script>
+<script src="app.js?v=20261216"></script>
+<script src="servidor.js?v=20261216"></script>
 <script src="pixfx.js?v=3"></script>
-<script src="arena.js?v=20261215"></script>
-<script src="portada.js?v=20261105"></script>
+<script src="arena.js?v=20261216"></script>
+<script src="portada.js?v=20261216"></script>
 <script>
 /* Guardado del juego en el celular (sw.js): sólo en el sitio real, nunca en pruebas locales */
 if('serviceWorker' in navigator && location.protocol === 'https:' && /(^|\.)entrenadoresrz\.com$/.test(location.hostname)){

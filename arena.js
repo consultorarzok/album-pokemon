@@ -4200,7 +4200,7 @@ const SEG_ELEGIR = 15;
 function puedeDueloRapido(){
   const n = kantoMios().concat(especialesMios()).length;
   if(n < EQUIPO_MIN){
-    if(typeof avisoBatalla === 'function') avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto, Johto, Hoenn, Sinnoh, Teselia o Kalos para pelear. Abrí un sobre primero.`);
+    if(typeof avisoBatalla === 'function') avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto, Johto, Hoenn, Sinnoh, Teselia o Kalos para pelear. Abrí un sobre primero (botón Sobre, arriba a la izquierda).`);
     return false;
   }
   return true;
@@ -4212,7 +4212,7 @@ function abrirArenaBase(rapido, inc){
   const mios = kantoMios().concat(especialesMios());   // las especiales (Mewtwo Acorazado) pelean aparte
   if(mios.length < EQUIPO_MIN){
     if(typeof avisoBatalla === 'function')
-      avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto, Johto, Hoenn, Sinnoh, Teselia o Kalos para pelear en la arena. Abrí un sobre primero.`);
+      avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto, Johto, Hoenn, Sinnoh, Teselia o Kalos para pelear en la arena. Abrí un sobre primero (botón Sobre, arriba a la izquierda).`);
     return;
   }
   limpiar();
