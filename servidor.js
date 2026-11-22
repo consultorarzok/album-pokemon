@@ -1461,6 +1461,9 @@ function chatAviso(m){
 /* 22/11 Zeta: "a la hora de escribir se corta, no se ve la pantalla, se pone lento". Al abrir el teclado el celular achica la pantalla y el juego redibujaba el mapa
    en cada cuadro de la animación (y lo estiraba). Ahora, mientras se escribe: el mapa queda con el tamaño que tenía (no se redibuja por el cambio de tamaño), la barra se pega
    justo arriba del teclado (visualViewport) y se ve el historial de los últimos mensajes. */
+/* 22/11 (captura de Zeta): el teclado de Samsung dibuja una fila de herramientas (😊 ⚙️ 🎤…) ENCIMA de la página y el celular no la cuenta en la altura visible:
+   la barra para escribir quedaba tapada. En Android se sube la barra esa fila de más (≈ 48 px); el mapa se achica con ella. */
+const CHAT_EXTRA_TECLADO = /Android/i.test(navigator.userAgent || '') ? 48 : 0;
 function chatTecladoInicio(){
   const cv = document.getElementById('advMap'); if(!cv || document.body.classList.contains('chat-abierto')) return;
   cv._fijo = {w: cv.clientWidth, h: cv.clientHeight};
@@ -1484,8 +1487,8 @@ function chatTecladoAjustar(){
   const bar = document.getElementById('advChatBar'), lg = document.getElementById('advChatLog'), vv = window.visualViewport;
   if(!bar || bar.hidden) return;
   const tapado = vv ? Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) : 0;   // lo que tapa el teclado (iPhone: no achica la página, achica la vista)
-  bar.style.bottom = tapado + 'px';
-  if(lg) lg.style.bottom = (tapado + bar.offsetHeight + 6) + 'px';
+  bar.style.bottom = (tapado + CHAT_EXTRA_TECLADO) + 'px';
+  if(lg) lg.style.bottom = (tapado + CHAT_EXTRA_TECLADO + bar.offsetHeight + 6) + 'px';
   clearTimeout(chatTecladoAjustar._t); chatTecladoAjustar._t = setTimeout(chatMapaAjustar, 260);   // cuando el teclado termina de abrirse: UN solo redibujado
 }
 /* el mapa pasa a ocupar sólo lo que se ve arriba de la barra, así el personaje queda a la vista (centrado) y no detrás del teclado */
@@ -1493,7 +1496,7 @@ function chatMapaAjustar(){
   const cv = document.getElementById('advMap'), bar = document.getElementById('advChatBar'), vv = window.visualViewport;
   if(!cv || !bar || bar.hidden || !document.body.classList.contains('chat-abierto')) return;
   const visibleAbajo = vv ? vv.offsetTop + vv.height : window.innerHeight;
-  const h = Math.max(160, Math.round(visibleAbajo - bar.offsetHeight - 4));
+  const h = Math.max(160, Math.round(visibleAbajo - CHAT_EXTRA_TECLADO - bar.offsetHeight - 4));
   if(Math.abs(h - cv.clientHeight) > 2){ cv.style.height = h + 'px'; try{ advRender(); }catch(e){} }
 }
 function chatLogPintar(){
