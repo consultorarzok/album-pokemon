@@ -1232,17 +1232,18 @@ function botsMover(ahora, saltar){
     mundoPoner({id: b.id, n: b.n, av: b.av, npc: b.npc, m: 'overworld', x: a[0] * 16, y: a[1] * 16, d: a[2], p: i % 4}, ahora, !!saltar);
   }
 }
-/* 22/11 (Zeta): jugadores de relleno. 10 nombres que se ven como entrenadores más, para todos: 5 a la vez, y cada 20 min se
-   cambian por los otros 5 (el grupo que se va entra a una cueva; el nuevo sale de una). Cada 5 min van a un lugar nuevo: parados al lado
-   de uno de los 6 primeros líderes, sobre un altar, o se meten en una cueva. Caminan por los caminos reales del mapa. Todo sale del reloj
-   del servidor (igual que los bots), así que todos ven lo mismo, sin gastar nada del servidor. Sólo se ven (sin chat, sin ranking, sin premios). */
+/* 22/11 (Zeta): jugadores de relleno. 10 nombres que se ven como entrenadores más, para todos. Cada 5 min cambia AL AZAR cuántos y quiénes
+   están en el mapa (de 2 a 8): el que se va entra a una cueva, el que llega sale de una. Cada 5 min van a un lugar nuevo: parados al lado de uno
+   de los 6 primeros líderes, sobre un altar, cazando en la hierba alta (sale un globo "¡Atrapé a …!"), paseando, o metiéndose en una cueva. Caminan
+   por los caminos reales del mapa. Todo sale del reloj del servidor (igual que los bots), así que todos ven lo mismo, sin gastar nada del servidor.
+   Buscan batalla (⚔️) y se los puede enfrentar (ver batallaFalso); no tienen chat, ni ranking, ni premios propios. */
 const FALSOS = [
   {n: 'Naruto Uzumaki', av: 'red', rg: 3}, {n: 'Gabriel0027', av: 'red', rg: 1}, {n: 'Bosterito', av: 'red', rg: 2},
   {n: 'Luana L.', av: 'may', rg: 2}, {n: 'Franco Lopez', av: 'red', rg: 4},
   {n: 'Anto ♡', av: 'may', rg: 3}, {n: 'Robert', av: 'red', rg: 2}, {n: 'Guerrero09', av: 'red', rg: 1},
   {n: 'Slayer', av: 'red', rg: 5}, {n: 'Dark28', av: 'red', rg: 1}
 ];
-const FALSO_BLOQUE_MS = 5 * 60e3, FALSO_BLOQUES = 4, FALSO_PASO_MS = 280;   // turno = 4 bloques = 20 min
+const FALSO_BLOQUE_MS = 5 * 60e3, FALSO_PASO_MS = 280;   // cada 5 min cambia quiénes están y a dónde van
 const falsosCache = {}, falsosPelea = {};   // falsosPelea: id -> hasta cuándo no buscan batalla (después de pelear)
 function falsosInicio(){
   if(falsosCache.ok !== undefined) return falsosCache.ok;
@@ -1272,7 +1273,14 @@ function falsosInicio(){
     const sirve = a => base[a[1] * W + a[0]] >= 0;
     falsosCache.altares = altares.filter(sirve); falsosCache.cuevas = cuevas.filter(sirve);
     falsosCache.lid = lid.map(c => c.filter(sirve)).filter(c => c.length);
-    falsosCache.ok = falsosCache.lid.length > 0 && falsosCache.cuevas.length > 0;
+    falsosCache.hierba = []; falsosCache.libres = [];
+    for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
+      if(!sirve([x, y])) continue;
+      const ch = rows[y].charAt(x);
+      if(ch === '"') falsosCache.hierba.push([x, y]);
+      if(ch === '.' || ch === ',' || ch === '"' || ch === '*') falsosCache.libres.push([x, y]);
+    }
+    falsosCache.ok = falsosCache.lid.length > 0 && falsosCache.cuevas.length > 0 && falsosCache.hierba.length > 0;
   }catch(e){ falsosCache.ok = false; }
   return falsosCache.ok;
 }
@@ -1292,23 +1300,37 @@ function falsoBFS(x0, y0){
   }
   return {dist, ant};
 }
-/* A dónde va el jugador i en el bloque bi del turno tn, y por dónde camina. El bloque 0 sale de una cueva; el último vuelve a una. */
-function falsoPlan(i, tn, bi){
-  const C = falsosCache, clave = i + ':' + tn + ':' + bi;
+/* Quiénes están en cada bloque de 5 min: una cantidad AL AZAR (de 2 a 8 de los 10) y los que sean también al azar. Todos los celulares sacan la misma cuenta. */
+function falsoPresente(i, bk){
+  const n = 2 + Math.floor(falsoRand(77, bk, 3) * 7);                 // 2…8 a la vez
+  let rango = 0; const mio = falsoRand(i, bk, 41);
+  for(let k = 0; k < FALSOS.length; k++) if(k !== i && (falsoRand(k, bk, 41) < mio || (falsoRand(k, bk, 41) === mio && k < i))) rango++;
+  return rango < n;
+}
+/* A dónde va el jugador i en el bloque bk (nº de bloque de 5 min desde 1970) y por dónde camina. Si no estaba en el bloque anterior, sale de una cueva;
+   si no va a estar en el siguiente, el bloque termina en una cueva. Tipos: lider, altar, atrapar (hierba alta, cazando), pasear (caminata), cueva. */
+function falsoPlan(i, bk, prof){
+  const C = falsosCache, clave = i + ':' + bk;
   let r = C.memo.get(clave); if(r) return r;
   let ini;
-  if(bi === 0){ const c = C.cuevas[Math.floor(falsoRand(i, tn, 90) * C.cuevas.length)]; ini = {x: c[0], y: c[1]}; }
-  else ini = falsoPlan(i, tn, bi - 1).fin;
+  if((prof || 0) > 40 || !falsoPresente(i, bk - 1)){ const c = C.cuevas[Math.floor(falsoRand(i, bk, 90) * C.cuevas.length)]; ini = {x: c[0], y: c[1]}; }
+  else ini = falsoPlan(i, bk - 1, (prof || 0) + 1).fin;
   const {dist, ant} = falsoBFS(ini.x, ini.y), W = C.W;
-  const alcanza = (x, y) => dist[y * W + x] >= 0 && dist[y * W + x] <= 700;
-  let tipo = bi === FALSO_BLOQUES - 1 ? 'cueva' : (() => { const u = falsoRand(i, tn * 7 + bi, 5); return u < .5 ? 'lider' : u < .78 ? 'altar' : 'cueva'; })();
+  const alcanza = (x, y, max) => dist[y * W + x] >= 0 && dist[y * W + x] <= (max || 700);
+  const sale = !falsoPresente(i, bk + 1);
+  /* el que no sigue en el próximo bloque: la mitad se mete en una cueva cercana; los otros se desconectan donde están (desaparecen al final del bloque) */
+  const u = falsoRand(i, bk, 5);
+  let tipo = sale ? (falsoRand(i, bk, 6) < .5 ? 'cueva' : (u < .35 ? 'lider' : u < .5 ? 'altar' : u < .85 ? 'atrapar' : 'pasear'))
+                  : (u < .30 ? 'lider' : u < .48 ? 'altar' : u < .75 ? 'atrapar' : u < .90 ? 'pasear' : 'cueva');
   let cand = [];
   if(tipo === 'lider'){   // cada jugador siempre se para en SU casillero alrededor del líder (así no se pisan)
     C.lid.forEach(c => { const t = c[i % c.length]; if(alcanza(t[0], t[1])) cand.push({x: t[0], y: t[1], d: t[2]}); });
   }else if(tipo === 'altar') cand = C.altares.filter(a => alcanza(a[0], a[1])).map(a => ({x: a[0], y: a[1], d: 'abajo'}));
-  else cand = C.cuevas.filter(a => alcanza(a[0], a[1]) && !(a[0] === ini.x && a[1] === ini.y)).map(a => ({x: a[0], y: a[1], d: 'arriba'}));
+  else if(tipo === 'atrapar') cand = C.hierba.filter(a => alcanza(a[0], a[1], 160)).map(a => ({x: a[0], y: a[1], d: 'abajo'}));
+  else if(tipo === 'pasear') cand = C.libres.filter(a => alcanza(a[0], a[1], 60) && dist[a[1] * W + a[0]] > 8).map(a => ({x: a[0], y: a[1], d: 'der'}));
+  else cand = C.cuevas.filter(a => alcanza(a[0], a[1], sale ? 150 : 700) && !(a[0] === ini.x && a[1] === ini.y)).map(a => ({x: a[0], y: a[1], d: 'arriba'}));
   if(!cand.length){ tipo = 'quieto'; cand = [{x: ini.x, y: ini.y, d: 'abajo'}]; }
-  const fin = cand[Math.floor(falsoRand(i, tn * 11 + bi, 17) * cand.length)];
+  const fin = cand[Math.floor(falsoRand(i, bk, 17) * cand.length)];
   const cam = [];   // [x, y, dirección] por paso, desde el origen hasta el destino
   let j = fin.y * W + fin.x;
   while(j >= 0){ cam.push([j % W, (j - j % W) / W]); j = ant[j]; }
@@ -1317,30 +1339,44 @@ function falsoPlan(i, tn, bi){
     const p = cam[k], q = cam[k + 1];
     p[2] = q ? (q[0] > p[0] ? 'der' : q[0] < p[0] ? 'izq' : q[1] > p[1] ? 'abajo' : 'arriba') : fin.d;
   }
-  r = {fin: {x: fin.x, y: fin.y}, d: fin.d, tipo, cam};
+  r = {fin: {x: fin.x, y: fin.y}, d: fin.d, tipo, cam, sale};
   C.memo.set(clave, r);
-  if(C.memo.size > 120) C.memo.delete(C.memo.keys().next().value);
+  if(C.memo.size > 600) C.memo.delete(C.memo.keys().next().value);
   return r;
 }
+const falsosCaptura = {};   // id -> última captura anunciada (nº de intento)
 function falsosMover(ahora){
   if(!falsosInicio()) return;
   const t = Date.now() + (MUNDO.desfase || 0);
-  const turno = Math.floor(t / (FALSO_BLOQUE_MS * FALSO_BLOQUES)), grupo = turno % 2;
-  const bi = Math.floor((t % (FALSO_BLOQUE_MS * FALSO_BLOQUES)) / FALSO_BLOQUE_MS), seg = t % FALSO_BLOQUE_MS;
+  const bk = Math.floor(t / FALSO_BLOQUE_MS), seg = t % FALSO_BLOQUE_MS;
   FALSOS.forEach((f, i) => {
     const id = -500 - i;
-    if((i < 5 ? 0 : 1) !== grupo){ delete MUNDO.otros[id]; return; }
+    if(!falsoPresente(i, bk)){ delete MUNDO.otros[id]; delete MUNDO.busca[id]; return; }
     let plan;
-    try{ plan = falsoPlan(i, turno, bi); }catch(e){ delete MUNDO.otros[id]; return; }
+    try{ plan = falsoPlan(i, bk); }catch(e){ delete MUNDO.otros[id]; return; }
     const paso = Math.floor(seg / FALSO_PASO_MS);
     let a;
     if(paso < plan.cam.length) a = plan.cam[paso];
-    else if(plan.tipo === 'cueva'){ delete MUNDO.otros[id]; return; }   // ya entró a la cueva: no se ve hasta el próximo bloque
+    else if(plan.tipo === 'cueva'){ delete MUNDO.otros[id]; delete MUNDO.busca[id]; return; }   // ya entró a la cueva: no se ve hasta que vuelva a estar presente
     else a = [plan.fin.x, plan.fin.y, plan.d];
+    if(plan.sale && plan.tipo !== 'cueva' && seg > FALSO_BLOQUE_MS - 12e3){ delete MUNDO.otros[id]; delete MUNDO.busca[id]; return; }   // se desconectó
     mundoPoner({id, n: f.n, av: f.av, rg: f.rg, m: 'overworld', x: a[0] * 16, y: a[1] * 16, d: a[2], p: 0}, ahora, false);
-    /* parados en su lugar, "buscan batalla" (⚔️ sobre la cabeza) 60 s de cada 100 s, salvo un rato después de pelear con uno */
-    const quieto = paso >= plan.cam.length, hasta = falsosPelea[id] || 0;
-    if(quieto && Date.now() > hasta && ((seg - plan.cam.length * FALSO_PASO_MS + 100e3 * 10 - i * 13e3) % 100e3) < 60e3) MUNDO.busca[id] = ahora + 600;
+    const quieto = paso >= plan.cam.length, desde = seg - plan.cam.length * FALSO_PASO_MS;
+    /* en la hierba alta "atrapan": cada ~45 s sale un globo con lo que atraparon (un Pokémon de la Aventura al azar, a veces brillante) */
+    if(quieto && plan.tipo === 'atrapar'){
+      const n = Math.floor(desde / 45e3), k = bk * 100 + n;
+      if(n >= 0 && falsosCaptura[id] !== k){
+        falsosCaptura[id] = k;
+        const lista = (typeof ADV_DATA !== 'undefined' && ADV_DATA.length) ? ADV_DATA : null;
+        if(lista){
+          const p = lista[Math.floor(falsoRand(i, k, 63) * lista.length)], brilla = falsoRand(i, k, 64) < .04, fallo = falsoRand(i, k, 65) < .25;
+          MUNDO.globos[id] = {txt: fallo ? '¡Uh, se escapó ' + p.name + '!' : '¡Atrapé a ' + (brilla ? '✨' : '') + p.name + '! 🔴', hasta: ahora + 5500};
+        }
+      }
+    }
+    /* parados en su lugar (no en la hierba cazando), "buscan batalla" (⚔️) 60 s de cada 100 s, salvo un rato después de pelear con uno */
+    const hasta = falsosPelea[id] || 0;
+    if(quieto && plan.tipo !== 'atrapar' && Date.now() > hasta && ((desde + 1000e3 - i * 13e3) % 100e3) < 60e3) MUNDO.busca[id] = ahora + 600;
     else if(MUNDO.busca[id]) delete MUNDO.busca[id];
   });
 }

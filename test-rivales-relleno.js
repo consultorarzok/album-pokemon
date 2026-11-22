@@ -22,7 +22,7 @@ const check = (n, c) => { c ? ok++ : mal++; console.log((c ? '  ✔ ' : '  ✘ '
   // buscar un instante en que algún relleno esté parado buscando batalla (se adelanta el reloj)
   const hallado = await p.evaluate(() => {
     const real = Date.now; const base = real();
-    for(let off = 0; off < 40 * 60e3; off += 7e3){
+    for(let off = 0; off < 90 * 60e3; off += 7e3){
       Date.now = () => base + off;
       for(const k in MUNDO.busca) delete MUNDO.busca[k];
       falsosMover(performance.now());
