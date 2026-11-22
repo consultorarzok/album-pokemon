@@ -566,7 +566,7 @@ let currentEstado = 'all';   // 'all' | 'shiny' | 'dup'
 const ECONOMIA = {
   desde: '2026-11-02T00:00:00-03:00',
   antes:   {sobre: 150, quizOk: 15, quizMal: 5,  ganar: 100, topeQuiz: 0,  bienvenida: 700},    // topeQuiz 0 = sin tope
-  despues: {sobre: 300, quizOk: 30, quizMal: 10, ganar: 115, topeQuiz: 40, bienvenida: 2700}    // 300 iniciales + 2.700 = 10 sobres de 300
+  despues: {sobre: 300, quizOk: 30, quizMal: 10, ganar: 115, topeQuiz: 40, bienvenida: 5700}    // 22/11 Zeta: 300 iniciales + 5.700 = 6.000 monedas en total (20 sobres de 300)
 };
 const economiaDe = ahora => (ahora >= Date.parse(ECONOMIA.desde) ? ECONOMIA.despues : ECONOMIA.antes);
 const PACK_COST = economiaDe(Date.now()).sobre;
@@ -6813,12 +6813,46 @@ function advPonerEn(x, y){
 }
 
 /* Casillero caminable al lado de (x,y) que NO sea una puerta: al volver de la
-   cueva, caer justo sobre la entrada te hacía entrar de nuevo, en bucle. */
+   cueva, caer justo sobre la entrada te hacía entrar de nuevo, en bucle.
+   22/11 (cueva "a la izquierda" donde se quedaban atrapados): la mina de (115,184) está rodeada de montaña y el casillero de abajo
+   es un pasillo cerrado cuya única salida es la propia entrada: al salir caías ahí y pisarla te volvía a meter. Ahora, en la superficie,
+   sólo se elige un casillero CONECTADO con el resto del mapa sin pasar por ninguna entrada (si el de al lado no lo es, el más cercano que sí). */
+let ADV_CONEXO = null;
+function advConexoSuperficie(){
+  if(ADV_CONEXO) return ADV_CONEXO;
+  const guardar = advMapa; advMapa = 'overworld';
+  try{
+    const ini = advBuscarTile('overworld', '@'), vis = new Set([ini.x + ',' + ini.y]), cola = [[ini.x, ini.y]];
+    while(cola.length){
+      const [x, y] = cola.pop();
+      for(const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+        const nx = x + dx, ny = y + dy, k = nx + ',' + ny;
+        if(vis.has(k)) continue;
+        const t = advTileEn(nx, ny);
+        if(!t || !t.walk || t.entra) continue;
+        vis.add(k); cola.push([nx, ny]);
+      }
+    }
+    ADV_CONEXO = vis;
+  } finally { advMapa = guardar; }
+  return ADV_CONEXO;
+}
 function advLugarLibre(x, y){
   const cerca = [[0,1], [0,-1], [-1,0], [1,0], [1,1], [-1,1], [0,2]];
+  const conexo = advMapa === 'overworld' ? advConexoSuperficie() : null;
   for(const [dx, dy] of cerca){
     const t = advTileEn(x + dx, y + dy);
-    if(t && t.walk && !t.entra) return {x:x + dx, y:y + dy};
+    if(t && t.walk && !t.entra && (!conexo || conexo.has((x + dx) + ',' + (y + dy)))) return {x:x + dx, y:y + dy};
+  }
+  if(conexo){   // ninguno de los de al lado sirve: el casillero conectado más cercano
+    let mejor = null, md = 1e9;
+    for(let r = 1; r <= 14 && !mejor; r++){
+      for(let dy = -r; dy <= r; dy++) for(let dx = -r; dx <= r; dx++){
+        if(Math.max(Math.abs(dx), Math.abs(dy)) !== r || !conexo.has((x + dx) + ',' + (y + dy))) continue;
+        const d = dx * dx + dy * dy; if(d < md){ md = d; mejor = {x:x + dx, y:y + dy}; }
+      }
+    }
+    if(mejor) return mejor;
   }
   return {x, y:y + 1};
 }
