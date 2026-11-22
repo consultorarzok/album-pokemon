@@ -1234,7 +1234,7 @@ function botsMover(ahora, saltar){
 }
 /* 22/11 (Zeta): jugadores de relleno. 10 nombres que se ven como entrenadores más, para todos. Cada 5 min cambia AL AZAR cuántos y quiénes
    están en el mapa (de 2 a 8): el que se va entra a una cueva, el que llega sale de una. Cada 5 min van a un lugar nuevo: parados al lado de uno
-   de los 6 primeros líderes, sobre un altar, cazando en la hierba alta (sale un globo "¡Atrapé a …!"), paseando, o metiéndose en una cueva. Caminan
+   de los 6 primeros líderes, sobre un altar, cazando en la hierba alta (se quedan quietos ahí, sin globos), paseando, o metiéndose en una cueva. Caminan
    por los caminos reales del mapa. Todo sale del reloj del servidor (igual que los bots), así que todos ven lo mismo, sin gastar nada del servidor.
    Buscan batalla (⚔️) y se los puede enfrentar (ver batallaFalso); no tienen chat, ni ranking, ni premios propios. */
 const FALSOS = [
@@ -1344,7 +1344,6 @@ function falsoPlan(i, bk, prof){
   if(C.memo.size > 600) C.memo.delete(C.memo.keys().next().value);
   return r;
 }
-const falsosCaptura = {};   // id -> última captura anunciada (nº de intento)
 function falsosMover(ahora){
   if(!falsosInicio()) return;
   const t = Date.now() + (MUNDO.desfase || 0);
@@ -1362,18 +1361,6 @@ function falsosMover(ahora){
     if(plan.sale && plan.tipo !== 'cueva' && seg > FALSO_BLOQUE_MS - 12e3){ delete MUNDO.otros[id]; delete MUNDO.busca[id]; return; }   // se desconectó
     mundoPoner({id, n: f.n, av: f.av, rg: f.rg, m: 'overworld', x: a[0] * 16, y: a[1] * 16, d: a[2], p: 0}, ahora, false);
     const quieto = paso >= plan.cam.length, desde = seg - plan.cam.length * FALSO_PASO_MS;
-    /* en la hierba alta "atrapan": cada ~45 s sale un globo con lo que atraparon (un Pokémon de la Aventura al azar, a veces brillante) */
-    if(quieto && plan.tipo === 'atrapar'){
-      const n = Math.floor(desde / 45e3), k = bk * 100 + n;
-      if(n >= 0 && falsosCaptura[id] !== k){
-        falsosCaptura[id] = k;
-        const lista = (typeof ADV_DATA !== 'undefined' && ADV_DATA.length) ? ADV_DATA : null;
-        if(lista){
-          const p = lista[Math.floor(falsoRand(i, k, 63) * lista.length)], brilla = falsoRand(i, k, 64) < .04, fallo = falsoRand(i, k, 65) < .25;
-          MUNDO.globos[id] = {txt: fallo ? '¡Uh, se escapó ' + p.name + '!' : '¡Atrapé a ' + (brilla ? '✨' : '') + p.name + '! 🔴', hasta: ahora + 5500};
-        }
-      }
-    }
     /* parados en su lugar (no en la hierba cazando), "buscan batalla" (⚔️) 60 s de cada 100 s, salvo un rato después de pelear con uno */
     const hasta = falsosPelea[id] || 0;
     if(quieto && plan.tipo !== 'atrapar' && Date.now() > hasta && ((desde + 1000e3 - i * 13e3) % 100e3) < 60e3) MUNDO.busca[id] = ahora + 600;
