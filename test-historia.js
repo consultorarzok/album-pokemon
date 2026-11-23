@@ -51,7 +51,7 @@ const suf = Math.random().toString(36).slice(2, 6);
   check('muestra el paso 2 del capítulo', /Paso 2 de 4/.test(await p.textContent('#advMisHistoria')));
   check('las 19 medallas, ninguna ganada', await p.evaluate(() => document.querySelectorAll('#advMisMedallas img').length === 19 && !document.querySelector('#advMisMedallas .on')));
   if(SHOTS) await p.screenshot({path: SHOTS + '/historia-misiones.png'});
-  await p.click('#advMisCerrar');
+  await p.click('#advLigaGuiaCerrar');
   // Rosa: Parque San Martín (93,149)
   await p.evaluate(() => { advPonerEn(93, 150); });
   check('aparece "💬 Hablar con Rey sin Corona del Lapacho"', await p.waitForFunction(() => /Rey sin Corona del Lapacho/.test(document.getElementById('advNpcBtn').textContent) && !document.getElementById('advNpcBtn').hidden, null, {timeout: 8000}).then(() => true, () => false));

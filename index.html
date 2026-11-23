@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261225">
+<link rel="stylesheet" href="styles.css?v=20261226">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -178,27 +178,24 @@
   <button class="adv-chatbtn" id="advChatBtn" hidden aria-label="Escribir un mensaje">💬</button>
   <button class="adv-chatbtn adv-batbtn" id="advBatBtn" hidden aria-label="Buscar una batalla con otro entrenador">⚔️</button>
   <button class="adv-chatbtn adv-montbtn" id="advMontBtn" hidden aria-label="Subirte o bajarte de tu montura"></button>
-  <div class="adv-atajos-top adv-solo-central" id="advAtajosTop">
-    <button type="button" class="adv-atajo" id="advSobreBtn" aria-label="Abrir un sobre de figuritas"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/package-open.svg" alt="" width="32" height="32"></span><small>Sobre</small></button>
-    <button type="button" class="adv-atajo" id="advRepBtn" aria-label="Tus figuritas repetidas: canjear, mejorar"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/copy.svg" alt="" width="32" height="32"></span><small>Repetidas</small></button>
-    <button type="button" class="adv-atajo" id="advEvoBtn" aria-label="Evolucionar un Pokémon con repetidas"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/sparkles.svg" alt="" width="32" height="32"></span><small>Evolucionar</small></button>
-    <!-- Códigos se muda acá por JS -->
-    <button type="button" class="adv-atajo" id="advRegaloBtn" aria-label="Calendario de regalos"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/gift.svg" alt="" width="32" height="32"></span><small>Regalos</small><i class="adv-atajo-punto" id="advRegaloPunto" hidden></i></button>
-  </div>
   <div class="adv-atajos" id="advAtajos">
-    <button type="button" class="adv-atajo adv-solo-central" id="advQuizBtn" aria-label="Responder preguntas y ganar monedas"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/circle-help.svg" alt="" width="32" height="32"></span><small>Preguntas</small></button>
-    <button type="button" class="adv-atajo adv-solo-central" id="advArenaBtn" aria-label="Arena de batalla"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/swords.svg" alt="" width="32" height="32"></span><small>Arena</small></button>
-    <button type="button" class="adv-atajo adv-solo-central" id="advRankBtn" aria-label="Rankings"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/trophy.svg" alt="" width="32" height="32"></span><small>Ranking</small></button>
-    <button type="button" class="adv-atajo" id="advTiendaBtn" aria-label="Tienda: comprar y cambiar pokébolas y monturas"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/shopping-cart.svg" alt="" width="32" height="32"></span><small>Tienda</small></button>
+    <button type="button" class="adv-atajo adv-solo-central" id="advSobreBtn" aria-label="Abrir un sobre de figuritas"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/pack.png" alt="" width="32" height="32"></span><small>Sobre</small></button>
+    <button type="button" class="adv-atajo adv-solo-central" id="advRepBtn" aria-label="Tus figuritas repetidas: canjear, mejorar"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/copy.png" alt="" width="32" height="32"></span><small>Repetidas</small></button>
+    <button type="button" class="adv-atajo adv-solo-central" id="advEvoBtn" aria-label="Evolucionar un Pokémon con repetidas"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/evo.png" alt="" width="32" height="32"></span><small>Evolucionar</small></button>
+        <button type="button" class="adv-atajo adv-solo-central" id="advRegaloBtn" aria-label="Calendario de regalos"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/gift.png" alt="" width="32" height="32"></span><small>Regalos</small><i class="adv-atajo-punto" id="advRegaloPunto" hidden></i></button>
+    <button type="button" class="adv-atajo adv-solo-central" id="advQuizBtn" aria-label="Responder preguntas y ganar monedas"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/help.png" alt="" width="32" height="32"></span><small>Preguntas</small></button>
+    <button type="button" class="adv-atajo adv-solo-central" id="advArenaBtn" aria-label="Arena de batalla"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/battle.png" alt="" width="32" height="32"></span><small>Arena</small></button>
+    <button type="button" class="adv-atajo adv-solo-central" id="advRankBtn" aria-label="Rankings"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/trophy.png" alt="" width="32" height="32"></span><small>Ranking</small></button>
+    <button type="button" class="adv-atajo" id="advTiendaBtn" aria-label="Tienda: comprar y cambiar pokébolas y monturas"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/cart.png" alt="" width="32" height="32"></span><small>Tienda</small></button>
     <button type="button" class="adv-atajo" id="advPokedexBtn" aria-label="Abrir la Pokédex"><span aria-hidden="true"><img class="ico-item" src="images/pokedex-icon.png" alt="" width="32" height="32"></span><small>Pokédex</small></button>
     <button type="button" class="adv-atajo" id="advCodigosBtn" aria-label="Códigos: generar o ingresar un código de intercambio"><span aria-hidden="true">🎟️</span><small>Códigos</small></button>
-    <button type="button" class="adv-atajo" id="advMisBtn" aria-label="Misiones y medallas"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/scroll-text.svg" alt="" width="32" height="32"></span><small>Misiones</small><i class="adv-atajo-punto" id="advMisPunto" hidden></i></button>
-    <button type="button" class="adv-atajo" id="advIncInfoBtn" aria-label="Incursiones: dónde hay una abierta"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/flame.svg" alt="" width="32" height="32"></span><small>Incursión</small><i class="adv-atajo-punto" id="advIncPunto" hidden></i></button>
-      <button type="button" class="adv-atajo adv-solo-central" id="advGuiaBtn" aria-label="Cómo se juega: ver la guía de nuevo"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/compass.svg" alt="" width="32" height="32"></span><small>Guía</small></button>
+    <button type="button" class="adv-atajo" id="advMisBtn" aria-label="Misiones y medallas"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/scroll.png" alt="" width="32" height="32"></span><small>Misiones</small><i class="adv-atajo-punto" id="advMisPunto" hidden></i></button>
+    <button type="button" class="adv-atajo" id="advIncInfoBtn" aria-label="Incursiones: dónde hay una abierta"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/incursion.png" alt="" width="32" height="32"></span><small>Incursión</small><i class="adv-atajo-punto" id="advIncPunto" hidden></i></button>
+      <button type="button" class="adv-atajo adv-solo-central" id="advGuiaBtn" aria-label="Cómo se juega: ver la guía de nuevo"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/compass.png" alt="" width="32" height="32"></span><small>Guía</small></button>
   </div>
   <div class="adv-liga-grupo" id="advLigaGrupo" hidden>
-    <button type="button" class="adv-atajo" id="advLigaGuiaBtn" aria-label="La Liga de Jujuy: una flecha te guía hasta tu próximo objetivo"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/map-pin.svg" alt="" width="32" height="32"></span><small>Liga</small></button>
-    <button type="button" class="adv-atajo" id="advLigaInfoBtn" aria-label="Guía de la Liga: tus medallas y qué tenés que hacer"><span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/medal.svg" alt="" width="32" height="32"></span><small>Mi Liga</small></button>
+    <button type="button" class="adv-atajo" id="advLigaGuiaBtn" aria-label="La Liga de Jujuy: una flecha te guía hasta tu próximo objetivo"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/map.png" alt="" width="32" height="32"></span><small>Liga</small></button>
+    <button type="button" class="adv-atajo" id="advLigaInfoBtn" aria-label="Guía de la Liga: tus medallas y qué tenés que hacer"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/medal.png" alt="" width="32" height="32"></span><small>Mi Liga</small></button>
   </div>
   <div class="adv-tour" id="advTour" hidden>
     <div class="adv-tour-foco" id="advTourFoco"></div>
@@ -614,8 +611,8 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261168"></script>
-<script src="app.js?v=20261225"></script>
-<script src="servidor.js?v=20261225"></script>
+<script src="app.js?v=20261226"></script>
+<script src="servidor.js?v=20261226"></script>
 <script src="pixfx.js?v=3"></script>
 <script src="arena.js?v=20261216"></script>
 <script src="portada.js?v=20261216"></script>

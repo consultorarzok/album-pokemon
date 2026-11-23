@@ -9603,8 +9603,8 @@ window.addEventListener('online', () => { if(topFallo) cargarTop(); });
   { const f = document.querySelector('footer.firma'); if(f){ const w = document.createElement('div'); w.id = 'advMenuFirma'; w.appendChild(f); caja.insertBefore(w, $('advMisCerrar')); } }
   $('rankHost').appendChild(document.querySelector('.rank-panel'));
   { // Códigos pasa a la fila de arriba
-    const c = $('advCodigosBtn'), fila = $('advAtajosTop');
-    if(c){ c.className = 'adv-atajo'; c.innerHTML = '<span aria-hidden="true"><img class="ico-item ico-svg" src="images/iconos/ticket.svg" alt="" width="32" height="32"></span><small>Códigos</small>'; fila.insertBefore(c, $('advRegaloBtn')); }
+    const c = $('advCodigosBtn'), fila = $('advAtajos');
+    if(c){ c.className = 'adv-atajo adv-solo-central'; c.innerHTML = '<span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/ticket.png" alt="" width="32" height="32"></span><small>Códigos</small>'; fila.insertBefore(c, $('advRegaloBtn')); }
   }
 
   /* --- botones --- */
@@ -9634,7 +9634,7 @@ window.addEventListener('online', () => { if(topFallo) cargarTop(); });
     {sel: '#advMisBtn',   t: 'Misiones', d: 'Las misiones del día para ganar premios y los avisos de eventos.'},
     {sel: '#advLigaGrupo', t: 'La Liga', d: '<b>Liga</b> pone una flecha que te guía hasta tu próximo objetivo. <b>Mi Liga</b> muestra tus medallas y qué te falta hacer.'},
     {sel: '#advIncInfoBtn', t: 'Incursión', d: 'Te dice dónde hay una incursión abierta y te guía hasta ahí.'},
-    {sel: '#advAtajosTop', t: 'Tu colección', d: 'Arriba tenés los <b>sobres</b>, las <b>repetidas</b>, <b>evolucionar</b>, los <b>códigos</b> y tus <b>regalos</b> del día.'},
+    {sel: '#advSobreBtn', t: 'Tu colección', d: 'Desde <b>Sobre</b> hacia abajo tenés los <b>sobres</b>, las <b>repetidas</b>, <b>evolucionar</b>, los <b>códigos</b> y tus <b>regalos</b> del día.'},
     {sel: '#advGuiaBtn',  t: 'Guía', d: 'Si te olvidás de algo, tocá acá y te lo explico de nuevo.'}
   ];
   let tourPasos = [], tourI = 0, tourActivo = false;
