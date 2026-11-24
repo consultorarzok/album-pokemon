@@ -288,5 +288,16 @@ async function renderizar(nombre, vueltas){
   return {datos:Array.from(buf.getChannelData(0)), segundos:total * sec, tasa:44100};
 }
 
-window.Musica = {pistas:Object.keys(PISTAS), archivos:ARCHIVOS, precargar, archivoSonando:() => (sonando && !sonando.paused ? sonando.src.split('/').pop() : null), poner, alternar:() => poner(!activa), estaActiva:() => activa, sonar, elegir, renderizar, tema:() => pistaActual};
+/* 24/11 (el mapa queda lento después de una incursión): suelta de la memoria las grabaciones de pelea que ya no suenan (cada una se baja entera como blob) */
+function liberar(nombres){
+  for(const n of nombres){
+    const e = audios[n];
+    if(!e || e.audio === sonando) continue;
+    try{ e.audio.pause(); }catch(x){}
+    try{ e.fuente.disconnect(); }catch(x){}
+    try{ if(e.audio.src && e.audio.src.startsWith('blob:')) URL.revokeObjectURL(e.audio.src); e.audio.removeAttribute('src'); e.audio.load(); }catch(x){}
+    delete audios[n];
+  }
+}
+window.Musica = {liberar, pistas:Object.keys(PISTAS), archivos:ARCHIVOS, precargar, archivoSonando:() => (sonando && !sonando.paused ? sonando.src.split('/').pop() : null), poner, alternar:() => poner(!activa), estaActiva:() => activa, sonar, elegir, renderizar, tema:() => pistaActual};
 })();

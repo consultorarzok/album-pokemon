@@ -7249,6 +7249,21 @@ function advDprLienzo(){
   return Math.max(1, real / (advNivel + 1));
 }
 let advArenaEl, advPanelT = 0, advPanelAbierto = false;
+/* 24/11: medición oculta (el mapa queda lento después de una incursión): guarda en 'adv-diag' los ms por cuadro caminando antes de abrir la arena y ~6 s después de cerrarla */
+let diagAntes = 0, diagCierre = 0;
+function diagArena(fase){
+  if(fase === 'abre'){ if(!diagCierre) diagAntes = Math.round(advMedia * 10) / 10; diagCierre = 0; return; }
+  diagCierre = performance.now();
+}
+function diagRevisar(ahora){
+  if(!diagCierre || ahora - diagCierre < 6000) return;
+  diagCierre = 0;
+  try{
+    const l = JSON.parse(localStorage.getItem('adv-diag') || '[]');
+    l.push({t: new Date().toISOString().slice(0, 16), antes: diagAntes, despues: Math.round(advMedia * 10) / 10, nivel: advNivel, mem: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : null, ua: navigator.userAgent.slice(0, 90)});
+    localStorage.setItem('adv-diag', JSON.stringify(l.slice(-15)));
+  }catch(e){}
+}
 function advCiclo(ahora){
   if(!advAbierto){ advRaf = null; advAbiertoT = 0; return; }
   const real = (ahora - advUltimo) || 16;
@@ -7270,6 +7285,7 @@ function advCiclo(ahora){
   if(quieto){ advSalto = !advSalto; if(advSalto){ try{ advPaso1(dt); }catch(e){ console.error('advCiclo', e); } return; } }
   else {
     advMedia += (Math.min(real, 200) - advMedia) * .08;
+    diagRevisar(ahora);
     if(!advAbiertoT) advAbiertoT = ahora;
     const puedeBajar = advNivel < 2 && advDprLienzo() > 1 && ahora - advAbiertoT > 3000;   // los primeros segundos no cuentan (se están armando el mapa y los dibujos)
     if(advMedia > 34 && puedeBajar){

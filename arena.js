@@ -4217,6 +4217,7 @@ function abrirArenaBase(rapido, inc){
       avisoBatalla(`Necesitás al menos ${EQUIPO_MIN} Pokémon de Kanto, Johto, Hoenn, Sinnoh, Teselia o Kalos para pelear en la arena. Abrí un sobre primero (botón Sobre, arriba a la izquierda).`);
     return;
   }
+  try{ if(typeof diagArena === 'function') diagArena('abre'); }catch(e){}
   limpiar();
   if(!ultimoTopMaestro) cargarTopMaestro();   // más nombres de entrenadores para los rivales
   ov.classList.add('show');
@@ -4812,6 +4813,8 @@ function cerrarArena(){
   $('arRoot').innerHTML = '';
   if(typeof updateBarras === 'function') updateBarras();
   window.__retoArena = null;
+  try{ if(typeof diagArena === 'function') diagArena('cierra'); }catch(e){}
+  setTimeout(() => { try{ const o = $('arenaOverlay'); if(window.Musica && Musica.liberar && !(o && o.classList.contains('show'))) Musica.liberar(['batalla', 'equipo', 'incursion']); }catch(e){} }, 2500);   // 24/11: suelta las grabaciones de pelea
   if(window.__retoVolver){ window.__retoVolver = false; if(typeof abrirAventura === 'function') abrirAventura(); if(window.__altarVuelta && window.__altarVuelta.fin && typeof altarDeVuelta === 'function') setTimeout(altarDeVuelta, 400); if(window.__ofrecerGuia){ window.__ofrecerGuia = false; setTimeout(() => { if(typeof ofrecerGuiaProximo === 'function') ofrecerGuiaProximo(); }, 1200); } }   // después del gimnasio, de vuelta a la Aventura
 }
 
