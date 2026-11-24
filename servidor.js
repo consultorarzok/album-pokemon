@@ -160,7 +160,7 @@ function aplicarProgreso(P, conAlbum = true){
   npcRegalos = P.npc || {};
   if(typeof actualizarBotonMontura === 'function') actualizarBotonMontura();
   saveProgress();   // queda una copia en el navegador para que la próxima vez arranque rápido
-  if(conAlbum){ renderGrid(); updateProgress(); renderEspeciales(); }
+  if(conAlbum){ renderGridDiferido(); updateProgress(); renderEspeciales(); }
   updateCoins();
   if(advAbierto) advSyncHud();
 }

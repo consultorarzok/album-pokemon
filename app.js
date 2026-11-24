@@ -876,7 +876,15 @@ function normalizarBusqueda(t){
   inp.addEventListener('keydown', e => { if(e.key === 'Escape' && inp.value){ e.stopPropagation(); inp.value = ''; currentBusqueda = ''; renderGrid(); } });
 })();
 
+/* 24/11: cada acción del servidor (terminar una incursión, atrapar…) redibujaba las 1.025 figuritas aunque el álbum estuviera oculto (156 ms con el procesador de un celular lento, 4x): ahora se junta y se hace con calma, o enseguida si el Pokédex está abierto */
+let gridSucio = false, gridT = 0;
+function renderGridDiferido(){
+  if(!AVENTURA_CENTRAL || document.getElementById('pokedexOverlay').classList.contains('show')){ renderGrid(); return; }
+  gridSucio = true; clearTimeout(gridT);
+  gridT = setTimeout(() => { if(gridSucio) (window.requestIdleCallback || (f => setTimeout(f, 0)))(() => { if(gridSucio) renderGrid(); }); }, 1500);
+}
 function renderGrid(){
+  gridSucio = false;
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
   const ev = eventoVistaActiva();
@@ -2744,7 +2752,18 @@ const GUARIDAS = [{"region": "kanto", "x0": 56, "y0": 222, "w": 13, "h": 11, "su
 const INC_BALL = {nombre: 'Incursión Ball', img: ITEM_CDN + 'beast-ball.png'};
 let incBolas = 0, incursionPendiente = null;   // vienen del servidor
 /* ¿Qué guaridas abren en cada turno? El número de turno (día * 4 + turno del día) reparte las 7 regiones de a `porTurno`, dando la vuelta sin parar. */
+/* 24/11 (lentitud en la Aventura): el mapa pedía los horarios de las 9 guaridas varias veces en CADA cuadro (cuentas de turnos + formato de fecha con Intl, caro en celulares),
+   justo donde queda parado el jugador al salir de una incursión. Se calcula una vez por segundo por guarida. */
+const _apCache = new Map();
 function aperturaIncursion(cfg, ahora){
+  if(Math.abs(ahora - Date.now()) < 5000){   // solo el "ahora" real (las pruebas pasan horas inventadas)
+    const c = _apCache.get(cfg.region);
+    if(c && ahora - c.t < 1000 && ahora >= c.t) return c.v;
+    const v = aperturaIncursionCalc(cfg, ahora); _apCache.set(cfg.region, {t: ahora, v}); return v;
+  }
+  return aperturaIncursionCalc(cfg, ahora);
+}
+function aperturaIncursionCalc(cfg, ahora){
   const H = 3 * 3600e3, dur = INCURSIONES.duracionMin * 60e3, T = INCURSIONES.turnos, n = INCURSIONES.regiones.length, k = INCURSIONES.porTurno;
   const ex = (INCURSIONES.extras || []).find(e => ahora >= e.desde && ahora < e.hasta && (e.regiones === 'todas' || e.regiones.includes(cfg.region)));
   if(ex && ex.rotar){   // 18/11: el jefe cambia cada `cadaMin` minutos; cada cambio es una apertura nueva (intento nuevo). Misma cuenta que el servidor (juego.js).
@@ -2837,7 +2856,9 @@ function avisoIncursiones(){
   if(!isFinite(prox)) return '';
   return `⚔️ Próxima incursión: <b>${etiquetaApertura(prox)}</b> en ${aps.filter(([, a]) => a.proxima === prox).map(([r]) => nombre(r)).join(', ')}.`;
 }
-const etiquetaApertura = t => {
+const _etiCache = {};
+const etiquetaApertura = t => { const m = Math.floor(Date.now() / 30000), c = _etiCache[t]; if(c && c.m === m) return c.v; const v = etiquetaAperturaCalc(t); _etiCache[t] = {m, v}; return v; };
+const etiquetaAperturaCalc = t => {
   const J = 3 * 3600e3, dia = x => { const d = new Date(x - J); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); };
   const dif = Math.round((dia(t) - dia(Date.now())) / 86400e3), hora = new Date(t).toLocaleTimeString('es-AR', {timeZone: 'America/Argentina/Jujuy', hour: '2-digit', minute: '2-digit', hour12: false});
   const cuando = dif <= 0 ? 'hoy' : dif === 1 ? 'mañana' : new Date(t).toLocaleDateString('es-AR', {timeZone: 'America/Argentina/Jujuy', weekday: 'short'}).replace('.', '');
@@ -7224,10 +7245,10 @@ let advNivel = 0, advLentos = 0, advMedia = 16, advPosPrev = '', advQuietoDesde 
 try{ advNivel = Math.max(0, Math.min(2, Number(localStorage.getItem('adv-nivel')) || 0)); }catch(e){}
 function advDprLienzo(){
   const real = window.devicePixelRatio || 1;
-  if(advNivel <= 0) return Math.min(real, 2.5);
+  if(advNivel <= 0) return Math.min(real, 2);   // 24/11: tope 2 (antes 2,5): en celulares de 2,75-3 la diferencia no se nota y cuesta 36 % menos de píxeles por cuadro
   return Math.max(1, real / (advNivel + 1));
 }
-let advArenaEl;
+let advArenaEl, advPanelT = 0, advPanelAbierto = false;
 function advCiclo(ahora){
   if(!advAbierto){ advRaf = null; advAbiertoT = 0; return; }
   const real = (ahora - advUltimo) || 16;
@@ -7239,7 +7260,10 @@ function advCiclo(ahora){
   if(advArenaEl === undefined) advArenaEl = document.getElementById('arenaOverlay');
   if(advArenaEl && advArenaEl.classList.contains('show')){ advMedia = 16; advAbiertoT = 0; return; }
   /* 22/11: con un panel tapando el mapa (Pokédex, ranking, preguntas, tienda…) no se dibuja a escondidas: así nada se pone lento ni se calienta el celular */
-  if(AVENTURA_CENTRAL && document.querySelector('.overlay.show, .special-overlay.show')){ advMedia = 16; advAbiertoT = 0; return; }
+  if(AVENTURA_CENTRAL){   // 24/11: se revisa 5 veces por segundo, no en cada cuadro (querySelector sobre todo el documento)
+    if(ahora - advPanelT > 200){ advPanelT = ahora; advPanelAbierto = !!document.querySelector('.overlay.show, .special-overlay.show'); }
+    if(advPanelAbierto){ advMedia = 16; advAbiertoT = 0; return; }
+  }
   const pos = advPx + ',' + advPy;
   if(pos !== advPosPrev){ advPosPrev = pos; advQuietoDesde = ahora; }
   const quieto = ahora - advQuietoDesde > 400;
@@ -7759,7 +7783,7 @@ document.getElementById('evolucionAtrasBtn').onclick = () => document.getElement
 document.getElementById('intercambioBtn').onclick = abrirIntercambio;
 /* atajos de la Aventura: la Pokédex y los códigos se abren encima del mapa (los paneles tienen más z-index que la Aventura) */
 document.getElementById('advTiendaBtn').onclick = () => { teclasApretadas.clear(); advEje = {x: 0, y: 0}; abrirTienda(); };
-document.getElementById('advPokedexBtn').onclick = () => { teclasApretadas.clear(); advEje = {x: 0, y: 0}; document.getElementById('pokedexOverlay').classList.add('show'); };
+document.getElementById('advPokedexBtn').onclick = () => { teclasApretadas.clear(); advEje = {x: 0, y: 0}; if(gridSucio) renderGrid(); document.getElementById('pokedexOverlay').classList.add('show'); };
 document.getElementById('advCodigosBtn').onclick = () => { teclasApretadas.clear(); advEje = {x: 0, y: 0}; abrirIntercambio(); };
 document.getElementById('advIncInfoBtn').onclick = abrirPanelIncursiones;
 document.getElementById('advIncCerrar').onclick = cerrarPanelIncursiones;
@@ -7791,7 +7815,7 @@ document.getElementById('codigoCardCopiarBtn').onclick = () => copiarTexto(docum
 document.getElementById('canjeCodigoInput').addEventListener('keydown', e => { if(e.key === 'Enter') canjearCodigoInput(); });
 
 document.getElementById('closeBtn').onclick = () => document.getElementById('overlay').classList.remove('show');
-document.getElementById('pokedexBtn').onclick = () => document.getElementById('pokedexOverlay').classList.add('show');
+document.getElementById('pokedexBtn').onclick = () => { if(gridSucio) renderGrid(); document.getElementById('pokedexOverlay').classList.add('show'); };
 document.getElementById('pokedexCloseBtn').onclick = () => document.getElementById('pokedexOverlay').classList.remove('show');
 document.getElementById('quizCloseBtn').onclick = () => { ocultarReloj(); document.getElementById('quizOverlay').classList.remove('show'); };
 document.getElementById('quizNextBtn').onclick = startQuiz;
