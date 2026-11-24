@@ -3974,6 +3974,7 @@ function armarIncursion(d, pDe){
   const libres = ['al', 'r2', 'r3', 'r4', 'r5'];
   otros.forEach(j => { const l = libres.shift(); AR.lados.push(l); AR.bando[l] = 'A'; AR.espejo[l] = false; AR.porSlot[j.slot] = l; AR.slotDe[l] = j.slot; AR[l] = {mons:eq(j), idx:0, act:null, nombre:j.nombre}; });
   const pj = pDe(d.jefe.id), jefe = crearMon(pj, true, {f:d.jefe.f, c:'jefe' + d.jefe.id, s:!!d.jefe.s});
+  jefe.defX = (jefe.defX || 1) * 1.25;   // 24/11 Zeta: el legendario aguanta más (defensa x1,25)
   jefe.atkMult = d.jefe.atk || 1; jefe.max = Math.round(jefe.max * d.jefe.vida); jefe.hp = jefe.max; jefe.jefe = true;
   AR.lados.push('riv'); AR.bando.riv = 'B'; AR.espejo.riv = false; AR.porSlot[d.jefe.slot] = 'riv'; AR.slotDe.riv = d.jefe.slot;
   AR.riv = {mons:[jefe], idx:0, act:null, nombre:pj.name};
