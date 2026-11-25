@@ -59,7 +59,7 @@ const enCurso = new Set();           // jugadas esperando respuesta (evita el do
 const POR_ID_C = Object.fromEntries(DATA.map(p => [p.id, p]));
 const aPull = x => ({p: POR_ID_C[x.id], isNew: x.isNew});
 /* jugadas que pueden cambiar las figuritas: sólo ésas vuelven a dibujar el álbum entero */
-const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'mejorarStat', 'reiniciarMejoras', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar', 'calendarioCobrar', 'invitaPremio']);
+const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'mejorarStat', 'reiniciarMejoras', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar', 'calendarioCobrar', 'invitaPremio', 'duoPremio']);
 
 const MENSAJES = {
   lejos_del_lider: 'Para desafiar al gimnasio tenés que estar al lado del líder.', falta_medalla_previa: 'Primero tenés que ganarle al líder anterior: los gimnasios van en orden.', ya_ganado: 'A ese líder ya le ganaste: seguí con el siguiente.', faltan_requisitos: 'Todavía no cumplís lo que pide ese líder para pelear.', todavia_no: 'Todavía no completaste esa misión.',
@@ -801,12 +801,36 @@ function abrirLigaGuia(){
   if(!servidorListo){ advMensaje('La guía de la Liga necesita conexión 📶'); return; }
   teclasApretadas.clear(); advEje = {x: 0, y: 0};
   document.getElementById('advLigaGuiaPanel').hidden = false;
-  cargarHistoria(); cargarLiga();
+  pintarCarrera(); cargarHistoria(); cargarLiga();
 }
 /* ---- Liga de Jujuy: los 10 primeros con las 19 medallas (los anota el servidor; acá sólo se muestran) ---- */
 const LIGA = {datos: null, timer: null};
 const horaLiga = ts => { try{ return new Date(ts).toLocaleString('es-AR', {timeZone: 'America/Argentina/Jujuy', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false}).replace(',', ' ·'); }catch(e){ return ''; } };
+/* "Cómo van todos" (25/11 Zeta): la carrera completa dentro de Mi Liga. Cada uno con sus medallas y el gimnasio que le toca. */
+function pintarCarrera(){
+  const caja = document.getElementById('advLigaCarrera'), d = LIGA.datos;
+  if(!caja) return;
+  caja.textContent = '';
+  const nota = t => { const n = document.createElement('div'); n.className = 'nota'; n.textContent = t; caja.appendChild(n); };
+  if(!d) return nota('Cargando…');
+  const lista = d.todos || d.carrera || [], tot = d.total || 19, cupos = d.cupos || 10;
+  if(!lista.length) return nota('Todavía nadie ganó una medalla.');
+  const yo = (typeof jugador === 'string' ? jugador : '').toLowerCase();
+  lista.forEach(f => {
+    const row = document.createElement('div');
+    row.className = 'fila' + (yo && f.nombre.toLowerCase() === yo ? ' yo' : '');
+    row.innerHTML = '<span class="pto">' + Number(f.puesto) + '</span><span class="nom"><b></b><small></small></span><span class="cant">🏅 ' + Number(f.medallas) + '<small>/' + tot + '</small></span>';
+    row.querySelector('b').textContent = f.nombre;
+    const m = MEDALLAS[f.medallas];
+    row.querySelector('.nom small').textContent = f.clasificado ? 'Clasificado a la Liga ✅' : m ? 'Va por ' + m.lider + ' · ' + m.lugar : '';
+    caja.appendChild(row);
+  });
+  if(yo && !lista.some(f => f.nombre.toLowerCase() === yo)) nota('Todavía no estás en la lista: ganá tu primera medalla.');
+  const libres = cupos - (d.clasificados || []).length;
+  nota(libres > 0 ? `Clasifican los primeros ${cupos} con las ${tot} medallas. Quedan ${libres} lugares.` : '¡Ya están los clasificados!');
+}
 function pintarLiga(){
+  pintarCarrera();
   const d = LIGA.datos, ol = document.getElementById('advLigaLista');
   if(!ol) return;
   const cupos = (d && d.cupos) || 10, lista = (d && d.clasificados) || [];
@@ -1284,6 +1308,8 @@ function mundoMensaje(m){
     chatLogPintar(); return;
   }
   if(m.t === 'chat_no'){ chatAviso(m); return; }
+  if(m.t === 'duo_busca'){ if(typeof duoAviso === 'function') duoAviso(m); return; }
+  if(m.t === 'duo_invita'){ if(typeof duoInvitacion === 'function') duoInvitacion(m); return; }
   if(m.t === 'busca'){ if(!arenaAbierta()) MUNDO.busca[m.id] = ahora + BATALLA_BUSCA_MS; return; }
   if(m.t === 'busca_no'){ delete MUNDO.busca[m.id]; return; }
   if(m.t === 'batalla'){ batallaEmpezar(m); return; }

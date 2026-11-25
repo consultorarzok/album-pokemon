@@ -4210,6 +4210,8 @@ function puedeDueloRapido(){
 }
 function abrirDueloRapido(info){ if(puedeDueloRapido()) abrirArenaBase(info); }
 function abrirIncursionArena(inc){ return abrirArenaBase(null, inc); }
+/* Guardián de la mina (Aventura de a dos): es una incursión de exactamente 2, los del dúo */
+window.abrirGuardianDuo = jefe => abrirArenaBase(null, {legendario: jefe, duo: true});
 function abrirArenaBase(rapido, inc){
   const ov = $('arenaOverlay');
   const mios = kantoMios().concat(especialesMios());   // las especiales (Mewtwo Acorazado) pelean aparte
@@ -4540,6 +4542,7 @@ function terminarDuelo(gane){
 }
 function mostrarResultadoDuelo(m){
   if(!AR || !AR.online) return;
+  if(m.incursion && m.duo) return mostrarResultadoGuardian(m);
   if(m.incursion) return mostrarResultadoIncursion(m);
   if(AR.fase !== 'fin'){   // terminó por el servidor (el rival abandonó, por ejemplo)
     AR.fase = 'fin'; AR.hold.clear();
@@ -4561,6 +4564,19 @@ function mostrarResultadoDuelo(m){
   if(typeof cargarTopMaestro === 'function') cargarTopMaestro();
   pintarFin(!!m.gane, pr, subidas, aviso);
   const otra = $('arOtra'); if(otra){ otra.querySelector('b').textContent = 'Otro duelo'; }
+}
+
+function mostrarResultadoGuardian(m){
+  AR.fase = 'fin'; AR.hold.clear(); AR.esperandoResultado = false;
+  cancelAnimationFrame(RAF); RAF = 0;
+  cerrarSala();
+  if(m.gane){ sfx('gana'); festejo(true); }
+  const f = $('arFin'), col = m.gane ? '#3DDC6E' : '#F0463C';
+  f.hidden = false;
+  f.innerHTML = `<div class="ar-fin-caja" style="border-color:${col}"><b style="color:${col}">${m.gane ? '¡Vencieron al Guardián!' : 'Ganó el Guardián'}</b>
+    <span>${m.gane ? 'Tocá <b>Dúo</b> en el mapa para darle los niveles a un Pokémon.' : 'Pueden reintentar cuando quieran desde Dúo.'}</span>
+    <div><button class="ar-b ar-med" id="arCerrar2"><b>Cerrar</b></button></div></div>`;
+  $('arCerrar2').onclick = () => { cerrarArena(); if(typeof duoRefrescarAlbum === 'function') duoRefrescarAlbum(); };
 }
 
 /* ---- fin de la incursión: Incursión Balls y a tirarle al legendario ---- */
@@ -4663,13 +4679,19 @@ function pintarIncursion(equipo, inc){
     <div class="ar-pick-pie"><button class="ar-b ar-go" id="arIEmpezar" disabled><b>Iniciar</b></button><button class="ar-b ar-med" id="arIIrse"><b>Salir</b></button></div></div>`;
   const est = $('arIEstado'), esc = t => String(t).replace(/[<>&"]/g, '');
   const motivo = mm => ({cerrada:'La guarida está cerrada: abre a la hora que dice el cartel.', ya_participaste:'Ya peleaste contra este legendario en esta apertura. Volvé en la próxima.',
-    equipo_invalido:'Elegí entre 3 y 6 Pokémon.', no_es_tuyo:'Ese Pokémon no está en tu álbum.', sin_sesion:'Volvé a entrar al juego.'})[mm] || 'No se pudo: ' + mm;
+    equipo_invalido:'Elegí entre 3 y 6 Pokémon.', sin_guardian:'La misión del Guardián ya terminó. Empiecen otra desde Dúo.', no_es_tuyo:'Ese Pokémon no está en tu álbum.', sin_sesion:'Volvé a entrar al juego.'})[mm] || 'No se pudo: ' + mm;
+  if(inc.duo){   // Guardián de la mina: textos propios; arranca solo cuando están los dos
+    root.querySelector('h2').textContent = '⛏️ El Guardián: ' + p.name;
+    root.querySelectorAll('.ar-duelo > p').forEach((x, i) => { if(i === 0) x.innerHTML = 'Pelean <b>ustedes dos juntos</b> contra el Guardián de la mina. Arranca solo cuando los dos están adentro. Tienen 5 minutos.'; else x.remove(); });
+    $('arIEmpezar').hidden = true;
+  }
   $('arIIrse').onclick = () => { enviarSala({t:'irse'}); cerrarSala(); cerrarArena(); };
   $('arIEmpezar').onclick = () => { $('arIEmpezar').disabled = true; enviarSala({t:'empezar_incursion'}); };
   const alMensaje = m => {
     if(m.t === 'lobby'){
       $('arILista').innerHTML = m.jugadores.map(x => `<li${x.conectado ? '' : ' class="off"'}><span><b>${esc(x.nombre)}</b>${x.id === m.yo ? ' (vos)' : ''}${x.conectado ? '' : ' · sin conexión'}</span></li>`).join('');
       const faltan = m.incursion ? m.incursion.faltan : 6 - m.jugadores.length;
+      if(inc.duo){ est.innerHTML = m.jugadores.length < 2 ? 'Esperando a tu compañero…' : '¡Están los dos! Arrancando…'; return; }
       if(m.incursion && m.incursion.id){   // 04/11: el jefe de esta sala puede ser otro (shiny): el título dice contra quién se pelea de verdad
         const pb = DATA.find(x => x.id === m.incursion.id), h2 = $('arRoot').querySelector('h2');
         if(pb && h2) h2.textContent = '⚔️ Incursión contra ' + pb.name + (m.incursion.s ? ' ✨ SHINY' : '');
@@ -4683,7 +4705,7 @@ function pintarIncursion(equipo, inc){
     if(m.t === 'error_red') est.textContent = 'Sin conexión con la guarida. Probá de nuevo.';
   };
   const tokSala = TOK;   // 15/11: si salís de la sala antes de que conteste el servidor, la respuesta tardía no debe abrir la conexión ni arrancar una pelea escondida
-  api('/incursion/unirse', {region:inc.region, equipo:equipo.map(x => x.id)}).then(res => {
+  api(inc.duo ? '/duo/guardian' : '/incursion/unirse', {region:inc.region, equipo:equipo.map(x => x.id)}).then(res => {
     if(tokSala !== TOK) return;
     if(!res.ok){ est.textContent = motivo(res.motivo); return; }
     conectarSala(res.resultado.codigo, alMensaje);

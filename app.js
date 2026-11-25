@@ -6561,6 +6561,7 @@ function advAltoRender(mapa, camX, camY, vw, vh, kk, cw, chh, tapa){
   for(const k in altaAlfa) delete altaAlfa[k];
   Object.assign(altaAlfa, vistos);
   dibujarPuertasGuaridas(g, camX, camY, vw, vh);
+  if(typeof dibujarDuoLugares === 'function') dibujarDuoLugares(g, camX, camY, vw, vh);
   camGuia.x = camX; camGuia.y = camY;
   if(!(nocheNivel >= .01)) dibujarGuiaIncursion(g);     // de noche la flecha se dibuja arriba del manto (nocheRender)
 }
@@ -9678,6 +9679,7 @@ window.addEventListener('online', () => { if(topFallo) cargarTop(); });
     {sel: '#advLigaGrupo', t: 'La Liga', d: '<b>Liga</b> pone una flecha que te guía hasta tu próximo objetivo. <b>Mi Liga</b> muestra tus medallas y qué te falta hacer.'},
     {sel: '#advIncInfoBtn', t: 'Incursión', d: 'Te dice dónde hay una incursión abierta y te guía hasta ahí.'},
     {sel: '#advSobreBtn', t: 'Tu colección', d: 'Desde <b>Sobre</b> hacia abajo tenés los <b>sobres</b>, las <b>repetidas</b>, <b>evolucionar</b>, los <b>códigos</b> y tus <b>regalos</b> del día.'},
+    {sel: '#advDuoBtn', t: 'Dúo', d: 'Buscá un compañero: hay <b>misiones de a dos</b> y sus Pokémon suben de nivel sin gastar monedas.'},
     {sel: '#advInvitaBtn', t: 'Invitá y ganá', d: 'Mandá tu link por WhatsApp. Con <b>10 amigos nuevos</b> te llevás un <b>Charizard shiny</b>.'},
     {sel: '#advGuiaBtn',  t: 'Guía', d: 'Si te olvidás de algo, tocá acá y te lo explico de nuevo.'}
   ];

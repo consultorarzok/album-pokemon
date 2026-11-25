@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261231">
+<link rel="stylesheet" href="styles.css?v=20261236">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -183,7 +183,6 @@
     <button type="button" class="adv-atajo adv-solo-central" id="advRepBtn" aria-label="Tus figuritas repetidas: canjear, mejorar"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/copy.png" alt="" width="32" height="32"></span><small>Repetidas</small></button>
     <button type="button" class="adv-atajo adv-solo-central" id="advEvoBtn" aria-label="Evolucionar un Pokémon con repetidas"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/evo.png" alt="" width="32" height="32"></span><small>Evolucionar</small></button>
         <button type="button" class="adv-atajo adv-solo-central" id="advRegaloBtn" aria-label="Calendario de regalos"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/gift.png" alt="" width="32" height="32"></span><small>Regalos</small><i class="adv-atajo-punto" id="advRegaloPunto" hidden></i></button>
-    <button type="button" class="adv-atajo adv-solo-central" id="advInvitaBtn" aria-label="Invitá amigos y ganá un Charizard shiny"><span aria-hidden="true"><img class="ico-item ico-anime" src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/shiny/6.png" alt="" width="32" height="32"></span><small>Invitá</small><i class="adv-atajo-punto" id="advInvitaPunto" hidden></i></button>
     <button type="button" class="adv-atajo adv-solo-central" id="advQuizBtn" aria-label="Responder preguntas y ganar monedas"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/help.png" alt="" width="32" height="32"></span><small>Preguntas</small></button>
     <button type="button" class="adv-atajo adv-solo-central" id="advArenaBtn" aria-label="Arena de batalla"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/battle.png" alt="" width="32" height="32"></span><small>Arena</small></button>
     <button type="button" class="adv-atajo adv-solo-central" id="advRankBtn" aria-label="Rankings"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/trophy.png" alt="" width="32" height="32"></span><small>Ranking</small></button>
@@ -194,10 +193,18 @@
     <button type="button" class="adv-atajo" id="advIncInfoBtn" aria-label="Incursiones: dónde hay una abierta"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/incursion.png" alt="" width="32" height="32"></span><small>Incursión</small><i class="adv-atajo-punto" id="advIncPunto" hidden></i></button>
       <button type="button" class="adv-atajo adv-solo-central" id="advGuiaBtn" aria-label="Cómo se juega: ver la guía de nuevo"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/compass.png" alt="" width="32" height="32"></span><small>Guía</small></button>
   </div>
+  <div class="adv-derecha" id="advDerecha">
   <div class="adv-liga-grupo" id="advLigaGrupo" hidden>
     <button type="button" class="adv-atajo" id="advLigaGuiaBtn" aria-label="La Liga de Jujuy: una flecha te guía hasta tu próximo objetivo"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/map.png" alt="" width="32" height="32"></span><small>Liga</small></button>
     <button type="button" class="adv-atajo" id="advLigaInfoBtn" aria-label="Guía de la Liga: tus medallas y qué tenés que hacer"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/medal.png" alt="" width="32" height="32"></span><small>Mi Liga</small></button>
   </div>
+  <div class="adv-social-grupo" id="advSocialGrupo">
+    <button type="button" class="adv-atajo adv-solo-central" id="advDuoBtn" aria-label="Aventura de a dos: buscar compañero y misiones"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/duo.png" alt="" width="32" height="32"></span><small>Dúo</small><i class="adv-atajo-punto" id="advDuoPunto" hidden></i></button>
+    <button type="button" class="adv-atajo adv-solo-central" id="advInvitaBtn" aria-label="Invitá amigos y ganá un Charizard shiny"><span aria-hidden="true"><img class="ico-item ico-anime" src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/shiny/6.png" alt="" width="32" height="32"></span><small>Invitá</small><i class="adv-atajo-punto" id="advInvitaPunto" hidden></i></button>
+  </div>
+  </div>
+  <button type="button" class="duo-cerca" id="duoCerca" hidden></button>
+  <button type="button" class="duo-chip" id="duoChip" hidden></button>
   <div class="adv-tour" id="advTour" hidden>
     <div class="adv-tour-foco" id="advTourFoco"></div>
     <div class="adv-tour-card" id="advTourCard" role="dialog" aria-live="polite">
@@ -219,6 +226,9 @@
     <div class="adv-incpanel-caja adv-mis-caja">
       <h3>🏆 La Liga de Jujuy</h3>
       <div id="advMisHistoria"></div>
+      <h4>🏁 Cómo van todos</h4>
+      <div id="advLigaCarrera" class="adv-carrera"></div>
+      <h4>Tus medallas</h4>
       <div class="adv-mis-medallas" id="advMisMedallas"></div>
       <button type="button" class="adv-liga-btn" id="advLigaBtn">🏆 Clasificados a la Liga <b id="advLigaCont"></b></button>
       <button type="button" class="adv-inc-cerrar" id="advLigaGuiaCerrar">Cerrar</button>
@@ -466,6 +476,15 @@
   </div>
 </div>
 
+<!-- Aventura de a dos -->
+<div class="name-overlay" id="duoOverlay" role="dialog" aria-modal="true" aria-labelledby="duoTitulo">
+  <div class="name-box duo-modal">
+    <h2 id="duoTitulo">👥 Aventura de a dos</h2>
+    <div id="duoCuerpo"><p>Cargando…</p></div>
+    <button type="button" class="btn-sec" id="duoCerrar">Cerrar</button>
+  </div>
+</div>
+
 <div class="name-overlay" id="avatarOverlay" role="dialog" aria-modal="true" aria-labelledby="avatarTitle">
   <div class="name-box">
     <h2 id="avatarTitle">Elegí tu personaje</h2>
@@ -627,10 +646,11 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261229"></script>
-<script src="app.js?v=20261234"></script>
-<script src="servidor.js?v=20261231"></script>
+<script src="app.js?v=20261236"></script>
+<script src="servidor.js?v=20261236"></script>
+<script src="duo.js?v=20261236"></script>
 <script src="pixfx.js?v=3"></script>
-<script src="arena.js?v=20261230"></script>
+<script src="arena.js?v=20261236"></script>
 <script src="portada.js?v=20261216"></script>
 <script>
 /* Guardado del juego en el celular (sw.js): sólo en el sitio real, nunca en pruebas locales */
