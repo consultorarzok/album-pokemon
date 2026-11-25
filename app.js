@@ -9678,6 +9678,7 @@ window.addEventListener('online', () => { if(topFallo) cargarTop(); });
     {sel: '#advLigaGrupo', t: 'La Liga', d: '<b>Liga</b> pone una flecha que te guía hasta tu próximo objetivo. <b>Mi Liga</b> muestra tus medallas y qué te falta hacer.'},
     {sel: '#advIncInfoBtn', t: 'Incursión', d: 'Te dice dónde hay una incursión abierta y te guía hasta ahí.'},
     {sel: '#advSobreBtn', t: 'Tu colección', d: 'Desde <b>Sobre</b> hacia abajo tenés los <b>sobres</b>, las <b>repetidas</b>, <b>evolucionar</b>, los <b>códigos</b> y tus <b>regalos</b> del día.'},
+    {sel: '#advInvitaBtn', t: 'Invitá y ganá', d: 'Mandá tu link por WhatsApp. Con <b>10 amigos nuevos</b> te llevás un <b>Charizard shiny</b>.'},
     {sel: '#advGuiaBtn',  t: 'Guía', d: 'Si te olvidás de algo, tocá acá y te lo explico de nuevo.'}
   ];
   let tourPasos = [], tourI = 0, tourActivo = false;

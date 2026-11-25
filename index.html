@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261226">
+<link rel="stylesheet" href="styles.css?v=20261231">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -183,6 +183,7 @@
     <button type="button" class="adv-atajo adv-solo-central" id="advRepBtn" aria-label="Tus figuritas repetidas: canjear, mejorar"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/copy.png" alt="" width="32" height="32"></span><small>Repetidas</small></button>
     <button type="button" class="adv-atajo adv-solo-central" id="advEvoBtn" aria-label="Evolucionar un Pokémon con repetidas"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/evo.png" alt="" width="32" height="32"></span><small>Evolucionar</small></button>
         <button type="button" class="adv-atajo adv-solo-central" id="advRegaloBtn" aria-label="Calendario de regalos"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/gift.png" alt="" width="32" height="32"></span><small>Regalos</small><i class="adv-atajo-punto" id="advRegaloPunto" hidden></i></button>
+    <button type="button" class="adv-atajo adv-solo-central" id="advInvitaBtn" aria-label="Invitá amigos y ganá un Charizard shiny"><span aria-hidden="true"><img class="ico-item ico-anime" src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/shiny/6.png" alt="" width="32" height="32"></span><small>Invitá</small><i class="adv-atajo-punto" id="advInvitaPunto" hidden></i></button>
     <button type="button" class="adv-atajo adv-solo-central" id="advQuizBtn" aria-label="Responder preguntas y ganar monedas"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/help.png" alt="" width="32" height="32"></span><small>Preguntas</small></button>
     <button type="button" class="adv-atajo adv-solo-central" id="advArenaBtn" aria-label="Arena de batalla"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/battle.png" alt="" width="32" height="32"></span><small>Arena</small></button>
     <button type="button" class="adv-atajo adv-solo-central" id="advRankBtn" aria-label="Rankings"><span aria-hidden="true"><img class="ico-item ico-anime" src="images/iconos/trophy.png" alt="" width="32" height="32"></span><small>Ranking</small></button>
@@ -450,6 +451,24 @@
   </div>
 </div>
 
+<!-- Invitá y ganá: link propio por WhatsApp; premios a los 3, 6 y 10 amigos válidos -->
+<div class="name-overlay" id="invitaOverlay" role="dialog" aria-modal="true" aria-labelledby="invitaTitulo">
+  <div class="name-box inv-modal">
+    <h2 id="invitaTitulo">Invitá y ganá</h2>
+    <img class="inv-premio" src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/shiny/6.png" alt="Charizard shiny" width="120" height="120">
+    <p>Sumá <b>10 amigos nuevos</b> y llevate un <b>Charizard shiny</b>.</p>
+    <div id="invitaMio" hidden></div>
+    <p class="inv-cuenta" id="invitaCuenta" aria-live="polite">Cargando…</p>
+    <div class="inv-barra"><i id="invitaBarra"></i></div>
+    <div id="invitaPremios"></div>
+    <button type="button" id="invitaWa" disabled>Invitar por WhatsApp</button>
+    <button type="button" class="btn-sec" id="invitaCopiar" disabled>Copiar mi link</button>
+    <div id="invitaAmigos"></div>
+    <p class="inv-reglas" id="invitaReglas"></p>
+    <button type="button" class="btn-sec" id="invitaCerrar">Cerrar</button>
+  </div>
+</div>
+
 <div class="name-overlay" id="avatarOverlay" role="dialog" aria-modal="true" aria-labelledby="avatarTitle">
   <div class="name-box">
     <h2 id="avatarTitle">Elegí tu personaje</h2>
@@ -611,8 +630,8 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261229"></script>
-<script src="app.js?v=20261230"></script>
-<script src="servidor.js?v=20261228"></script>
+<script src="app.js?v=20261231"></script>
+<script src="servidor.js?v=20261231"></script>
 <script src="pixfx.js?v=3"></script>
 <script src="arena.js?v=20261230"></script>
 <script src="portada.js?v=20261216"></script>

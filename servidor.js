@@ -36,6 +36,15 @@ try{ tokenServidor = localStorage.getItem(TOKEN_KEY) || ''; }catch(e){}
   }catch(e){}
   try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
 })();
+/* Entró con el link de un amigo (#inv=CODIGO): se guarda hasta que cree su cuenta. */
+const INVITA_KEY = 'album-invita';
+(function recibirInvitacion(){
+  const m = /[#&]inv=([A-Za-z0-9]{4,8})/.exec(location.hash || '');
+  if(!m) return;
+  try{ localStorage.setItem(INVITA_KEY, m[1].toUpperCase()); }catch(e){}
+  try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
+})();
+const invitaGuardada = () => { try{ return localStorage.getItem(INVITA_KEY) || ''; }catch(e){ return ''; } };
 function irAlSitioNuevo(){
   let pase = '';
   if(tokenServidor && jugador){
@@ -50,12 +59,13 @@ const enCurso = new Set();           // jugadas esperando respuesta (evita el do
 const POR_ID_C = Object.fromEntries(DATA.map(p => [p.id, p]));
 const aPull = x => ({p: POR_ID_C[x.id], isNew: x.isNew});
 /* jugadas que pueden cambiar las figuritas: sólo ésas vuelven a dibujar el álbum entero */
-const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'mejorarStat', 'reiniciarMejoras', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar', 'calendarioCobrar']);
+const CAMBIAN_ALBUM = new Set(['sobre', 'canje', 'evolucionar', 'subirFuerza', 'mejorarStat', 'reiniciarMejoras', 'cambiarAtaques', 'ejemplarFavorito', 'tirar', 'arenaTerminar', 'calendarioCobrar', 'invitaPremio']);
 
 const MENSAJES = {
   lejos_del_lider: 'Para desafiar al gimnasio tenés que estar al lado del líder.', falta_medalla_previa: 'Primero tenés que ganarle al líder anterior: los gimnasios van en orden.', ya_ganado: 'A ese líder ya le ganaste: seguí con el siguiente.', faltan_requisitos: 'Todavía no cumplís lo que pide ese líder para pelear.', todavia_no: 'Todavía no completaste esa misión.',
   sin_habilitar: 'Primero habilitá a ese Pokémon como compañero', ya_habilitado: 'Ese Pokémon ya está habilitado de compañero', no_puede_ser_companero: 'Ese Pokémon no puede ser compañero (no queda bien en el mapa)', se_consigue_canjeando: 'Esa pokébola se consigue cambiando las de abajo', sin_bolas: 'No te alcanzan las pokébolas para ese cambio', canje_invalido: 'Ese cambio no existe',
   sin_monedas: 'No te alcanzan las monedas.',
+  faltan_amigos: 'Todavía no tenés esa cantidad de amigos válidos.', ya_cobrado: 'Ese premio ya lo cobraste.',
   fuerza_maxima: 'Esa figurita ya tiene el nivel máximo.',
   fusion_shiny_distinto: 'Shiny sólo se usa con shiny, y común con común.', fusion_invalida: 'Elegí qué copias fusionar.', mejora_invalida: 'Elegí qué mejorar.', mejora_maxima: 'Esa característica ya está al máximo.', mejora_copias: 'Elegí la cantidad justa de copias.', especialidades_llenas: 'Este Pokémon ya eligió sus 2 especialidades: las otras están bloqueadas.', sin_mejoras: 'Este Pokémon no tiene mejoras para reiniciar.', sobran_copias: 'Con menos copias ya llega a 100: sacá alguna.',
   especial_sin_cambio: 'Los ataques de las figuritas especiales no se cambian.',
@@ -216,8 +226,10 @@ function migrarAlServidor(){
 
 function registrarEnServidor(nombre, {alArrancar} = {}){
   const err = document.getElementById('nameError');
-  return api('/registrar', {nombre, dispositivo}).then(res => {
+  return api('/registrar', {nombre, dispositivo, invita: invitaGuardada() || undefined}).then(res => {
     if(res.ok){
+      try{ localStorage.removeItem(INVITA_KEY); }catch(e){}
+      if(res.invitado === 'pendiente') avisoServidor('', '🎉 Entraste con invitación: te regalamos 1.000 monedas y 5 Súper Ball.');
       guardarToken(res.token);
       aceptarNombreServidor(res.jugador);
       return res.migrado ? cargarDelServidor() : migrarAlServidor();
@@ -1060,6 +1072,79 @@ function calAlEntrar(){
     }, 3000);
   });
 }
+
+/* ---------------- Invitá y ganá ---------------- */
+const INV = {datos: null};
+const invEl = id => document.getElementById(id);
+const invNodo = (tag, clase, html) => { const e = document.createElement(tag); if(clase) e.className = clase; if(html !== undefined) e.innerHTML = html; return e; };
+const invEsc = t => String(t).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
+const invLink = () => SITIO_NUEVO + '#inv=' + INV.datos.codigo;
+const invMensaje = () => '¡Sumate a Entrenadores RZ! Atrapá Pokémon por Jujuy, peleá y completá tu álbum. Entrá con mi invitación 👉 ' + invLink();
+const invPremioTexto = p => p.pokemon ? 'Charizard shiny' : [p.monedas ? p.monedas.toLocaleString('es-AR') + ' monedas' : '',
+  ...Object.entries(p.bolas || {}).map(([t, n]) => n + ' ' + (t === 'maestra' ? 'Master Ball' : t === 'ultra' ? 'Ultra Ball' : t))].filter(Boolean).join(' + ');
+const invFalta = (a, req) => [a.pin ? '' : 'poner su PIN', a.atrapados < req.atrapados ? `atrapar ${req.atrapados - a.atrapados} más` : '', a.ganadas < req.ganadas ? 'ganar 1 pelea' : ''].filter(Boolean).join(', ');
+function invPintar(){
+  const d = INV.datos; if(!d) return;
+  const meta = d.premios[d.premios.length - 1].n;
+  invEl('invitaCuenta').textContent = Math.min(d.validos, meta) + ' / ' + meta + ' amigos';
+  invEl('invitaBarra').style.width = Math.min(100, d.validos / meta * 100) + '%';
+  const cont = invEl('invitaPremios'); cont.textContent = '';
+  d.premios.forEach(p => {
+    const hecho = d.cobrados.includes(p.n), listo = !hecho && d.validos >= p.n;
+    const fila = invNodo('div', 'inv-fila' + (listo || hecho ? ' listo' : ''), `<span><b>${p.n} amigos</b><small>${invPremioTexto(p)}</small></span>`);
+    if(listo){ const b = invNodo('button', '', 'Cobrar'); b.type = 'button'; b.dataset.nivel = p.n; b.onclick = () => invCobrar(p.n); fila.appendChild(b); }
+    else fila.appendChild(invNodo('span', '', hecho ? '✅' : 'faltan ' + (p.n - d.validos)));
+    cont.appendChild(fila);
+  });
+  const lista = invEl('invitaAmigos'); lista.textContent = '';
+  d.amigos.forEach(a => {
+    const detalle = a.estado === 'valido' ? 'Cuenta ✅' : a.estado === 'pendiente' ? 'Le falta: ' + invFalta(a.avance, d.req)
+      : 'No cuenta: ese dispositivo ya tenía 2 cuentas';
+    lista.appendChild(invNodo('div', 'inv-fila' + (a.estado === 'valido' ? ' listo' : ''), `<span><b>${invEsc(a.nombre)}</b><small>${detalle}</small></span>`));
+  });
+  /* si yo entré invitado: qué me falta para que le cuente a mi amigo */
+  const mio = invEl('invitaMio'); mio.textContent = ''; mio.hidden = !(d.yo && d.yo.estado === 'pendiente');
+  if(!mio.hidden){
+    const a = d.yo.avance;
+    mio.appendChild(invNodo('div', 'inv-mio', `Te invitó <b>${invEsc(d.yo.padrino)}</b>. Para que le cuente:<br>${a.pin ? '✅' : '⬜'} Poner tu PIN<br>${a.atrapados >= d.req.atrapados ? '✅' : '⬜'} Atrapar Pokémon: ${a.atrapados} / ${d.req.atrapados}<br>${a.ganadas >= d.req.ganadas ? '✅' : '⬜'} Ganar una pelea`));
+  }
+  if(!d.tienePin){ const b = invNodo('button', 'btn-sec', 'Poner mi PIN'); b.type = 'button'; b.id = 'invitaPinBtn'; b.onclick = () => { invEl('invitaOverlay').classList.remove('show'); abrirPin('poner'); }; mio.hidden = false; mio.appendChild(b); }
+  invEl('invitaReglas').innerHTML = `Cuenta cada amigo <b>nuevo</b> que entre por tu link, ponga su PIN, atrape ${d.req.atrapados} Pokémon y gane 1 pelea. Se permiten hasta 2 cuentas por dispositivo.`;
+  invEl('invitaWa').disabled = invEl('invitaCopiar').disabled = false;
+  invEl('advInvitaPunto').hidden = !d.premios.some(p => d.validos >= p.n && !d.cobrados.includes(p.n));
+}
+function invCargar(){
+  return api('/invitar/estado').then(res => {
+    if(!res.ok){ invEl('invitaCuenta').textContent = 'No se pudo cargar, probá de nuevo.'; return; }
+    INV.datos = res; invPintar();
+  }).catch(() => { invEl('invitaCuenta').textContent = 'Sin conexión, probá de nuevo.'; });
+}
+function invCobrar(nivel){
+  if(!puedeJugar('invita')) return;
+  api('/invitar/cobrar', {nivel}).then(res => {
+    if(res.progreso) aplicarProgreso(res.progreso, true);
+    if(!res.ok){ avisoServidor(res.motivo); return invCargar(); }
+    const out = res.resultado;
+    updateCoins(); enviarPuntaje(); invCargar();
+    invEl('invitaOverlay').classList.remove('show');
+    mostrarRegalos({total: out.monedas, regaladas: [], ejPulls: out.pulls.map(aPull), espPulls: [], bolasGanadas: out.bolas, esAventura: false, esEvento: null, esBienvenida: false,
+      mensaje: `Premio por invitar ${out.nivel} amigos`, diamantesGanados: 0, monturasGanadas: []});
+  }).catch(() => {}).then(soltar('invita'));
+}
+(() => {
+  const b = invEl('advInvitaBtn'); if(!b) return;
+  b.onclick = () => {
+    teclasApretadas.clear(); advEje = {x: 0, y: 0};
+    if(!servidorListo){ avisoServidor('sin_conexion', 'Para invitar hace falta conexión 📶'); return; }
+    invEl('invitaOverlay').classList.add('show'); invCargar();
+  };
+  invEl('invitaCerrar').onclick = () => invEl('invitaOverlay').classList.remove('show');
+  invEl('invitaWa').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent(invMensaje()), '_blank', 'noopener');
+  invEl('invitaCopiar').onclick = () => {
+    const mostrar = () => avisoServidor('', 'Tu link: ' + invLink());
+    if(navigator.clipboard) navigator.clipboard.writeText(invLink()).then(() => avisoServidor('', 'Link copiado 📋'), mostrar); else mostrar();
+  };
+})();
 
 /* ---------------- Códigos de intercambio ---------------- */
 function sincronizarCodigos(){
