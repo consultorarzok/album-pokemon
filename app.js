@@ -955,9 +955,9 @@ function renderGrid(){
 }
 
 /* ====================== CARTEL DE NOVEDADES ======================
-   05/11 Zeta: sale DOS veces (13/11: TRES) por dispositivo (la 1.ª al entrar y la 2.ª en la siguiente vez que entra), después de los carteles de nombre,
+   Sale NOVEDADES_VECES veces por dispositivo (una cada vez que entra), después de los carteles de nombre,
    personaje y PIN. Se cuenta cuando el jugador lo cierra. Pasada NOVEDADES_HASTA no sale más. Para una novedad nueva se cambia NOVEDADES_ID. */
-const NOVEDADES_ID = '20261122a', NOVEDADES_HASTA = '2026-12-06', NOVEDADES_VECES = 3;   // 13/11 Zeta: el cartel de la actualización sale 3 veces por jugador
+const NOVEDADES_ID = '20261125a', NOVEDADES_HASTA = '2026-12-31', NOVEDADES_VECES = 10;   // 25/11 Zeta: el cartel de Invitá y ganá sale 10 veces por jugador
 function novedadesVistas(){ try{ return localStorage.getItem('album-novedades-id') === NOVEDADES_ID ? (Number(localStorage.getItem('album-novedades-veces')) || 0) : 0; }catch(e){ return 0; } }
 function mostrarNovedades(intentos){
   try{
@@ -9714,7 +9714,7 @@ window.addEventListener('online', () => { if(topFallo) cargarTop(); });
   $('advTourSaltar').onclick = tourTerminar;
   window.addEventListener('resize', () => { if(tourActivo) tourPintar(); });
   $('advGuiaBtn').onclick = () => { empezarGuiaAventura(); };
-  { const b = $('novedadesTourBtn'); if(b) b.onclick = () => { $('novedadesCierraBtn').click(); setTimeout(empezarGuiaAventura, 300); }; }
+  { const b = $('novedadesInvitaBtn'); if(b) b.onclick = () => { $('novedadesCierraBtn').click(); $('advInvitaBtn').click(); }; }
 
   /* la guía de los nuevos arranca sola cuando ya no hay carteles (nombre, personaje, PIN…) ni pantalla de carga */
   function guiaAutomatica(intentos){
