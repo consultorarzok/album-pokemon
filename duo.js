@@ -29,7 +29,7 @@ function duoPedir(op, datos){
         if(u.ok) duoRefrescarAlbum();
       }
     }else if(!u && DUO.ultimoVisto === null) DUO.ultimoVisto = 0;
-    duoPintar(); duoCerca();
+    duoCerca(); duoHud();
     return res;
   }).catch(() => null);
 }
@@ -49,16 +49,17 @@ function duoReloj4(){
     duoHud();
   }, 1000);
 }
+/* 26/11 (Zeta): sin carteles sobre el mapa (se pisaban con los de incursión): todo el aviso va en el botón Dúo */
 function duoHud(){
-  const chip = duoEl('duoChip'), d = DUO.d, du = d && d.duo, pend = d && d.mio ? d.mio.pend.length : 0;
+  const btn = duoEl('advDuoBtn'), d = DUO.d, du = d && d.duo, m = du && du.mision, pend = d && d.mio ? d.mio.pend.length : 0;
+  if(!btn) return;
   const punto = duoEl('advDuoPunto'); if(punto) punto.hidden = !(pend || (d && !du && d.buscan.length));
-  if(!du){ chip.hidden = !(d && d.buscando); if(!chip.hidden) chip.textContent = d.para ? '👥 Invitación enviada…' : '👥 Buscando compañero…'; return; }
-  chip.hidden = false;
-  const m = du.mision;
-  let txt = '👥 ' + du.companero;
-  if(m){ txt += ' · ' + d.misiones[m.k].nombre + ' ' + duoReloj(duoResta()); if(m.k === 'caceria' && m.avance) txt += ' · ' + (m.avance.yo + m.avance.el) + '/' + d.meta; }
-  chip.textContent = txt;
-  const r = duoEl('duoRelojTxt'); if(r) r.textContent = duoReloj(duoResta());
+  let txt = 'Dúo';
+  if(m) txt = m.k === 'caceria' && m.avance ? (m.avance.yo + m.avance.el) + '/' + d.meta + ' · ' + duoReloj(duoResta()) : duoReloj(duoResta());
+  else if(d && !du && d.buscando) txt = 'Esperando';
+  const sm = btn.querySelector('small'); if(sm && sm.textContent !== txt) sm.textContent = txt;
+  btn.classList.toggle('en-duo', !!du);
+  const r = duoEl('duoRelojTxt'); if(r && m) r.textContent = duoReloj(duoResta());
 }
 function duoBoton(texto, fn, clase){ const b = document.createElement('button'); b.type = 'button'; b.textContent = texto; if(clase) b.className = clase; b.onclick = fn; return b; }
 function duoNodo(clase, html){ const e = document.createElement('div'); e.className = clase; if(html !== undefined) e.innerHTML = html; return e; }
@@ -69,7 +70,7 @@ function duoPintar(){
   if(!duoAbierto() || !DUO.d) return;
   const d = DUO.d, du = d.duo, m = du && du.mision, mio = d.mio || {hechas: [], pend: []}, cont = duoEl('duoCuerpo');
   /* no se redibuja si nada cambió (para no pisar lo que se está tocando ni las respuestas elegidas) */
-  const firma = JSON.stringify([d.buscando, d.buscan, du && [du.companero, du.conectado, du.enLugar, du.ultimo, m && [m.k, m.desde, m.avance, m.respondi, !!m.preguntas]], mio, advMapa, advX, advY, DUO.eligiendo]);
+  const firma = JSON.stringify([d.buscando, d.buscan, du && [du.companero, du.conectado, du.enLugar, du.ultimo, m && [m.k, m.desde, m.avance, m.respondi, !!m.preguntas]], mio, advMapa, advX, advY, DUO.eligiendo, !DUO.eligiendo && DUO.cerca && DUO.cerca.id]);
   if(firma === DUO.firma && cont.childElementCount) return;
   DUO.firma = firma; cont.textContent = '';
   if(DUO.eligiendo && mio.pend.length) return duoElegir(cont, mio);
@@ -77,6 +78,7 @@ function duoPintar(){
   if(mio.pend.length) cont.appendChild(duoBoton(`🎁 Dar niveles a un Pokémon (${mio.pend.length})`, () => { DUO.eligiendo = true; duoPintar(); }, 'duo-premio'));
   if(!du){
     cont.appendChild(duoNodo('duo-caja', 'Jueguen <b>de a dos</b>: 4 misiones por día y sus Pokémon suben de nivel <b>sin gastar monedas</b>.'));
+    const v = DUO.cerca; if(v){ const bv = duoBoton(`👥 Activar dúo con ${v.n}`, () => duoEnviar('buscar', {para: v.id}), 'duo-con'); bv.id = 'duoConCerca'; cont.appendChild(bv); }
     cont.appendChild(d.buscando ? duoBoton('Dejar de buscar', () => duoEnviar('cancelar'), 'btn-sec') : duoBoton('Busco compañero', () => duoEnviar('buscar')));
     if(d.buscando) cont.appendChild(duoNodo('duo-nota', 'Avisamos a los que están conectados. Dura 2 minutos.'));
     if(d.buscan.length) cont.appendChild(duoNodo('duo-sub', 'Están buscando compañero'));
@@ -179,7 +181,7 @@ function dibujarDuoLugares(g, camX, camY, vw, vh){
     g.restore();
   });
 }
-function duoAviso(m){ if(DUO.d && DUO.d.duo) return; avisoServidor('', `👥 ${m.n} busca compañero. Tocá Dúo para unirte.`); const p = duoEl('advDuoPunto'); if(p) p.hidden = false; duoPedir('estado'); }
+function duoAviso(m){ if(DUO.d && DUO.d.duo) return; const p = duoEl('advDuoPunto'); if(p) p.hidden = false; duoPedir('estado'); }
 /* Dúo con el que tenés cerca (25/11 Zeta): aparece un botón; uno invita, el otro acepta. Los personajes del juego (id negativo) no cuentan. */
 const DUO_CERCA_PX = 16 * 8;
 function duoVecino(){
@@ -192,25 +194,18 @@ function duoVecino(){
   }
   return mejor;
 }
+/* el botón Dúo brilla: celeste si hay alguien cerca, verde si te invitaron */
 function duoCerca(){
-  const b = duoEl('duoCerca'); if(!b) return;
-  const d = DUO.d;
-  if(!servidorListo || !advAbierto || !d || d.duo){ b.hidden = true; return; }
-  const inv = d.buscan.find(q => q.invita), v = duoVecino();
-  let txt = '', accion = null;
-  if(inv){ txt = `✅ Aceptar dúo con ${inv.n}`; accion = ['unirme', {con: inv.id}]; }
-  else if(d.buscando && d.para){ txt = '⏳ Esperando respuesta · cancelar'; accion = ['cancelar']; }
-  else if(v){
-    const q = d.buscan.find(x => x.id === v.id);
-    txt = q ? `👥 Unirme al dúo de ${v.n}` : `👥 Activar dúo con ${v.n}`; accion = q ? ['unirme', {con: v.id}] : ['buscar', {para: v.id}];
-  }
-  b.hidden = !accion;
-  if(!accion) return;
-  if(b.textContent !== txt) b.textContent = txt;
-  b.classList.toggle('acepta', !!inv);
-  b.onclick = () => duoEnviar(accion[0], accion[1]);
+  const b = duoEl('advDuoBtn'); if(!b) return;
+  const d = DUO.d, libre = !!(servidorListo && advAbierto && d && !d.duo);
+  const inv = libre ? d.buscan.find(q => q.invita) : null, v = libre && !inv && !d.buscando ? duoVecino() : null;
+  DUO.cerca = v && !d.buscan.some(q => q.id === v.id) ? v : null;   // si ya está buscando, el panel lo muestra en la lista con "Unirme"
+  b.classList.toggle('invita', !!inv);
+  b.classList.toggle('cerca', !!v);
+  b.setAttribute('aria-label', inv ? `Dúo: ${inv.n} te invita` : v ? `Dúo: ${v.n} está cerca` : 'Aventura de a dos: buscar compañero y misiones');
+  duoPintar();
 }
-function duoInvitacion(m){ if(DUO.d && DUO.d.duo) return; avisoServidor('', `👥 ${m.n} te invita a jugar de a dos.`); const p = duoEl('advDuoPunto'); if(p) p.hidden = false; duoPedir('estado'); }
+function duoInvitacion(m){ if(DUO.d && DUO.d.duo) return; duoPedir('estado'); }
 (() => {
   const b = duoEl('advDuoBtn'); if(!b) return;
   b.onclick = () => {
@@ -219,7 +214,6 @@ function duoInvitacion(m){ if(DUO.d && DUO.d.duo) return; avisoServidor('', `�
     DUO.firma = ''; duoEl('duoOverlay').classList.add('show'); duoPintar(); duoPedir('estado');
   };
   duoEl('duoCerrar').onclick = () => duoEl('duoOverlay').classList.remove('show');
-  duoEl('duoChip').onclick = () => b.click();
   duoReloj4();
   /* al entrar: se recupera el dúo que tenías */
   let n = 0; const t = setInterval(() => { if(servidorListo){ clearInterval(t); duoPedir('estado'); } else if(++n > 60) clearInterval(t); }, 1500);

@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261236">
+<link rel="stylesheet" href="styles.css?v=20261237">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -203,8 +203,6 @@
     <button type="button" class="adv-atajo adv-solo-central" id="advInvitaBtn" aria-label="Invitá amigos y ganá un Charizard shiny"><span aria-hidden="true"><img class="ico-item ico-anime" src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/shiny/6.png" alt="" width="32" height="32"></span><small>Invitá</small><i class="adv-atajo-punto" id="advInvitaPunto" hidden></i></button>
   </div>
   </div>
-  <button type="button" class="duo-cerca" id="duoCerca" hidden></button>
-  <button type="button" class="duo-chip" id="duoChip" hidden></button>
   <div class="adv-tour" id="advTour" hidden>
     <div class="adv-tour-foco" id="advTourFoco"></div>
     <div class="adv-tour-card" id="advTourCard" role="dialog" aria-live="polite">
@@ -261,10 +259,12 @@
   <button class="adv-npcbtn adv-incbtn" id="advIncBtn" hidden></button>
   <div class="adv-chatlog" id="advChatLog" hidden aria-live="polite"></div>
   <form class="adv-chatbar" id="advChatBar" hidden autocomplete="off">
+    <button type="button" class="adv-chatcanal" id="advChatCanal" aria-pressed="false">📍 Cerca</button>
     <input id="advChatInput" type="text" maxlength="60" placeholder="Escribí algo (sin teléfonos ni links)" enterkeyhint="send" autocomplete="off" autocapitalize="sentences">
     <button type="submit">Enviar</button>
   </form>
   <div class="adv-chataviso" id="advChatAviso" role="status"></div>
+  <div class="adv-mundoult" id="advMundoUlt" hidden aria-live="polite"></div>
   <div class="adv-chataviso adv-bataviso" id="advBatAviso" role="status"></div>
   <div class="adv-ayuda">Tocá y arrastrá en cualquier lado para caminar<br>o usá las flechas del teclado</div>
 </div>
@@ -646,9 +646,9 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261229"></script>
-<script src="app.js?v=20261236"></script>
-<script src="servidor.js?v=20261236"></script>
-<script src="duo.js?v=20261236"></script>
+<script src="app.js?v=20261237"></script>
+<script src="servidor.js?v=20261237"></script>
+<script src="duo.js?v=20261237"></script>
 <script src="pixfx.js?v=3"></script>
 <script src="arena.js?v=20261236"></script>
 <script src="portada.js?v=20261216"></script>

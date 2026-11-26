@@ -1304,7 +1304,9 @@ function mundoMensaje(m){
   if(m.t === 'chat'){
     MUNDO.globos[m.id] = {txt: String(m.txt || '').slice(0, 60), hasta: ahora + 6500};
     const o = MUNDO.otros[m.id], quien = m.id === MUNDO.yo ? 'Vos' : ((o && o.n) || 'Entrenador');   // 22/11: historial para leer lo que te contestan mientras escribís
-    MUNDO.log.push({q: quien, t: String(m.txt || '').slice(0, 60), a: Date.now()}); if(MUNDO.log.length > 30) MUNDO.log.shift();
+    const de = m.mundo && m.id !== MUNDO.yo ? String(m.n || quien) : quien;   // del chat Mundo puede ser alguien de otro mapa: el nombre viene en el mensaje
+    MUNDO.log.push({q: (m.mundo ? '🌎 ' : '') + de, t: String(m.txt || '').slice(0, 60), a: Date.now(), w: !!m.mundo}); if(MUNDO.log.length > 30) MUNDO.log.shift();
+    if(m.mundo) chatMundoUltimo(de, String(m.txt || '').slice(0, 60));
     chatLogPintar(); return;
   }
   if(m.t === 'chat_no'){ chatAviso(m); return; }
@@ -1563,6 +1565,19 @@ function chatMostrarBoton(ver){
   if(bb) bb.hidden = !ver;
   if(!ver) chatCerrar();
 }
+/* Chat Mundo (26/11): lo leen todos los que están en la Aventura. El último se ve unos segundos sin abrir el chat. */
+let chatCanalMundo = false;
+try{ chatCanalMundo = localStorage.getItem('album-chat-canal') === 'mundo'; }catch(e){}
+function chatCanalPintar(){
+  const b = document.getElementById('advChatCanal'); if(!b) return;
+  b.textContent = chatCanalMundo ? '🌎 Mundo' : '📍 Cerca';
+  b.classList.toggle('mundo', chatCanalMundo); b.setAttribute('aria-pressed', String(chatCanalMundo));
+}
+function chatMundoUltimo(quien, txt){
+  const c = document.getElementById('advMundoUlt'); if(!c) return;
+  c.textContent = ''; const b = document.createElement('b'); b.textContent = '🌎 ' + quien + ': '; c.appendChild(b); c.appendChild(document.createTextNode(txt)); c.hidden = false;
+  clearTimeout(chatMundoUltimo._t); chatMundoUltimo._t = setTimeout(() => { c.hidden = true; }, 6000);
+}
 function chatAviso(m){
   const a = document.getElementById('advChatAviso');
   if(!a) return;
@@ -1613,7 +1628,7 @@ function chatMapaAjustar(){
 function chatLogPintar(){
   const lg = document.getElementById('advChatLog'), bar = document.getElementById('advChatBar');
   if(!lg || !bar || bar.hidden) return;
-  const hace = Date.now() - 90000, ult = MUNDO.log.filter(l => l.a >= hace).slice(-5);
+  const ahora = Date.now(), ult = MUNDO.log.filter(l => l.a >= ahora - (l.w ? 600000 : 90000)).slice(-6);   // los del Mundo quedan 10 minutos
   lg.innerHTML = '';
   ult.forEach(l => { const d = document.createElement('div'); const b = document.createElement('b'); b.textContent = l.q + ': '; d.appendChild(b); d.appendChild(document.createTextNode(l.t)); lg.appendChild(d); });
   lg.hidden = !ult.length; lg.scrollTop = lg.scrollHeight;
@@ -1637,11 +1652,17 @@ function chatCerrar(){
   const btn = document.getElementById('advChatBtn'), bar = document.getElementById('advChatBar'), inp = document.getElementById('advChatInput');
   if(!btn || !bar || !inp) return;
   btn.onclick = () => { chatTecladoInicio(); bar.hidden = false; btn.hidden = true; const bb = document.getElementById('advBatBtn'); if(bb) bb.hidden = true; chatLogPintar(); inp.focus({preventScroll: true}); };
+  const canal = document.getElementById('advChatCanal');
+  if(canal){
+    chatCanalPintar();
+    canal.addEventListener('pointerdown', ev => ev.preventDefault());   // que no se cierre el teclado al cambiar
+    canal.onclick = () => { chatCanalMundo = !chatCanalMundo; try{ localStorage.setItem('album-chat-canal', chatCanalMundo ? 'mundo' : 'cerca'); }catch(e){} chatCanalPintar(); chatTecladoAjustar(); inp.focus({preventScroll: true}); };
+  }
   bar.addEventListener('submit', ev => {
     ev.preventDefault();
     const txt = inp.value.trim();
     if(!txt){ chatCerrar(); return; }
-    if(MUNDO.ws && MUNDO.ws.readyState === 1) try{ MUNDO.ws.send(JSON.stringify({k: 'c', txt: txt.slice(0, 60)})); }catch(e){}
+    if(MUNDO.ws && MUNDO.ws.readyState === 1) try{ MUNDO.ws.send(JSON.stringify({k: 'c', txt: txt.slice(0, 60), mundo: chatCanalMundo})); }catch(e){}
     inp.value = '';
     document.getElementById('advChatAviso').textContent = '';
     chatCerrar();
