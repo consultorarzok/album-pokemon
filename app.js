@@ -2716,7 +2716,11 @@ const INCURSIONES = {
   turnos: [9, 14, 19, 23], porTurno: 5,   // 18/11: 9 guaridas (se sumaron Yavi y el Cardonal) y abren 5 por turno
   /* Aperturas ESPECIALES (fuera de los turnos): ventana propia con su propia clave (un intento nuevo por entrenador), abren las guaridas de `regiones` ('todas' = las 7).
      03/11 Zeta: compensación por las peleas que no arrancaban (bug de arena.js), 30 minutos desde 23:32 hora de Jujuy. */
-  extras: [/* 18/11 Zeta: RONDA NOCTURNA DE LEGENDARIOS Y SEMILEGENDARIOS, las 9 guaridas abiertas desde las 00:30 hasta las 04:00 de Jujuy (07:00 UTC). El jefe de cada guarida CAMBIA cada 10 min (pool `rotar.pool`, distinto en cada guarida);
+  extras: [/* 26/11 Zeta: RONDA SHINY hasta las 04:00 de Jujuy, las 9 guaridas, jefe rotativo cada 10 min. `shinyGrupo`: en el 70 % de las incursiones ganadas les toca shiny a
+       ALGUNOS (1 de cada 3 de los que ganan: de 6, 2), no a todos; el nivel de lo que queda por atrapar sale al azar para cada uno (fmin-100). Va primero. */
+    {desde: 1795662515956, hasta: 1795676400000, clave: 'EXTRA-20261126-SHINY', regiones: 'todas', shinyGrupo: {prob: .7, porCada: 3},
+     rotar: {cadaMin: 10, fmin: 80, pool: POOL_JEFES_ROTA}},
+    /* 18/11 Zeta: RONDA NOCTURNA DE LEGENDARIOS Y SEMILEGENDARIOS, las 9 guaridas abiertas desde las 00:30 hasta las 04:00 de Jujuy (07:00 UTC). El jefe de cada guarida CAMBIA cada 10 min (pool `rotar.pool`, distinto en cada guarida);
        cada cambio es un intento nuevo. Fuerza 80-100 (`fmin`). Va primero. */
     /* 24/11 Zeta: ronda nocturna otra vez, desde 00:40 hasta 04:30 Jujuy (07:30 UTC). */
     {desde: 1795491394736, hasta: 1795505400000, clave: 'EXTRA-20261124-NOCHE', regiones: 'todas',
@@ -2818,7 +2822,8 @@ function panelIncursiones(){
   filas.sort((a, b) => (b.ap.abierta - a.ap.abierta) || ((a.ap.proxima || 0) - (b.ap.proxima || 0)));
   const hay = filas.filter(f => f.ap.abierta).length;
   const evS = eventoShinyInc();
-  sub.innerHTML = (evS ? `<b style="color:#FFD84A">✨ EVENTO SHINY hasta las ${horaJujuy(evS.hasta)}:</b> al ganar una incursión puede aparecer un <b>shiny</b> (<b>Charizard</b>, <b>Gengar blanco</b>, Gyarados, Mew, legendarios y más). <br>` : '') + (hay ? `Abiertas ahora: ${hay}. Cierran a las ${horaJujuy(filas[0].ap.hasta)} (hora de Jujuy). Tocá "Guiarme" y te sale una flecha.` : `No hay ninguna abierta. Turnos: 09:00, 14:00, 19:00 y 23:00 (hora de Jujuy).`);
+  const evG = (INCURSIONES.extras || []).find(e => e.shinyGrupo && ahora >= e.desde && ahora < e.hasta);
+  sub.innerHTML = (evG ? `<b style="color:#FFD84A">✨ RONDA SHINY hasta las ${horaJujuy(evG.hasta)}:</b> si ganan, a algunos les puede tocar <b>shiny</b> (se descubre al atraparlo). El <i class="nv">NV</i> sale al azar para cada uno. <br>` : '') + (evS ? `<b style="color:#FFD84A">✨ EVENTO SHINY hasta las ${horaJujuy(evS.hasta)}:</b> al ganar una incursión puede aparecer un <b>shiny</b> (<b>Charizard</b>, <b>Gengar blanco</b>, Gyarados, Mew, legendarios y más). <br>` : '') + (hay ? `Abiertas ahora: ${hay}. Cierran a las ${horaJujuy(filas[0].ap.hasta)} (hora de Jujuy). Tocá "Guiarme" y te sale una flecha.` : `No hay ninguna abierta. Turnos: 09:00, 14:00, 19:00 y 23:00 (hora de Jujuy).`);
   lista.innerHTML = filas.map(({g, cfg, ap, p}) => {
     const r = advMapa === 'overworld' ? rumboA(g.puerta[0], g.puerta[1]) : null;
     const donde = r ? `a ${r.dist} casilleros al ${r.rumbo}` : 'en el mapa (salí de la cueva)';

@@ -37,7 +37,7 @@ async function cerrarCarteles(pg){
   const CAP = process.env.CAPTURAS;
   const estado = () => fetch(SERVIDOR + '/incursion/estado?region=kanto&x=' + Math.random()).then(r => r.json());
   async function jugador(n){
-    const c = await abrir(br, {'album-kanto-dispositivo': 'dinc' + n + suf}); await c.pg.setViewportSize({width: 390, height: 780});
+    const c = await abrir(br, {'album-kanto-dispositivo': 'dinc' + n + suf}); await c.pg.setViewportSize({width: Number(process.env.VW) || 390, height: Number(process.env.VH) || 780});
     await esperar(c.pg, () => document.getElementById('nameOverlay').classList.contains('show'));
     await c.pg.fill('#nameInput', n + ' ' + suf); await c.pg.click('#nameSaveBtn');
     await esperar(c.pg, () => servidorListo);
@@ -66,11 +66,13 @@ async function cerrarCarteles(pg){
   check('botón "Mirar" en el inicio', await C.pg.evaluate(() => !document.getElementById('verPeleasBtn').hidden));
   await C.pg.evaluate(() => document.getElementById('verPeleasBtn').click());
   check('la lista muestra la sala', await esperar(C.pg, s => [...document.querySelectorAll('.ar-viva')].some(v => v.textContent.includes('Ana ' + s) && v.textContent.includes('Beto ' + s)), suf));
-  await C.pg.screenshot({path: CAP + '/esp-lista.png'});
+  await C.pg.screenshot({path: CAP + '/esp-lista' + (process.env.SUF || '') + '.png'});
+  await C.pg.waitForTimeout(400);
   await C.pg.click(`[data-ver="${p.codigo}"]`);
   check('C ve a los dos peleadores', await esperar(C.pg, () => document.querySelectorAll('.ver-mon').length === 2));
-  check('A ve el ojito con 1 y el nombre de C', await esperar(A.pg, s => document.getElementById('arOjo') && /👁 1/.test(document.getElementById('arOjo').textContent) && document.getElementById('arPublico').textContent.includes('Carla ' + s), suf));
-  check('B ve el aviso de que entró', await esperar(B.pg, () => /Carla.*entró a mirar/.test((document.getElementById('arEntro') || {}).textContent || ''), null, 3000));
+  check('A ve el ojito con 1 y el nombre de C al entrar', await esperar(A.pg, () => /👁 1/.test((document.getElementById('arOjo') || {}).textContent || '') && /Carla.*entró a mirar/.test((document.getElementById('arEntro') || {}).textContent || ''), null, 3000));
+  check('no queda ningún nombre ni personaje en la cancha', await A.pg.evaluate(() => !document.getElementById('arPublico') && !document.querySelector('.ar-espec')));
+  check('el nombre se borra solo', await esperar(A.pg, () => document.getElementById('arEntro').hidden, null, 6000));
   const pos = () => C.pg.evaluate(() => [...document.querySelectorAll('.ver-mon')].map(e => e.style.transform).join('|'));
   const p1 = await pos();
   await A.pg.keyboard.down('a'); await A.pg.waitForTimeout(700); await A.pg.keyboard.up('a'); await A.pg.waitForTimeout(300);
@@ -83,9 +85,9 @@ async function cerrarCarteles(pg){
   await D.pg.evaluate(c => { abrirPeleas(); }, p.codigo);
   await esperar(D.pg, c => document.querySelector(`[data-ver="${c}"]`), p.codigo, 9000); await D.pg.click(`[data-ver="${p.codigo}"]`);
   check('2 espectadores en el ojito de todos', await esperar(A.pg, () => /👁 2/.test(document.getElementById('arOjo').textContent)) && await esperar(C.pg, () => /👁 2/.test(document.getElementById('arOjo').textContent)));
-  check('C ve a D entre el público', await esperar(C.pg, s => document.getElementById('arPublico').textContent.includes('Dani ' + s), suf));
+  check('C no ve lista de nombres, sólo el ojito', await C.pg.evaluate(() => !document.querySelector('.ar-espec')));
   check('la lista cuenta 2 vistas', (await mia(new RegExp(suf))).publico === 2, await mia(new RegExp(suf)));
-  await C.pg.waitForTimeout(600); await C.pg.screenshot({path: CAP + '/esp-mirando.png'}); await A.pg.screenshot({path: CAP + '/esp-peleando.png'});
+  await C.pg.waitForTimeout(600); await C.pg.screenshot({path: CAP + '/esp-mirando' + (process.env.SUF || '') + '.png'}); await A.pg.screenshot({path: CAP + '/esp-peleando' + (process.env.SUF || '') + '.png'});
   await D.pg.click('#verSalir');
   check('al salir uno, el ojito baja', await esperar(A.pg, () => /👁 1/.test(document.getElementById('arOjo').textContent)));
   await B.pg.click('#arCloseBtn'); await B.pg.click('#arAbandonar');
@@ -105,10 +107,10 @@ async function cerrarCarteles(pg){
   check('la incursión figura en la lista', q && q.modo === 'raid' && q.jefe, q);
   await C.pg.evaluate(() => abrirPeleas()); await esperar(C.pg, c => document.querySelector(`[data-ver="${c}"]`), q.codigo, 9000); await C.pg.click(`[data-ver="${q.codigo}"]`);
   check('C ve 2 entrenadores y el legendario', await esperar(C.pg, () => document.querySelectorAll('.ver-mon').length === 3 && document.querySelector('.ver-mon.jefe')));
-  check('los de la incursión ven a C', await esperar(B.pg, s => document.getElementById('arPublico').textContent.includes('Carla ' + s), suf));
+  check('los de la incursión ven el aviso y el ojito', await esperar(B.pg, () => /Carla.*entró a mirar/.test((document.getElementById('arEntro') || {}).textContent || '') && /👁 1/.test(document.getElementById('arOjo').textContent), null, 4000));
   const q1 = await pos(); await C.pg.waitForTimeout(2500);
   check('el legendario y los jugadores se ven en vivo', await pos() !== q1);
-  await C.pg.screenshot({path: CAP + '/esp-inc-mirando.png'}); await B.pg.screenshot({path: CAP + '/esp-inc-peleando.png'});
+  await C.pg.screenshot({path: CAP + '/esp-inc-mirando' + (process.env.SUF || '') + '.png'}); await B.pg.screenshot({path: CAP + '/esp-inc-peleando' + (process.env.SUF || '') + '.png'});
   for(const x of [A, B]) await x.pg.evaluate(() => { const c = document.getElementById('arCloseBtn'); if(c) c.click(); const a = document.getElementById('arAbandonar'); if(a) a.click(); });
   check('C ve el final', await esperar(C.pg, () => /Ganó el legendario/.test(document.getElementById('verAviso').textContent), null, 15000), await C.pg.textContent('#verAviso'));
   const errores = [A, B, C, D].flatMap(x => x.errores);

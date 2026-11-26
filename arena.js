@@ -4377,7 +4377,7 @@ function enviarRed(o){ if(RED.ws && RED.ws.readyState === 1) RED.ws.send(JSON.st
 
 function conectarSala(codigo, alMensaje, ver){
   cerrarSala();
-  RED.ver = !!ver; PUBLICO.n = 0; PUBLICO.lista = [];
+  RED.ver = !!ver; PUBLICO.n = 0;
   RED.codigo = codigo; RED.alMensaje = alMensaje; RED.cerrado = false; RED.intentos = 0; SALA_CHAT.lista = [];
   abrirSocket();
 }
@@ -4472,13 +4472,13 @@ function salaDentroPintar(){
 
 /* ================= ESPECTADORES (26/11 Zeta) =================
    "Peleas en vivo": lista de las salas que están peleando (en línea) y quién está adentro. El que mira NO corre el combate: dibuja lo que mandan los celulares
-   de los que pelean (posición, vida, ataques, cambios), así nunca puede tocar la pelea. Los espectadores aparecen afuera de la cancha, con su nombre, y arriba
-   un ojito chico con cuántos están mirando (lo ven también los que pelean). */
-const PUBLICO = {n:0, lista:[], entro:null, t:0};
+   de los que pelean (posición, vida, ataques, cambios), así nunca puede tocar la pelea. Arriba hay un ojito chico con cuántos están mirando (lo ven también los que pelean)
+   y el nombre del que entra sale un momento. */
+const PUBLICO = {n:0, t:0};
 const VER = {datos:null, f:{}, reloj:0, ro:null, fin:false};
 const MODO_NOMBRE = {'1v1':'⚔️ 1 contra 1', '2v2':'🤝 2 contra 2', 'ffa':'🥊 Todos contra todos', raid:'🐉 Incursión', duo:'⛏️ Guardián de la mina'};
 function publicoLlega(m){
-  PUBLICO.n = Number(m.n) || 0; PUBLICO.lista = Array.isArray(m.lista) ? m.lista : [];
+  PUBLICO.n = Number(m.n) || 0;
   publicoPintar();
   if(m.entro){
     const donde = $('arStage') || $('verStage'); if(!donde) return;
@@ -4488,13 +4488,12 @@ function publicoLlega(m){
     clearTimeout(PUBLICO.t); PUBLICO.t = setTimeout(() => { const x = $('arEntro'); if(x) x.hidden = true; }, 3200);
   }
 }
+/* 26/11 Zeta: sin nombres ni personajes en la cancha ("queda feo"): sólo el ojito con la cantidad; el nombre del que entra sale un momento y se borra */
 function publicoPintar(){
   const donde = $('arStage') || $('verStage');
   if(!donde) return;
-  let caja = $('arPublico'), ojo = $('arOjo');
-  if(!caja){ donde.insertAdjacentHTML('beforeend', '<div class="ar-publico" id="arPublico" aria-label="Espectadores"></div><div class="ar-ojo" id="arOjo" role="status"></div>'); caja = $('arPublico'); ojo = $('arOjo'); }
-  const tope = donde.id === 'verStage' ? 16 : 7, v = PUBLICO.lista.slice(-tope), resto = PUBLICO.lista.length - v.length;
-  caja.innerHTML = v.map(p => `<div class="ar-espec"><img src="images/avatar-${p.av === 'may' ? 'may' : 'red'}.png" alt="" width="20" height="30"><small>${chatEsc(p.n)}</small></div>`).join('') + (resto > 0 ? `<div class="ar-espec mas"><b>+${resto}</b></div>` : '');
+  let ojo = $('arOjo');
+  if(!ojo){ donde.insertAdjacentHTML('beforeend', '<div class="ar-ojo" id="arOjo" role="status"></div>'); ojo = $('arOjo'); }
   ojo.textContent = '👁 ' + PUBLICO.n; ojo.hidden = !PUBLICO.n; ojo.setAttribute('aria-label', PUBLICO.n + ' mirando');
 }
 function verParar(){
@@ -4508,7 +4507,7 @@ function abrirPeleas(){
   $('arenaOverlay').classList.add('show');
   $('arRoot').innerHTML = `<div class="ar-pick ar-duelo ar-vivas">
     <h2>👁 Peleas en vivo</h2>
-    <p>Entrá a mirar. Los que pelean ven tu nombre entre el público.</p>
+    <p>Entrá a mirar. Los que pelean ven tu nombre un momento cuando entrás.</p>
     <div id="arVivas" aria-live="polite"><div class="ar-duelo-estado">Buscando peleas…</div></div>
     <div class="ar-pick-pie"><button class="ar-b ar-med" id="arVivasCerrar"><b>Cerrar</b></button></div></div>`;
   $('arVivasCerrar').onclick = cerrarArena;
@@ -4574,13 +4573,34 @@ function verArmar(d){
 }
 function verMedir(){
   const st = $('verStage'); if(!st || !VER.datos) return;
-  const W = st.clientWidth, H = st.clientHeight, rx = Math.min(W * .45, 380), ry = Math.min(H * .21, rx * .8);
-  VER.g = {cx:W / 2, cy:H * .49, rx, ry};
+  /* 26/11 Zeta ("fijarse los tamaños"): la cancha y los Pokémon se miden con la MISMA cuenta que usa la pelea (medir y medidas), así quien mira los ve en la misma proporción que quien pelea */
+  const W = st.clientWidth, H = st.clientHeight, modo = VER.datos.modo, bajita = H < 520;
+  const K = Math.max(1, Math.floor(Math.min(W / 300, H / 210) * 4) / 4), zm = modo === '1v1' ? ZOOM_1V1 : .56;
+  const top = bajita ? 52 : Math.max(100, H * .17), bajo = H - (bajita ? 62 : Math.max(150, H * .17));
+  let rx = Math.min(W * .46, (W / 2 - 40 * K * ESCALA_POKE.yo * zm) / .96) * (modo === '1v1' || modo === '2v2' ? CAMPO_CHICO : 1);
+  const ry = Math.min((bajo - top) / 2 / 1.07, rx * .95);
+  rx = Math.min(rx, ry * 2.4);   // en pantallas anchas la cancha no se estira de más
+  VER.g = {cx:W / 2, cy:(top + bajo) / 2, rx, ry, K, zm};
+  st.style.setProperty('--vk', Math.max(1, Math.min(1.8, K / 1.6)).toFixed(2));
+  st.classList.toggle('bajita', bajita);
   const ei = ESC_IMG[ESCENAS[semillaNum(VER.datos.codigo) % ESCENAS.length]] || ESC_IMG.noche, im = $('verFondo');   // el mismo lugar que ven los que pelean (el Galpón se dibuja aparte: acá va el estadio de noche)
   if(im.getAttribute('src') !== ei.src) im.src = ei.src;
   st.style.background = ei.base;
   Object.assign(im.style, {width:rx / ei.rx + 'px', height:ry / ei.ry + 'px', left:(VER.g.cx - ei.cx * rx / ei.rx) + 'px', top:(VER.g.cy - ei.cy * ry / ei.ry) + 'px'});
-  Object.values(VER.f).forEach(verUbicar);
+  Object.values(VER.f).forEach(f => { verTamano(f); verUbicar(f); });
+}
+/* misma cuenta que medidas(): tamaño del dibujo según la pantalla, la especie y, en Teselia y Kalos, su altura real */
+function verTamano(f){
+  const g = VER.g, img = f.el.querySelector('img'), m = f.mons[f.idx];
+  if(!g || !img.naturalWidth) return;
+  const id = m.p.id, fb = img.dataset.fb, escala = m.p.escala || 1;
+  let sf = .63 * g.zm * (fb ? .25 : 1) * escala * (esHD(id) && id < 10000 ? .65 : 1), k = g.K * sf;
+  const tn = !f.jefe && !fb && TAM_NUEVOS[id];
+  if(tn && !(m.vario && SHINY_PROPIO[id])) k = g.K * .63 * g.zm * escala * (51.2 * Math.pow(tn.dm / 10, .31)) / tn.alto;
+  const w = img.naturalWidth * k, h = img.naturalHeight * k;
+  Object.assign(img.style, {width:w + 'px', height:h + 'px', left:(-w / 2) + 'px'});
+  f.el.querySelector('.ver-cartel').style.bottom = (h - 2) + 'px';
+  f.el.style.setProperty('--vh', h + 'px');
 }
 function verUbicar(f){
   const g = VER.g; if(!g) return;
@@ -4595,7 +4615,9 @@ function verVida(f){
 }
 function verSprite(f){
   const m = f.mons[f.idx], img = f.el.querySelector('img');
-  img.onerror = () => { img.onerror = null; img.src = m.vario ? imgVario(m.p) : m.p.img; };
+  delete img.dataset.fb;
+  img.onload = () => verTamano(f);
+  img.onerror = () => { img.onerror = null; img.dataset.fb = '1'; img.src = m.vario ? imgVario(m.p) : m.p.img; };
   img.src = spFrente(m.p.id, m.vario); img.alt = m.p.name;
   verVida(f);
 }
