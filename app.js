@@ -744,7 +744,7 @@ function loadProgress(){
 }
 
 function resetProgress(){
-  if(MODO_SERVIDOR) return abrirPin('poner');   // con servidor el botón es para el PIN
+  if(MODO_SERVIDOR) return abrirCuenta();   // con servidor el botón es "Mi cuenta"
   if(!confirm('¿Reiniciar el álbum? Perdés todas las figuritas y monedas guardadas.')) return;
   try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
   coins = 300;

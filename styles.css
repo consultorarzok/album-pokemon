@@ -220,6 +220,9 @@
   .name-box button.btn-sec{background:transparent;color:var(--ink-dim);border:1px solid var(--border);margin-top:10px;font-size:13px;font-weight:600;}
   .name-box button:disabled{opacity:.6;cursor:wait;}
   .name-box p.name-viejo{margin:14px 0 0;}
+  .player-chip.pc-cuenta{cursor:pointer;}
+  .player-chip.pc-cuenta b::after{content:' ⚙️';font-weight:400;}
+  #otraOverlay,#pinOverlay{z-index:100001;}   /* encima de la portada */
   .name-box p.name-viejo a{color:var(--poke-blue);font-weight:700;}
   .toast-servidor{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:80;max-width:min(92vw,420px);
     background:var(--ink);color:var(--bg);border-radius:10px;padding:10px 16px;font-size:13px;line-height:1.4;text-align:center;

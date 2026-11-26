@@ -15,7 +15,9 @@ const TOKEN_KEY = 'album-kanto-token';
 const SITIO_NUEVO = 'https://entrenadoresrz.com/';
 const LINK_VIEJO = 'consultorarzok.github.io/album-pokemon';
 const ES_SITIO_VIEJO = /github\.io$/.test(location.hostname);
-const PIN_OFRECIDO_KEY = 'album-kanto-pin-ofrecido';
+const PIN_OBLIGATORIO_KEY = 'album-kanto-pin-obligatorio';   // cuenta recién creada: el PIN no se puede saltear
+const OTRA_SESION_KEY = 'album-kanto-otra-sesion';           // la cuenta se abrió en otro dispositivo: no volver a entrar solo
+const ANTERIOR_KEY = 'album-kanto-progreso-cuenta-anterior';
 const RESPALDO_KEY = 'album-kanto-progreso-antes-servidor';
 let tokenServidor = '';
 try{ tokenServidor = localStorage.getItem(TOKEN_KEY) || ''; }catch(e){}
@@ -126,7 +128,7 @@ function api(ruta, datos){
   .then(r => r.json().catch(() => ({ok: false, motivo: 'error_servidor'})))
   .then(res => {
     if(document.getElementById('offlineOverlay').classList.contains('show')) sinConexion(false);
-    if(res && res.motivo === 'sin_sesion' && ruta !== '/registrar') perderSesion();
+    if(res && res.motivo === 'sin_sesion' && ruta !== '/registrar') perderSesion(res.otra);
     return res || {ok: false, motivo: 'error_servidor'};
   }, err => { sinConexion(true); throw err; });
 }
@@ -141,15 +143,36 @@ function guardarToken(t){
   try{ if(t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY); }catch(e){}
   if(t && typeof MUNDO !== 'undefined' && MUNDO.abierto) mundoConectar();   // 22/11: jugador nuevo que entra a la Aventura antes de tener sesión
 }
-function perderSesion(){
+let sesionTomada = false;
+function leerLocal(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function perderSesion(otra){
+  if(sesionTomada) return;
+  if(otra){   // la cuenta se abrió en otro dispositivo: se recarga para cortar peleas y conexiones, y queda el cartel
+    sesionTomada = true; servidorListo = false;
+    guardarToken('');
+    try{ localStorage.setItem(OTRA_SESION_KEY, '1'); }catch(e){}
+    return location.reload();
+  }
   guardarToken('');
   servidorListo = false;
   if(jugador) registrarEnServidor(jugador, {alArrancar: true});
 }
 
+function mostrarOtraSesion(){ document.getElementById('otraOverlay').classList.add('show'); }
+/* al volver a la pantalla se pregunta si la sesión sigue abierta (como mucho cada 10 s) */
+let sesionMirada = 0;
+function comprobarSesion(){
+  if(!MODO_SERVIDOR || !tokenServidor || !servidorListo) return;
+  sesionMirada = Date.now();
+  api('/sesion').catch(() => {});
+}
+document.addEventListener('visibilitychange', () => { if(!document.hidden && Date.now() - sesionMirada > 10000) comprobarSesion(); });
+
 /* El álbum que manda el servidor pisa al de la pantalla (mismo formato que el localStorage). */
-let premioAlbumPedido = false;
+let premioAlbumPedido = false, favRestaurados = false;
 function aplicarProgreso(P, conAlbum = true){
+  /* equipo favorito de la Arena: el de la cuenta (así llega al otro dispositivo y no se pisa con uno vacío) */
+  if(!favRestaurados && Array.isArray(P.favoritos)){ favRestaurados = true; try{ localStorage.setItem('arena-favoritos', JSON.stringify(P.favoritos)); }catch(e){} }
   coins = P.coins;
   Object.keys(state).forEach(id => { state[id] = P.state[id] || {got: false, dup: 0}; });
   Object.keys(bolas).forEach(k => { bolas[k] = P.bolas[k] || 0; });
@@ -178,14 +201,20 @@ function aplicarProgreso(P, conAlbum = true){
 /* ---------------- arranque y cuenta ---------------- */
 function arrancarServidor(){
   document.getElementById('playerName').textContent = jugador || '-';
-  document.getElementById('resetBtn').textContent = '🔒 PIN de tu álbum';
+  document.getElementById('resetBtn').textContent = '👤 Mi cuenta';
   document.getElementById('nameViejo').hidden = ES_SITIO_VIEJO;
+  document.getElementById('namePinBtn').hidden = ES_SITIO_VIEJO;
+  const chip = document.getElementById('playerChip');
+  chip.classList.add('pc-cuenta'); chip.setAttribute('role', 'button'); chip.tabIndex = 0; chip.title = 'Mi cuenta';
+  chip.onclick = abrirCuenta;
+  chip.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); abrirCuenta(); } };
   cargarTop();
   sincronizarEvento();
   setInterval(sincronizarEvento, 60000);
   conectar();
 }
 function conectar(){
+  if(!tokenServidor && leerLocal(OTRA_SESION_KEY)){ mostrarOtraSesion(); return; }
   if(!jugador){ if(ES_SITIO_VIEJO) return irAlSitioNuevo(); pedirNombre(); return; }
   if(!tokenServidor){ registrarEnServidor(jugador, {alArrancar: true}); return; }
   cargarDelServidor();
@@ -201,9 +230,10 @@ function listo(progreso, tienePin, avatar){
   aplicarProgreso(progreso);
   if(ES_SITIO_VIEJO){ servidorListo = true; return irAlSitioNuevo(); }   // su álbum ya está arriba: al sitio nuevo
   servidorListo = true;
+  tienePinCuenta = !!tienePin;
   cobrarRegalosServidor();
   sincronizarCodigos();
-  pedirAvatarSiFalta(() => { if(!tienePin) ofrecerPin(); }, avatar === undefined ? null : avatar);
+  pedirAvatarSiFalta(() => { if(!tienePinCuenta) ofrecerPin(); }, avatar === undefined ? null : avatar);
   setTimeout(() => mostrarNovedades(0), 2500);
   calAlEntrar();
 }
@@ -230,6 +260,7 @@ function registrarEnServidor(nombre, {alArrancar} = {}){
     if(res.ok){
       try{ localStorage.removeItem(INVITA_KEY); }catch(e){}
       if(res.invitado === 'pendiente') avisoServidor('', '🎉 Entraste con invitación: te regalamos 1.000 monedas y 5 Súper Ball.');
+      if(res.motivo === 'libre') try{ localStorage.setItem(PIN_OBLIGATORIO_KEY, claveNombre(res.jugador)); }catch(e){}
       guardarToken(res.token);
       aceptarNombreServidor(res.jugador);
       return res.migrado ? cargarDelServidor() : migrarAlServidor();
@@ -247,7 +278,6 @@ function registrarEnServidor(nombre, {alArrancar} = {}){
           : 'Ese nombre ya lo está usando otro entrenador. Elegí otro.' +
             (ES_SITIO_VIEJO ? '' : ' Si ya jugabas antes, abrí una vez el link viejo (' + LINK_VIEJO + ') desde tu celular y tu álbum viene solo.');
       }
-      document.getElementById('namePinBtn').hidden = !res.tienePin;
       return;
     }
     if(alArrancar) pedirNombre();
@@ -259,7 +289,6 @@ function aceptarNombreServidor(nombre){
   try{ localStorage.setItem(NAME_KEY, jugador); }catch(e){}
   document.getElementById('playerName').textContent = jugador;
   document.getElementById('nameOverlay').classList.remove('show');
-  document.getElementById('namePinBtn').hidden = true;
 }
 function guardarNombreServidor(){
   const inp = document.getElementById('nameInput');
@@ -278,15 +307,16 @@ let pinModo = 'poner';
 function abrirPin(modo){
   pinModo = modo;
   const entrar = modo === 'entrar';
-  document.getElementById('pinTitle').textContent = entrar ? 'Entrar con tu PIN' : 'Protegé tu álbum';
+  document.getElementById('pinTitle').textContent = entrar ? 'Entrar con tu PIN' : tienePinCuenta ? 'Cambiar tu PIN' : 'Protegé tu álbum';
   document.getElementById('pinTexto').textContent = entrar
-    ? 'Escribí tu nombre de entrenador y tu PIN para traer tu álbum a este celular.'
-    : 'Elegí un PIN de 4 números. Si cambiás de celular o se borra el navegador, entrás con tu nombre y este PIN y recuperás todo.';
+    ? 'Escribí tu nombre de entrenador y tu PIN para abrir tu cuenta en este dispositivo. Si estaba abierta en otro, ahí se cierra.'
+    : 'Elegí un PIN de 4 a 6 números y acordate bien. Con tu nombre y este PIN abrís tu cuenta en cualquier celular o computadora.';
   const nom = document.getElementById('pinNombre');
   nom.hidden = !entrar;
   if(entrar) nom.value = document.getElementById('nameInput').value.trim();
   document.getElementById('pinOkBtn').textContent = entrar ? 'Entrar' : 'Guardar PIN';
   document.getElementById('pinNoBtn').textContent = entrar ? 'Volver' : 'Ahora no';
+  document.getElementById('pinNoBtn').hidden = !entrar && pinObligatorio();
   document.getElementById('pinInput').value = '';
   document.getElementById('pinError').textContent = '';
   document.getElementById('nameOverlay').classList.remove('show');
@@ -295,19 +325,54 @@ function abrirPin(modo){
 }
 function cerrarPin(){
   document.getElementById('pinOverlay').classList.remove('show');
-  if(pinModo === 'entrar' && !servidorListo) pedirNombre();
+  if(pinModo === 'entrar' && !servidorListo){ if(leerLocal(OTRA_SESION_KEY)) mostrarOtraSesion(); else pedirNombre(); }
 }
+let tienePinCuenta = false, pinPedido = false;
+function pinObligatorio(){ return !tienePinCuenta && !!jugador && leerLocal(PIN_OBLIGATORIO_KEY) === claveNombre(jugador); }
+/* A quien no tiene PIN se le pide cada vez que abre el juego (cuenta nueva: sin "Ahora no") */
 function ofrecerPin(){
-  let ya = null;
-  try{ ya = localStorage.getItem(PIN_OFRECIDO_KEY); }catch(e){}
-  if(ya) return;
-  try{ localStorage.setItem(PIN_OFRECIDO_KEY, '1'); }catch(e){}
+  if(pinPedido) return;
+  pinPedido = true;
   /* espera un momento tranquilo: que no haya ninguna pantalla abierta (sobre, regalo, tienda...) */
-  const intentar = n => setTimeout(() => {
+  const intentar = () => setTimeout(() => {
+    if(tienePinCuenta) return;
     if(!document.querySelector('.overlay.show, .special-overlay.show, .name-overlay.show') && !advAbierto) abrirPin('poner');
-    else if(n < 40) intentar(n + 1);
+    else intentar();
   }, 3000);
-  intentar(0);
+  intentar();
+}
+
+/* ---------------- Mi cuenta ---------------- */
+function abrirCuenta(){
+  if(!jugador || !servidorListo) return;
+  document.getElementById('cuentaNombre').textContent = jugador;
+  document.getElementById('cuentaEstado').textContent = tienePinCuenta
+    ? '🔒 Tiene PIN: podés abrirla en otro celular o computadora con tu nombre y tu PIN (se usa en uno a la vez).'
+    : '⚠️ No tiene PIN: ponele uno para poder abrirla en otro dispositivo.';
+  document.getElementById('cuentaPinBtn').textContent = tienePinCuenta ? 'Cambiar mi PIN' : 'Poner mi PIN';
+  document.getElementById('cuentaError').textContent = '';
+  document.getElementById('cuentaOverlay').classList.add('show');
+}
+const cerrarCuenta = () => document.getElementById('cuentaOverlay').classList.remove('show');
+document.getElementById('cuentaCerrarBtn').onclick = cerrarCuenta;
+document.getElementById('cuentaPinBtn').onclick = () => { cerrarCuenta(); abrirPin('poner'); };
+document.getElementById('cuentaOtraBtn').onclick = () => {
+  if(!tienePinCuenta){ document.getElementById('cuentaError').textContent = 'Primero poné tu PIN: sin PIN no vas a poder volver a esta cuenta.'; return; }
+  cerrarCuenta(); abrirPin('entrar'); document.getElementById('pinNombre').value = ''; document.getElementById('pinNombre').focus();
+};
+document.getElementById('otraBtn').onclick = () => {
+  document.getElementById('otraOverlay').classList.remove('show');
+  abrirPin('entrar'); document.getElementById('pinNombre').value = jugador || ''; document.getElementById('pinInput').focus();
+};
+/* Pasar este dispositivo a OTRA cuenta: se saca todo lo que era de la anterior (si no, su álbum guardado podría subirse a otra cuenta).
+   Queda una copia del álbum por las dudas. */
+function limpiarDatosCuenta(){
+  try{
+    const a = localStorage.getItem(STORAGE_KEY);
+    if(a) localStorage.setItem(ANTERIOR_KEY, a);
+    [STORAGE_KEY, REGALOS_KEY, EVENTO_BASE_KEY, EVENTO_BASE_IDS_KEY, EVENTO_INICIO_KEY, CODIGOS_KEY, ADV_POS_KEY, PIN_OBLIGATORIO_KEY,
+      'arena-favoritos', 'album-companero', 'album-companero-habs', 'album-canjes-dia', 'album-avatar', 'album-montura-ultima'].forEach(k => localStorage.removeItem(k));
+  }catch(e){}
 }
 function okPin(){
   const pin = document.getElementById('pinInput').value.trim();
@@ -319,8 +384,10 @@ function okPin(){
   if(pinModo === 'poner'){
     api('/pin', {pin}).then(res => {
       if(!res.ok){ err.textContent = 'No se pudo guardar, probá de nuevo.'; return; }
+      tienePinCuenta = true;
+      try{ localStorage.removeItem(PIN_OBLIGATORIO_KEY); }catch(e){}
       document.getElementById('pinOverlay').classList.remove('show');
-      avisoServidor('', '🔒 Listo: tu álbum quedó protegido con tu PIN.');
+      avisoServidor('', '🔒 Listo: con tu nombre y tu PIN abrís tu cuenta en cualquier dispositivo.');
     }).catch(() => { err.textContent = 'Sin conexión, probá de nuevo.'; }).then(fin);
     return;
   }
@@ -329,9 +396,20 @@ function okPin(){
   api('/entrar', {nombre, pin, dispositivo}).then(res => {
     if(!res.ok){
       err.textContent = res.motivo === 'pin_incorrecto' ? 'PIN incorrecto.' : res.motivo === 'muchos_intentos' ? 'Muchos intentos. Esperá 15 minutos.'
+        : res.motivo === 'muchos_intentos_dia' ? 'Demasiados intentos por hoy. Pedile ayuda a quien organiza el juego.'
         : res.motivo === 'sin_pin' ? 'Ese entrenador no tiene PIN. Pedile ayuda a quien organiza el juego.' : res.motivo === 'no_existe' ? 'No hay ningún entrenador con ese nombre.' : 'No se pudo entrar.';
       return;
     }
+    const antes = jugador, cambia = !antes || claveNombre(antes) !== claveNombre(res.jugador);
+    try{ localStorage.removeItem(OTRA_SESION_KEY); }catch(e){}
+    if(cambia) limpiarDatosCuenta();
+    if(cambia && antes){   // había otra cuenta cargada: se arranca de cero con la nueva
+      tokenServidor = res.token;
+      try{ localStorage.setItem(TOKEN_KEY, res.token); localStorage.setItem(NAME_KEY, res.jugador); }catch(e){}
+      servidorListo = false;
+      return location.reload();
+    }
+    sesionTomada = false;
     guardarToken(res.token);
     aceptarNombreServidor(res.jugador);
     document.getElementById('pinOverlay').classList.remove('show');
@@ -1301,6 +1379,7 @@ function mundoSalir(){
 }
 function mundoMensaje(m){
   const ahora = performance.now();
+  if(m.t === 'otra_sesion') return comprobarSesion();
   if(m.t === 'chat'){
     MUNDO.globos[m.id] = {txt: String(m.txt || '').slice(0, 60), hasta: ahora + 6500};
     const o = MUNDO.otros[m.id], quien = m.id === MUNDO.yo ? 'Vos' : ((o && o.n) || 'Entrenador');   // 22/11: historial para leer lo que te contestan mientras escribís

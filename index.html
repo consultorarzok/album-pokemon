@@ -22,7 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20261237">
+<link rel="stylesheet" href="styles.css?v=20261238">
 </head>
 <body>
 <div class="portada" id="portada" role="dialog" aria-modal="true" aria-labelledby="portadaTit">
@@ -509,6 +509,26 @@
   </div>
 </div>
 
+<div class="name-overlay" id="cuentaOverlay" role="dialog" aria-modal="true" aria-labelledby="cuentaTitle">
+  <div class="name-box">
+    <h2 id="cuentaTitle">Mi cuenta</h2>
+    <p>Jugás como <b id="cuentaNombre"></b></p>
+    <p id="cuentaEstado"></p>
+    <div id="cuentaError" class="name-error" role="alert"></div>
+    <button type="button" id="cuentaPinBtn">Cambiar mi PIN</button>
+    <button type="button" id="cuentaOtraBtn" class="btn-sec">Entrar con otra cuenta</button>
+    <button type="button" id="cuentaCerrarBtn" class="btn-sec">Cerrar</button>
+  </div>
+</div>
+
+<div class="name-overlay" id="otraOverlay" role="alertdialog" aria-modal="true" aria-labelledby="otraTitle">
+  <div class="name-box">
+    <h2 id="otraTitle">Tu cuenta se abrió en otro dispositivo</h2>
+    <p>Se juega en uno a la vez. Tus figuritas y monedas están guardadas. Para seguir acá, entrá con tu PIN.</p>
+    <button type="button" id="otraBtn">Usar mi cuenta acá</button>
+  </div>
+</div>
+
 <div class="name-overlay" id="offlineOverlay" role="alertdialog" aria-modal="true" aria-labelledby="offlineTitle">
   <div class="name-box">
     <h2 id="offlineTitle">Sin conexión</h2>
@@ -646,11 +666,11 @@
 
 <script src="evoluciones.js?v=20261129"></script>
 <script src="musica.js?v=20261229"></script>
-<script src="app.js?v=20261237"></script>
-<script src="servidor.js?v=20261237"></script>
-<script src="duo.js?v=20261237"></script>
+<script src="app.js?v=20261238"></script>
+<script src="servidor.js?v=20261238"></script>
+<script src="duo.js?v=20261238"></script>
 <script src="pixfx.js?v=3"></script>
-<script src="arena.js?v=20261236"></script>
+<script src="arena.js?v=20261238"></script>
 <script src="portada.js?v=20261216"></script>
 <script>
 /* Guardado del juego en el celular (sw.js): sólo en el sitio real, nunca en pruebas locales */
