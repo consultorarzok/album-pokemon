@@ -54,7 +54,7 @@ const SHOTS = process.env.SHOTS || '';
     const chips = await p.$$eval('#detalleBody .ej-chip', c => c.map(x => x.textContent.replace(/\s+/g, ' ').trim()));
     check('lista las 3 copias con su fuerza, la shiny primero y ⭐ Arena', chips.length === 3 && /✨.*88/.test(chips[0]) && /Arena/.test(chips[0]) && /30/.test(chips[2]), chips);
     check('marca shiny', /Shiny/.test(txt));
-    check('ficha completa: fuerza, vida, golpe, crítico, velocidad y ataques', /Ficha/.test(txt) && /Nivel 88/.test(txt) && /Vida \d+/.test(txt) && /Golpe \d+%/.test(txt) && /Crítico \d+% ×\d\.\d/.test(txt) && /Veloc\. ★/.test(txt) && (await p.$$('#detalleBody .ficha-movs')).length === 1, txt.slice(0, 260));
+    check('ficha completa: fuerza, vida, golpe, crítico, velocidad y ataques', /Ficha/.test(txt) && /NV 88/.test(txt) && /Vida \d+/.test(txt) && /Golpe \d+%/.test(txt) && /Crítico \d+% ×\d\.\d/.test(txt) && /Veloc\. ★/.test(txt) && (await p.$$('#detalleBody .ficha-movs')).length === 1, txt.slice(0, 260));
     check('cada copia muestra su vida y crítico', chips.every(c => /❤️ \d+ · 💥 \d+%/.test(c)), chips);
     check('evolución: → Ivysaur · cuesta 5 · te faltan 3', /Ivysaur.*cuesta 5.*te faltan 3/.test(txt), txt);
     if(SHOTS) await p.screenshot({path: SHOTS + '/detalle-' + w + '.png'});

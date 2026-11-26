@@ -1499,3 +1499,94 @@ body.chat-abierto .adv-derecha .adv-atajo{pointer-events:none;}
 .adv-mundoult{position:absolute;left:50%;transform:translateX(-50%);bottom:182px;z-index:4;width:max-content;max-width:min(66vw,420px);padding:4px 10px;border-radius:10px;background:rgba(16,20,38,.72);color:#fff;font-family:'Baloo 2',sans-serif;font-size:13px;line-height:1.25;text-align:center;overflow-wrap:anywhere;pointer-events:none;}
 .adv-mundoult[hidden],body.chat-abierto .adv-mundoult{display:none;}
 .adv-mundoult b{color:#8fd6ff;}
+
+/* 26/11: cuántos entraron a la incursión y chat (sala de espera y pelea) */
+.ar-dentro-sala{text-align:center;font-family:'Baloo 2',sans-serif;font-size:22px;color:#FFD54A;margin:4px 0 0;}
+.ar-chat-sala{width:min(100%,420px);margin:8px auto;display:flex;flex-direction:column;gap:6px;flex:0 0 auto;}
+.ar-chat-log{height:112px;overflow-y:auto;border:1px solid #3a4680;border-radius:10px;background:#0e1430;color:#f2f4ff;padding:6px 10px;font-size:14px;line-height:1.45;text-align:left;overflow-wrap:anywhere;}
+.ar-chat-log .vacio{color:#aab3d9;} .ar-chat-log .yo b,.ar-chat-flota .yo b{color:#FFD54A;}
+.ar-chat-log b,.ar-chat-flota b{color:#8be9ff;}
+.ar-chat-rapidas{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+.ar-chat-r{min-height:36px;padding:5px 11px;border-radius:999px;border:1px solid #4a5590;background:#16204a;color:#f2f4ff;font-family:'Baloo 2',sans-serif;font-size:13px;cursor:pointer;}
+.ar-chat-form{display:flex;gap:6px;}
+.ar-chat-form input{flex:1;min-width:0;padding:9px 10px;border-radius:10px;border:2px solid #3a4680;background:#0e1430;color:#f2f4ff;font-size:16px;}
+.ar-chat-form .ar-b{flex:0 0 auto;min-width:76px;}
+.ar-chat-aviso{min-height:0;text-align:center;font-size:12px;color:#ffb4ad;}
+.ar-chat-aviso:empty{display:none;}
+.ar-stage .ar-chatbtn{position:absolute;right:8px;top:106px;z-index:12;width:42px;height:42px;border-radius:50%;border:2px solid #4a5590;background:rgba(8,12,28,.85);font-size:18px;cursor:pointer;padding:0;}
+.ar-dentro{position:absolute;left:50%;top:104px;transform:translateX(-50%);z-index:8;background:rgba(5,8,20,.72);color:#FFD54A;border-radius:999px;padding:3px 10px;font-family:'Baloo 2',sans-serif;font-size:12px;white-space:nowrap;pointer-events:none;}
+.ar-chat-flota{position:absolute;left:8px;top:156px;z-index:9;max-width:72%;display:flex;flex-direction:column;align-items:flex-start;gap:3px;pointer-events:none;}
+.ar-chat-flota div{background:rgba(5,8,20,.72);color:#f2f4ff;border-radius:10px;padding:3px 9px;font-size:13px;line-height:1.35;overflow-wrap:anywhere;}
+.ar-chat-panel{position:absolute;left:50%;top:154px;transform:translateX(-50%);z-index:25;width:min(94%,420px);display:flex;flex-direction:column;gap:6px;background:rgba(8,12,28,.94);border:2px solid #4a5590;border-radius:14px;padding:10px;}
+.ar-chat-panel[hidden]{display:none;}
+.adv-inc-dentro{display:block;color:#FFD54A;font-weight:700;}
+
+/* 26/11: poder base en la Pokédex y al armar el equipo (colores con texto blanco: se leen en tema claro y oscuro) */
+.slot .poder,.poder-tit em{display:inline-block;border-radius:999px;color:#fff;font-weight:700;background:#5b6485;}
+.slot .poder{font-family:'Space Mono',monospace;font-size:10px;line-height:1.5;padding:0 7px;margin:1px auto 3px;flex:0 0 auto;}
+.slot.got img{min-height:0;max-height:calc(100% - 38px);object-fit:contain;margin-top:10px;} .slot.got .name{flex:0 0 auto;}
+.p2 .poder-barra i,.slot .poder.p2,.p2 .poder-tit em{background:#1f7a46;}
+.p3 .poder-barra i,.slot .poder.p3,.p3 .poder-tit em{background:#1d63b8;}
+.p4 .poder-barra i,.slot .poder.p4,.p4 .poder-tit em{background:#7a35b5;}
+.p5 .poder-barra i,.slot .poder.p5,.p5 .poder-tit em{background:#b3361f;}
+.poder-caja{margin:8px 0;padding:10px 12px;border:1px solid var(--border);border-radius:12px;text-align:left;}
+.poder-tit{display:flex;align-items:center;gap:10px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:15px;color:var(--ink);}
+.poder-tit b{font-size:24px;} .poder-tit em{font-style:normal;font-size:11px;padding:2px 9px;margin-left:auto;}
+.poder-barra{height:9px;border-radius:6px;background:var(--border);overflow:hidden;margin:4px 0 6px;}
+.poder-barra i{display:block;height:100%;background:#5b6485;}
+.poder-caja small{display:block;font-size:11px;line-height:1.45;color:var(--ink-dim);}
+.poder-caja small b{color:var(--ink);}
+.ar-sel .ar-poder{color:#fff;font-weight:700;}
+#specialFicha .ficha-stats .ficha-poder b{color:#fff;}
+/* 26/11 Zeta: NV = nivel (el 💪 pasó a ser el poder base) */
+i.nv{display:inline-block;font-style:normal;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:max(9px,.82em);line-height:1.35;letter-spacing:.6px;padding:0 5px;border-radius:5px;background:linear-gradient(180deg,#FFE072,#F2B300);color:#1d2240;box-shadow:inset 0 -1px 0 rgba(0,0,0,.25);vertical-align:.08em;text-shadow:none;}
+
+/* 26/11: espectadores (ojito, público afuera de la cancha), lista de peleas en vivo y pantalla para mirar */
+.acc-dos{display:flex;flex-direction:column;gap:6px;flex:0 0 auto;}
+.adv-inc-ver,.ar-verpeleas{min-height:40px;margin:0 auto 8px;display:block;flex:0 0 auto;}
+.adv-inc-ver{width:100%;border-radius:10px;border:1px solid #4a5590;background:#16204a;color:#f2f4ff;font-family:'Baloo 2',sans-serif;font-weight:700;cursor:pointer;}
+.adv-inc-ver[hidden]{display:none;}
+.ar-ojo{position:absolute;z-index:11;background:rgba(5,8,20,.72);color:#f2f4ff;border-radius:999px;padding:1px 7px;font-size:10px;line-height:1.6;pointer-events:none;white-space:nowrap;}
+.ar-ojo[hidden],.ar-entro[hidden]{display:none;}
+.ar-publico{position:absolute;display:flex;flex-wrap:wrap;justify-content:center;gap:3px 5px;pointer-events:none;z-index:6;}
+.ar-espec{display:flex;flex-direction:column;align-items:center;width:42px;}
+.ar-espec img{image-rendering:pixelated;width:20px;height:30px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.7));}
+.ar-espec small{max-width:46px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;line-height:1.3;color:#fff;background:rgba(5,8,20,.65);border-radius:4px;padding:0 3px;}
+.ar-espec.mas{justify-content:center;color:#fff;font-size:11px;}
+.ar-entro{position:absolute;left:50%;bottom:34%;transform:translateX(-50%);z-index:14;background:rgba(5,8,20,.82);color:#FFD54A;border-radius:999px;padding:4px 12px;font-family:'Baloo 2',sans-serif;font-size:13px;white-space:nowrap;pointer-events:none;}
+.ar-stage .ar-ojo{left:50%;transform:translateX(-50%);top:98px;}
+.ar-stage.multi .ar-ojo{left:12px;transform:none;top:108px;}
+.ar-stage .ar-publico{left:58px;right:58px;top:calc(var(--ar-hud-h,100px) + 40px);}
+.ar-stage.multi .ar-publico{top:128px;}
+.ar-stage.multi:has(.ar-publico:not(:empty)) .ar-chat-flota{top:186px;}
+.ar-viva{display:flex;align-items:center;gap:10px;justify-content:space-between;width:min(100%,420px);margin:0 auto 8px;padding:10px 12px;border:1px solid #3a4680;border-radius:12px;background:#0e1430;color:#f2f4ff;text-align:left;}
+.ar-viva div{min-width:0;display:flex;flex-direction:column;gap:2px;} .ar-viva b{font-size:14px;} .ar-viva span{font-size:13px;overflow-wrap:anywhere;} .ar-viva span i{color:#FFD54A;font-style:normal;} .ar-viva small{font-size:11px;color:#aab3d9;}
+.ar-viva .ar-b{flex:0 0 auto;min-width:84px;}
+.ver-stage{position:relative;flex:1;width:100%;height:100%;min-height:420px;overflow:hidden;}
+.ver-fondo{position:absolute;max-width:none;pointer-events:none;}
+.ver-titulo{position:absolute;left:8px;right:56px;top:8px;z-index:40;background:rgba(5,8,20,.75);color:#f2f4ff;border-radius:10px;padding:5px 10px;font-family:'Baloo 2',sans-serif;font-size:13px;line-height:1.35;}
+.ver-stage .ar-ojo{right:8px;top:12px;z-index:41;}
+.ver-stage .ar-publico{left:6px;right:6px;bottom:70px;max-height:84px;overflow:hidden;z-index:30;}
+.ver-mon{position:absolute;left:0;top:0;width:0;height:0;transition:transform .13s linear;}
+.ver-mon>img{position:absolute;left:-38px;bottom:-6px;width:76px;height:70px;object-fit:contain;object-position:bottom;image-rendering:pixelated;}
+.ver-mon.jefe>img{left:-48px;width:96px;height:90px;}
+.ver-cartel{position:absolute;left:-42px;bottom:68px;width:84px;text-align:center;}
+.ver-mon.jefe .ver-cartel{bottom:88px;}
+.ver-cartel b{display:block;font-size:10px;line-height:1.4;color:#fff;background:rgba(5,8,20,.7);border-radius:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;}
+.ver-hp{display:block;height:6px;margin-top:2px;background:#1a2040;border:1px solid #000;border-radius:4px;overflow:hidden;}
+.ver-hp i{display:block;height:100%;width:100%;transition:width .35s;}
+.ver-ataque{position:absolute;left:-55px;top:2px;width:110px;text-align:center;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:11px;color:#fff;text-shadow:0 0 4px var(--tc,#000),0 1px 3px #000;opacity:0;pointer-events:none;}
+.ver-ataque.ya{animation:verAtaque 1s ease-out;}
+.ver-ataque.ya::after{content:'';position:absolute;left:35px;top:-42px;width:40px;height:40px;border-radius:50%;border:3px solid var(--tc,#fff);animation:verAro .45s ease-out forwards;}
+@keyframes verAtaque{0%{opacity:0;}12%,70%{opacity:1;}100%{opacity:0;}}
+@keyframes verAro{from{transform:scale(.3);opacity:1;}to{transform:scale(1.9);opacity:0;}}
+.ver-flota{position:absolute;left:-60px;bottom:90px;width:120px;text-align:center;font-weight:800;font-size:13px;text-shadow:0 1px 3px #000,0 0 3px #000;animation:verSube .9s ease-out forwards;pointer-events:none;}
+@keyframes verSube{to{transform:translateY(-26px);opacity:0;}}
+.ver-mon.golpe>img{animation:verGolpe .3s;}
+@keyframes verGolpe{30%{filter:brightness(2.6);}}
+.ver-mon.ko>img{opacity:.3;filter:grayscale(1);} .ver-mon.fuera{opacity:.25;}
+.ver-aviso{position:absolute;left:50%;top:60px;transform:translateX(-50%);z-index:42;max-width:92%;color:#fff;font-family:'Baloo 2',sans-serif;font-size:13px;text-align:center;background:rgba(5,8,20,.8);border-radius:12px;padding:5px 12px;}
+.ver-aviso:empty{display:none;} .ver-aviso.fin{top:40%;font-size:19px;color:#FFD54A;padding:14px 18px;}
+.ver-pie{position:absolute;left:0;right:0;bottom:12px;z-index:43;display:flex;justify-content:center;gap:10px;}
+.ver-pie .ar-b{min-width:120px;}
+

@@ -40,7 +40,7 @@ const sql = q => execSync(`cd /root/pokemon-servidor && CLOUDFLARE_API_TOKEN= np
   check('aparece la tarjeta del calendario', await esperar(A.pg, () => !document.getElementById('calBox').hidden));
   check('dice "Hoy: día 1 de 28"', (await A.pg.textContent('#calTitulo')).includes('día 1 de 28'), await A.pg.textContent('#calTitulo'));
   check('el calendario tiene 28 casilleros', await A.pg.evaluate(() => document.querySelectorAll('#calGrid .cal-dia').length) === 28);
-  check('muestra el premio mayor: Charizard nivel 100 con la montura Arcanine', await A.pg.evaluate(() => { const t = document.getElementById('calMeta').innerText; return /Charizard nivel 100/.test(t) && /Arcanine/.test(t) && !!document.querySelector('#calMeta img'); }), await A.pg.evaluate(() => document.getElementById('calMeta').innerText));
+  check('muestra el premio mayor: Charizard NV 100 con la montura Arcanine', await A.pg.evaluate(() => { const t = document.getElementById('calMeta').innerText; return /Charizard NV 100/.test(t) && /Arcanine/.test(t) && !!document.querySelector('#calMeta img'); }), await A.pg.evaluate(() => document.getElementById('calMeta').innerText));
   check('los días 7, 14 y 21 muestran el nivel y una silueta', await A.pg.evaluate(() => [[7, '60 a 80'], [14, '70 a 90'], [21, '80 a 90']].every(([d, r]) => { const x = CAL.estado.lista[d - 1]; return x.texto.includes(r) && !!x.muestra; })));
   check('el día 1 arranca con 1.000 monedas', await A.pg.evaluate(() => CAL.estado.lista[0].premio.monedas === 1000));
   check('en pantalla se habla de "nivel" y no de "fuerza"', await A.pg.evaluate(() => !/fuerza/i.test(document.getElementById('calOverlay').innerText)));

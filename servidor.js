@@ -203,6 +203,8 @@ function arrancarServidor(){
   document.getElementById('playerName').textContent = jugador || '-';
   document.getElementById('resetBtn').textContent = '👤 Mi cuenta';
   document.getElementById('nameViejo').hidden = ES_SITIO_VIEJO;
+  const mirar = id => { const b = document.getElementById(id); if(b){ b.hidden = false; b.onclick = () => { if(id === 'advVerPeleas') cerrarPanelIncursiones(); if(typeof abrirPeleas === 'function') abrirPeleas(); }; } };
+  setTimeout(() => { mirar('verPeleasBtn'); mirar('advVerPeleas'); }, 0);   // arena.js carga después
   document.getElementById('namePinBtn').hidden = ES_SITIO_VIEJO;
   const chip = document.getElementById('playerChip');
   chip.classList.add('pc-cuenta'); chip.setAttribute('role', 'button'); chip.tabIndex = 0; chip.title = 'Mi cuenta';
@@ -474,7 +476,7 @@ function subirFuerzaServidor(id, serie){
   accionServidor('subirFuerza', {id, c: serie}).then(res => {
     if(!res.ok) return avisoServidor(res.motivo);
     const r = res.resultado;
-    avisoServidor('ok', '💪 Nivel ' + r.antes + ' → ' + r.f + ' (−' + r.costo + ' monedas)');
+    avisoServidor('ok', '⬆️ NV ' + r.antes + ' → ' + r.f + ' (−' + r.costo + ' monedas)');
     updateCoins(); abrirDetalle(id);
   }).catch(() => {}).then(soltar('entrenar'));
 }
@@ -1098,10 +1100,10 @@ function calPremioHTML(x){
     const lado = m ? `images/monturas/${x.montura}-${av}-lado-cuerpo.png` : '';   // la montura vista de costado, con tu entrenador arriba
     return `<div class="cal-prem"><div class="cal-prem-img"><img src="${calImg(x.pokemon)}" alt="${calNom(x.pokemon)}"></div>`
       + (m ? `<div class="cal-prem-img cal-prem-mont"><img src="${lado}" alt="${m.nombre} con tu entrenador" onerror="this.src='${calImg(m.id)}'"></div>` : '')
-      + `<div class="cal-prem-txt"><b>${calNom(x.pokemon)} nivel ${calNivel(x.nivel)}</b>con Vida y Velocidad ya mejoradas${m ? `<br>+ la montura <em class="cal-mn">${m.nombre}</em>` : ''}</div></div>`;
+      + `<div class="cal-prem-txt"><b>${calNom(x.pokemon)} <i class="nv">NV</i> ${calNivel(x.nivel)}</b>con Vida y Velocidad ya mejoradas${m ? `<br>+ la montura <em class="cal-mn">${m.nombre}</em>` : ''}</div></div>`;
   }
   return `<div class="cal-prem"><div class="cal-prem-img"><img class="cal-sil" src="${calImg(x.muestra)}" alt=""></div>`
-    + `<div class="cal-prem-txt"><b>${x.nombre} sorpresa</b>nivel ${calNivel(x.nivel)} · ¿cuál será? 🤔</div></div>`;
+    + `<div class="cal-prem-txt"><b>${x.nombre} sorpresa</b><i class="nv">NV</i> ${calNivel(x.nivel)} · ¿cuál será? 🤔</div></div>`;
 }
 function calPintar(){
   const e = CAL.estado, box = document.getElementById('calBox');

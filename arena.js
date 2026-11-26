@@ -2137,7 +2137,7 @@ window.__arenaMovs.fichaStats = (p, ej) => {
   const st = statsEj(p, ej);
   let movs = [];
   try{ const m = movsEjemplar(p, ej || null); movs = ORDEN_BOTONES.map(k => m[k] ? m[k].n : '').filter(Boolean); }catch(e){}
-  return {f, vida:Math.round((60 + bstDe(p) * .22) * kb * (1 + .04 * estN(ej, 'vi'))), golpe:Math.round(kb * 100 * (1 + .04 * estN(ej, 'da'))), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), velTxt:(v => '★'.repeat(Math.floor(v)) + (v % 1 ? '½' : ''))(Math.max(1, Math.min(5, Math.round((st.vel - .65) / .07) / 2))), critRaw:st.crit, velRaw:st.vel, topeCrit:TOPE_CRIT, topeVel:TOPE_VEL, est:(ej && ej.est) || null, movs};
+  return {f, poder:bstDe(p), vida:Math.round((60 + bstDe(p) * .22) * kb * (1 + .04 * estN(ej, 'vi'))), golpe:Math.round(kb * 100 * (1 + .04 * estN(ej, 'da'))), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), velTxt:(v => '★'.repeat(Math.floor(v)) + (v % 1 ? '½' : ''))(Math.max(1, Math.min(5, Math.round((st.vel - .65) / .07) / 2))), critRaw:st.crit, velRaw:st.vel, topeCrit:TOPE_CRIT, topeVel:TOPE_VEL, est:(ej && ej.est) || null, movs};
 };
 /* 18/11 Zeta: la ficha completa de un ejemplar para la Pokédex y el cuadro de captura: fuerza, vida (PS), golpe, crítico, velocidad y ataques. Misma cuenta que crearMon. */
 window.__arenaMovs.fichaStats = (p, ej) => {
@@ -2145,7 +2145,7 @@ window.__arenaMovs.fichaStats = (p, ej) => {
   const st = statsEj(p, ej);
   let movs = [];
   try{ const m = movsEjemplar(p, ej || null); movs = ORDEN_BOTONES.map(k => m[k] ? m[k].n : '').filter(Boolean); }catch(e){}
-  return {f, vida:Math.round((60 + bstDe(p) * .22) * kb * (1 + .04 * estN(ej, 'vi'))), golpe:Math.round(kb * 100 * (1 + .04 * estN(ej, 'da'))), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), velTxt:(v => '★'.repeat(Math.floor(v)) + (v % 1 ? '½' : ''))(Math.max(1, Math.min(5, Math.round((st.vel - .65) / .07) / 2))), critRaw:st.crit, velRaw:st.vel, topeCrit:TOPE_CRIT, topeVel:TOPE_VEL, est:(ej && ej.est) || null, movs};
+  return {f, poder:bstDe(p), vida:Math.round((60 + bstDe(p) * .22) * kb * (1 + .04 * estN(ej, 'vi'))), golpe:Math.round(kb * 100 * (1 + .04 * estN(ej, 'da'))), crit:Math.round(st.crit * 100), critMult:st.critMult, vel:Math.max(1, Math.round((st.vel - .65) / .14)), velTxt:(v => '★'.repeat(Math.floor(v)) + (v % 1 ? '½' : ''))(Math.max(1, Math.min(5, Math.round((st.vel - .65) / .07) / 2))), critRaw:st.crit, velRaw:st.vel, topeCrit:TOPE_CRIT, topeVel:TOPE_VEL, est:(ej && ej.est) || null, movs};
 };
 function crearMon(p, rival, ejFijo){
   const ej = ejFijo || (rival ? null : mejorEjemplar(p.id));
@@ -4020,6 +4020,8 @@ async function luchar(mios, duelo){
   };
   if(multi) armarMulti(duelo, pDe);
   armarEscenario();
+  if(AR.online) publicoPintar();
+  if(AR.raid){ AR.raid.total = AR.lados.filter(l => AR.bando[l] === 'A').length; AR.raid.fueron = 0; if(AR.online) salaChatEnPelea(); }
   aplicarLiviano();   // 13/11: liviano en partidas de varios o si el celular viene lento. Antes: toggle('ar-liviano', !!AR.multi); con 3 a 6 Pokémon a la vez: sin reflejo ni desenfoques (se trababa). Va DESPUÉS de armarEscenario(): ahí se crea ST
   E = {};
   AR.lados.forEach(l => { E[l] = crearEntidad(l); });
@@ -4243,7 +4245,8 @@ function abrirArenaBase(rapido, inc){
     return `<button class="ar-sel${n ? ' on' : ''}" data-id="${p.id}" aria-pressed="${n ? 'true' : 'false'}" style="border-color:${n ? TYPE_COLORS[p.type] : '#34407a'}">
       ${n ? `<span class="ar-n">${n}</span>` : ''}<span class="ar-fav${esFav ? ' on' : ''}" data-fav="${p.id}" role="button" aria-label="${esFav ? 'Sacar de favoritos' : 'Marcar como favorito'}">★</span>
       <img src="${spIcono(p.id, (mejorEjemplar(p.id) || {}).s)}" alt="" width="64" height="64" loading="lazy">
-      <b>${(mejorEjemplar(p.id) || {}).s ? '✨ ' : ''}${p.name}</b><small>${tiposDe(p).map(t => TYPE_LABEL[t]).join(' / ')} · ${bstDe(p)} · 💪${(mejorEjemplar(p.id) || {}).f || 50}</small>
+      <b>${(mejorEjemplar(p.id) || {}).s ? '✨ ' : ''}${p.name}</b><small>${tiposDe(p).map(t => TYPE_LABEL[t]).join(' / ')}</small>
+      <small class="ar-poder">💪 Poder ${bstDe(p)}</small><small class="ar-poder"><i class="nv">NV</i> ${(mejorEjemplar(p.id) || {}).f || 50}</small>
       <small class="ar-st">Crít. ${Math.round(s.crit * 100)}% ×${s.critMult.toFixed(1)}</small>
       <small class="ar-st">Veloc. ${'★'.repeat(Math.max(1, Math.round((s.vel - .65) / .14)))}</small>
       <small class="ar-movs">${(id => id === 132 ? 'Transformación: copia al rival' : (mv => ORDEN_BOTONES.map(a => mv[a] ? mv[a].n : '').filter(Boolean).join(' · '))(crearMon(p).movs))(p.base || p.id)}</small></button>`;
@@ -4284,7 +4287,7 @@ function abrirArenaBase(rapido, inc){
   const pintar = () => {
     root.innerHTML = `<div class="ar-pick">
       <h2>${inc ? `⚔️ Incursión contra ${(DATA.find(x => x.id === inc.legendario) || {}).name || 'el legendario'}` : rapido ? `⚔️ Duelo contra ${rapido.rival.replace(/[<>&"]/g, '')}` : 'Arena Pokémon · Kanto, Johto, Hoenn, Sinnoh, Teselia y Kalos'}</h2>
-      <p>${rapido ? `Elegí tu equipo (${EQUIPO_MIN} a ${EQUIPO_MAX}) antes de que se acabe el tiempo: si se acaba, pelea el que tenés marcado.` : `Elegí tu equipo: de ${EQUIPO_MIN} a ${EQUIPO_MAX}. Sale primero el que marcaste con el 1. Pelea tu ejemplar más fuerte (💪).`}</p>
+      <p>${rapido ? `Elegí tu equipo (${EQUIPO_MIN} a ${EQUIPO_MAX}) antes de que se acabe el tiempo: si se acaba, pelea el que tenés marcado.` : `Elegí tu equipo: de ${EQUIPO_MIN} a ${EQUIPO_MAX}. Sale primero el que marcaste con el 1. Pelea tu ejemplar de mayor nivel (<i class="nv">NV</i>).`}</p>
       <div class="ar-busca"><input id="arBuscar" type="search" inputmode="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="🔎 Buscar" aria-label="Buscar Pokémon"></div>
       <div class="ar-favaviso" id="arFavInfo" hidden></div>
       <div class="ar-grid" id="arGrid"></div>
@@ -4295,6 +4298,7 @@ function abrirArenaBase(rapido, inc){
     const bq = $('arBuscar'); bq.value = q;
     bq.oninput = () => { q = bq.value; pintarLista(); };       // sólo se repinta la lista: el teclado no se cierra
     $('arPickCerrar').onclick = cerrarArena;
+    { const h = root.querySelector('.ar-pick h2'); if(h && typeof MODO_SERVIDOR !== 'undefined' && MODO_SERVIDOR && !rapido && !inc && !$('arVerPeleas')){ h.insertAdjacentHTML('afterend', '<button type="button" class="ar-b ar-verpeleas" id="arVerPeleas"><b>👁 Mirar peleas en vivo</b></button>'); $('arVerPeleas').onclick = abrirPeleas; } }
     $('arPickGo').onclick = () => inc ? pintarIncursion(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]), inc) : rapido ? confirmarRapido() : luchar(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]));
     const bd = $('arPickDuelo');
     if(bd) bd.onclick = () => pintarDuelo(sel.map(id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id]), pintar);
@@ -4371,18 +4375,19 @@ const POS_CADA_MS = 66;   // (en la incursión se manda más espaciado: ver mand
 function enviarSala(o){ if(RED.ws && RED.ws.readyState === 1) RED.ws.send(JSON.stringify(o)); }
 function enviarRed(o){ if(RED.ws && RED.ws.readyState === 1) RED.ws.send(JSON.stringify(Object.assign({t:'r'}, AR && AR.multi ? {d:AR.miSlot} : {}, o))); }
 
-function conectarSala(codigo, alMensaje){
+function conectarSala(codigo, alMensaje, ver){
   cerrarSala();
-  RED.codigo = codigo; RED.alMensaje = alMensaje; RED.cerrado = false; RED.intentos = 0;
+  RED.ver = !!ver; PUBLICO.n = 0; PUBLICO.lista = [];
+  RED.codigo = codigo; RED.alMensaje = alMensaje; RED.cerrado = false; RED.intentos = 0; SALA_CHAT.lista = [];
   abrirSocket();
 }
 function abrirSocket(){
-  const url = SERVIDOR_URL.replace(/^http/, 'ws') + '/duelo/ws?codigo=' + encodeURIComponent(RED.codigo) + '&token=' + encodeURIComponent(tokenServidor);
+  const url = SERVIDOR_URL.replace(/^http/, 'ws') + '/duelo/ws?codigo=' + encodeURIComponent(RED.codigo) + '&token=' + encodeURIComponent(tokenServidor) + (RED.ver ? '&ver=1' : '');
   let ws;
   try{ ws = new WebSocket(url); }catch(e){ RED.alMensaje && RED.alMensaje({t:'error_red'}); return; }
   RED.ws = ws;
   ws.onopen = () => { RED.intentos = 0; clearInterval(RED.latido); RED.latido = setInterval(() => { if(RED.ws === ws && ws.readyState === 1) try{ ws.send('{"t":"ping"}'); }catch(e){} }, 15000); };   // 04/11: latido (los celulares/NAT cortan sockets quietos)
-  ws.onmessage = ev => { let m; try{ m = JSON.parse(ev.data); }catch(e){ return; } if(RED.alMensaje) RED.alMensaje(m); };
+  ws.onmessage = ev => { let m; try{ m = JSON.parse(ev.data); }catch(e){ return; } if(m.t === 'publico') return publicoLlega(m); if(m.t === 'chat') return salaChatLlega(m); if(m.t === 'chat_no') return salaChatNo(m); if(RED.alMensaje) RED.alMensaje(m); };
   ws.onclose = () => {
     if(RED.ws !== ws || RED.cerrado) return;
     clearInterval(RED.latido);
@@ -4406,6 +4411,223 @@ function cerrarSala(){
   RED.cerrado = true;
   const ws = RED.ws; RED.ws = null;
   if(ws) try{ ws.close(1000, 'fin'); }catch(e){}
+}
+
+/* ---------------- chat de la incursión: en la sala de espera y durante la pelea (el filtro y el envío son del servidor) ---------------- */
+const SALA_CHAT = {lista: [], aviso: '', avisoT: 0};
+const CHAT_RAPIDAS = ['¡Vamos!', '¡Esperen!', '¡Ahora todos!', '¡Ayuda!', '¡Bien jugado!'];
+const chatEsc = t => String(t).replace(/[<>&"]/g, c => ({'<':'&lt;', '>':'&gt;', '&':'&amp;', '"':'&quot;'})[c]);
+function salaChatHTML(){
+  return `<div class="ar-chat-rapidas">${CHAT_RAPIDAS.map(t => `<button type="button" class="ar-chat-r" data-t="${t}">${t}</button>`).join('')}</div>
+    <form class="ar-chat-form" autocomplete="off"><input maxlength="60" placeholder="Escribí algo (sin teléfonos ni links)" enterkeyhint="send" autocomplete="off" aria-label="Mensaje para la incursión"><button type="submit" class="ar-b"><b>Enviar</b></button></form>
+    <div class="ar-chat-aviso" role="status"></div>`;
+}
+function salaChatActivar(caja, alMandar){
+  const inp = caja.querySelector('input');
+  const mandar = t => { t = String(t || '').trim(); if(!t) return false; enviarSala({t:'chat', txt:t}); if(alMandar) alMandar(); return true; };
+  caja.querySelector('form').onsubmit = e => { e.preventDefault(); if(mandar(inp.value)){ inp.value = ''; inp.blur(); } };
+  caja.querySelectorAll('.ar-chat-r').forEach(b => b.onclick = () => mandar(b.dataset.t));
+  /* escribiendo, las teclas no mueven al Pokémon */
+  ['keydown', 'keyup'].forEach(ev => inp.addEventListener(ev, e => e.stopPropagation()));
+  inp.addEventListener('focus', () => { if(AR && AR.keys){ AR.keys.clear(); AR.hold.clear(); } });
+}
+function salaChatPintar(){
+  const l = $('arIChatLog');   // sala de espera: queda el historial
+  if(l){ l.innerHTML = SALA_CHAT.lista.slice(-8).map(m => `<div${m.yo ? ' class="yo"' : ''}><b>${chatEsc(m.n)}:</b> ${chatEsc(m.t)}</div>`).join('') || '<div class="vacio">Todavía nadie escribió. ¡Saludá!</div>'; l.scrollTop = l.scrollHeight; }
+  const f = $('arChatFlota');   // en la pelea: los últimos 3, unos segundos
+  if(f){
+    const ahora = Date.now(), v = SALA_CHAT.lista.filter(m => ahora - m.a < 8000).slice(-3);
+    f.innerHTML = v.map(m => `<div${m.yo ? ' class="yo"' : ''}><b>${chatEsc(m.n)}:</b> ${chatEsc(m.t)}</div>`).join('');
+    clearTimeout(salaChatPintar._t); if(v.length) salaChatPintar._t = setTimeout(salaChatPintar, 8100 - (ahora - v[0].a));
+  }
+}
+function salaChatLlega(m){
+  SALA_CHAT.lista.push({n: m.yo ? 'Vos' : String(m.n || 'Entrenador'), t: String(m.txt || '').slice(0, 60), yo: !!m.yo, a: Date.now()});
+  if(SALA_CHAT.lista.length > 30) SALA_CHAT.lista.shift();
+  salaChatPintar();
+}
+function salaChatNo(m){
+  const txt = (typeof CHAT_AVISOS !== 'undefined' && CHAT_AVISOS[m.motivo]) || 'No se pudo mandar.';
+  document.querySelectorAll('#arenaOverlay .ar-chat-aviso').forEach(a => a.textContent = txt);
+  if($('arChatPanel') && $('arChatPanel').hidden && typeof decir === 'function' && AR && AR.fase !== 'fin') decir(txt);
+  clearTimeout(salaChatNo._t); salaChatNo._t = setTimeout(() => document.querySelectorAll('#arenaOverlay .ar-chat-aviso').forEach(a => a.textContent = ''), 4000);
+}
+/* botón 💬, contador de entrenadores y mensajes sobre la cancha (sólo incursiones en línea) */
+function salaChatEnPelea(){
+  if(!AR || !AR.raid || !ST || $('arChatBtn')) return;
+  ST.insertAdjacentHTML('beforeend', `<div class="ar-dentro" id="arDentro" role="status"></div>
+    <button type="button" class="ar-chatbtn" id="arChatBtn" aria-label="Chat de la incursión" aria-expanded="false">💬</button>
+    <div class="ar-chat-flota" id="arChatFlota" aria-live="polite"></div>
+    <div class="ar-chat-panel" id="arChatPanel" hidden>${salaChatHTML()}</div>`);
+  const panel = $('arChatPanel'), boton = $('arChatBtn');
+  const ver = si => { panel.hidden = !si; boton.setAttribute('aria-expanded', si); };
+  boton.onclick = () => ver(panel.hidden);
+  salaChatActivar(panel, () => ver(false));
+  salaDentroPintar(); salaChatPintar();
+}
+function salaDentroPintar(){
+  const d = $('arDentro');
+  if(d && AR && AR.raid) d.textContent = '👥 ' + (AR.raid.total - (AR.raid.fueron || 0)) + ' en la incursión';
+}
+
+/* ================= ESPECTADORES (26/11 Zeta) =================
+   "Peleas en vivo": lista de las salas que están peleando (en línea) y quién está adentro. El que mira NO corre el combate: dibuja lo que mandan los celulares
+   de los que pelean (posición, vida, ataques, cambios), así nunca puede tocar la pelea. Los espectadores aparecen afuera de la cancha, con su nombre, y arriba
+   un ojito chico con cuántos están mirando (lo ven también los que pelean). */
+const PUBLICO = {n:0, lista:[], entro:null, t:0};
+const VER = {datos:null, f:{}, reloj:0, ro:null, fin:false};
+const MODO_NOMBRE = {'1v1':'⚔️ 1 contra 1', '2v2':'🤝 2 contra 2', 'ffa':'🥊 Todos contra todos', raid:'🐉 Incursión', duo:'⛏️ Guardián de la mina'};
+function publicoLlega(m){
+  PUBLICO.n = Number(m.n) || 0; PUBLICO.lista = Array.isArray(m.lista) ? m.lista : [];
+  publicoPintar();
+  if(m.entro){
+    const donde = $('arStage') || $('verStage'); if(!donde) return;
+    let a = $('arEntro');
+    if(!a){ donde.insertAdjacentHTML('beforeend', '<div class="ar-entro" id="arEntro" role="status"></div>'); a = $('arEntro'); }
+    a.textContent = '👀 ' + String(m.entro).slice(0, 20) + ' entró a mirar'; a.hidden = false;
+    clearTimeout(PUBLICO.t); PUBLICO.t = setTimeout(() => { const x = $('arEntro'); if(x) x.hidden = true; }, 3200);
+  }
+}
+function publicoPintar(){
+  const donde = $('arStage') || $('verStage');
+  if(!donde) return;
+  let caja = $('arPublico'), ojo = $('arOjo');
+  if(!caja){ donde.insertAdjacentHTML('beforeend', '<div class="ar-publico" id="arPublico" aria-label="Espectadores"></div><div class="ar-ojo" id="arOjo" role="status"></div>'); caja = $('arPublico'); ojo = $('arOjo'); }
+  const tope = donde.id === 'verStage' ? 16 : 7, v = PUBLICO.lista.slice(-tope), resto = PUBLICO.lista.length - v.length;
+  caja.innerHTML = v.map(p => `<div class="ar-espec"><img src="images/avatar-${p.av === 'may' ? 'may' : 'red'}.png" alt="" width="20" height="30"><small>${chatEsc(p.n)}</small></div>`).join('') + (resto > 0 ? `<div class="ar-espec mas"><b>+${resto}</b></div>` : '');
+  ojo.textContent = '👁 ' + PUBLICO.n; ojo.hidden = !PUBLICO.n; ojo.setAttribute('aria-label', PUBLICO.n + ' mirando');
+}
+function verParar(){
+  clearTimeout(VER.reloj); VER.reloj = 0;
+  if(VER.ro){ VER.ro.disconnect(); VER.ro = null; }
+  VER.datos = null; VER.f = {};
+}
+function abrirPeleas(){
+  if(typeof MODO_SERVIDOR === 'undefined' || !MODO_SERVIDOR) return;
+  verParar(); cerrarSala(); limpiar();
+  $('arenaOverlay').classList.add('show');
+  $('arRoot').innerHTML = `<div class="ar-pick ar-duelo ar-vivas">
+    <h2>👁 Peleas en vivo</h2>
+    <p>Entrá a mirar. Los que pelean ven tu nombre entre el público.</p>
+    <div id="arVivas" aria-live="polite"><div class="ar-duelo-estado">Buscando peleas…</div></div>
+    <div class="ar-pick-pie"><button class="ar-b ar-med" id="arVivasCerrar"><b>Cerrar</b></button></div></div>`;
+  $('arVivasCerrar').onclick = cerrarArena;
+  const mirar = () => {
+    if(!$('arVivas')) return;
+    fetch(SERVIDOR_URL + '/peleas').then(r => r.json()).then(res => {
+      const caja = $('arVivas'); if(!caja || !res.ok) return;
+      caja.innerHTML = res.peleas.length ? res.peleas.map(p => {
+        const jefe = p.jefe ? (DATA.find(x => x.id === p.jefe) || {}).name : '';
+        const vs = p.modo === '1v1' ? p.jugadores.map(chatEsc).join(' <i>vs</i> ') : p.jugadores.map(chatEsc).join(', ');
+        return `<div class="ar-viva"><div><b>${MODO_NOMBRE[p.modo] || 'Pelea'}${jefe ? ' contra ' + chatEsc(jefe) : ''}</b><span>${vs}</span><small>👁 ${p.publico}</small></div>
+          <button class="ar-b ar-go" data-ver="${chatEsc(p.codigo)}"><b>Mirar</b></button></div>`;
+      }).join('') : '<div class="ar-duelo-estado">Ahora no hay peleas en línea. Cuando empiece un duelo o una incursión, aparece acá.</div>';
+      caja.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => verPelea(b.dataset.ver));
+    }).catch(() => {});
+    VER.reloj = setTimeout(mirar, 5000);
+  };
+  mirar();
+}
+function verPelea(codigo){
+  verParar();
+  $('arRoot').innerHTML = `<div class="ver-stage" id="verStage"><img class="ver-fondo" id="verFondo" alt="">
+    <div class="ver-titulo" id="verTitulo">Entrando…</div><div id="verCancha"></div><div class="ver-aviso" id="verAviso" role="status"></div>
+    <div class="ver-pie"><button class="ar-b ar-med" id="verVolver"><b>← Peleas</b></button><button class="ar-b ar-med" id="verSalir"><b>Salir</b></button></div></div>`;
+  $('verVolver').onclick = abrirPeleas; $('verSalir').onclick = cerrarArena;
+  let cortes = 0;
+  VER.fin = false;
+  conectarSala(codigo, m => {
+    if(!$('verStage')) return;
+    if(m.t === 'ver'){ cortes = 0; $('verAviso').textContent = ''; return verArmar(m.pelea); }
+    if(m.t === 'r') return verJugada(m);
+    if(m.t === 'fuera'){ const f = VER.f[m.de]; if(f){ f.fuera = true; f.el.classList.add('fuera'); $('verAviso').textContent = f.nombre + (m.abandono ? ' abandonó' : ' quedó eliminado'); } return; }
+    if(m.t === 'ver_fin'){ VER.fin = true; cerrarSala(); $('verAviso').innerHTML = `<b>🏁 ${chatEsc(m.texto)}</b>`; $('verAviso').classList.add('fin'); return; }
+    if(m.t === 'reconectando' && ++cortes < 4){ $('verAviso').textContent = 'Reconectando…'; return; }
+    if(m.t === 'reconectando' || m.t === 'error_red'){ cerrarSala(); $('verAviso').textContent = 'La pelea ya terminó.'; }
+  }, true);
+}
+function verArmar(d){
+  VER.datos = d; VER.f = {};
+  const pDe = id => DATA.find(p => p.id === id) || ESPECIAL_POR_ID[id];
+  const lista = d.jugadores.map(j => ({de:j.de, nombre:j.nombre, fuera:!!j.fuera, espejo:(d.modo === '1v1' && j.de === 'b') || (d.modo === '2v2' && j.bando === 'B'), mons:j.equipo.map(x => crearMon(pDe(x.id), false, x))}));
+  if(d.jefe){
+    const j = crearMon(pDe(d.jefe.id), true, {f:d.jefe.f, c:'jefe' + d.jefe.id, s:!!d.jefe.s});
+    j.max = Math.round(j.max * d.jefe.vida); j.hp = d.jefeHp == null ? j.max : Math.min(j.max, d.jefeHp);
+    lista.push({de:d.jefe.slot, nombre:pDe(d.jefe.id).name, jefe:true, espejo:false, mons:[j]});
+  }
+  const cancha = $('verCancha'); cancha.innerHTML = '';
+  lista.forEach((f, i) => {
+    const el = document.createElement('div');
+    el.className = 'ver-mon' + (f.jefe ? ' jefe' : '') + (f.fuera ? ' fuera' : '');
+    el.dataset.de = f.de;
+    el.innerHTML = `<div class="ver-cartel"><b>${chatEsc(f.nombre)}</b><span class="ver-hp"><i></i></span></div><img alt=""><div class="ver-ataque"></div>`;
+    cancha.appendChild(el);
+    const a = Math.PI / 2 + 2 * Math.PI * i / lista.length;
+    Object.assign(f, {el, idx:0, x:f.jefe ? 0 : .62 * Math.cos(a), y:f.jefe ? -.35 : .45 * Math.sin(a)});
+    VER.f[f.de] = f;
+    verSprite(f);
+  });
+  $('verTitulo').textContent = (MODO_NOMBRE[d.modo] || 'Pelea') + ' · ' + d.jugadores.map(j => j.nombre).join(d.modo === '1v1' ? ' vs ' : ', ');
+  verMedir();
+  if(!VER.ro && typeof ResizeObserver === 'function'){ VER.ro = new ResizeObserver(verMedir); VER.ro.observe($('verStage')); }
+  publicoPintar();
+}
+function verMedir(){
+  const st = $('verStage'); if(!st || !VER.datos) return;
+  const W = st.clientWidth, H = st.clientHeight, rx = Math.min(W * .45, 380), ry = Math.min(H * .21, rx * .8);
+  VER.g = {cx:W / 2, cy:H * .49, rx, ry};
+  const ei = ESC_IMG[ESCENAS[semillaNum(VER.datos.codigo) % ESCENAS.length]] || ESC_IMG.noche, im = $('verFondo');   // el mismo lugar que ven los que pelean (el Galpón se dibuja aparte: acá va el estadio de noche)
+  if(im.getAttribute('src') !== ei.src) im.src = ei.src;
+  st.style.background = ei.base;
+  Object.assign(im.style, {width:rx / ei.rx + 'px', height:ry / ei.ry + 'px', left:(VER.g.cx - ei.cx * rx / ei.rx) + 'px', top:(VER.g.cy - ei.cy * ry / ei.ry) + 'px'});
+  Object.values(VER.f).forEach(verUbicar);
+}
+function verUbicar(f){
+  const g = VER.g; if(!g) return;
+  f.el.style.transform = `translate(${(g.cx + f.x * g.rx).toFixed(1)}px, ${(g.cy + f.y * g.ry).toFixed(1)}px)`;
+  f.el.style.zIndex = 10 + Math.round((f.y + 1.5) * 10);
+  const img = f.el.querySelector('img'); img.style.transform = f.x < 0 ? 'scaleX(-1)' : '';
+}
+function verVida(f){
+  const m = f.mons[f.idx], p = Math.max(0, Math.min(100, m.hp / m.max * 100)), i = f.el.querySelector('.ver-hp i');
+  i.style.width = p + '%'; i.style.background = p > 50 ? '#3DDC6E' : p > 22 ? '#FFD54A' : '#F0463C';
+  f.el.classList.toggle('ko', m.hp <= 0);
+}
+function verSprite(f){
+  const m = f.mons[f.idx], img = f.el.querySelector('img');
+  img.onerror = () => { img.onerror = null; img.src = m.vario ? imgVario(m.p) : m.p.img; };
+  img.src = spFrente(m.p.id, m.vario); img.alt = m.p.name;
+  verVida(f);
+}
+function verCambiar(f, i){ if(Number.isInteger(i) && f.mons[i] && i !== f.idx){ f.idx = i; verSprite(f); } }
+function verTexto(f, txt, color){
+  const t = document.createElement('span'); t.className = 'ver-flota'; t.textContent = txt; t.style.color = color; f.el.appendChild(t); setTimeout(() => t.remove(), 900);
+}
+function verJugada(m){
+  const f = VER.f[m.d !== undefined ? m.d : m.de]; if(!f) return;
+  const sg = f.espejo ? -1 : 1;
+  if(m.k === 'p'){
+    verCambiar(f, m.i);
+    f.x = sg * m.x; f.y = sg * m.y;
+    const mon = f.mons[f.idx];
+    if(typeof m.hp === 'number'){ mon.hp = Math.max(0, Math.min(mon.max, m.hp)); verVida(f); }
+    return verUbicar(f);
+  }
+  if(m.k === 's') return verCambiar(f, Number(m.i));
+  if(m.k === 'a'){
+    const mon = f.mons[f.idx], mov = mon.movs && mon.movs[m.a], a = f.el.querySelector('.ver-ataque');
+    a.textContent = m.a === 'esquivar' ? '💨' : (mov ? mov.n : '¡Ataque!');
+    a.style.setProperty('--tc', TYPE_COLORS[(mov && (TIPO_REAL[mov.tipo] || mov.tipo)) || mon.p.type] || '#fff');
+    a.classList.remove('ya'); void a.offsetWidth; a.classList.add('ya');
+    return;
+  }
+  if(m.k === 'g'){
+    if(m.r === 'esq') return verTexto(f, '¡Esquivó!', '#8be9ff');
+    if(m.r !== 'hit') return verTexto(f, 'No afecta', '#c9ccd8');
+    f.mons[f.idx].hp = Math.max(0, Number(m.hp) || 0); verVida(f);
+    verTexto(f, (m.crit ? '¡CRÍTICO! ' : '') + '-' + (Number(m.dmg) || 0), m.crit ? '#ff9f2e' : '#fff');
+    f.el.classList.remove('golpe'); void f.el.offsetWidth; f.el.classList.add('golpe');
+  }
 }
 
 /* lo que llega del otro celular durante la pelea */
@@ -4520,6 +4742,7 @@ function eliminadoMulti(){
 function jugadorFuera(lado, abandono){
   if(!lado || !AR[lado] || lado === 'yo') return;
   AR[lado].mons.forEach(x => { x.vivo = false; x.hp = 0; });
+  if(AR.raid && !AR[lado].fuera){ AR[lado].fuera = true; AR.raid.fueron = (AR.raid.fueron || 0) + 1; salaDentroPintar(); }
   const e = E[lado];
   if(e){ cortarAccion(e); e.rodando = false; e.wrap.style.display = 'none'; }
   pintarHud();
@@ -4587,6 +4810,7 @@ function mostrarResultadoIncursion(m){
   AR.pausa = true; cancelAnimationFrame(RAF); RAF = 0;
   cerrarSala();
   if(m.progreso && typeof aplicarProgreso === 'function') aplicarProgreso(m.progreso);
+  ['arChatBtn', 'arChatPanel', 'arChatFlota', 'arDentro'].forEach(id => { const el = $(id); if(el) el.remove(); });
   const boss =DATA.find(x => x.id === m.legendario) || {name:'el legendario', id:m.legendario}, f = $('arFin');
   /* 03/11: lo que queda por atrapar puede ser el legendario SHINY o un shiny famoso (premioInc, f > 100 = shiny) */
   const pi = m.premioInc || {id: m.legendario, f: m.fuerza}, esShiny = pi.f > 100, base = DATA.find(x => x.id === pi.id) || boss;
@@ -4658,7 +4882,7 @@ function mostrarResultadoIncursion(m){
       const r = res.resultado;
       try{ await animar(r); }catch(e){}
       if(tokInc !== TOK) return;
-      if(r.atrapado){ if(r.f > 100){ p = pShiny; revelado = true; } sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con fuerza ${r.f > 100 ? r.f - 100 : r.f}.` + (() => { const s = window.__arenaMovs.fichaStats(p, {f:r.f}); return ` ❤️ Vida ${s.vida} · ⚔️ Golpe ${s.golpe}% · 💥 Crítico ${s.crit}% ×${s.critMult.toFixed(1)} · ⚡ ${s.velTxt}`; })(), 0, true, 'atrapado'); }
+      if(r.atrapado){ if(r.f > 100){ p = pShiny; revelado = true; } sfx('gana'); festejo(true); return pinta(`✨ ¡Atrapaste a ${p.name}! Llega con NV ${r.f > 100 ? r.f - 100 : r.f}.` + (() => { const s = window.__arenaMovs.fichaStats(p, {f:r.f}); return ` ❤️ Vida ${s.vida} · ⚔️ Golpe ${s.golpe}% · 💥 Crítico ${s.crit}% ×${s.critMult.toFixed(1)} · ⚡ ${s.velTxt}`; })(), 0, true, 'atrapado'); }
       if(r.escapo) return pinta(`${p.name} se soltó y se escapó…`, 0, true, 'escapo');
       pinta(`¡Casi! ${p.name} se soltó. Probá de nuevo.`, r.quedan, false);
     }).catch(() => pinta('Sin conexión. Probá de nuevo.', m.bolas, false));
@@ -4675,7 +4899,9 @@ function pintarIncursion(equipo, inc){
     <p>Pueden entrar hasta <b>6 entrenadores</b>. Con 6 arranca sola; si no llegan, tocá <b>Iniciar</b> (podés pelear con 1 solo, pero sólo con 4 o más se le gana) (esperamos hasta 20 minutos). Ojo: ${p.name} es igual de fuerte para todos: con 1, 2 o 3 entrenadores no se le puede ganar; con <b>4 o 5</b> sí.</p>
     <div class="ar-duelo-eq">${equipo.map(x => `<img src="${spIcono(x.id, (mejorEjemplar(x.id) || {}).s)}" alt="${x.name}" title="${x.name}" width="48" height="48">`).join('')}</div>
     <ul class="ar-lobby-lista" id="arILista" aria-label="Entrenadores en la incursión"></ul>
+    <div class="ar-dentro-sala" id="arIDentro" role="status"></div>
     <div class="ar-duelo-estado" id="arIEstado" role="status" aria-live="polite">Entrando a la guarida…</div>
+    <div class="ar-chat-sala" id="arIChat"><div class="ar-chat-log" id="arIChatLog" aria-live="polite"></div>${salaChatHTML()}</div>
     <div class="ar-pick-pie"><button class="ar-b ar-go" id="arIEmpezar" disabled><b>Iniciar</b></button><button class="ar-b ar-med" id="arIIrse"><b>Salir</b></button></div></div>`;
   const est = $('arIEstado'), esc = t => String(t).replace(/[<>&"]/g, '');
   const motivo = mm => ({cerrada:'La guarida está cerrada: abre a la hora que dice el cartel.', ya_participaste:'Ya peleaste contra este legendario en esta apertura. Volvé en la próxima.',
@@ -4686,11 +4912,13 @@ function pintarIncursion(equipo, inc){
     $('arIEmpezar').hidden = true;
   }
   $('arIIrse').onclick = () => { enviarSala({t:'irse'}); cerrarSala(); cerrarArena(); };
+  salaChatActivar($('arIChat')); salaChatPintar();
   $('arIEmpezar').onclick = () => { $('arIEmpezar').disabled = true; enviarSala({t:'empezar_incursion'}); };
   const alMensaje = m => {
     if(m.t === 'lobby'){
       $('arILista').innerHTML = m.jugadores.map(x => `<li${x.conectado ? '' : ' class="off"'}><span><b>${esc(x.nombre)}</b>${x.id === m.yo ? ' (vos)' : ''}${x.conectado ? '' : ' · sin conexión'}</span></li>`).join('');
       const faltan = m.incursion ? m.incursion.faltan : 6 - m.jugadores.length;
+      $('arIDentro').innerHTML = `👥 <b>${m.jugadores.length}</b> / ${m.max} adentro`;
       if(inc.duo){ est.innerHTML = m.jugadores.length < 2 ? 'Esperando a tu compañero…' : '¡Están los dos! Arrancando…'; return; }
       if(m.incursion && m.incursion.id){   // 04/11: el jefe de esta sala puede ser otro (shiny): el título dice contra quién se pelea de verdad
         const pb = DATA.find(x => x.id === m.incursion.id), h2 = $('arRoot').querySelector('h2');
@@ -4828,6 +5056,7 @@ function limpiar(){
 }
 
 function cerrarArena(){
+  verParar();
   window.__arenaCerroEn = Date.now();   // 18/11: ver botonIncursion (el toque que cierra no debe caer en el botón de la Aventura que queda debajo)
   if(AR && AR.online && AR.fase !== 'fin') enviarSala({t:'salir'});
   cerrarSala();
@@ -4865,5 +5094,6 @@ window.abrirArena = abrirArena;
 window.abrirIncursionArena = abrirIncursionArena;   // la abre la Aventura desde la puerta de la guarida
 window.__incursionPrueba = m => luchar(null, m);   // sólo para las pruebas: arranca una incursión con un mensaje "empezar" armado a mano
 window.abrirDueloRapido = abrirDueloRapido;
+window.abrirPeleas = abrirPeleas;
 window.puedeDueloRapido = puedeDueloRapido;
 })();

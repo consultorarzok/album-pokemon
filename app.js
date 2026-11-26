@@ -941,7 +941,7 @@ function renderGrid(){
       const vario = tieneShiny(p.id);
       slot.classList.toggle('vario', vario);
       slot.innerHTML = numTag + dupTag + (vario ? '<div class="vario-tag" title="Tenés una shiny">✨</div>' : '') +
-        `<img src="${vario ? imgVario(p) : p.img}" alt="" loading="lazy"${vario ? ' onerror="respaldoShiny(this)"' : ''}><div class="name">${p.name}</div>` + bar;
+        `<img src="${vario ? imgVario(p) : p.img}" alt="" loading="lazy"${vario ? ' onerror="respaldoShiny(this)"' : ''}><div class="name">${p.name}</div><div class="poder ${clasePoder(poderBase(p))[1]}" title="Poder base">💪 ${poderBase(p)}</div>` + bar;
       /* tocar la carta abre su ficha: copias con su fuerza, shiny, evolución */
       slot.tabIndex = 0;
       slot.classList.add('tocable');
@@ -989,7 +989,7 @@ function seccionEntrenar(p, copias){
   return `<div class="det-sec"><b>Entrenar</b><span>Tenés 🪙 ${coins}</span></div>` + copias.map(e => {
     const movs = M.movsEjemplar(p, e), tope = e.f >= 100;
     return `<div class="ent-ej" data-id="${p.id}" data-c="${e.c}">
-      <div class="ent-cab"><b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}</small>
+      <div class="ent-cab"><b>${e.s ? '✨ ' : ''}<i class="nv">NV</i> ${e.f}</b><small>N.º ${e.c}</small>
         <button class="open-btn sec ent-fz" ${tope || coins < precioSubirFuerza(e.f) ? 'disabled' : ''}>${tope ? 'Nivel máximo' : 'Subir nivel · 🪙 ' + precioSubirFuerza(e.f)}</button></div>
       ${mejorasHTML(p, e, copias)}
       <div class="ent-movs">${['corto', 'medio', 'largo'].map((alc, k) => { const m = movs[alc]; return `<div class="ent-mov"><span><small>${nomAlc[k]}</small> ${m ? m.n : '—'} <i style="color:${TYPE_COLORS[m ? m.tipo : 'normal']}">●</i></span>
@@ -1015,11 +1015,11 @@ function mejorasHTML(p, e, copias){
     return `<div class="mej-fila${bloq ? ' bloq' : ''}"><div class="mej-nom"><b>${ico} ${nom}</b><small>${que}</small></div><span class="mej-pips" aria-label="mejora ${n} de 5">${'▰'.repeat(n)}${'▱'.repeat(5 - n)}</span>
       <button class="open-btn sec ent-mej-go" data-stat="${k}" data-costo="${costo}" ${bloq || max || tope[k] ? 'data-fijo="1"' : ''} disabled>${etiqueta}</button></div>`;
   }).join('');
-  const nota = `<small>🧩 <b>Especialidades ${activos.length}/2</b>: con repetidas elegís <b>2</b> de estas 4 y las otras quedan bloqueadas. El 💪 nivel sólo sube con monedas.</small>`;
+  const nota = `<small>🧩 <b>Especialidades ${activos.length}/2</b>: con repetidas elegís <b>2</b> de estas 4 y las otras quedan bloqueadas. El <i class="nv">NV</i> (nivel) sólo sube con monedas.</small>`;
   const minimo = Math.min(...MEJORAS.filter(m => !(mejN(e, m[0]) === 0 && llenas) && mejN(e, m[0]) < 5).map(m => MEJORA_COSTO[mejN(e, m[0])]).concat([99]));
   const lista = !otras.length ? `<small>Necesitás copias repetidas ${e.s ? '✨ shiny ' : ''}de este Pokémon para mejorarlo.</small>`
     : otras.length < minimo ? `<small>Próxima mejora: ${minimo} copias ${e.s ? '✨ shiny ' : ''}(tenés ${otras.length}).</small>`
-    : `<small>Elegí las copias a gastar${e.s ? ' (✨ shiny)' : ''} y tocá la característica:</small><div class="ent-fus-lista">${otras.map(x => `<label class="ej-chip ${claseFuerza(x.f)}"><input type="checkbox" class="mej-ck" data-c="${x.c}" data-est="${MEJORAS.some(m => mejN(x, m[0]) > 0) ? 1 : 0}"> 💪 ${x.f}${MEJORAS.some(m => mejN(x, m[0]) > 0) ? ' 🧩' : ''}</label>`).join('')}</div>`;
+    : `<small>Elegí las copias a gastar${e.s ? ' (✨ shiny)' : ''} y tocá la característica:</small><div class="ent-fus-lista">${otras.map(x => `<label class="ej-chip ${claseFuerza(x.f)}"><input type="checkbox" class="mej-ck" data-c="${x.c}" data-est="${MEJORAS.some(m => mejN(x, m[0]) > 0) ? 1 : 0}"> <i class="nv">NV</i> ${x.f}${MEJORAS.some(m => mejN(x, m[0]) > 0) ? ' 🧩' : ''}</label>`).join('')}</div>`;
   const reiniciar = activos.length ? `<button class="open-btn sec ent-mej-reset" ${coins < MEJORA_REINICIO ? 'disabled' : ''}>Cambiar de especialidad · 🪙 ${MEJORA_REINICIO.toLocaleString('es-AR')}</button><small>Borra las mejoras de este Pokémon (las copias gastadas no vuelven).</small>` : '';
   return `<div class="ent-fus mej">${nota}${filas}${lista}${reiniciar}</div>`;
 }
@@ -1103,11 +1103,12 @@ function abrirDetalle(id){
       <span class="det-pill">${p.rarity}</span>
       ${vario ? '<span class="det-pill det-shiny">✨ Shiny</span>' : ''}
     </div>
+    ${poderHTML(p)}
     <div class="det-sec"><b>Ficha${copias.length > 1 ? ' (tu mejor copia)' : ''}</b></div>
     ${fichaHTML(p, mejor || copias[0], true)}
     <div class="det-sec"><b>Tus copias</b><span>Tenés ${copias.length}${dup > 0 ? ' (' + dup + ' repetida' + (dup === 1 ? '' : 's') + ')' : ' · sin repetidas'}</span></div>
     <div class="ej-lista det-copias" role="list" aria-label="Copias de ${p.name}">${copias.map(e =>
-      `<div class="ej-chip ${claseFuerza(e.f)}" role="listitem" title="${nivelFuerza(e.f)}"><b>${e.s ? '✨ ' : ''}💪 ${e.f}</b>${(s => s ? `<small>❤️ ${s.vida} · 💥 ${s.crit}%</small>` : '')(fichaDe(p, e))}<small>N.º ${e.c}${e.s ? ' · shiny' : ''}${e === mejor ? ' · ⭐ Arena' : ''}</small>${MODO_SERVIDOR && copias.length > 1 ? `<button class="open-btn sec ej-fav" data-id="${p.id}" data-c="${e.c}">${e.fav ? '⭐ Favorita (quitar)' : '☆ Usar ésta'}</button>` : ''}</div>`).join('')}</div>
+      `<div class="ej-chip ${claseFuerza(e.f)}" role="listitem" title="${nivelFuerza(e.f)}"><b>${e.s ? '✨ ' : ''}<i class="nv">NV</i> ${e.f}</b>${(s => s ? `<small>❤️ ${s.vida} · 💥 ${s.crit}%</small>` : '')(fichaDe(p, e))}<small>N.º ${e.c}${e.s ? ' · shiny' : ''}${e === mejor ? ' · ⭐ Arena' : ''}</small>${MODO_SERVIDOR && copias.length > 1 ? `<button class="open-btn sec ej-fav" data-id="${p.id}" data-c="${e.c}">${e.fav ? '⭐ Favorita (quitar)' : '☆ Usar ésta'}</button>` : ''}</div>`).join('')}</div>
     ${MODO_SERVIDOR ? seccionEntrenar(p, copias) : ''}
     <div class="det-sec"><b>Evolución</b></div>
     <div class="det-evo">
@@ -1248,17 +1249,26 @@ function playSpecialSequence(specials, index, onDone){
   };
 }
 
+/* 26/11 Zeta: PODER BASE = lo fuerte que es la especie (suma de sus características). No cambia nunca; entre dos Pokémon del mismo nivel, el de más poder aguanta más y pega más. */
+const poderBase = p => p.bst || BST[p.id - 1] || 300;
+const clasePoder = n => n >= 600 ? ['Tremendo', 'p5'] : n >= 520 ? ['Muy alto', 'p4'] : n >= 440 ? ['Alto', 'p3'] : n >= 340 ? ['Medio', 'p2'] : ['Bajo', 'p1'];
+function poderHTML(p){
+  const n = poderBase(p), [txt, cl] = clasePoder(n), max = 720;   // tope de las comunes: Arceus (las especiales tienen 780 y llenan la barra)
+  return `<div class="poder-caja ${cl}"><div class="poder-tit"><span>💪 Poder base</span><b>${n}</b><em>${txt}</em></div>
+    <div class="poder-barra" role="img" aria-label="Poder base ${n}, tope ${max}"><i style="width:${Math.min(100, Math.round(n / max * 100))}%"></i></div>
+    <small><b>Poder base:</b> lo fuerte que es este Pokémon; no cambia nunca (el tope es 720, Arceus; las especiales tienen 780). <b><i class="nv">NV</i> (nivel):</b> lo entrenada que está tu copia (hasta 100). Con el mismo nivel, el de más poder base tiene más vida y pega más fuerte.</small></div>`;
+}
 /* 18/11 Zeta: ficha completa (fuerza, vida, golpe, crítico, velocidad, ataques) para la Pokédex y el cuadro al atrapar */
 function fichaDe(p, ej){
   try{ const A = window.__arenaMovs; return A && A.fichaStats ? A.fichaStats(p, ej) : null; }catch(e){ return null; }
 }
 function fichaHTML(p, ej, conAtaques){
   const s = fichaDe(p, ej); if(!s) return '';
-  return `<div class="ficha-stats"><span>💪 Nivel <b>${s.f}</b></span><span>❤️ Vida <b>${s.vida}</b></span><span>⚔️ Golpe <b>${s.golpe}%</b></span><span>💥 Crítico <b>${s.crit}%</b> ×${s.critMult.toFixed(1)}</span><span>⚡ Veloc. <b>${s.velTxt}</b></span></div>` +
+  return `<div class="ficha-stats"><span><i class="nv">NV</i> <b>${s.f}</b></span><span class="ficha-poder">💪 Poder base <b>${s.poder}</b></span><span>❤️ Vida <b>${s.vida}</b></span><span>⚔️ Golpe <b>${s.golpe}%</b></span><span>💥 Crítico <b>${s.crit}%</b> ×${s.critMult.toFixed(1)}</span><span>⚡ Veloc. <b>${s.velTxt}</b></span></div>` +
     (conAtaques && s.movs.length ? `<div class="ficha-movs">${s.movs.join(' · ')}</div>` : '');
 }
 function fichaLinea(p, f){
-  const s = fichaDe(p, {f}); return s ? `<br><small>💪 ${s.f} · ❤️ Vida ${s.vida} · ⚔️ Golpe ${s.golpe}% · 💥 Crítico ${s.crit}% ×${s.critMult.toFixed(1)} · ⚡ ${s.velTxt}</small>` : '';
+  const s = fichaDe(p, {f}); return s ? `<br><small>💪 Poder ${s.poder} · <i class="nv">NV</i> ${s.f} · ❤️ Vida ${s.vida} · ⚔️ Golpe ${s.golpe}% · 💥 Crítico ${s.crit}% ×${s.critMult.toFixed(1)} · ⚡ ${s.velTxt}</small>` : '';
 }
 function showReveal(pulls, titulo){
   document.getElementById('revealTitle').textContent = titulo || 'Abriste un sobre';
@@ -1278,7 +1288,7 @@ function showReveal(pulls, titulo){
       <div class="rname">${pull.p.name}</div>
       <div class="tag ${pull.isNew?'new':'dup'}">${pull.isNew?'¡Nueva!':'Repetida'}</div>
       ${ej && ej.s ? '<div class="rvario">✨ ¡Shiny!</div>' : ''}
-      ${ej ? `<div class="rfuerza ${claseFuerza(ej.f)}" title="${nivelFuerza(ej.f)}">💪 ${ej.f}</div>` + fichaHTML(pull.p, ej, true) : ''}`;
+      ${ej ? `<div class="rfuerza ${claseFuerza(ej.f)}" title="${nivelFuerza(ej.f)}"><i class="nv">NV</i> ${ej.f}</div>` + fichaHTML(pull.p, ej, true) : ''}`;
     box.appendChild(card);
   });
   /* 15/11 Zeta: botón para seguir sin cerrar y volver a entrar: "Abrir otro sobre" (sobres) o "Canjear otra vez" (canje de repetidas) */
@@ -1299,7 +1309,7 @@ function mostrarEspeciales(pulls, despues){
   box.innerHTML = pulls.map(pull => `<div class="reveal-card vario" style="border-left:3px solid ${TYPE_COLORS[pull.p.type]}">
       <img src="${pull.p.img}" alt="${pull.p.name}"><div class="rname">${pull.p.name}</div>
       <div class="tag new">⭐ Edición especial</div>
-      <div class="rfuerza ${claseFuerza(especiales[pull.p.id].f)}">💪 ${especiales[pull.p.id].f}</div>${fichaHTML(pull.p, especiales[pull.p.id], true)}</div>`).join('');
+      <div class="rfuerza ${claseFuerza(especiales[pull.p.id].f)}"><i class="nv">NV</i> ${especiales[pull.p.id].f}</div>${fichaHTML(pull.p, especiales[pull.p.id], true)}</div>`).join('');
   const ov = document.getElementById('overlay');
   ov.classList.add('show');
   if(despues){
@@ -1552,7 +1562,7 @@ function renderEvolucion(){
       <span class="txt"><b>${p.name}</b>Tenés ${copias.length} (${state[p.id].dup} repetida${state[p.id].dup === 1 ? '' : 's'}): elegí cuál evoluciona</span>
       <div class="ej-lista" role="radiogroup" aria-label="Copias de ${p.name}">${copias.map((e, i) =>
         `<button type="button" class="ej-chip ${claseFuerza(e.f)}" title="${nivelFuerza(e.f)}" data-c="${e.c}" role="radio">
-          <b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}${e.s ? ' · shiny' : ''}${i === 0 ? ' · ⭐ Arena' : ''}</small></button>`).join('')}</div>
+          <b>${e.s ? '✨ ' : ''}<i class="nv">NV</i> ${e.f}</b><small>N.º ${e.c}${e.s ? ' · shiny' : ''}${i === 0 ? ' · ⭐ Arena' : ''}</small></button>`).join('')}</div>
       <div class="ej-lista evo-destinos"></div>`;
     const marcar = () => fila.querySelectorAll('.ej-chip').forEach(ch => {
       const on = ch.dataset.c === elegido;
@@ -1749,7 +1759,7 @@ function proximoPaso(){
   if(coins < PACK_COST && tengo < 12) return {i: '🪙', t: 'Ganá monedas', d: 'Respondé preguntas rápidas y juntá para tus sobres.', b: 'Responder', id: 'earnBtn'};
   if(!maestro.peleas && !pocas) return {i: '⚔️', t: 'Probá tu primera pelea', d: 'Armá tu equipo y peleá en la Arena: ganás monedas y subís de rango.', b: 'Pelear', id: 'battleBtn'};
   if(pocas) return {i: '📦', t: 'Conseguí más Pokémon', d: 'Con ' + PELEA_MIN + ' Pokémon ya podés pelear en la Arena. Abrí sobres o salí a la Aventura.', b: coins >= PACK_COST ? 'Abrir sobre' : 'Ir a la aventura', id: coins >= PACK_COST ? 'openBtn' : 'advBtn'};
-  if(dups >= 6) return {i: '💪', t: 'Tenés ' + dups + ' repetidas', d: 'Usalas para mejorar a tu mejor Pokémon (vida, daño, crítico o velocidad), o canjealas y evolucionalas.', b: 'Ver repetidas', id: 'repetidasBtn'};
+  if(dups >= 6) return {i: '🧩', t: 'Tenés ' + dups + ' repetidas', d: 'Usalas para mejorar a tu mejor Pokémon (vida, daño, crítico o velocidad), o canjealas y evolucionalas.', b: 'Ver repetidas', id: 'repetidasBtn'};
   return {i: '🗺️', t: 'Salí a la Aventura', d: 'Atrapá Pokémon, vencé a los líderes y ganá medallas.', b: 'Ir a la aventura', id: 'advBtn'};
 }
 function pintarProximoPaso(){
@@ -2812,8 +2822,9 @@ function panelIncursiones(){
   lista.innerHTML = filas.map(({g, cfg, ap, p}) => {
     const r = advMapa === 'overworld' ? rumboA(g.puerta[0], g.puerta[1]) : null;
     const donde = r ? `a ${r.dist} casilleros al ${r.rumbo}` : 'en el mapa (salí de la cueva)';
+    const dentro = ap.abierta ? `<span class="adv-inc-dentro" data-dentro="${g.region}">${textoDentro(g.region)}</span>` : '';
     return `<div class="adv-inc-fila${ap.abierta ? ' abierta' : ''}"><img src="${p.sh ? imgVario(p) : p.img}" alt="" onerror="this.style.visibility='hidden'">` +
-      `<div class="adv-inc-texto"><b>${REGION_LOCAL[g.region] || g.region}</b> · ${p.name}${p.sh ? ' ✨ BLANCO' : ''}<br>${ap.abierta ? (ap.hasta - Date.now() > 12 * 3600e3 ? '🔴 <b>ABIERTA siempre</b>' : '🔴 <b>ABIERTA</b> hasta las ' + horaJujuy(ap.hasta)) + (ap.cambia && ap.cambia < ap.hasta ? ' · cambia de legendario a las ' + horaJujuy(ap.cambia) : '') : '🔒 abre ' + etiquetaApertura(ap.proxima)}<br><small>${donde}</small></div>` +
+      `<div class="adv-inc-texto"><b>${REGION_LOCAL[g.region] || g.region}</b> · ${p.name}${p.sh ? ' ✨ BLANCO' : ''}${dentro}<br>${ap.abierta ? (ap.hasta - Date.now() > 12 * 3600e3 ? '🔴 <b>ABIERTA siempre</b>' : '🔴 <b>ABIERTA</b> hasta las ' + horaJujuy(ap.hasta)) + (ap.cambia && ap.cambia < ap.hasta ? ' · cambia de legendario a las ' + horaJujuy(ap.cambia) : '') : '🔒 abre ' + etiquetaApertura(ap.proxima)}<br><small>${donde}</small></div>` +
       `<button type="button" data-reg="${g.region}" class="${advGuia === g.region ? 'activo' : ''}">${advGuia === g.region ? 'Quitar flecha' : 'Guiarme'}</button></div>`;
   }).join('');
   lista.querySelectorAll('button[data-reg]').forEach(b => b.onclick = () => {
@@ -2822,7 +2833,34 @@ function panelIncursiones(){
     if(advGuia) cerrarPanelIncursiones(); else panelIncursiones();
   });
 }
-function abrirPanelIncursiones(){ teclasApretadas.clear(); advEje = {x: 0, y: 0}; panelIncursiones(); document.getElementById('advIncPanel').hidden = false; }
+function abrirPanelIncursiones(){ teclasApretadas.clear(); advEje = {x: 0, y: 0}; panelIncursiones(); document.getElementById('advIncPanel').hidden = false; mirarDentro(); }
+/* 26/11: cuántos entrenadores hay adentro de cada guarida (se le pregunta al servidor sólo mientras se mira: panel abierto o parado en la puerta) */
+let incDentro = {}, incDentroT = {}, incDentroReloj = 0;
+function textoDentro(region){
+  const d = incDentro[region];
+  if(!d) return '';
+  const e = d.esperando, p = d.peleando;
+  if(!e && !p) return '👥 Todavía no entró nadie';
+  return '👥 ' + [e ? e + (e === 1 ? ' esperando' : ' esperando') + ' adentro' : '', p ? p + ' peleando' : ''].filter(Boolean).join(' · ');
+}
+function pedirDentro(region){
+  if(typeof MODO_SERVIDOR === 'undefined' || !MODO_SERVIDOR) return;
+  const k = region || '*';
+  if(Date.now() - (incDentroT[k] || 0) < 7000) return;
+  incDentroT[k] = Date.now();
+  fetch(SERVIDOR_URL + '/incursion/estado' + (region ? '?region=' + region : '')).then(r => r.json()).then(res => {
+    if(!res || !res.ok) return;
+    Object.assign(incDentro, res.regiones);
+    document.querySelectorAll('[data-dentro]').forEach(el => el.textContent = textoDentro(el.dataset.dentro));
+    const b = document.getElementById('advIncBtn');
+    if(b && b.dataset.base && b.dataset.reg){ const d = incDentro[b.dataset.reg], n = d ? d.esperando : 0; b.textContent = b.dataset.base + (n ? ` · 👥 ${n} adentro` : ''); }
+  }).catch(() => {});
+}
+function mirarDentro(){
+  clearInterval(incDentroReloj);
+  incDentroT['*'] = 0; pedirDentro();
+  incDentroReloj = setInterval(() => { if(document.getElementById('advIncPanel').hidden) return clearInterval(incDentroReloj); pedirDentro(); }, 8000);
+}
 function cerrarPanelIncursiones(){ document.getElementById('advIncPanel').hidden = true; }
 function actualizarPuntoIncursion(){
   const pt = document.getElementById('advIncPunto'); if(!pt) return;
@@ -2931,12 +2969,13 @@ function botonIncursion(){
     if(g && aperturaIncursion(cfgIncursion(g.region), Date.now()).abierta) modo = 'unirse';
   }
   const k = modo ? modo + (g ? g.region : '') + incBolas : '';
-  if(b.dataset.k === k) return;
-  b.dataset.k = k; b.hidden = !modo;
+  if(b.dataset.k === k){ if(modo === 'unirse' && !document.hidden) pedirDentro(g.region); return; }
+  b.dataset.k = k; b.hidden = !modo; b.dataset.base = ''; b.dataset.reg = '';
   if(modo === 'unirse'){
     const cfg = cfgIncursion(g.region), jf = jefeGuarida(cfg, aperturaIncursion(cfg, Date.now())), p = DATA.find(d => d.id === jf.id) || {name: ''};
     b.textContent = `⚔️ Incursión contra ${p.name}${jf.s ? ' ✨ BLANCO' : eventoShinyInc() ? ' ✨' : ''}`;
     b.onclick = () => { if(typeof abrirIncursionArena === 'function') abrirIncursionArena({region: g.region, legendario: jf.id}); };
+    b.dataset.base = b.textContent; b.dataset.reg = g.region; incDentroT[g.region] = 0; delete incDentro[g.region]; pedirDentro(g.region);
   } else if(modo === 'tirar'){
     const p0 = DATA.find(d => d.id === incursionPendiente.id) || {name: 'el legendario'}, p = incursionPendiente.f > 100 ? Object.assign({}, p0, {name: p0.name + ' ✨ SHINY'}) : p0;
     b.textContent = `🎯 Tirarle a ${p.name} (${incBolas})`;
@@ -2946,7 +2985,7 @@ function botonIncursion(){
       accionServidor('tirarIncursion', {}).then(res => {
         if(!res.ok) return advMensaje(res.motivo === 'se_escapo' ? `${p.name} se escapó.` : 'No se pudo tirar.');
         const r = res.resultado;
-        advMensaje(r.atrapado ? `✨ <b>¡Atrapaste a ${p.name}!</b> Llega con nivel ${r.f > 100 ? r.f - 100 : r.f}.${fichaLinea(p, r.f)}` : r.escapo ? `${p.name} se soltó y se escapó…` : `¡Casi! ${p.name} se soltó. Te quedan ${r.quedan}.`);
+        advMensaje(r.atrapado ? `✨ <b>¡Atrapaste a ${p.name}!</b> Llega con NV ${r.f > 100 ? r.f - 100 : r.f}.${fichaLinea(p, r.f)}` : r.escapo ? `${p.name} se soltó y se escapó…` : `¡Casi! ${p.name} se soltó. Te quedan ${r.quedan}.`);
         if(r.atrapado){ renderGrid(); updateProgress(); }
       }).catch(() => advMensaje('Sin conexión.')).then(() => { b.disabled = false; b.dataset.k = ''; });
     };
@@ -8174,7 +8213,7 @@ function mostrarRegalos({total, regaladas, ejPulls, espPulls, bolasGanadas, esAv
 
   /* La legendaria regalada se muestra con la misma carta dorada del sobre,
      una por una; recién después aparece el cartel del regalo. */
-  /* los ejemplares regalados se muestran como cartas (con su ✨ Shiny y su 💪) */
+  /* los ejemplares regalados se muestran como cartas (con su ✨ Shiny y su nivel) */
   /* un premio (con mensaje) muestra sus cartas y, al cerrarlas, el cartel de felicitación */
   const cartas = () => {
     showReveal(ejPulls, mensaje ? '¡Tu premio!' : '¡Te regalaron!');
@@ -9057,7 +9096,7 @@ function renderIntercambioDup(){
       <span class="txt"><b>${p.name}</b>Tenés ${lista.length}: elegí cuál dar</span>
       <div class="ej-lista" role="radiogroup" aria-label="Ejemplares de ${p.name}">${lista.map((e, i) =>
         `<button type="button" class="ej-chip ${claseFuerza(e.f)}" title="${nivelFuerza(e.f)}" data-c="${e.c}" role="radio">
-          <b>${e.s ? '✨ ' : ''}💪 ${e.f}</b><small>N.º ${e.c}${e.s ? ' · shiny' : ''}${i === 0 ? ' · ⭐ Arena' : ''}</small></button>`).join('')}</div>`;
+          <b>${e.s ? '✨ ' : ''}<i class="nv">NV</i> ${e.f}</b><small>N.º ${e.c}${e.s ? ' · shiny' : ''}${i === 0 ? ' · ⭐ Arena' : ''}</small></button>`).join('')}</div>`;
     const btn = document.createElement('button');
     btn.className = 'open-btn';
     btn.style.padding = '9px 14px';
@@ -9229,7 +9268,7 @@ function mostrarCartaCodigo(pokemonId, codigo, fuerza, shiny){
   const imgCodigo = document.getElementById('codigoCardImg');
   imgCodigo.removeAttribute('data-rs'); imgCodigo.onerror = shiny ? () => respaldoShiny(imgCodigo) : null;
   imgCodigo.src = shiny ? imgVario(p) : p.img;
-  document.getElementById('codigoCardName').textContent = (shiny ? '✨ ' : '') + p.name + (fuerza ? ' · 💪 ' + fuerza : '');
+  document.getElementById('codigoCardName').textContent = (shiny ? '✨ ' : '') + p.name + (fuerza ? ' · NV ' + fuerza : '');
   document.getElementById('codigoCardOverlay').dataset.pokemonId = p.id;
   document.getElementById('codigoCardTexto').textContent = codigo;
   card.style.background = `linear-gradient(160deg, ${TYPE_COLORS[p.type]}33, #12172B)`;

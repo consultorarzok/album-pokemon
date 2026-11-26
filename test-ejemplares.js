@@ -67,13 +67,13 @@ const SHOTS = process.env.SHOTS || '';
     const sq = await p.evaluate(() => ({got:state[20].got, ej:ejemplares(20).map(e => e.f)}));
     check('el canjeado llega con su fuerza (93)', sq.got && sq.ej.length === 1 && sq.ej[0] === 93);
     const rv = await p.textContent('#revealCards').catch(() => '');
-    check('la carta del canje muestra la fuerza', rv.includes('💪 93'));
+    check('la carta del canje muestra la fuerza', rv.includes('NV 93'));
     if(SHOTS && await p.isVisible('#overlay')) await p.locator('#revealCards').screenshot({path:`${SHOTS}/reveal-${w}.png`});
 
     await p.evaluate(() => document.querySelectorAll('.overlay.show, .special-overlay.show').forEach(o => o.classList.remove('show')));
     await p.evaluate(() => document.getElementById('battleBtn').click()); await p.waitForSelector('.ar-sel');
     const sel = await p.$$eval('.ar-sel', bs => bs.map(b => b.textContent.replace(/\s+/g, ' ')));
-    check('al elegir equipo se ve la fuerza de tu mejor ejemplar (Charmander 💪95)', sel.some(t => t.includes('Charmander') && t.includes('💪95')));
+    check('al elegir equipo se ve la fuerza de tu mejor ejemplar (Charmander NV 95)', sel.some(t => t.includes('Charmander') && t.includes('NV 95')));
     if(SHOTS) await p.screenshot({path:`${SHOTS}/pick-fuerza-${w}.png`});
     const canje = await p.evaluate(() => { state[1].dup = 3; ejemplares(1); state[1].ej[0].f = 99; state[1].dup = 1; return ejemplares(1).map(e => e.f); });
     check('si se canjean repetidas se pierden las más débiles', canje.length === 2 && canje.includes(99));
